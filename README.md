@@ -1,4 +1,4 @@
-# Competitive Programming Solutions
+# Programming Solutions
 
 This repository contains my solutions to various programming
 challenges and implementations of popular algorithms and data
