@@ -14,7 +14,7 @@ showcase my learning journey.
   [Codeforces](https://codeforces.com), ranging from simple to
   complex. These problems have helped me enhance my problem-solving
   skills across different difficulty levels. An important principle
-  for me in the process was and remains consistency; I have tried
+  for me in the process was and remains regularity; I have tried
   to maintain a routine of daily practice over the long term.
   ![image](https://github.com/user-attachments/assets/8f737af2-2cc4-48e4-a3ff-d438cc05d461)
 
