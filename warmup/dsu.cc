@@ -62,6 +62,9 @@ bool DisjointSetUnion::Connected(int a, int b) {
 }
 
 void DisjointSetUnion::Unite(int a, int b) {
+  if (Connected(a, b)) {
+    return;
+  }
   auto p_a = find_parent(a);
   auto p_b = find_parent(b);
   if (rank[p_a] < rank[p_b]) {
@@ -74,6 +77,7 @@ void DisjointSetUnion::Unite(int a, int b) {
   }
 }
 
+// TODO: Tests cases to bats file.
 int main(int argc, char *argv[]) {
   auto dsu = DisjointSetUnion(10);
 

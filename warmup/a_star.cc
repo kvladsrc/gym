@@ -28,7 +28,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-typedef vector<vector<char>> Maze;
+using Maze = vector<vector<char>>;
 
 struct cell {
   int x, y;

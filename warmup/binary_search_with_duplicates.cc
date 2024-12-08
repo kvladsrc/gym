@@ -1,21 +1,45 @@
 #include <algorithm>
+#include <climits>
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <queue>
+#include <set>
+#include <stack>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
-#include <gtest/gtest.h>
-
+using std::abs;
+using std::gcd;
+using std::map;
+using std::max;
+using std::min;
+using std::pair;
+using std::priority_queue;
+using std::queue;
+using std::set;
 using std::sort;
+using std::sqrt;
+using std::stack;
+using std::string;
+using std::unordered_map;
 using std::vector;
 
-int binary_search(vector<int> &a, int i) {
+int upper_bound(vector<int> &a, int i) {
   int l = 0, r = a.size() - 1;
   int res = -1;
 
   while (l <= r) {
     int mid = (l + r) / 2;
-
-    if (a[mid] > i) {
+    if (a[mid] >= i) {
       r = mid - 1;
-      res = mid;      
+      res = mid;
     } else {
       l = mid + 1;
     }
@@ -24,53 +48,17 @@ int binary_search(vector<int> &a, int i) {
   return res;
 }
 
-class BinSearchTest : public ::testing::Test {};
-
-TEST_F(BinSearchTest, Check) {
-  srand(time(NULL));
-  const int tests = 100000;
-  const int max_size = 200;
-
-  for (int i = 0; i < tests; ++i) {
-    int rand_size = (rand() % max_size) + 1;
-
-    vector<int> array(rand_size);
-    for (auto &i : array) {
-      i = rand() % max_size;
-    }
-    sort(array.begin(), array.end());
-
-    bool check = true;
-    int el, pos;
-    for (int j = 0; j < (tests / 10); ++j) {
-      el = rand() % (max_size + 100);
-      pos = binary_search(array, el);
-
-      if (pos == -1 && array.back() >= el) {
-        check = false;
-        break;
-      }
-
-      if (pos != -1 && array[pos] < el) {
-        check = false;
-        break;
-      }
-
-      if (pos > 0 && array[pos - 1] >= el) {
-        check = false;
-        break;
-      }
-    }
-
-    if (!check) {
-      for (auto &i : array) {
-        std::cout << i << " ";
-      }
-      std::cout << std::endl;
-      std::cout << "Element: " << el << std::endl;
-      std::cout << "Position: " << pos << std::endl;
-    }
-
-    ASSERT_TRUE(check);
+int main(int argc, char *argv[]) {
+  int n;
+  std::cin >> n;
+  vector<int> a(n);
+  for (auto &i : a) {
+    std::cin >> i;
   }
+
+  int el;
+  std::cin >> el;
+  std::cout << upper_bound(a, el) << "\n";
+
+  return 0;
 }

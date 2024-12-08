@@ -19,6 +19,30 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
+// Over-over complicated solution. Here is the simplest one:
+//
+// string s;
+// std::cin >> s;
+//
+// vector<int> pref_sum(s.size() + 1);
+// pref_sum.front() = 0;
+// for (size_t idx = 0; (idx + 1) < s.size(); ++idx) {
+//   pref_sum[idx + 1] = pref_sum[idx];
+//   if (s[idx] == s[idx + 1]) {
+//     pref_sum[idx + 1]++;
+//   }
+// }
+//
+// pref_sum.back() = pref_sum[s.size() - 1];
+// int m;
+// std::cin >> m;
+// while (m--) {
+//   int l, r;
+//   std::cin >> l >> r;
+//
+//   std::cout << pref_sum[r - 1] - pref_sum[l - 1] << "\n";
+// }
+
 struct Node {
   int num;
   Node *left, *right;
@@ -38,7 +62,8 @@ void build(Node *root, int l, int r, string &in) {
   build(root->right, mid + 1, r, in);
 
   root->num = root->left->num + root->right->num;
-  if (in[mid] == in[mid + 1]) root->num++;
+  if (in[mid] == in[mid + 1])
+    root->num++;
 }
 
 int query(Node *root, int l, int r, int cur_l, int cur_r, string &in) {
@@ -55,7 +80,8 @@ int query(Node *root, int l, int r, int cur_l, int cur_r, string &in) {
   res += query(root->left, l, r, cur_l, mid, in);
   res += query(root->right, l, r, mid + 1, cur_r, in);
   if (l <= mid && r >= mid + 1) {
-    if (in[mid] == in[mid + 1]) res++;
+    if (in[mid] == in[mid + 1])
+      res++;
   }
   return res;
 }

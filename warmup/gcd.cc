@@ -32,7 +32,7 @@ using std::vector;
 
 int gcd(int a, int b) {
   if (a % b == 0) {
-    return b;
+    return abs(b);
   }
 
   return gcd(b, a % b);
