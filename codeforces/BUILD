@@ -199,6 +199,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "matching_numbers",
+    srcs = ["matching_numbers.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "stone_game",
     srcs = ["stone_game.cc"],
     copts = [
@@ -523,6 +532,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "polo_the_penguin_and_matrix",
+    srcs = ["polo_the_penguin_and_matrix.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "berland_poker",
     srcs = ["berland_poker.cc"],
     copts = [
@@ -802,6 +820,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "celex_update",
+    srcs = ["celex_update.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "erasing_zeroes",
     srcs = ["erasing_zeroes.cc"],
     copts = [
@@ -813,6 +840,15 @@ cc_binary(
 cc_binary(
     name = "hamburgers",
     srcs = ["hamburgers.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "constanze_s_machine",
+    srcs = ["constanze_s_machine.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -1666,6 +1702,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "box_fitting",
+    srcs = ["box_fitting.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "spy_detected",
     srcs = ["spy_detected.cc"],
     copts = [
@@ -2305,6 +2350,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "caesar_s_legions",
+    srcs = ["caesar_s_legions.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "petya_and_strings",
     srcs = ["petya_and_strings.cc"],
     copts = [
@@ -2629,6 +2683,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "k_lcm_hard_version",
+    srcs = ["k_lcm_hard_version.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "k_th_divisor",
     srcs = ["k_th_divisor.cc"],
     copts = [
@@ -2712,6 +2775,15 @@ cc_binary(
 cc_binary(
     name = "ultra_fast_mathematician",
     srcs = ["ultra_fast_mathematician.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "pokemon_army_easy_version",
+    srcs = ["pokemon_army_easy_version.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3664,6 +3736,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "composite_coloring",
+    srcs = ["composite_coloring.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "taxi",
     srcs = ["taxi.cc"],
     copts = [
@@ -3970,6 +4051,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "soldier_and_cards",
+    srcs = ["soldier_and_cards.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "mashmokh_and_acm",
     srcs = ["mashmokh_and_acm.cc"],
     copts = [
@@ -4062,6 +4152,15 @@ cc_binary(
 cc_binary(
     name = "favorite_sequence",
     srcs = ["favorite_sequence.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "canine_poetry",
+    srcs = ["canine_poetry.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -4528,6 +4627,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "make_it_alternating",
+    srcs = ["make_it_alternating.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "basketball_exercise",
     srcs = ["basketball_exercise.cc"],
     copts = [
@@ -4548,6 +4656,15 @@ cc_binary(
 cc_binary(
     name = "same_parity_summands",
     srcs = ["same_parity_summands.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "solve_the_maze",
+    srcs = ["solve_the_maze.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -4755,6 +4872,15 @@ cc_binary(
 cc_binary(
     name = "inhabitant_of_the_deep_sea",
     srcs = ["inhabitant_of_the_deep_sea.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "divide_and_equalize",
+    srcs = ["divide_and_equalize.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -5151,6 +5277,15 @@ cc_binary(
 cc_binary(
     name = "1d_eraser",
     srcs = ["1d_eraser.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "good_array",
+    srcs = ["good_array.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

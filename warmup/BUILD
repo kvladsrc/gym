@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_binary(
     name = "divide",
@@ -7,7 +7,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -17,7 +16,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -27,7 +25,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -37,7 +34,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -47,7 +43,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -57,7 +52,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -67,7 +61,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -77,7 +70,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -87,7 +79,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -97,7 +88,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -107,7 +97,15 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
+)
+
+cc_binary(
+    name = "graph_heuristic_painting",
+    srcs = ["graph_heuristic_painting.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
 )
 
 cc_binary(
@@ -117,7 +115,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -127,7 +124,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -137,7 +133,15 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
+)
+
+cc_binary(
+    name = "lcm",
+    srcs = ["lcm.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
 )
 
 cc_binary(
@@ -147,7 +151,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -157,7 +160,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -167,7 +169,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -177,7 +178,15 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
+)
+
+cc_binary(
+    name = "maximal_subarray_sum",
+    srcs = ["maximal_subarray_sum.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
 )
 
 cc_binary(
@@ -187,7 +196,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -197,7 +205,42 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
+)
+
+cc_binary(
+    name = "bfs",
+    srcs = ["bfs.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "partial_sum_tree",
+    srcs = ["partial_sum_tree.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "ll_reverse",
+    srcs = ["ll_reverse.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "dfs",
+    srcs = ["dfs.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
 )
 
 cc_binary(
@@ -207,7 +250,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -217,7 +259,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -227,7 +268,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -237,7 +277,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -247,7 +286,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -257,7 +295,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -267,7 +304,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -277,7 +313,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -287,7 +322,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -297,7 +331,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -307,7 +340,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -317,7 +349,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -327,7 +358,6 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
 
 cc_binary(
@@ -337,5 +367,4 @@ cc_binary(
         "-Werror",
         "-std=c++17",
     ],
-    deps = []
 )
