@@ -59,6 +59,10 @@ int partial(vector<int> &a, int l, int r) {
 }
 
 void print(vector<int> &a) {
+  if (a.empty()) {
+    return;
+  }
+
   for (auto i : a) {
     std::cout << i << " ";
   }

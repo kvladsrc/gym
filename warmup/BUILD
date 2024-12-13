@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_binary(
     name = "divide",
@@ -199,8 +198,26 @@ cc_binary(
 )
 
 cc_binary(
+    name = "median_of_stream",
+    srcs = ["median_of_stream.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "permutations",
     srcs = ["permutations.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "gorner",
+    srcs = ["gorner.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -228,6 +245,15 @@ cc_binary(
 cc_binary(
     name = "ll_reverse",
     srcs = ["ll_reverse.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "partial",
+    srcs = ["partial.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -345,6 +371,15 @@ cc_binary(
 cc_binary(
     name = "multiply",
     srcs = ["multiply.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "jenkins_hash",
+    srcs = ["jenkins_hash.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

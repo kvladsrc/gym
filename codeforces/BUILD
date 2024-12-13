@@ -1,4 +1,3 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_binary(
     name = "theatre_square",
@@ -514,6 +513,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "binary_string_reconstruction_f",
+    srcs = ["binary_string_reconstruction_f.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "grasshopper_on_a_line",
     srcs = ["grasshopper_on_a_line.cc"],
     copts = [
@@ -694,6 +702,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "schedule_management",
+    srcs = ["schedule_management.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "recovering_a_small_string",
     srcs = ["recovering_a_small_string.cc"],
     copts = [
@@ -804,6 +821,15 @@ cc_binary(
 cc_binary(
     name = "rudolph_and_cut_the_rope",
     srcs = ["rudolph_and_cut_the_rope.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "binary_string_reconstruction",
+    srcs = ["binary_string_reconstruction.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -1434,6 +1460,15 @@ cc_binary(
 cc_binary(
     name = "mocha_and_math",
     srcs = ["mocha_and_math.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "orac_and_lcm",
+    srcs = ["orac_and_lcm.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -2082,6 +2117,15 @@ cc_binary(
 cc_binary(
     name = "vus_the_cossack_and_a_contest",
     srcs = ["vus_the_cossack_and_a_contest.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "rudolf_and_snowflakes_simple_version_",
+    srcs = ["rudolf_and_snowflakes_simple_version_.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3297,6 +3341,15 @@ cc_binary(
 cc_binary(
     name = "new_year_transportation",
     srcs = ["new_year_transportation.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "ice_cream_balls",
+    srcs = ["ice_cream_balls.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
