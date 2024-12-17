@@ -1989,6 +1989,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "road_construction",
+    srcs = ["road_construction.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "squares_and_cubes",
     srcs = ["squares_and_cubes.cc"],
     copts = [
@@ -2736,6 +2745,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "phoenix_and_towers",
+    srcs = ["phoenix_and_towers.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "k_th_divisor",
     srcs = ["k_th_divisor.cc"],
     copts = [
@@ -2801,6 +2819,15 @@ cc_binary(
 cc_binary(
     name = "party",
     srcs = ["party.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "slay_the_dragon",
+    srcs = ["slay_the_dragon.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -5789,6 +5816,15 @@ cc_binary(
 cc_binary(
     name = "codeforces_checking",
     srcs = ["codeforces_checking.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "longest_strike",
+    srcs = ["longest_strike.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

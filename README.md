@@ -20,12 +20,25 @@ showcase my learning journey.
 
 
 - **warmup**: Raw implementations of various popular algorithms and data structures, such as:
-  - Shortest path algorithms (e.g., Dijkstra's algorithm, A*, Floyd-Warshall, Ford-Bellman);
+  - Shortest path algorithms (e.g., Dijkstra's algorithm, A*,
+    Floyd-Warshall, Bellman-Ford);
   - Knuth-Morris-Pratt (KMP) and Boyer-Moore string-search algorithms;
   - Binary heap;
   - Disjoint Set Union (DSU);
-  - Longest Common Subsequence (LCS);
-  - Heap's algorithm for generating permutations;
+  - Longest Common Subsequence (LCS), Longest Increasing Subsequence
+    (LIS), and Edit Distance;
+  - Binary search;
+  - Quick sort, merge sort, counting sort, bubble sort, and
+    nth-element;
+  - Two-heaps algorithm (median of a stream);
+  - Kadane's algorithm (maximum sum subarray);
+  - Kruskal's algorithm (minimum spanning tree), Kosaraju's algorithm
+    (strongly connected components), DFS & BFS, and graph heuristic
+    coloring;
+  - Fenwick tree (also known as a binary indexed tree) for partial
+    sums;
+  - GCD and LCM algorithms;
+  - Heap's algorithm for generating permutations.
 
 ## Purpose
 
