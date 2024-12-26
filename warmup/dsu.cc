@@ -1,46 +1,23 @@
-#include <algorithm>
-#include <climits>
-#include <cmath>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <memory>
-#include <numeric>
-#include <pthread.h>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-using std::abs;
-using std::gcd;
-using std::max;
-using std::min;
-using std::pair;
-using std::priority_queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
 const int default_size = 100;
 
 class DisjointSetUnion {
-public:
+ public:
   DisjointSetUnion() : DisjointSetUnion(default_size) {}
-  DisjointSetUnion(int);
-  bool Connected(int, int);
-  void Unite(int, int);
+  explicit DisjointSetUnion(int /*size*/);
+  bool Connected(int /*a*/, int /*b*/);
+  void Unite(int /*a*/, int /*b*/);
 
-private:
+ private:
   vector<int> parent;
   vector<int> rank;
-  int find_parent(int);
+  int find_parent(int /*i*/);
 };
 
 DisjointSetUnion::DisjointSetUnion(int size) {
@@ -52,8 +29,9 @@ DisjointSetUnion::DisjointSetUnion(int size) {
 }
 
 int DisjointSetUnion::find_parent(int i) {
-  if (parent[i] == i)
+  if (parent[i] == i) {
     return i;
+  }
   return find_parent(parent[i]);
 }
 
@@ -77,8 +55,8 @@ void DisjointSetUnion::Unite(int a, int b) {
   }
 }
 
-// TODO: Tests cases to bats file.
-int main(int argc, char *argv[]) {
+// TODO(zjgkkn): Tests cases to bats file.
+int main(int /*argc*/, char* /*argv*/[]) {
   auto dsu = DisjointSetUnion(10);
 
   if (dsu.Connected(1, 2)) {

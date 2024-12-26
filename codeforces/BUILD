@@ -1107,6 +1107,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "powers_of_two",
+    srcs = ["powers_of_two.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "equalize_prices_again",
     srcs = ["equalize_prices_again.cc"],
     copts = [
@@ -1298,6 +1307,15 @@ cc_binary(
 cc_binary(
     name = "just_eat_it",
     srcs = ["just_eat_it.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "palindromes_coloring",
+    srcs = ["palindromes_coloring.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -2135,6 +2153,15 @@ cc_binary(
 cc_binary(
     name = "rudolf_and_snowflakes_simple_version_",
     srcs = ["rudolf_and_snowflakes_simple_version_.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "magnitude_easy_version_",
+    srcs = ["magnitude_easy_version_.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3870,6 +3897,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "dominant_character",
+    srcs = ["dominant_character.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "new_years_number",
     srcs = ["new_years_number.cc"],
     copts = [
@@ -4178,6 +4214,15 @@ cc_binary(
 cc_binary(
     name = "restoring_three_numbers",
     srcs = ["restoring_three_numbers.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "big_vova",
+    srcs = ["big_vova.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -4583,6 +4628,15 @@ cc_binary(
 cc_binary(
     name = "maximize",
     srcs = ["maximize.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "add_modulo_10",
+    srcs = ["add_modulo_10.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -5274,6 +5328,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "arrow_path",
+    srcs = ["arrow_path.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "magic_powder_1",
     srcs = ["magic_powder_1.cc"],
     copts = [
@@ -5402,6 +5465,15 @@ cc_binary(
 cc_binary(
     name = "board_moves",
     srcs = ["board_moves.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "berland_regional",
+    srcs = ["berland_regional.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -5825,6 +5897,15 @@ cc_binary(
 cc_binary(
     name = "longest_strike",
     srcs = ["longest_strike.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "journey",
+    srcs = ["journey.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

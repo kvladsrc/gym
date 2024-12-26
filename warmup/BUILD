@@ -1,4 +1,3 @@
-
 cc_binary(
     name = "divide",
     srcs = ["divide.cc"],
@@ -29,6 +28,15 @@ cc_binary(
 cc_binary(
     name = "strongly_connected_components",
     srcs = ["strongly_connected_components.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "binary_tree",
+    srcs = ["binary_tree.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

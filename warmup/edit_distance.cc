@@ -1,35 +1,15 @@
 #include <algorithm>
-#include <climits>
-#include <cmath>
 #include <cstddef>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <memory>
-#include <numeric>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-using std::abs;
-using std::gcd;
-using std::max;
 using std::min;
-using std::pair;
-using std::priority_queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
 // Minimal number of changes to get string b from a.
-int edit_distance(string &a, string &b) {
+static int edit_distance(string &a, string &b) {
   // Let x = LCS(a, b), then we need to add len(b) - len(x) and remove
   // len(a) - len(x) some chars. That is not optimal, because we can
   // reduce amount of operations by replacing some characters.
@@ -56,18 +36,19 @@ int edit_distance(string &a, string &b) {
       // case_delete = 1 + ed(a.begin() + 1, b);
       // case_replace = 1 + ed(a.begin() + 1, b.begin() + 1);
       // case_incert = 1 + ed(a, b.begin() + 1);
-      int case_delete = 1 + dp[a_i - 1][b_i];
-      int case_replace = 1 + dp[a_i - 1][b_i - 1];
-      int case_incert = 1 + dp[a_i][b_i - 1];
-      dp[a_i][b_i] = min(case_delete, min(case_replace, case_incert));
+      int const case_delete = 1 + dp[a_i - 1][b_i];
+      int const case_replace = 1 + dp[a_i - 1][b_i - 1];
+      int const case_incert = 1 + dp[a_i][b_i - 1];
+      dp[a_i][b_i] = min({case_delete, case_replace, case_incert});
     }
   }
 
   return dp.back().back();
 }
 
-int main(int argc, char *argv[]) {
-  string a, b;
+int main(int /*argc*/, char * /*argv*/[]) {
+  string a;
+  string b;
   std::cin >> a >> b;
   std::cout << edit_distance(a, b) << "\n";
 

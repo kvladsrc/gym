@@ -1,80 +1,53 @@
-#include <algorithm>
-#include <climits>
-#include <cmath>
-#include <cstdint>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <map>
-#include <memory>
-#include <numeric>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <type_traits>
-#include <unordered_map>
-#include <vector>
 
-using std::abs;
-using std::map;
-using std::max;
-using std::min;
-using std::pair;
-using std::priority_queue;
-using std::queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
-using std::vector;
 
 struct node {
-  int val;
+  int val{};
   node *next;
   node *prev;
 
   node() : next(nullptr), prev(nullptr) {}
-  node(int aval) : node() { val = aval; }
+  explicit node(int aval) : node() { val = aval; }
 
   void reverse() {
-    auto b_next = next;
+    auto *b_next = next;
     next = prev;
     prev = b_next;
 
-    if (prev) {
+    if (prev != nullptr) {
       prev->reverse();
     }
   }
 
-  void print() {
+  void print() const {
     std::cout << val;
-    if (next) {
+    if (next != nullptr) {
       std::cout << " ";
-      return next->print();
+      next->print();
+      return;
     }
   }
 };
 
 struct ll {
-  node *head;
-  node *tail;
-  int size;
+  node *head{nullptr};
+  node *tail{nullptr};
+  int size{0};
 
-  ll() : head(nullptr), tail(nullptr), size(0) {}
+  ll() = default;
 
   ~ll() {
-    while (head) {
-      auto buf = head->next;
+    while (head != nullptr) {
+      auto *buf = head->next;
       delete head;
       head = buf;
     }
   }
 
   void append(int aval) {
-    auto n = new node(aval);
+    auto *n = new node(aval);
     if (size > 0) {
       tail->next = n;
       n->prev = tail;
@@ -97,7 +70,7 @@ struct ll {
 
     if (size > 0) {
       auto res = tail->val;
-      auto buf = tail->prev;
+      auto *buf = tail->prev;
       buf->next = nullptr;
       delete tail;
       tail = buf;
@@ -108,34 +81,34 @@ struct ll {
     return -1;
   }
 
-  void print() {
-    if (head) {
+  void print() const {
+    if (head != nullptr) {
       head->print();
       std::cout << "\n";
     }
   }
 
   void reverse() {
-    if (head) {
+    if (head != nullptr) {
       head->reverse();
-      auto buf = head;
+      auto *buf = head;
       head = tail;
       tail = buf;
     }
   }
 };
 
-int main(int argc, char *argv[]) {
+int main(int /*argc*/, char * /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
-  int n;
+  int n = 0;
   std::cin >> n;
 
   ll l;
 
-  while (n--) {
-    int buf;
+  while ((n--) != 0) {
+    int buf = 0;
     std::cin >> buf;
     l.append(buf);
   }

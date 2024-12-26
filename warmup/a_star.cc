@@ -1,31 +1,12 @@
-#include <algorithm>
-#include <climits>
-#include <cmath>
-#include <cstddef>
 #include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <memory>
-#include <numeric>
 #include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 using std::abs;
-using std::gcd;
-using std::max;
-using std::min;
-using std::pair;
 using std::priority_queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
 using Maze = vector<vector<char>>;
@@ -33,39 +14,39 @@ using Maze = vector<vector<char>>;
 struct cell {
   int x, y;
 
-  cell left() {
-    cell res;
+  cell left() const {
+    cell res{};
     res.x = x - 1;
     res.y = y;
     return res;
   }
 
-  cell right() {
-    cell res;
+  cell right() const {
+    cell res{};
     res.x = x + 1;
     res.y = y;
     return res;
   }
 
-  cell up() {
-    cell res;
+  cell up() const {
+    cell res{};
     res.x = x;
     res.y = y - 1;
     return res;
   }
 
-  cell down() {
-    cell res;
+  cell down() const {
+    cell res{};
     res.x = x;
     res.y = y + 1;
     return res;
   }
 
-  bool is_empty(Maze &);
-  bool reachable_from(Maze &, cell);
+  bool is_empty(Maze & /*maze*/) const;
+  bool reachable_from(Maze & /*maze*/, cell /*other*/) const;
 };
 
-bool cell::is_empty(Maze &maze) {
+bool cell::is_empty(Maze &maze) const {
   if (x < 0 || y < 0 || x >= static_cast<int>(maze[0].size()) ||
       y >= static_cast<int>(maze.size())) {
     return false;
@@ -73,13 +54,13 @@ bool cell::is_empty(Maze &maze) {
   return maze[y][x] == '.';
 }
 
-int dist(cell a, cell b) { return abs(a.x - b.x) + abs(a.y - b.y); }
+static int dist(cell a, cell b) { return abs(a.x - b.x) + abs(a.y - b.y); }
 
 class CompareDistance {
-private:
+ private:
   cell target;
 
-public:
+ public:
   explicit CompareDistance(const cell ref) : target(ref) {}
 
   bool operator()(const cell &p1, const cell &p2) const {
@@ -87,15 +68,15 @@ public:
   }
 };
 
-bool cell::reachable_from(Maze &maze, cell other) {
+bool cell::reachable_from(Maze &maze, cell other) const {
   if (!is_empty(maze)) {
     return false;
   }
 
-  cell cur;
+  cell cur{};
   cur.x = x;
   cur.y = y;
-  CompareDistance cf(cur);
+  CompareDistance const cf(cur);
 
   priority_queue<cell, vector<cell>, CompareDistance> a_star_heap(cf);
   a_star_heap.push(other);
@@ -122,8 +103,9 @@ bool cell::reachable_from(Maze &maze, cell other) {
   return false;
 }
 
-int main(int argc, char *argv[]) {
-  int n, m;
+int main(int /*argc*/, char * /*argv*/[]) {
+  int n = 0;
+  int m = 0;
   std::cin >> n >> m;
 
   // Filling the maze.
@@ -134,10 +116,11 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  int q;
+  int q = 0;
   std::cin >> q;
-  while (q--) {
-    cell start, end;
+  while ((q--) != 0) {
+    cell start{};
+    cell end{};
     std::cin >> start.x >> start.y >> end.x >> end.y;
     Maze tmp(maze);
     if (end.reachable_from(tmp, start)) {

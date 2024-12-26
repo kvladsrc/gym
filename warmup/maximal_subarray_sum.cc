@@ -1,38 +1,17 @@
 #include <algorithm>
 #include <climits>
-#include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <map>
-#include <memory>
-#include <numeric>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-using std::abs;
-using std::gcd;
-using std::map;
 using std::max;
 using std::min;
-using std::pair;
-using std::priority_queue;
-using std::queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
-int64_t maximal_sum_naive(vector<int> &a) {
+static int64_t maximal_sum_naive(vector<int> &a) {
   vector<int64_t> pref_sum(a.size() + 1);
   pref_sum.front() = 0;
   for (size_t idx = 0; idx < a.size(); ++idx) {
@@ -50,7 +29,7 @@ int64_t maximal_sum_naive(vector<int> &a) {
   return res;
 }
 
-int64_t maximal_sum_dp(vector<int> &a) {
+static int64_t maximal_sum_dp(vector<int> &a) {
   vector<int64_t> pref_sum(a.size() + 1);
   pref_sum.front() = 0;
   for (size_t idx = 0; idx < a.size(); ++idx) {
@@ -74,8 +53,9 @@ int64_t maximal_sum_dp(vector<int> &a) {
 }
 
 // Kadane's Algorithm <3.
-int64_t kadane(vector<int> &a) {
-  int64_t global, local;
+static int64_t kadane(vector<int> &a) {
+  int64_t global = 0;
+  int64_t local = 0;
   global = local = a.front();
   for (size_t idx = 1; idx < a.size(); ++idx) {
     auto cur_casted = static_cast<int64_t>(a[idx]);
@@ -85,8 +65,8 @@ int64_t kadane(vector<int> &a) {
   return global;
 }
 
-int main(int argc, char *argv[]) {
-  int n;
+int main(int /*argc*/, char * /*argv*/[]) {
+  int n = 0;
   std::cin >> n;
   vector<int> a(n);
   for (auto &i : a) {

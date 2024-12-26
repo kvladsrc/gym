@@ -1,36 +1,13 @@
-#include <algorithm>
-#include <climits>
-#include <cmath>
-#include <cstdint>
-#include <cstdlib>
-#include <ctime>
+#include <boost/range/algorithm/sort.hpp>
 #include <iostream>
-#include <map>
-#include <memory>
-#include <numeric>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-using std::abs;
-using std::gcd;
-using std::map;
-using std::max;
-using std::min;
 using std::pair;
-using std::priority_queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
-int find_parent(vector<int> &parent, int i) {
+static int find_parent(vector<int> &parent, int i) {
   if (parent[i] == i) {
     return i;
   }
@@ -38,7 +15,7 @@ int find_parent(vector<int> &parent, int i) {
   return find_parent(parent, parent[i]);
 }
 
-void join(int a, int b, vector<int> &parent, vector<int> &rank) {
+static void join(int a, int b, vector<int> &parent, vector<int> &rank) {
   auto p_a = find_parent(parent, a);
   auto p_b = find_parent(parent, b);
 
@@ -56,20 +33,23 @@ void join(int a, int b, vector<int> &parent, vector<int> &rank) {
   }
 }
 
-bool in_same(vector<int> &parent, int a, int b) {
+static bool in_same(vector<int> &parent, int a, int b) {
   auto p_a = find_parent(parent, a);
   auto p_b = find_parent(parent, b);
 
   return p_a == p_b;
 }
 
-typedef pair<int, pair<int, int>> edge;
+using edge = pair<int, pair<int, int>>;
 
-bool compare_pair(const edge &a, const edge &b) { return a.first < b.first; }
+static bool compare_pair(const edge &a, const edge &b) {
+  return a.first < b.first;
+}
 
 // Kruskal's algorithm on DSU. Assumes graph is connected.
-int main(int argc, char *argv[]) {
-  int v, e;
+int main(int /*argc*/, char * /*argv*/[]) {
+  int v = 0;
+  int e = 0;
   std::cin >> v >> e;
 
   // Init DSU.
@@ -80,13 +60,15 @@ int main(int argc, char *argv[]) {
   }
 
   vector<edge> edges;
-  while (e--) {
-    int a, b, d;
+  while ((e--) != 0) {
+    int a = 0;
+    int b = 0;
+    int d = 0;
     std::cin >> a >> b >> d;
     edges.push_back({d, {a, b}});
   }
 
-  sort(edges.begin(), edges.end(), compare_pair);
+  boost::range::sort(edges, compare_pair);
 
   vector<edge> mst;
   for (auto e : edges) {

@@ -1,43 +1,19 @@
-#include <algorithm>
-#include <climits>
-#include <cmath>
-#include <cstdint>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <map>
-#include <memory>
-#include <numeric>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
+#include <utility>
 #include <vector>
 
-using std::abs;
-using std::endl;
-using std::map;
-using std::max;
-using std::min;
-using std::pair;
-using std::priority_queue;
-using std::queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
-int partial(vector<int> &a) {
+static int partial(vector<int> &a) {
   if (a.empty()) {
     return -1;
   }
 
   auto pivot = a.back();
-  int l = 0, r = a.size() - 2;
+  int l = 0;
+  int r = a.size() - 2;
   while (l <= r) {
     if (a[l] < pivot) {
       l++;
@@ -54,11 +30,11 @@ int partial(vector<int> &a) {
   return l;
 }
 
-int main(int argc, char *argv[]) {
+int main(int /*argc*/, char * /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
-  int n;
+  int n = 0;
   std::cin >> n;
   vector<int> a(n);
   for (auto &i : a) {
@@ -66,11 +42,11 @@ int main(int argc, char *argv[]) {
   }
 
   auto pivot = partial(a);
-  std::cout << pivot << endl;
+  std::cout << pivot << '\n';
   for (auto i : a) {
     std::cout << i << " ";
   }
-  std::cout << endl;
+  std::cout << '\n';
 
   return 0;
 }

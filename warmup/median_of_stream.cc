@@ -1,42 +1,18 @@
-#include <algorithm>
-#include <climits>
-#include <cmath>
-#include <cstdint>
-#include <cstdlib>
-#include <ctime>
 #include <functional>
 #include <iostream>
-#include <map>
-#include <memory>
-#include <numeric>
 #include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-using std::abs;
-using std::endl;
-using std::map;
-using std::max;
-using std::min;
-using std::pair;
 using std::priority_queue;
-using std::queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
 struct median {
   priority_queue<int> max_heap;
-  priority_queue<int, vector<int>, std::greater<int>> min_heap;
-  median() : max_heap(), min_heap() {}
-  int get_median() {
+  priority_queue<int, vector<int>, std::greater<>> min_heap;
+  median() = default;
+  int get_median() const {
     if (!max_heap.empty()) {
       return max_heap.top();
     }
@@ -57,23 +33,24 @@ struct median {
     }
 
     // max_heap.size() >= min_heap.size() here.
-    while ((int(max_heap.size()) - int(min_heap.size())) > 1) {
+    while ((static_cast<int>(max_heap.size()) -
+            static_cast<int>(min_heap.size())) > 1) {
       min_heap.push(max_heap.top());
       max_heap.pop();
     }
   }
 };
 
-int main(int argc, char *argv[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
   auto m = median();
 
-  int n;
+  int n = 0;
   std::cin >> n;
   for (int i = 0; i < n; ++i) {
-    int buf;
+    int buf = 0;
     std::cin >> buf;
     m.push(buf);
   }

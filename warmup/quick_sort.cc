@@ -1,37 +1,12 @@
-#include <algorithm>
-#include <climits>
-#include <cmath>
-#include <cstdint>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <map>
-#include <memory>
-#include <numeric>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-using std::abs;
-using std::gcd;
-using std::map;
-using std::max;
-using std::min;
-using std::pair;
-using std::priority_queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
-void swap(int &a, int &b) {
-  int buf = a;
+static void swap(int &a, int &b) noexcept {
+  int const buf = a;
   a = b;
   b = buf;
 }
@@ -39,8 +14,8 @@ void swap(int &a, int &b) {
 // The partial algorithm is simplest for array with duplicates among
 // those that I saw, much easier to make a mistake on l++&r--
 // algorithm in case of duplicates.
-int partial(vector<int> &a, int l, int r) {
-  int pivot = a[r];
+static int partial(vector<int> &a, int l, int r) {
+  int const pivot = a[r];
 
   // It always increase the sep before swapping.
   int sep = l - 1;
@@ -58,7 +33,7 @@ int partial(vector<int> &a, int l, int r) {
   return sep;
 }
 
-void print(vector<int> &a) {
+static void print(vector<int> &a) {
   if (a.empty()) {
     return;
   }
@@ -69,18 +44,18 @@ void print(vector<int> &a) {
   std::cout << "\n";
 }
 
-void quick_sort(vector<int> &a, int l, int r) {
+static void quick_sort(vector<int> &a, int l, int r) {
   if (l >= r) {
     return;
   }
 
-  int pos = partial(a, l, r);
+  int const pos = partial(a, l, r);
   quick_sort(a, l, pos - 1);
   quick_sort(a, pos + 1, r);
 }
 
-int main(int argc, char *argv[]) {
-  int n;
+int main(int /*argc*/, char * /*argv*/[]) {
+  int n = 0;
   std::cin >> n;
   vector<int> a(n);
   for (auto &i : a) {

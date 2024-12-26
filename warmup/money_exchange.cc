@@ -5,9 +5,9 @@
 using std::min;
 using std::vector;
 
-#define MAX 1000000
+enum { MAX = 1000000 };
 
-int exchange(vector<int> &coins, int sum) {
+static int exchange(vector<int> &coins, int sum) {
   vector<int> dp(sum + 1, MAX);
   dp[0] = 0;
   for (int i = 1; i <= sum; ++i) {
@@ -24,7 +24,7 @@ int exchange(vector<int> &coins, int sum) {
 
 int main() {
   vector<int> coins = {1, 3, 4};
-  int sum;
+  int sum = 0;
   std::cin >> sum;
   std::cout << exchange(coins, sum) << "\n";
 }

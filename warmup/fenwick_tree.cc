@@ -1,34 +1,13 @@
 #include <algorithm>
 #include <climits>
-#include <cmath>
-#include <cstdint>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <map>
-#include <memory>
-#include <numeric>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-using std::abs;
-using std::endl;
-using std::map;
 using std::max;
 using std::min;
 using std::pair;
-using std::priority_queue;
-using std::queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
 struct node {
@@ -38,7 +17,7 @@ struct node {
   node *right;
 };
 
-pair<int, int> query(node *root, int ql, int qr, int l, int r) {
+static pair<int, int> query(node *root, int ql, int qr, int l, int r) {
   if (ql <= l && qr >= r) {
     return {root->maximal, root->minimal};
   }
@@ -54,8 +33,8 @@ pair<int, int> query(node *root, int ql, int qr, int l, int r) {
           min(left_resp.second, right_resp.second)};
 }
 
-node *build_tree(vector<int> &a, int start, int end) {
-  auto res = new node;
+static node *build_tree(vector<int> &a, int start, int end) {
+  auto *res = new node;
 
   if (start == end) {
     res->maximal = a[start];
@@ -71,11 +50,11 @@ node *build_tree(vector<int> &a, int start, int end) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int /*argc*/, char * /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
-  int n;
+  int n = 0;
   std::cin >> n;
   vector<int> a(n);
   for (auto &i : a) {
@@ -86,12 +65,13 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  auto root = build_tree(a, 0, n - 1);
+  auto *root = build_tree(a, 0, n - 1);
 
-  int m;
+  int m = 0;
   std::cin >> m;
-  while (m--) {
-    int l, r;
+  while ((m--) != 0) {
+    int l = 0;
+    int r = 0;
     std::cin >> l >> r;
     l--;
     r--;

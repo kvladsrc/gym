@@ -1,46 +1,24 @@
 #include <algorithm>
-#include <climits>
-#include <cmath>
-#include <cstdint>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <map>
-#include <memory>
-#include <numeric>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-using std::abs;
-using std::gcd;
-using std::map;
-using std::max;
-using std::min;
-using std::pair;
-using std::priority_queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
-  int n;
+int main(int /*argc*/, char* /*argv*/[]) {
+  int n = 0;
   std::cin >> n;
 
   const int inf = 1000000000;
   vector<vector<int>> graph(n, vector<int>(n, inf));
 
-  int e;
+  int e = 0;
   std::cin >> e;
-  while (e--) {
-    int a, b, d;
+  while ((e--) != 0) {
+    int a = 0;
+    int b = 0;
+    int d = 0;
     std::cin >> a >> b >> d;
     graph[a][b] = d;
   }
@@ -57,11 +35,10 @@ int main(int argc, char *argv[]) {
   for (int iter = 0; iter < n; ++iter) {
     for (int to = 1; to < n; ++to) {
       for (int by = 1; by < n; ++by) {
-        if (to == by)
+        if (to == by) {
           continue;
-        if (dists[to] > (dists[by] + graph[by][to])) {
-          dists[to] = (dists[by] + graph[by][to]);
         }
+        dists[to] = std::min(dists[to], dists[by] + graph[by][to]);
       }
     }
   }

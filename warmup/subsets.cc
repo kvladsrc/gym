@@ -7,21 +7,22 @@
 
 using std::vector;
 
-vector<vector<int>> subsets_rec(const vector<int> &a) {
+static vector<vector<int>> subsets_rec(const vector<int>& a) {
   vector<vector<int>> res;
-  if (a.size() == 0)
-    return res;
-
-  if (a.size() == 1) {
-    res.push_back({a[0]});
-    res.push_back({});
+  if (a.empty()) {
     return res;
   }
 
-  vector<int> rest(a.begin() + 1, a.end());
-  vector<vector<int>> b = subsets_rec(rest);
+  if (a.size() == 1) {
+    res.push_back({a[0]});
+    res.emplace_back();
+    return res;
+  }
 
-  for (vector<int> s : b) {
+  vector<int> const rest(a.begin() + 1, a.end());
+  vector<vector<int>> const b = subsets_rec(rest);
+
+  for (const vector<int>& s : b) {
     vector<int> with_elem(s);
     with_elem.push_back(a[0]);
     res.push_back(s);
@@ -31,15 +32,17 @@ vector<vector<int>> subsets_rec(const vector<int> &a) {
   return res;
 }
 
-int64_t fast_power(int x, int y, int modulo) {
-  if (y == 1)
+static int64_t fast_power(int x, int y, int modulo) {
+  if (y == 1) {
     return x;
-  if (y == 0)
+  }
+  if (y == 0) {
     return 1;
+  }
 
   // x^y = (x^2)^y/2
-  int64_t buf;
-  if (y % 2) {
+  int64_t buf = 0;
+  if ((y % 2) != 0) {
     buf = fast_power(x, y - 1, modulo);
     buf *= x;
   } else {
@@ -50,19 +53,20 @@ int64_t fast_power(int x, int y, int modulo) {
   return buf;
 }
 
-vector<vector<int>> subsets_enumerate(int size) {
+static vector<vector<int>> subsets_enumerate(int size) {
   const int64_t modulo = 1000000000;
 
   // Ignore the empty set.
-  int64_t res_size = fast_power(2, size, modulo) - 1;
+  int64_t const res_size = fast_power(2, size, modulo) - 1;
   vector<vector<int>> res(res_size);
 
   for (int i = 1; i <= res_size; ++i) {
     vector<int> elem;
-    int i_cpy = i, pos = 1;
+    int i_cpy = i;
+    int pos = 1;
 
-    while (i_cpy) {
-      if (i_cpy % 2) {
+    while (i_cpy != 0) {
+      if ((i_cpy % 2) != 0) {
         elem.push_back(pos);
       }
       pos++;
@@ -75,7 +79,7 @@ vector<vector<int>> subsets_enumerate(int size) {
 }
 
 int main() {
-  int n;
+  int n = 0;
   std::cin >> n;
 
   auto start_enum = std::chrono::high_resolution_clock::now();

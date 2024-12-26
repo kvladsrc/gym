@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -18,7 +19,7 @@ using std::vector;
 //
 // - Every prefix&suffix of X exists in set l(X), l(l(X)),
 //   l(...(l(X))). The opposite contradicts the definition.
-vector<size_t> patt_prefs(const string &patt) {
+static vector<size_t> patt_prefs(const string &patt) {
   vector<size_t> l(patt.size());
   l.front() = 0;
 
@@ -38,16 +39,16 @@ vector<size_t> patt_prefs(const string &patt) {
   return l;
 }
 
-bool kmp(const string &s, const string &patt) {
+static bool kmp(const string &s, const string &patt) {
   auto pref = patt_prefs(patt);
   size_t len = 0;
 
-  for (size_t idx = 0; idx < s.size(); ++idx) {
-    while (patt[len] != s[idx] && (len > 0)) {
+  for (char const idx : s) {
+    while (patt[len] != idx && (len > 0)) {
       len = pref[len];
     }
 
-    if (patt[len] == s[idx]) {
+    if (patt[len] == idx) {
       len++;
     } else {
       len = 0;
@@ -61,8 +62,9 @@ bool kmp(const string &s, const string &patt) {
   return false;
 }
 
-int main(int argc, char *argv[]) {
-  string s, patt;
+int main(int /*argc*/, char * /*argv*/[]) {
+  string s;
+  string patt;
   std::cin >> patt >> s;
   if (kmp(s, patt)) {
     std::cout << "FOUND" << "\n";

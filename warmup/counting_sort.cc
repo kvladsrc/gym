@@ -1,40 +1,18 @@
 #include <algorithm>
-#include <climits>
-#include <cmath>
+#include <boost/range/algorithm/sort.hpp>
 #include <cstddef>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
-#include <memory>
-#include <numeric>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-using std::abs;
-using std::gcd;
-using std::max;
-using std::min;
-using std::pair;
-using std::priority_queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
 using std::string;
-using std::unordered_map;
 using std::vector;
 
-void couting_sort(vector<int> &v) {
+static void couting_sort(vector<int> &v) {
   int max_val = 0;
 
   for (auto i : v) {
-    if (i > max_val) {
-      max_val = i;
-    }
+    max_val = std::max(i, max_val);
 
     if (i < 0) {
       return;
@@ -48,25 +26,25 @@ void couting_sort(vector<int> &v) {
 
   v.clear();
   for (size_t i = 1; i < table.size(); ++i) {
-    while (table[i]) {
+    while (table[i] != 0) {
       v.push_back(i);
       table[i]--;
     }
   }
 }
 
-int main(int argc, char *argv[]) {
-  int n;
+int main(int /*argc*/, char * /*argv*/[]) {
+  int n = 0;
   std::cin >> n;
   vector<int> a(n);
   vector<int> b(n);
   for (int i = 0; i < n; ++i) {
-    int buf;
+    int buf = 0;
     std::cin >> buf;
     a[i] = b[i] = buf;
   }
 
-  sort(a.begin(), a.end());
+  boost::range::sort(a);
   couting_sort(b);
 
   for (int i = 0; i < n; ++i) {
