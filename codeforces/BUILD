@@ -540,6 +540,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "co_growing_sequence",
+    srcs = ["co_growing_sequence.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "polo_the_penguin_and_matrix",
     srcs = ["polo_the_penguin_and_matrix.cc"],
     copts = [
@@ -758,6 +767,15 @@ cc_binary(
 cc_binary(
     name = "potions_easy_version",
     srcs = ["potions_easy_version.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "magnitude_easy_version",
+    srcs = ["magnitude_easy_version.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -1512,6 +1530,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "social_network_hard_version",
+    srcs = ["social_network_hard_version.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "delete_two_elements",
     srcs = ["delete_two_elements.cc"],
     copts = [
@@ -1694,6 +1721,15 @@ cc_binary(
 cc_binary(
     name = "repeating_cipher",
     srcs = ["repeating_cipher.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "increasing_sequence_with_fixed_or",
+    srcs = ["increasing_sequence_with_fixed_or.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -2160,15 +2196,6 @@ cc_binary(
 )
 
 cc_binary(
-    name = "magnitude_easy_version_",
-    srcs = ["magnitude_easy_version_.cc"],
-    copts = [
-        "-Werror",
-        "-std=c++17",
-    ],
-)
-
-cc_binary(
     name = "queue",
     srcs = ["queue.cc"],
     copts = [
@@ -2495,6 +2522,15 @@ cc_binary(
 cc_binary(
     name = "rotation_matching",
     srcs = ["rotation_matching.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "blue_red_permutation",
+    srcs = ["blue_red_permutation.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3674,6 +3710,15 @@ cc_binary(
 cc_binary(
     name = "multiply_by_2_divide_by_6",
     srcs = ["multiply_by_2_divide_by_6.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "fortune_telling",
+    srcs = ["fortune_telling.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -5562,6 +5607,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "array_walk",
+    srcs = ["array_walk.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "flipping_game",
     srcs = ["flipping_game.cc"],
     copts = [
@@ -5852,6 +5906,15 @@ cc_binary(
 cc_binary(
     name = "regular_bracket_sequence",
     srcs = ["regular_bracket_sequence.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "books_exchange_hard_version",
+    srcs = ["books_exchange_hard_version.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
