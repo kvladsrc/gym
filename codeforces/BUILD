@@ -144,6 +144,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "k_complete_word",
+    srcs = ["k_complete_word.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "dubstep",
     srcs = ["dubstep.cc"],
     copts = [
