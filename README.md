@@ -16,7 +16,7 @@ showcase my learning journey.
   skills across different difficulty levels. An important principle
   for me in the process was and remains regularity; I have tried
   to maintain a routine of daily practice over the long term.
-  ![image](https://github.com/user-attachments/assets/9ddab33d-da08-4c13-b3de-a1fe37a19311)
+  ![image](https://github.com/user-attachments/assets/2586e2e6-d5e9-4bc6-bb10-76daca14f4bd)
 
 - **warmup**: Raw implementations of various popular algorithms and data structures, such as:
   - Shortest path algorithms (e.g., Dijkstra's algorithm, A*,
