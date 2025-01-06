@@ -72,6 +72,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "remove_one_element",
+    srcs = ["remove_one_element.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "division",
     srcs = ["division.cc"],
     copts = [
@@ -4214,6 +4223,15 @@ cc_binary(
 cc_binary(
     name = "word_game",
     srcs = ["word_game.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "add_to_neighbour_and_remove",
+    srcs = ["add_to_neighbour_and_remove.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
