@@ -387,6 +387,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "di_visible_confusion",
+    srcs = ["di_visible_confusion.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "raising_bacteria",
     srcs = ["raising_bacteria.cc"],
     copts = [
@@ -5166,6 +5175,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "bear_and_poker",
+    srcs = ["bear_and_poker.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "floor_number",
     srcs = ["floor_number.cc"],
     copts = [
@@ -5463,6 +5481,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "adding_powers",
+    srcs = ["adding_powers.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "strange_birthday_party",
     srcs = ["strange_birthday_party.cc"],
     copts = [
@@ -5652,6 +5679,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "circle_of_monsters",
+    srcs = ["circle_of_monsters.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "equal_candies",
     srcs = ["equal_candies.cc"],
     copts = [
@@ -5825,6 +5861,15 @@ cc_binary(
 cc_binary(
     name = "vacations",
     srcs = ["vacations.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "journey_planning",
+    srcs = ["journey_planning.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
