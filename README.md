@@ -15,9 +15,9 @@ showcase my learning journey.
   complex. These problems have helped me enhance my problem-solving
   skills across different difficulty levels. An important principle
   for me in the process was and remains regularity; I have tried
-  to maintain a routine of daily practice over the long term.
-  ![image](https://github.com/user-attachments/assets/e68fc547-bb66-4dae-80aa-67e38ca2fdbb)
-
+  to maintain a routine of daily practice over the long term gradually
+  increasing the lower limit of complexity
+  
 - **warmup**: Raw implementations of various popular algorithms and data structures, such as:
   - Shortest path algorithms (e.g., Dijkstra's algorithm, A*,
     Floyd-Warshall, Bellman-Ford);
