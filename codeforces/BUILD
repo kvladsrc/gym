@@ -4320,6 +4320,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "fox_and_names",
+    srcs = ["fox_and_names.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "patrick_and_shopping",
     srcs = ["patrick_and_shopping.cc"],
     copts = [
