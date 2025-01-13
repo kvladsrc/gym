@@ -3357,6 +3357,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "almost_all_divisors",
+    srcs = ["almost_all_divisors.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "lecture_sleep",
     srcs = ["lecture_sleep.cc"],
     copts = [
