@@ -3915,6 +3915,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "maximum_sum_on_even_positions",
+    srcs = ["maximum_sum_on_even_positions.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "construct_a_rectangle",
     srcs = ["construct_a_rectangle.cc"],
     copts = [
