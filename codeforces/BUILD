@@ -558,6 +558,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "hilbert_s_hotel",
+    srcs = ["hilbert_s_hotel.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "dreamoon_and_wifi",
     srcs = ["dreamoon_and_wifi.cc"],
     copts = [
