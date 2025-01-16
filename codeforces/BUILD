@@ -3951,6 +3951,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "multiples_of_length",
+    srcs = ["multiples_of_length.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "composite_coloring",
     srcs = ["composite_coloring.cc"],
     copts = [
