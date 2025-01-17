@@ -5112,6 +5112,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "distinct_characters_queries",
+    srcs = ["distinct_characters_queries.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "candies_and_two_sisters",
     srcs = ["candies_and_two_sisters.cc"],
     copts = [
