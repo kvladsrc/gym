@@ -594,6 +594,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "product_1_modulo_n",
+    srcs = ["product_1_modulo_n.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "berland_poker",
     srcs = ["berland_poker.cc"],
     copts = [
@@ -2630,6 +2639,15 @@ cc_binary(
 cc_binary(
     name = "food_for_animals",
     srcs = ["food_for_animals.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "distance_in_tree",
+    srcs = ["distance_in_tree.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -4797,6 +4815,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "maximum_sum_of_products",
+    srcs = ["maximum_sum_of_products.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "puzzles",
     srcs = ["puzzles.cc"],
     copts = [
@@ -5717,6 +5744,15 @@ cc_binary(
 cc_binary(
     name = "cypher",
     srcs = ["cypher.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "contrast_value",
+    srcs = ["contrast_value.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
