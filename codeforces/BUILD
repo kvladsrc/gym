@@ -576,6 +576,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "parsa_s_humongous_tree",
+    srcs = ["parsa_s_humongous_tree.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "co_growing_sequence",
     srcs = ["co_growing_sequence.cc"],
     copts = [
