@@ -9,6 +9,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "kuroni_and_impossible_calculation",
+    srcs = ["kuroni_and_impossible_calculation.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "plus_and_multiply",
     srcs = ["plus_and_multiply.cc"],
     copts = [
@@ -891,6 +900,24 @@ cc_binary(
 )
 
 cc_binary(
+    name = "make_them_equal",
+    srcs = ["make_them_equal.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "george_and_job",
+    srcs = ["george_and_job.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "rudolph_and_cut_the_rope",
     srcs = ["rudolph_and_cut_the_rope.cc"],
     copts = [
@@ -1406,6 +1433,15 @@ cc_binary(
 cc_binary(
     name = "tram",
     srcs = ["tram.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "valid_bfs",
+    srcs = ["valid_bfs.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3917,6 +3953,15 @@ cc_binary(
 cc_binary(
     name = "bachgold_problem",
     srcs = ["bachgold_problem.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = ".#kuroni_and_impossible_calculation",
+    srcs = [".#kuroni_and_impossible_calculation.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
