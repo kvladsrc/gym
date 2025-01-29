@@ -1422,6 +1422,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "strange_function",
+    srcs = ["strange_function.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "most_socially_distanced_subsequence",
     srcs = ["most_socially_distanced_subsequence.cc"],
     copts = [
@@ -2225,6 +2234,15 @@ cc_binary(
 cc_binary(
     name = "make_it_good",
     srcs = ["make_it_good.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "phoenix_and_distribution",
+    srcs = ["phoenix_and_distribution.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3177,6 +3195,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "greg_and_graph",
+    srcs = ["greg_and_graph.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "linear_keyboard",
     srcs = ["linear_keyboard.cc"],
     copts = [
@@ -3953,15 +3980,6 @@ cc_binary(
 cc_binary(
     name = "bachgold_problem",
     srcs = ["bachgold_problem.cc"],
-    copts = [
-        "-Werror",
-        "-std=c++17",
-    ],
-)
-
-cc_binary(
-    name = ".#kuroni_and_impossible_calculation",
-    srcs = [".#kuroni_and_impossible_calculation.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
