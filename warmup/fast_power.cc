@@ -8,6 +8,7 @@ static int64_t fast_power(int x, int y, int modulo) {
   if (y == 1) {
     return x;
   }
+
   if (y == 0) {
     return 1;
   }

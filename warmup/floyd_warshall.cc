@@ -1,17 +1,25 @@
 #include <algorithm>
+#include <climits>
+#include <cmath>
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <vector>
 
+using std::min;
 using std::string;
 using std::vector;
 
+using adj_matrix = vector<vector<int>>;
+
 int main(int /*argc*/, char* /*argv*/[]) {
-  int n = 0;
+  size_t n = 0;
   std::cin >> n;
 
-  const int inf = 1000000000;
-  vector<vector<int>> graph(n, vector<int>(n, inf));
+  adj_matrix dists(n, vector<int>(n, INT_MAX));
+  for (size_t a = 0; a < n; ++a) {
+    dists[a][a] = 0;
+  }
 
   int e = 0;
   std::cin >> e;
@@ -20,33 +28,31 @@ int main(int /*argc*/, char* /*argv*/[]) {
     int b = 0;
     int d = 0;
     std::cin >> a >> b >> d;
-    graph[a][b] = d;
+    dists[a][b] = d;
   }
 
-  // Init by copying graph.
-  vector<vector<int>> dists(graph);
-
   // Searching for a shortests pathes between any two verticies.
-  for (int iter = 0; iter < n; ++iter) {
-    for (int from = 0; from < n; ++from) {
-      for (int to = 0; to < n; ++to) {
-        if (to == from) {
-          continue;
-        }
-        for (int by = 0; by < n; ++by) {
-          if (by == to || by == from) {
-            continue;
-          }
-
-          dists[from][to] =
-              std::min(dists[from][to], dists[from][by] + dists[by][to]);
+  // TODO(zjgkkn): Negative loop detection (dists[a][a] < 0 for some
+  // a).
+  for (size_t k = 0; k < n; ++k) {
+    for (size_t a = 0; a < n; ++a) {
+      for (size_t b = 0; b < n; ++b) {
+        if (dists[a][k] != INT_MAX && dists[k][b] != INT_MAX) {
+          dists[a][b] = min(dists[a][b], dists[a][k] + dists[k][b]);
         }
       }
     }
   }
 
-  for (int i = 1; i < n; ++i) {
-    std::cout << "0 to " << i << " dist: " << dists[0][i] << "\n";
+  for (size_t a = 0; a < n; ++a) {
+    for (size_t b = 0; b < n; ++b) {
+      std::cout << a << " " << b << " ";
+      if (dists[a][b] == INT_MAX) {
+        std::cout << "INF" << "\n";
+      } else {
+        std::cout << dists[a][b] << "\n";
+      }
+    }
   }
 
   return 0;
