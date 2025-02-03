@@ -1782,6 +1782,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "multiplication_table_2",
+    srcs = ["multiplication_table_2.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "fadi_and_lcm",
     srcs = ["fadi_and_lcm.cc"],
     copts = [
@@ -3537,6 +3546,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "add_one",
+    srcs = ["add_one.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "park_lighting",
     srcs = ["park_lighting.cc"],
     copts = [
@@ -4259,6 +4277,15 @@ cc_binary(
 cc_binary(
     name = "3sum_closure",
     srcs = ["3sum_closure.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "longest_regular_bracket_sequence",
+    srcs = ["longest_regular_bracket_sequence.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -5526,6 +5553,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "lomsat_gelral",
+    srcs = ["lomsat_gelral.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "keyboard",
     srcs = ["keyboard.cc"],
     copts = [
@@ -5996,6 +6032,15 @@ cc_binary(
 cc_binary(
     name = "min_max_swap",
     srcs = ["min_max_swap.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "x_axis",
+    srcs = ["x_axis.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

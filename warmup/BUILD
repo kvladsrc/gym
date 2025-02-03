@@ -1,3 +1,4 @@
+
 cc_binary(
     name = "divide",
     srcs = ["divide.cc"],
@@ -253,6 +254,15 @@ cc_binary(
 cc_binary(
     name = "partial_sum_tree",
     srcs = ["partial_sum_tree.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "prime_test",
+    srcs = ["prime_test.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
