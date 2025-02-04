@@ -1,61 +1,54 @@
-#include <boost/range/algorithm/sort.hpp>
+#include <climits>
 #include <cstddef>
 #include <iostream>
+#include <queue>
 #include <vector>
 
 using std::pair;
+using std::priority_queue;
 using std::vector;
 
-// Asuming the dunning on DAG.
-static void dfs(vector<vector<int>> &g, int &time, vector<int> &rank,
-                int start) {
-  // Because of running on DAG the value can be filled by previous
-  // runs.
+using graph = vector<vector<int>>;
+
+void dfs(graph &g, int start, int &clock, vector<int> &rank) {
   if (rank[start] != 0) {
     return;
   }
 
-  time++;
-  for (auto i : g[start]) {
-    dfs(g, time, rank, i);
+  // Visited.
+  rank[start] = -1;
+
+  clock++;
+  for (auto n : g[start]) {
+    dfs(g, n, clock, rank);
   }
 
-  time++;
-  rank[start] = time;
+  rank[start] = clock++;
 }
 
-static void dfs_cc(vector<vector<int>> &g, vector<int> &cc_table, int start,
-                   int cc) {
+void dfs_cc(graph &g, int start, int cc, vector<int> &cc_table) {
   if (cc_table[start] != 0) {
     return;
   }
 
   cc_table[start] = cc;
-  for (auto i : g[start]) {
-    dfs_cc(g, cc_table, i, cc);
+
+  for (auto n : g[start]) {
+    dfs_cc(g, n, cc, cc_table);
   }
 }
 
-static vector<int> topological_sort(vector<vector<int>> &g) {
-  vector<int> rank(g.size(), 0);
-  int time = 0;
-  for (size_t i = 0; i < rank.size(); ++i) {
-    // Confusing part. Shall we keep results of previous run?
-    if (rank[i] == 0) {
-      dfs(g, time, rank, i);
-    }
+void topological_sort(graph &g, vector<int> &rank) {
+  int clock = 0;
+
+  for (size_t v = 0; v < g.size(); ++v) {
+    dfs(g, v, clock, rank);
   }
-
-  return rank;
-}
-
-static bool compare_pair(const pair<int, int> &a, const pair<int, int> &b) {
-  return a.second < b.second;
 }
 
 // Kosaraju's algorithm.
 int main(int /*argc*/, char * /*argv*/[]) {
-  int v = 0;
+  size_t v = 0;
   int e = 0;
   std::cin >> v >> e;
 
@@ -71,27 +64,40 @@ int main(int /*argc*/, char * /*argv*/[]) {
     g_reversed[b].push_back(a);
   }
 
-  auto table = topological_sort(g_reversed);
-  vector<pair<int, int>> vertex_rank(g.size());
-  for (int i = 0; i < v; ++i) {
-    vertex_rank[i] = {i, table[i]};
+  vector<int> rank(v, 0);
+  topological_sort(g_reversed, rank);
+
+  class CompareDistance {
+   public:
+    bool operator()(const pair<int, int> &p1, const pair<int, int> &p2) const {
+      return p1.first < p2.first;
+    }
+  };
+
+  priority_queue<pair<int, int>, vector<pair<int, int>>, CompareDistance>
+      max_first_pair_heap;
+
+  for (size_t idx = 0; idx < v; ++idx) {
+    pair<int, int> r = {rank[idx], idx};
+    max_first_pair_heap.push(r);
   }
 
-  boost::range::sort(vertex_rank, compare_pair);
-  vector<int> cc_table(v, 0);
   int cc = 1;
-  while (!vertex_rank.empty()) {
-    auto cur = vertex_rank.back();
-    vertex_rank.pop_back();
-    if (cc_table[cur.first] != 0) {
+  vector<int> cc_table(v, 0);
+
+  while (!max_first_pair_heap.empty()) {
+    auto best = max_first_pair_heap.top();
+    max_first_pair_heap.pop();
+
+    if (cc_table[best.second] != 0) {
       continue;
     }
 
-    dfs_cc(g, cc_table, cur.first, cc++);
+    dfs_cc(g, best.second, cc++, cc_table);
   }
 
-  for (int i = 0; i < v; ++i) {
-    std::cout << i << " " << cc_table[i] << "\n";
+  for (size_t idx = 0; idx < v; ++idx) {
+    std::cout << idx << " " << cc_table[idx] << "\n";
   }
 
   return 0;

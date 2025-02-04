@@ -3312,6 +3312,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "checkposts",
+    srcs = ["checkposts.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "decode_string",
     srcs = ["decode_string.cc"],
     copts = [
