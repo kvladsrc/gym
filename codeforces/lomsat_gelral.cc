@@ -34,94 +34,56 @@ using std::vector;
 
 using graph = vector<vector<int>>;
 
-size_t fill_p(graph &g, vector<int> &p) {
-  queue<pair<int, int>> q;
-  q.push({0, 0});
-  set<int> unique_p;
+struct node {
+  unordered_map<int64_t, int64_t> table;
+  int64_t sum;
+  int64_t max_color;
+  node() : table(), sum(0), max_color(0) {}
+};
 
-  while (!q.empty()) {
-    auto cur = q.front();
-    q.pop();
-    p[cur.second] = cur.first;
-    unique_p.insert(cur.first);
-    for (auto n : g[cur.second]) {
-      if (n != cur.first) {
-        q.push({cur.second, n});
-      }
-    }
+node *merge(node *a, node *b) {
+  auto mx = a;
+  auto mn = b;
+  if (a->table.size() < b->table.size()) {
+    std::swap(mx, mn);
   }
 
-  return unique_p.size();
-}
-
-void solve_case1(graph &g, vector<int64_t> &colors, vector<int> &p) {
-  auto n = g.size();
-
-  vector<map<int64_t, int64_t>> colors_in_subtree(n);
-  vector<int64_t> sum(n);
-  vector<int64_t> maximal(n, 0);
-
-  for (size_t v = 0; v < n; ++v) {
-    auto color = colors[v];
-    auto node = v;
-    while (true) {
-      colors_in_subtree[node][color]++;
-
-      if (colors_in_subtree[node][color] > maximal[node]) {
-        maximal[node] = colors_in_subtree[node][color];
-        sum[node] = color;
-      } else if (colors_in_subtree[node][color] == maximal[node]) {
-        sum[node] += color;
-      }
-
-      if (node == 0) {
-        break;
-      }
-
-      node = p[node];
-    }
-  }
-
-  for (size_t v = 0; v < n; ++v) {
-    std::cout << sum[v] << " ";
-  }
-  std::cout << "\n";
-}
-
-void solve_case2(graph &g, vector<int64_t> &colors, vector<int> &p,
-                 vector<int64_t> &sum,
-                 vector<map<int64_t, int64_t>> &colors_in_subtree, size_t v,
-                 map<int64_t, int> &unique_color) {
-  map<int64_t, int> colors_cur;
-  colors_cur[colors[v]]++;
-  sum[v] = colors[v];
-  int best = 1;
-
-  for (auto n : g[v]) {
-    if (n == p[v]) {
+  for (auto p : mn->table) {
+    mx->table[p.first] += p.second;
+    if (mx->table[p.first] > mx->max_color) {
+      mx->max_color = mx->table[p.first];
+      mx->sum = p.first;
       continue;
     }
 
-    solve_case2(g, colors, p, sum, colors_in_subtree, n, unique_color);
-
-    for (auto c : colors_in_subtree[n]) {
-      colors_cur[c.first] += c.second;
-      if (colors_cur[c.first] > best) {
-        sum[v] = c.first;
-        best = colors_cur[c.first];
-      } else if (colors_cur[c.first] == best) {
-        sum[v] += c.first;
-      }
+    if (mx->table[p.first] == mx->max_color) {
+      mx->sum += p.first;
     }
   }
 
-  for (auto p : colors_cur) {
-    if (best > unique_color[p.first]) {
+  delete mn;
+  return mx;
+}
+
+node *solve(graph &g, vector<int64_t> &res, vector<int64_t> &colors, int start,
+            int p) {
+  auto m = new node;
+  m->max_color = 1;
+  m->sum = colors[start];
+  m->table[colors[start]]++;
+
+  for (auto n : g[start]) {
+    if (n == p) {
       continue;
     }
 
-    colors_in_subtree[v][p.first] = p.second;
+    auto nm = solve(g, res, colors, n, start);
+
+    m = merge(m, nm);
   }
+
+  res[start] = m->sum;
+  return m;
 }
 
 int main(int /*argc*/, char * /*argv*/[]) {
@@ -132,10 +94,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cin >> n;
 
   vector<int64_t> colors(n);
-  map<int64_t, int> unique_color;
   for (auto &i : colors) {
     std::cin >> i;
-    unique_color[i]++;
   }
 
   graph g(n);
@@ -149,15 +109,11 @@ int main(int /*argc*/, char * /*argv*/[]) {
     g[b].push_back(a);
   }
 
-  vector<int> p(n);
-  fill_p(g, p);
+  vector<int64_t> res(n);
+  solve(g, res, colors, 0, 0);
 
-  vector<map<int64_t, int64_t>> colors_in_subtree(n);
-  vector<int64_t> sum(n);
-  solve_case2(g, colors, p, sum, colors_in_subtree, 0, unique_color);
-
-  for (size_t v = 0; v < n; ++v) {
-    std::cout << sum[v] << " ";
+  for (auto i : res) {
+    std::cout << i << " ";
   }
   std::cout << "\n";
 

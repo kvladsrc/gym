@@ -6012,6 +6012,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "boboniu_and_bit_operations",
+    srcs = ["boboniu_and_bit_operations.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "divisibility_by_2_n",
     srcs = ["divisibility_by_2_n.cc"],
     copts = [
