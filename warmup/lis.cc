@@ -8,27 +8,25 @@ using std::max;
 using std::string;
 using std::vector;
 
+// Can be optimized by binary search. Current implementation has
+// O(n^2) runtime complexity.
 static int lis(vector<int> &a) {
   vector<int> dp(a.size() + 1);
   dp.front() = 0;
+  int res = 0;
 
-  int mx = 0;
-  for (size_t idx = 1; idx <= a.size(); ++idx) {
-    int idx_local = 0;
-    for (size_t i = 1; i < idx; ++i) {
-      if (a[idx_local - 1] <= a[idx]) {
-        if (dp[idx_local] < dp[i]) {
-          idx_local = i;
-        }
+  for (size_t idx = 0; idx < a.size(); ++idx) {
+    dp[idx + 1] = 1;
+    for (size_t prev = 0; prev < idx; ++prev) {
+      if (a[prev] < a[idx]) {
+        dp[idx + 1] = max(dp[idx + 1], dp[prev + 1] + 1);
       }
     }
 
-    dp[idx] = dp[idx_local] + 1;
-
-    mx = max(mx, dp[idx]);
+    res = max(res, dp[idx + 1]);
   }
 
-  return mx;
+  return res;
 }
 
 int main(int /*argc*/, char * /*argv*/[]) {

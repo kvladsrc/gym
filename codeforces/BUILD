@@ -4023,6 +4023,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "alternating_current",
+    srcs = ["alternating_current.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "plus_minus_split",
     srcs = ["plus_minus_split.cc"],
     copts = [
