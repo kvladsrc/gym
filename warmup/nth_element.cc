@@ -6,30 +6,31 @@
 using std::string;
 using std::vector;
 
-static void swap(int &a, int &b) noexcept {
-  int const buf = a;
-  a = b;
-  b = buf;
-}
+static int partition(vector<int> &a, int start, int end) {
+  if (start >= end) {
+    return start;
+  }
 
-static size_t partion(vector<int> &a, int start, int end) {
   int const pivot = a[end];
+
+  // Index less never used before been incremented.
   int less = start - 1;
   int more = start;
+
   while (more < end) {
     if (a[more] < pivot) {
-      swap(a[++less], a[more]);
+      std::swap(a[++less], a[more]);
     }
 
     more++;
   }
-  swap(a[++less], a[end]);
+  std::swap(a[++less], a[end]);
 
   return less;
 }
 
-static int nth_element(vector<int> &a, size_t n, int start, int end) {
-  size_t const pivot = partion(a, start, end);
+static int nth_element(vector<int> &a, int n, int start, int end) {
+  auto pivot = partition(a, start, end);
 
   if (pivot == n) {
     return a[pivot];
@@ -50,7 +51,11 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> i;
   }
 
-  std::cout << nth_element(a, (n / 2) - 1, 0, n - 1) << "\n";
+  if (n == 0) {
+    std::cout << "EMPTY" << "\n";
+  } else {
+    std::cout << nth_element(a, (n / 2), 0, n - 1) << "\n";
+  }
 
   return 0;
 }

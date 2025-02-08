@@ -99,6 +99,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "partition",
+    srcs = ["partition.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "hanoi",
     srcs = ["hanoi.cc"],
     copts = [
@@ -252,15 +261,6 @@ cc_binary(
 )
 
 cc_binary(
-    name = "partial_sum_tree",
-    srcs = ["partial_sum_tree.cc"],
-    copts = [
-        "-Werror",
-        "-std=c++17",
-    ],
-)
-
-cc_binary(
     name = "prime_test",
     srcs = ["prime_test.cc"],
     copts = [
@@ -272,15 +272,6 @@ cc_binary(
 cc_binary(
     name = "ll_reverse",
     srcs = ["ll_reverse.cc"],
-    copts = [
-        "-Werror",
-        "-std=c++17",
-    ],
-)
-
-cc_binary(
-    name = "partial",
-    srcs = ["partial.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -380,6 +371,15 @@ cc_binary(
 cc_binary(
     name = "knuth_morris_pratt",
     srcs = ["knuth_morris_pratt.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = ".#nth_element",
+    srcs = [".#nth_element.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
