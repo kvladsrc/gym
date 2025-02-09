@@ -135,6 +135,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "combinations",
+    srcs = ["combinations.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "quick_sort",
     srcs = ["quick_sort.cc"],
     copts = [

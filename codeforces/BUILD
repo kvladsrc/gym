@@ -3114,6 +3114,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "advertising_agency",
+    srcs = ["advertising_agency.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "vasya_and_string",
     srcs = ["vasya_and_string.cc"],
     copts = [
@@ -3728,6 +3737,15 @@ cc_binary(
 cc_binary(
     name = "mahmoud_and_a_triangle",
     srcs = ["mahmoud_and_a_triangle.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "sleeping_schedule",
+    srcs = ["sleeping_schedule.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
