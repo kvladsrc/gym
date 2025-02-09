@@ -11,9 +11,6 @@ static int lcs_dp(vector<int> &a, vector<int> &b) {
 
   for (size_t i = 0; i <= a.size(); ++i) {
     dp[i][0] = 0;
-  }
-
-  for (size_t i = 0; i <= b.size(); ++i) {
     dp[0][i] = 0;
   }
 
@@ -33,7 +30,7 @@ static int lcs_dp(vector<int> &a, vector<int> &b) {
   return dp.back().back();
 }
 
-static int lcs(vector<int> a, vector<int> b) {
+static int lcs_rec(vector<int> a, vector<int> b) {
   if (a.empty() || b.empty()) {
     return 0;
   }
@@ -42,10 +39,10 @@ static int lcs(vector<int> a, vector<int> b) {
   vector<int> const a_case(a.begin() + 1, a.end());
 
   if (a[0] == b[0]) {
-    return lcs(a_case, b_case) + 1;
+    return lcs_rec(a_case, b_case) + 1;
   }
 
-  return max(lcs(a, b_case), lcs(a_case, b));
+  return max(lcs_rec(a, b_case), lcs_rec(a_case, b));
 }
 
 int main() {
@@ -63,6 +60,6 @@ int main() {
     std::cin >> b[i];
   }
 
-  std::cout << lcs(a, b) << '\n';
+  std::cout << lcs_rec(a, b) << '\n';
   std::cout << lcs_dp(a, b) << '\n';
 }

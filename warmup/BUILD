@@ -378,15 +378,6 @@ cc_binary(
 )
 
 cc_binary(
-    name = ".#nth_element",
-    srcs = [".#nth_element.cc"],
-    copts = [
-        "-Werror",
-        "-std=c++17",
-    ],
-)
-
-cc_binary(
     name = "sliding_window",
     srcs = ["sliding_window.cc"],
     copts = [
