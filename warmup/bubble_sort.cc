@@ -1,16 +1,8 @@
 #include <cstddef>
 #include <iostream>
-#include <string>
 #include <vector>
 
-using std::string;
 using std::vector;
-
-static void swap(int &a, int &b) noexcept {
-  int const buf = a;
-  a = b;
-  b = buf;
-}
 
 static void bubble_sort(vector<int> &a) {
   while (true) {
@@ -18,7 +10,7 @@ static void bubble_sort(vector<int> &a) {
 
     for (size_t i = 1; i < a.size(); ++i) {
       if (a[i - 1] > a[i]) {
-        swap(a[i - 1], a[i]);
+        std::swap(a[i - 1], a[i]);
         swapped = true;
       }
     }

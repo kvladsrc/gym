@@ -55,20 +55,33 @@ void DisjointSetUnion::Unite(int a, int b) {
   }
 }
 
-// TODO(zjgkkn): Tests cases to bats file.
 int main(int /*argc*/, char* /*argv*/[]) {
-  auto dsu = DisjointSetUnion(10);
+  int n = 0;
+  std::cin >> n;
+  auto dsu = DisjointSetUnion(n);
 
-  if (dsu.Connected(1, 2)) {
-    std::cout << "!ok\n";
+  int ops = 0;
+  std::cin >> ops;
+  for (int i = 0; i < ops; ++i) {
+    int a = 0;
+    int b = 0;
+    std::cin >> a >> b;
+    dsu.Unite(a, b);
   }
 
-  dsu.Unite(1, 2);
-  if (!dsu.Connected(1, 2)) {
-    std::cout << "!ok\n";
-  }
+  int q = 0;
+  std::cin >> q;
+  for (int i = 0; i < q; ++i) {
+    int a = 0;
+    int b = 0;
+    std::cin >> a >> b;
 
-  std::cout << "All tests are done!\n";
+    if (dsu.Connected(a, b)) {
+      std::cout << "CONNECTED" << "\n";
+    } else {
+      std::cout << "DISCONNECTED" << "\n";
+    }
+  }
 
   return 0;
 }

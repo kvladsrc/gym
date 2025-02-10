@@ -11,6 +11,9 @@ static int lcs_dp(vector<int> &a, vector<int> &b) {
 
   for (size_t i = 0; i <= a.size(); ++i) {
     dp[i][0] = 0;
+  }
+
+  for (size_t i = 0; i <= b.size(); ++i) {
     dp[0][i] = 0;
   }
 

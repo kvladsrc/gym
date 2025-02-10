@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-RUN="bazel run :quick_sort"
+RUN="bazel run :bubble_sort"
 
 @test "empty" {
     result="$(echo '0' | $RUN)"
