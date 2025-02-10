@@ -216,15 +216,6 @@ cc_binary(
 )
 
 cc_binary(
-    name = "maximal_subarray_sum",
-    srcs = ["maximal_subarray_sum.cc"],
-    copts = [
-        "-Werror",
-        "-std=c++17",
-    ],
-)
-
-cc_binary(
     name = "josephus",
     srcs = ["josephus.cc"],
     copts = [
@@ -362,6 +353,15 @@ cc_binary(
 cc_binary(
     name = "lcs",
     srcs = ["lcs.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "kadanes",
+    srcs = ["kadanes.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
