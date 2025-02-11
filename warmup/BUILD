@@ -351,6 +351,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "sets_in_tree",
+    srcs = ["sets_in_tree.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "money_exchange",
     srcs = ["money_exchange.cc"],
     copts = [
