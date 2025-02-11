@@ -2,6 +2,8 @@
 
 RUN="bazel run :fenwick_tree"
 
+# TODO(zjgkkn): rewrite according the format with input/expect. Add
+# more tests.
 @test "empty" {
     result="$(echo '0' | $RUN)"
     [ "$result" = "" ]

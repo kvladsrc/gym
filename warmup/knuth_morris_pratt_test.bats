@@ -2,6 +2,8 @@
 
 RUN="bazel run :knuth_morris_pratt"
 
+# TODO(zjgkkn): rewrite according the format with input/expect. Add
+# more tests.
 @test "found substring" {
     result="$(echo 'abc aabcc' | $RUN)"
     [ "$result" = "FOUND" ]

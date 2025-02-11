@@ -2,6 +2,8 @@
 
 RUN="bazel run :ll_reverse"
 
+# TODO(zjgkkn): rewrite according the format with input/expect. Add
+# more tests.
 @test "empty" {
     result="$(echo '0' | $RUN)"
     [ "$result" = "-1" ]

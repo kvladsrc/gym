@@ -2,6 +2,8 @@
 
 RUN="bazel run :jenkins_hash"
 
+# TODO(zjgkkn): rewrite according the format with input/expect. Add
+# more tests.
 @test "one" {
     result="$(echo 'The quick brown fox jumps over the lazy dog' | $RUN)"
     [ "$result" = "0x519e91f5" ]

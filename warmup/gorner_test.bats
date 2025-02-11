@@ -2,6 +2,8 @@
 
 RUN="bazel run :gorner"
 
+# TODO(zjgkkn): rewrite according the format with input/expect. Add
+# more tests.
 @test "zero" {
     result="$(echo '0 1' | $RUN)"
     [ "$result" = "0" ]

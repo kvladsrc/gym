@@ -2,6 +2,8 @@
 
 RUN="bazel run :binary_tree"
 
+# TODO(zjgkkn): rewrite according the format with input/expect. Add
+# more tests.
 @test "zero" {
     result="$(echo '0' | $RUN)"
     [ "$result" = "0

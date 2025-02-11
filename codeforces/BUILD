@@ -495,6 +495,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "yet_another_counting_problem",
+    srcs = ["yet_another_counting_problem.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "yet_another_problem_about_pairs_satisfying_an_inequality",
     srcs = ["yet_another_problem_about_pairs_satisfying_an_inequality.cc"],
     copts = [

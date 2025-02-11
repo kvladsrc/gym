@@ -1,14 +1,14 @@
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
-#include <string>
 #include <vector>
 
 using std::max;
-using std::string;
 using std::vector;
 
 // We can pick each item once.
-static int backpack(vector<int> &weights, const vector<int> &costs, int w) {
+static int knapsack(const vector<int> &weights, const vector<int> &costs,
+                    int w) {
   vector<vector<int>> dp(weights.size() + 1, vector<int>(w + 1));
 
   for (int i = 0; i <= w; ++i) {
@@ -22,8 +22,8 @@ static int backpack(vector<int> &weights, const vector<int> &costs, int w) {
   // Recurent form:
   //
   // for each item:
-  //   case1 = backpack(rest_items, w - item.w) + item.c
-  //   case2 = backpack(rest_items, w)
+  //   case1 = knapsack(rest_items, w - item.w) + item.c
+  //   case2 = knapsack(rest_items, w)
   //   return max(case1, case2)
   for (size_t i = 1; i <= weights.size(); ++i) {
     for (int j = 0; j <= w; ++j) {
@@ -55,7 +55,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> i;
   }
 
-  std::cout << backpack(weights, costs, w) << "\n";
+  std::cout << knapsack(weights, costs, w) << "\n";
 
   return 0;
 }

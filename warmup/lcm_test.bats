@@ -2,6 +2,8 @@
 
 RUN="bazel run :lcm"
 
+# TODO(zjgkkn): rewrite according the format with input/expect. Add
+# more tests.
 @test "first" {
     result="$(echo '10 20' | $RUN)"
     [ "$result" = "20" ]

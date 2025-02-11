@@ -63,6 +63,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "knapsack_with_duplicates",
+    srcs = ["knapsack_with_duplicates.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "bubble_sort",
     srcs = ["bubble_sort.cc"],
     copts = [
@@ -74,6 +83,15 @@ cc_binary(
 cc_binary(
     name = "counting_sort",
     srcs = ["counting_sort.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "knapsack",
+    srcs = ["knapsack.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -407,15 +425,6 @@ cc_binary(
 cc_binary(
     name = "jenkins_hash",
     srcs = ["jenkins_hash.cc"],
-    copts = [
-        "-Werror",
-        "-std=c++17",
-    ],
-)
-
-cc_binary(
-    name = "backpack",
-    srcs = ["backpack.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
