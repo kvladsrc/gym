@@ -457,3 +457,12 @@ cc_binary(
         "-std=c++17",
     ],
 )
+
+cc_binary(
+    name = "negative_cycle_detection",
+    srcs = ["negative_cycle_detection.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)

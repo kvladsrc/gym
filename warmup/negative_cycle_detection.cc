@@ -1,13 +1,10 @@
 #include <algorithm>
 #include <climits>
-#include <cmath>
 #include <cstddef>
 #include <iostream>
-#include <string>
 #include <vector>
 
 using std::min;
-using std::string;
 using std::vector;
 
 using adj_matrix = vector<vector<int>>;
@@ -31,6 +28,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
     dists[a][b] = d;
   }
 
+  // Floyd–Warshall algorithm.
   for (size_t k = 0; k < n; ++k) {
     for (size_t a = 0; a < n; ++a) {
       for (size_t b = 0; b < n; ++b) {
@@ -41,16 +39,15 @@ int main(int /*argc*/, char* /*argv*/[]) {
     }
   }
 
-  for (size_t a = 0; a < n; ++a) {
-    for (size_t b = 0; b < n; ++b) {
-      std::cout << a << " " << b << " ";
-      if (dists[a][b] == INT_MAX) {
-        std::cout << "INF" << "\n";
-      } else {
-        std::cout << dists[a][b] << "\n";
-      }
+  bool found = false;
+  for (size_t i = 0; i < n; ++i) {
+    if (dists[i][i] < 0) {
+      found = true;
+      break;
     }
   }
+
+  std::cout << (found ? "YES" : "NO") << "\n";
 
   return 0;
 }

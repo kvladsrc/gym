@@ -10,48 +10,58 @@ using std::pair;
 using std::string;
 using std::vector;
 
-struct node {
-  int minimal;
-  int maximal;
-  node *left;
-  node *right;
+struct meta {
+  int minimal{};
+  int maximal{};
+
+  meta() = default;
+
+  meta(int mn, int mx) : minimal(mn), maximal(mx) {}
+
+  meta operator+(const meta &other) const {
+    return {min(minimal, other.minimal), max(maximal, other.maximal)};
+  }
 };
 
-static pair<int, int> query(node *root, int ql, int qr, int l, int r) {
+struct node {
+  meta m;
+  node *left{};
+  node *right{};
+};
+
+meta query(node *root, int ql, int qr, int l, int r) {
   if (ql <= l && qr >= r) {
-    return {root->maximal, root->minimal};
+    return root->m;
   }
 
   if (qr < l || ql > r) {
-    return {INT_MIN, INT_MAX};
+    return {INT_MAX, INT_MIN};
   }
 
   auto mid = (l + r) / 2;
-  auto left_resp = query(root->left, ql, qr, l, mid);
-  auto right_resp = query(root->right, ql, qr, mid + 1, r);
-  return {max(left_resp.first, right_resp.first),
-          min(left_resp.second, right_resp.second)};
+  auto left = query(root->left, ql, qr, l, mid);
+  auto right = query(root->right, ql, qr, mid + 1, r);
+
+  return left + right;
 }
 
 static node *build_tree(vector<int> &a, int start, int end) {
   auto *res = new node;
 
   if (start == end) {
-    res->maximal = a[start];
-    res->minimal = a[start];
+    res->m.maximal = a[start];
+    res->m.minimal = a[start];
     return res;
   }
 
   auto mid = (start + end) / 2;
   res->left = build_tree(a, start, mid);
   res->right = build_tree(a, mid + 1, end);
-  res->maximal = max(res->left->maximal, res->right->maximal);
-  res->minimal = min(res->left->minimal, res->right->minimal);
+  res->m = res->left->m + res->right->m;
+
   return res;
 }
 
-// TODO(zjgkkn): Need to be reworked! Use a separate struct for node
-// data and linked tree node.
 int main(int /*argc*/, char * /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
@@ -78,8 +88,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
     l--;
     r--;
     auto resp = query(root, l, r, 0, n - 1);
-    std::cout << resp.first << "\n";
-    std::cout << resp.second << "\n";
+    std::cout << resp.maximal << "\n";
+    std::cout << resp.minimal << "\n";
   }
 
   return 0;
