@@ -54,6 +54,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "mo_algorithm",
+    srcs = ["mo_algorithm.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "dsu",
     srcs = ["dsu.cc"],
     copts = [

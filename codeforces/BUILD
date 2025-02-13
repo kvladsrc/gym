@@ -279,6 +279,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "reading_books_easy_version",
+    srcs = ["reading_books_easy_version.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "translation",
     srcs = ["translation.cc"],
     copts = [
@@ -1730,6 +1739,15 @@ cc_binary(
 cc_binary(
     name = "square",
     srcs = ["square.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "easy_problem",
+    srcs = ["easy_problem.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3719,6 +3737,15 @@ cc_binary(
 cc_binary(
     name = "beat_the_odds",
     srcs = ["beat_the_odds.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "powerful_array",
+    srcs = ["powerful_array.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
