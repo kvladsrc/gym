@@ -50,6 +50,8 @@ static node *build_tree(vector<int> &a, int start, int end) {
   return res;
 }
 
+// TODO(zjgkkn): Need to be reworked! Use a separate struct for node
+// data and linked tree node.
 int main(int /*argc*/, char * /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
