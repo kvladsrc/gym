@@ -2079,6 +2079,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "little_girl_and_maximum_xor",
+    srcs = ["little_girl_and_maximum_xor.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "fair_division",
     srcs = ["fair_division.cc"],
     copts = [
@@ -2774,6 +2783,15 @@ cc_binary(
 cc_binary(
     name = "trouble_sort",
     srcs = ["trouble_sort.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "sakurako_and_kosuke",
+    srcs = ["sakurako_and_kosuke.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -4925,6 +4943,15 @@ cc_binary(
 cc_binary(
     name = "burning_midnight_oil",
     srcs = ["burning_midnight_oil.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "robin_helps",
+    srcs = ["robin_helps.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
