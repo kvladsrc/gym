@@ -9,6 +9,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "bipartiteness_test",
+    srcs = ["bipartiteness_test.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "fenwick_tree",
     srcs = ["fenwick_tree.cc"],
     copts = [

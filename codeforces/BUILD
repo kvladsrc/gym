@@ -3366,6 +3366,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "split_into_two_sets",
+    srcs = ["split_into_two_sets.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "checkposts",
     srcs = ["checkposts.cc"],
     copts = [

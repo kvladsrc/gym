@@ -1,9 +1,7 @@
 #include <cstddef>
 #include <iostream>
-#include <string>
 #include <vector>
 
-using std::string;
 using std::vector;
 
 using graph = vector<vector<int>>;
