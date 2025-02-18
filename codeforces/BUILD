@@ -5166,6 +5166,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "color_the_fence",
+    srcs = ["color_the_fence.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "same_parity_summands",
     srcs = ["same_parity_summands.cc"],
     copts = [
