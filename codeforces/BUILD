@@ -2016,6 +2016,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "mixing_water",
+    srcs = ["mixing_water.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "agaga_xooorrr",
     srcs = ["agaga_xooorrr.cc"],
     copts = [
