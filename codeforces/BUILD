@@ -6228,6 +6228,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "doremy_s_iq",
+    srcs = ["doremy_s_iq.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "journey_planning",
     srcs = ["journey_planning.cc"],
     copts = [
