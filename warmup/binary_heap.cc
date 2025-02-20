@@ -1,40 +1,43 @@
 #include <cstddef>
 #include <iostream>
-#include <string>
 #include <vector>
 
-using std::string;
 using std::vector;
 
-static size_t parent(size_t idx) { return idx / 2; }
+namespace {
 
-static size_t l_child(size_t idx) { return idx * 2; }
+class BinaryHeap {
+  vector<int> heap;
 
-static size_t r_child(size_t idx) { return (idx * 2) + 1; }
+ public:
+  BinaryHeap() = default;
+  void push(int /*el*/);
+  void pop();
+  int top() const { return empty() ? -1 : heap.front(); }
+  bool empty() const { return heap.empty(); }
 
-static void swap(int &a, int &b) noexcept {
-  int const buf = a;
-  a = b;
-  b = buf;
-}
+ private:
+  static size_t parent(size_t idx) { return idx / 2; }
+  static size_t l_child(size_t idx) { return idx * 2; }
+  static size_t r_child(size_t idx) { return (idx * 2) + 1; }
+};
 
-static void incert(vector<int> &heap, int el) {
+void BinaryHeap::push(int el) {
   heap.push_back(el);
   size_t idx = heap.size();
 
   while (idx > 1 && heap[idx - 1] < heap[parent(idx) - 1]) {
-    swap(heap[idx - 1], heap[parent(idx) - 1]);
+    std::swap(heap[idx - 1], heap[parent(idx) - 1]);
     idx = parent(idx);
   }
 }
 
-static int pop(vector<int> &heap) {
+void BinaryHeap::pop() {
   if (heap.empty()) {
-    return 0;
+    return;
   }
 
-  swap(heap.front(), heap.back());
-  int const res = heap.back();
+  std::swap(heap.front(), heap.back());
   heap.pop_back();
 
   size_t idx = 1;
@@ -45,39 +48,41 @@ static int pop(vector<int> &heap) {
     // Cases: l_idx and r_idx available, only l_idx is available, both
     // unavailable.
     size_t min_child = 0;
-    if (l < heap.size() && r < heap.size()) {
+    if (l <= heap.size() && r <= heap.size()) {
       min_child = (heap[l - 1] < heap[r - 1] ? l : r);
-    } else if (l < heap.size()) {
+    } else if (l <= heap.size()) {
       min_child = l;
     } else {
       break;
     }
 
     if (heap[idx - 1] > heap[min_child - 1]) {
-      swap(heap[idx - 1], heap[min_child - 1]);
+      std::swap(heap[idx - 1], heap[min_child - 1]);
       idx = min_child;
     } else {
       break;
     }
   }
-
-  return res;
 }
 
+}  // namespace
+
 // Minimal heap.
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   int n = 0;
   std::cin >> n;
 
-  vector<int> heap;
+  BinaryHeap heap;
+
   while ((n--) != 0) {
     int buf = 0;
     std::cin >> buf;
-    incert(heap, buf);
+    heap.push(buf);
   }
 
   while (!heap.empty()) {
-    auto buf = pop(heap);
+    auto buf = heap.top();
+    heap.pop();
     std::cout << buf << "\n";
   }
 

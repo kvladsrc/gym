@@ -1,9 +1,9 @@
 #include <iostream>
-#include <string>
 #include <vector>
 
-using std::string;
 using std::vector;
+
+namespace {
 
 const int default_size = 100;
 
@@ -17,7 +17,7 @@ class DisjointSetUnion {
  private:
   vector<int> parent;
   vector<int> rank;
-  int find_parent(int /*i*/);
+  int find(int /*i*/);
 };
 
 DisjointSetUnion::DisjointSetUnion(int size) {
@@ -28,32 +28,36 @@ DisjointSetUnion::DisjointSetUnion(int size) {
   }
 }
 
-int DisjointSetUnion::find_parent(int i) {
-  if (parent[i] == i) {
-    return i;
+int DisjointSetUnion::find(int i) {
+  // Path compression.
+  if (parent[i] != i) {
+    parent[i] = find(parent[i]);
   }
-  return find_parent(parent[i]);
+  return parent[i];
 }
 
-bool DisjointSetUnion::Connected(int a, int b) {
-  return find_parent(a) == find_parent(b);
-}
+bool DisjointSetUnion::Connected(int a, int b) { return find(a) == find(b); }
 
 void DisjointSetUnion::Unite(int a, int b) {
-  if (Connected(a, b)) {
+  auto pa = find(a);
+  auto pb = find(b);
+
+  if (pa == pb) {
     return;
   }
-  auto p_a = find_parent(a);
-  auto p_b = find_parent(b);
-  if (rank[p_a] < rank[p_b]) {
-    parent[p_a] = p_b;
-  } else if (rank[p_a] > rank[p_b]) {
-    parent[p_b] = p_a;
-  } else {
-    parent[p_b] = p_a;
-    rank[p_a]++;
+
+  if (rank[pa] == rank[pb]) {
+    parent[pa] = pb;
+    rank[pb]++;
+    return;
   }
+
+  auto mx = (rank[pa] > rank[pb] ? pa : pb);
+  auto mn = (rank[pa] > rank[pb] ? pb : pa);
+  parent[mn] = mx;
 }
+
+}  // namespace
 
 int main(int /*argc*/, char* /*argv*/[]) {
   int n = 0;
