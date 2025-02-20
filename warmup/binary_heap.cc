@@ -6,6 +6,13 @@ using std::vector;
 
 namespace {
 
+/*
+
+  From the heap's point of view indexes starts from 1, otherwise
+  second node should have 0 * 2 = 0 index.
+
+*/
+
 class BinaryHeap {
   vector<int> heap;
 

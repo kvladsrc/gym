@@ -189,6 +189,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "all_divisors",
+    srcs = ["all_divisors.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "edit_distance",
     srcs = ["edit_distance.cc"],
     copts = [
@@ -425,6 +434,15 @@ cc_binary(
 cc_binary(
     name = "knuth_morris_pratt",
     srcs = ["knuth_morris_pratt.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "3sum",
+    srcs = ["3sum.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
