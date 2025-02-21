@@ -324,6 +324,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "lru_cache",
+    srcs = ["lru_cache.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "dfs",
     srcs = ["dfs.cc"],
     copts = [
@@ -425,6 +434,15 @@ cc_binary(
 cc_binary(
     name = "erato",
     srcs = ["erato.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "min_stack",
+    srcs = ["min_stack.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

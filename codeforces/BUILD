@@ -6030,6 +6030,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "taxes",
+    srcs = ["taxes.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "equal_candies",
     srcs = ["equal_candies.cc"],
     copts = [
