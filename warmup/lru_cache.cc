@@ -13,19 +13,28 @@ using std::unordered_map;
 namespace {
 
 /*
-
-  Last Recently Used cache. Key-Value data structure with the
-  following methods:
-
-  - get_last_used() -- get element with last requested key by O(1);
-
-  - get(key) -- get element by key, move the element to the front of
-    recently used elements by O(1);
-
-  - push(key, val) -- add element to the cache, elements moved to the
-    end of the list of recently used by O(1);
-
-*/
+ * LRUCache implements a Least Recently Used (LRU) cache using a
+ * combination of a doubly-linked list and an unordered_map to achieve
+ * constant O(1) time complexity for all operations.
+ *
+ * Key Operations:
+ *
+ * - recent_key(): Returns the key of the most recently used element
+ *                 (updated via push or get). If the cache is empty,
+ *                 it returns std::nullopt.
+ *
+ * - get(key): Retrieves the value associated with the given key. If
+ *             found, the element is moved to the front of the list
+ *             to mark it as recently used.
+ *
+ * - push(key, val): Inserts a new key-value pair or updates an existing
+ *                   key with a new value. In either case, the element
+ *                   is moved to the front, marking it as the most recently
+ *                   used.
+ *
+ * This design ensures that key lookups, updates, and insertions are
+ * all performed in O(1) time.
+ */
 
 class LRUCache {
   list<pair<int, int>> l;
@@ -49,6 +58,7 @@ class LRUCache {
 };
 
 optional<int> LRUCache::recent_key() const {
+  // EDGE_CASE: Cannot get last recently used key of empty cache.
   if (empty()) {
     return std::nullopt;
   }

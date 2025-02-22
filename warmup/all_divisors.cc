@@ -10,6 +10,7 @@ namespace {
 vector<int> all_divisors(int n) {
   vector<int> res;
 
+  // EDGE_CASE: divisors of negative numbers.
   n = abs(n);
 
   for (int d = 1; d * d <= n; ++d) {

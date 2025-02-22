@@ -7,6 +7,8 @@ static int gcd(int a, int b) { return b == 0 ? abs(a) : gcd(b, a % b); }
 
 static int lcm(int a, int b) {
   auto g = gcd(a, b);
+
+  // EDGE_CASE: GCD(a, b) = 0.
   return g != 0 ? abs(a * b) / g : 0;
 }
 

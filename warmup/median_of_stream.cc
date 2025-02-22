@@ -1,23 +1,43 @@
 #include <functional>
 #include <iostream>
+#include <optional>
 #include <queue>
 #include <string>
 #include <vector>
 
+using std::optional;
 using std::priority_queue;
 using std::string;
 using std::vector;
 
-struct median {
+namespace {
+
+/*
+ * Median class implements a data structure with the following
+ * operations with logarithmic runtime:
+ *
+ * - get_median(): Returns a median value if list not empty,
+ *                 std::nullopt otherwise. O(1) runtime.
+ *
+ * - push(int): Add element to the list. O(log N), N -- number of
+ *              already added elements.
+ */
+
+class median {
   priority_queue<int> max_heap;
   priority_queue<int, vector<int>, std::greater<>> min_heap;
+
+ public:
   median() = default;
-  int get_median() const {
+
+  optional<int> get_median() const {
+    // EDGE_CASE: Cannot get median of empty list.
     if (!max_heap.empty()) {
       return max_heap.top();
     }
-    return 0;
+    return std::nullopt;
   }
+
   void push(int el) {
     if (max_heap.empty() || el <= max_heap.top()) {
       max_heap.push(el);
@@ -26,6 +46,8 @@ struct median {
     }
     fixup();
   }
+
+ private:
   void fixup() {
     while (max_heap.size() < min_heap.size()) {
       max_heap.push(min_heap.top());
@@ -41,20 +63,26 @@ struct median {
   }
 };
 
+}  // namespace
+
 int main(int /*argc*/, char* /*argv*/[]) {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
+  int n = 0;
+  std::cin >> n;
 
   auto m = median();
 
-  int n = 0;
-  std::cin >> n;
   for (int i = 0; i < n; ++i) {
     int buf = 0;
     std::cin >> buf;
     m.push(buf);
   }
-  std::cout << m.get_median() << "\n";
+
+  auto r = m.get_median();
+  if (r.has_value()) {
+    std::cout << r.value() << "\n";
+  } else {
+    std::cout << 0 << "\n";
+  }
 
   return 0;
 }

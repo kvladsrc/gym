@@ -1,6 +1,22 @@
 #include <iostream>
 
-// Useful prime number.
+namespace {
+
+/*
+ * Combinations formula:
+ *
+ * C(n, k) = n! / k!(n - k)!
+ *
+ * C(n, k) grows very fast, lets calculate C(n, k) mod m instead,
+ * where m = 1000000007 (useful prime number) by replacing a / b with
+ * a * 1/b.
+ *
+ * b^-1 mod m = b^m-2 mod m by Fermat's little theorem since m is
+ * prime. So solution is:
+ *
+ * C(n, k) = n! / k!(n - k)! = n! * (k!(n - k)!)^-1.
+ */
+
 const int modulo = 1000000007;
 
 int fast_power(int a, int p) {
@@ -27,14 +43,8 @@ int factorial(int a) {
   return res;
 }
 
-/*
-  b * b^-1 = 1 mod m
-  a / b mod m = a * b^-1 mod m.
-  b^-1 = b^m-2 mod m by Fermat's little theorem since m is prime.
-
-  combinations(k, n) = n! / k!(n - k)! = n! * (k!(n - k)!)^-1.
-*/
-int combinations(int k, int n) {
+int combinations(int n, int k) {
+  // EDGE_CASE: Cannot select k elements from n if k > n.
   if (k > n) {
     return 0;
   }
@@ -47,11 +57,13 @@ int combinations(int k, int n) {
   return r;
 }
 
+}  // namespace
+
 int main(int /*argc*/, char* /*argv*/[]) {
   int n = 0;
   int k = 0;
   std::cin >> n >> k;
-  std::cout << combinations(k, n) << "\n";
+  std::cout << combinations(n, k) << "\n";
 
   return 0;
 }

@@ -8,13 +8,20 @@ using std::vector;
 
 namespace {
 
-// Vector A has to be sorted.
+/*
+ * This is a canonical 3SUM problem—a model problem to which many
+ * others, especially geometric ones, are often reduced.  The
+ * algorithm implemented here runs in O(n^2) time, which is considered
+ * optimal.
+ */
+
 bool three_sum(vector<int> &a, int sum) {
+  // EDGE_CASE: input vector has less than 3 elements.
   if (a.size() < 3) {
     return false;
   }
 
-  // O(n^2)
+  // a has to be sorted.
   for (size_t f = 0; f < a.size() - 2; ++f) {
     size_t l = f + 1;
     size_t r = a.size() - 1;
