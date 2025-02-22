@@ -396,6 +396,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "eulerian_cycle",
+    srcs = ["eulerian_cycle.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "money_exchange",
     srcs = ["money_exchange.cc"],
     copts = [
