@@ -189,6 +189,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "factor",
+    srcs = ["factor.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "all_divisors",
     srcs = ["all_divisors.cc"],
     copts = [

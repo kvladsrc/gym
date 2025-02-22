@@ -6111,6 +6111,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "another_problem_about_dividing_numbers",
+    srcs = ["another_problem_about_dividing_numbers.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "t-primes",
     srcs = ["t-primes.cc"],
     copts = [
