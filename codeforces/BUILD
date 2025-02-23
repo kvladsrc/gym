@@ -1476,6 +1476,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "moderate_modular_mode",
+    srcs = ["moderate_modular_mode.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "even_odd_game",
     srcs = ["even_odd_game.cc"],
     copts = [
