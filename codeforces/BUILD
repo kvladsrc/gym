@@ -4977,6 +4977,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "sequence_pair_weight",
+    srcs = ["sequence_pair_weight.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "robin_helps",
     srcs = ["robin_helps.cc"],
     copts = [
