@@ -3339,6 +3339,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "osu_mania",
+    srcs = ["osu_mania.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "beautiful_year",
     srcs = ["beautiful_year.cc"],
     copts = [
@@ -4988,6 +4997,15 @@ cc_binary(
 cc_binary(
     name = "robin_helps",
     srcs = ["robin_helps.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "balance_the_bits",
+    srcs = ["balance_the_bits.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
