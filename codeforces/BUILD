@@ -1503,6 +1503,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "skibidus_and_amog_u",
+    srcs = ["skibidus_and_amog_u.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "plus_or_minus",
     srcs = ["plus_or_minus.cc"],
     copts = [
@@ -3134,6 +3143,15 @@ cc_binary(
 cc_binary(
     name = "ilya_and_queries",
     srcs = ["ilya_and_queries.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "set_or_decrease",
+    srcs = ["set_or_decrease.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
