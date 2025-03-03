@@ -6,55 +6,86 @@
 using std::string;
 using std::vector;
 
-// Definition: l(X) -- maximal string which is prefix and suffix of
-// string X not equal to X.
-//
-// Lemmas:
-//
-// - l(X), l(l(X)), l(l(l(X))), ... -- prefixies and suffixes of X. By
-//   definition.
-//
-// - l(l(...(l(X)))) -- ends by empty string. Every string is shorter
-//   than previous.
-//
-// - Every prefix&suffix of X exists in set l(X), l(l(X)),
-//   l(...(l(X))). The opposite contradicts the definition.
-static vector<size_t> patt_prefs(const string &patt) {
-  vector<size_t> l(patt.size());
-  l.front() = 0;
+namespace {
 
-  for (size_t idx = 1; idx < patt.size(); ++idx) {
-    auto len = l[idx - 1];
-    while (patt[len] != patt[idx] && (len > 0)) {
-      len = l[len];
+/*
+ * Definitions:
+ *
+ * - A prefix of a string X is a string consisting of the first k
+ * characters of X, where 0 ≤ k ≤ |X|.
+ *
+ * - A suffix of a string X is a string consisting of the last k
+ * characters of X, where 0 ≤ k ≤ |X|.
+ *
+ * - A border of a string X is a string that is both a prefix and a
+ * suffix of X but is not equal to X.
+ *
+ * Let l(X) be the longest border of string X, i.e., the longest
+ * string that is both a prefix and a suffix of X and is not equal to
+ * X.
+ *
+ * Lemmas:
+ *
+ * - The sequence l(X), l(l(X)), l(l(l(X))), ..., consists of strings,
+ * each of which is both a prefix and a suffix of X.
+ *
+ * - Repeated application of l to X generates a sequence of strings,
+ * each shorter than the previous one, ending with the empty string.
+ *
+ * - The set of all borders of X is exactly {l(X), l(l(X)), ..., ε},
+ * where ε is the empty string.
+ */
+
+/*
+ * Returns a vector a, a_i is the longest border length of pattern
+ * suffix size i. Dynamic programming algorithm with O(n) complexity
+ * based on the fact that a_i = a_j + 1, 1 <= j < i or 0;
+ */
+void compute_border_lengths(const string& pattern, vector<size_t>& borders) {
+  borders.front() = 0;
+
+  for (size_t idx = 1; idx < pattern.size(); ++idx) {
+    auto len = borders[idx - 1];
+
+    while (pattern[len] != pattern[idx] && len > 0) {
+      len = borders[len - 1];
     }
 
-    if (patt[len] == patt[idx]) {
-      l[idx] = len + 1;
+    if (pattern[len] == pattern[idx]) {
+      borders[idx] = len + 1;
     } else {
-      l[idx] = 0;
+      borders[idx] = 0;
     }
   }
-
-  return l;
 }
 
-static bool kmp(const string &s, const string &patt) {
-  auto pref = patt_prefs(patt);
-  size_t len = 0;
+static bool kmp(const string& s, const string& pattern) {
+  // EDGE_CASE: Every string contain empty substring.
+  if (pattern.empty()) {
+    return true;
+  }
 
-  for (char const idx : s) {
-    while (patt[len] != idx && (len > 0)) {
-      len = pref[len];
+  // EDGE_CASE: Empty string cannot contain any non-empty substring.
+  if (s.empty()) {
+    return false;
+  }
+
+  vector<size_t> borders(pattern.size());
+  compute_border_lengths(pattern, borders);
+  size_t current_len = 0;
+
+  for (char const c : s) {
+    while (pattern[current_len] != c && (current_len > 0)) {
+      current_len = borders[current_len - 1];
     }
 
-    if (patt[len] == idx) {
-      len++;
+    if (pattern[current_len] == c) {
+      current_len++;
     } else {
-      len = 0;
+      current_len = 0;
     }
 
-    if (len == patt.size()) {
+    if (current_len == pattern.size()) {
       return true;
     }
   }
@@ -62,15 +93,28 @@ static bool kmp(const string &s, const string &patt) {
   return false;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  string s;
+}  // namespace
+
+int main() {
+  size_t patt_len = 0;
+  size_t s_len = 0;
   string patt;
-  std::cin >> patt >> s;
+  string s;
+
+  std::cin >> patt_len;
+  if (patt_len != 0) {
+    std::cin >> patt;
+  }
+
+  std::cin >> s_len;
+  if (s_len != 0) {
+    std::cin >> s;
+  }
+
   if (kmp(s, patt)) {
     std::cout << "FOUND" << "\n";
   } else {
     std::cout << "NOT FOUND" << "\n";
   }
-
   return 0;
 }

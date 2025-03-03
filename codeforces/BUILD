@@ -738,6 +738,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "nene_s_magical_matrix",
+    srcs = ["nene_s_magical_matrix.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "interesting_function",
     srcs = ["interesting_function.cc"],
     copts = [
@@ -3069,6 +3078,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "erase_and_extend_easy_version",
+    srcs = ["erase_and_extend_easy_version.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "winner",
     srcs = ["winner.cc"],
     copts = [
@@ -4806,6 +4824,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "normal_problem",
+    srcs = ["normal_problem.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "maximal_and",
     srcs = ["maximal_and.cc"],
     copts = [
@@ -4952,6 +4979,15 @@ cc_binary(
 cc_binary(
     name = "yes_or_yes",
     srcs = ["yes_or_yes.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "halloumi_boxes",
+    srcs = ["halloumi_boxes.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
