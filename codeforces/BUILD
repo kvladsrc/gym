@@ -3690,6 +3690,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "line_trip",
+    srcs = ["line_trip.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "park_lighting",
     srcs = ["park_lighting.cc"],
     copts = [
@@ -4086,6 +4095,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "showering",
+    srcs = ["showering.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "kuriyama_mirais_stones",
     srcs = ["kuriyama_mirais_stones.cc"],
     copts = [
@@ -4106,6 +4124,15 @@ cc_binary(
 cc_binary(
     name = "points_on_line",
     srcs = ["points_on_line.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "meeting_on_the_line",
+    srcs = ["meeting_on_the_line.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
