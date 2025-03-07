@@ -2637,6 +2637,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "game_with_chips",
+    srcs = ["game_with_chips.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "common_divisors",
     srcs = ["common_divisors.cc"],
     copts = [
