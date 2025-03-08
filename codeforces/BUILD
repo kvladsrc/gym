@@ -2421,6 +2421,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = ".#to_become_max",
+    srcs = [".#to_become_max.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "news_distribution",
     srcs = ["news_distribution.cc"],
     copts = [
@@ -4923,6 +4932,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "to_become_max",
+    srcs = ["to_become_max.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "pangram",
     srcs = ["pangram.cc"],
     copts = [
@@ -5897,6 +5915,15 @@ cc_binary(
 cc_binary(
     name = "books",
     srcs = ["books.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "primary_task",
+    srcs = ["primary_task.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
