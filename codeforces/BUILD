@@ -1341,6 +1341,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "tracking_segments",
+    srcs = ["tracking_segments.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "nearly_lucky_number",
     srcs = ["nearly_lucky_number.cc"],
     copts = [
@@ -2414,15 +2423,6 @@ cc_binary(
 cc_binary(
     name = "plus_one_on_the_subset",
     srcs = ["plus_one_on_the_subset.cc"],
-    copts = [
-        "-Werror",
-        "-std=c++17",
-    ],
-)
-
-cc_binary(
-    name = ".#to_become_max",
-    srcs = [".#to_become_max.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3807,6 +3807,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "hard_problem_easy",
+    srcs = ["hard_problem_easy.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "download_more_ram",
     srcs = ["download_more_ram.cc"],
     copts = [
@@ -4178,6 +4187,15 @@ cc_binary(
 cc_binary(
     name = "divisibility_problem",
     srcs = ["divisibility_problem.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "sakurako_s_exam",
+    srcs = ["sakurako_s_exam.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -6149,6 +6167,15 @@ cc_binary(
 cc_binary(
     name = "contrast_value",
     srcs = ["contrast_value.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "manhattan_circle",
+    srcs = ["manhattan_circle.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
