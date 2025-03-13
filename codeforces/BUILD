@@ -1494,6 +1494,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "seating_in_a_bus",
+    srcs = ["seating_in_a_bus.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "moderate_modular_mode",
     srcs = ["moderate_modular_mode.cc"],
     copts = [
@@ -3251,6 +3260,15 @@ cc_binary(
 cc_binary(
     name = "plus_minus_permutation",
     srcs = ["plus_minus_permutation.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "sending_a_sequence_over_the_network",
+    srcs = ["sending_a_sequence_over_the_network.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
