@@ -531,6 +531,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "carousel",
+    srcs = ["carousel.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "pluses_and_minuses",
     srcs = ["pluses_and_minuses.cc"],
     copts = [
