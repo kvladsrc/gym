@@ -243,8 +243,26 @@ cc_binary(
 )
 
 cc_binary(
+    name = "prefix_flip_hard_version",
+    srcs = ["prefix_flip_hard_version.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "getting_zero",
     srcs = ["getting_zero.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "counting_kangaroos_is_fun",
+    srcs = ["counting_kangaroos_is_fun.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3008,6 +3026,15 @@ cc_binary(
 cc_binary(
     name = "maximum_in_table",
     srcs = ["maximum_in_table.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "quintomania",
+    srcs = ["quintomania.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
