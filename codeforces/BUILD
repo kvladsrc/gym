@@ -1953,6 +1953,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "mafia",
+    srcs = ["mafia.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "binary_string_to_subsequences",
     srcs = ["binary_string_to_subsequences.cc"],
     copts = [
