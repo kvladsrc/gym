@@ -1467,6 +1467,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "card_game",
+    srcs = ["card_game.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "just_eat_it",
     srcs = ["just_eat_it.cc"],
     copts = [
@@ -3224,6 +3233,15 @@ cc_binary(
 cc_binary(
     name = "pokemon_army_easy_version",
     srcs = ["pokemon_army_easy_version.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "ehab_and_prefix_mexs",
+    srcs = ["ehab_and_prefix_mexs.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -6446,6 +6464,15 @@ cc_binary(
 cc_binary(
     name = "spell_check",
     srcs = ["spell_check.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "exciting_bets",
+    srcs = ["exciting_bets.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
