@@ -9,6 +9,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "angry_monk",
+    srcs = ["angry_monk.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "kuroni_and_impossible_calculation",
     srcs = ["kuroni_and_impossible_calculation.cc"],
     copts = [
@@ -2088,6 +2097,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "cover_in_water",
+    srcs = ["cover_in_water.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "vasya_and_socks",
     srcs = ["vasya_and_socks.cc"],
     copts = [
@@ -2351,6 +2369,15 @@ cc_binary(
 cc_binary(
     name = "different_string",
     srcs = ["different_string.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "little_nikita",
+    srcs = ["little_nikita.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -5249,6 +5276,15 @@ cc_binary(
 cc_binary(
     name = "maximize",
     srcs = ["maximize.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "two_arrays",
+    srcs = ["two_arrays.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
