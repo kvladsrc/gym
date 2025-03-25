@@ -4320,6 +4320,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "good_prefixes",
+    srcs = ["good_prefixes.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "quasi_binary",
     srcs = ["quasi_binary.cc"],
     copts = [
