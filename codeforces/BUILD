@@ -1242,6 +1242,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "modified_gcd",
+    srcs = ["modified_gcd.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "maximum_product",
     srcs = ["maximum_product.cc"],
     copts = [
