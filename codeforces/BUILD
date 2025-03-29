@@ -1449,6 +1449,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "new_world_new_me_new_array",
+    srcs = ["new_world_new_me_new_array.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "mahmoud_and_longest_uncommon_subsequence",
     srcs = ["mahmoud_and_longest_uncommon_subsequence.cc"],
     copts = [
@@ -1649,6 +1658,15 @@ cc_binary(
 cc_binary(
     name = "present_from_lena",
     srcs = ["present_from_lena.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "fibonacciness",
+    srcs = ["fibonacciness.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -2702,6 +2720,15 @@ cc_binary(
 cc_binary(
     name = "similar_pairs",
     srcs = ["similar_pairs.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "factorial_divisibility",
+    srcs = ["factorial_divisibility.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -4673,6 +4700,15 @@ cc_binary(
 cc_binary(
     name = "maze",
     srcs = ["maze.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "scale",
+    srcs = ["scale.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
