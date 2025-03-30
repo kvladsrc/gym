@@ -1620,6 +1620,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "round_dance",
+    srcs = ["round_dance.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "young_physicist",
     srcs = ["young_physicist.cc"],
     copts = [
