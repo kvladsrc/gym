@@ -423,6 +423,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "the_sports_festival",
+    srcs = ["the_sports_festival.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "make_equal",
     srcs = ["make_equal.cc"],
     copts = [
@@ -497,6 +506,15 @@ cc_binary(
 cc_binary(
     name = "atillas_favorite_problem",
     srcs = ["atillas_favorite_problem.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "comparison_string",
+    srcs = ["comparison_string.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
