@@ -4599,6 +4599,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "obtain_the_string",
+    srcs = ["obtain_the_string.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "caps_lock",
     srcs = ["caps_lock.cc"],
     copts = [

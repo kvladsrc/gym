@@ -1,17 +1,27 @@
+#include <cstddef>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
+using std::optional;
 using std::string;
 using std::vector;
 
-static int upper_bound(vector<int> &a, int i) {
+namespace {
+
+optional<size_t> upper_bound(vector<int> &a, int i) {
+  // EDGE_CASE: empty vector do not contain any elements.
+  if (a.empty()) {
+    return std::nullopt;
+  }
+
   int l = 0;
   int r = a.size() - 1;
-  int res = -1;
+  std::optional<size_t> res = std::nullopt;
 
   while (l <= r) {
-    int const mid = (l + r) / 2;
+    auto const mid = (l + r) / 2;
     if (a[mid] >= i) {
       r = mid - 1;
       res = mid;
@@ -23,6 +33,8 @@ static int upper_bound(vector<int> &a, int i) {
   return res;
 }
 
+}  // namespace
+
 int main(int /*argc*/, char * /*argv*/[]) {
   int n = 0;
   std::cin >> n;
@@ -33,7 +45,12 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
   int el = 0;
   std::cin >> el;
-  std::cout << upper_bound(a, el) << "\n";
+  auto ub = upper_bound(a, el);
+  if (ub) {
+    std::cout << *ub << "\n";
+  } else {
+    std::cout << -1 << "\n";
+  }
 
   return 0;
 }
