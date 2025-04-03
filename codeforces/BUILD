@@ -4446,6 +4446,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "minimal_height_tree",
+    srcs = ["minimal_height_tree.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "maximum_sum_on_even_positions",
     srcs = ["maximum_sum_on_even_positions.cc"],
     copts = [
