@@ -1548,6 +1548,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "gardener_and_tree",
+    srcs = ["gardener_and_tree.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "most_socially_distanced_subsequence",
     srcs = ["most_socially_distanced_subsequence.cc"],
     copts = [
