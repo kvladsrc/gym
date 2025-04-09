@@ -549,6 +549,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "doremy_s_paint_3",
+    srcs = ["doremy_s_paint_3.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "yet_another_counting_problem",
     srcs = ["yet_another_counting_problem.cc"],
     copts = [
@@ -2367,6 +2376,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "draw_a_square",
+    srcs = ["draw_a_square.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "road_construction",
     srcs = ["road_construction.cc"],
     copts = [
@@ -3933,6 +3951,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "coins",
+    srcs = ["coins.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "i_wanna_be_the_guy",
     srcs = ["i_wanna_be_the_guy.cc"],
     copts = [
@@ -4986,6 +5013,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "skibidus_and_ohio",
+    srcs = ["skibidus_and_ohio.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "canine_poetry",
     srcs = ["canine_poetry.cc"],
     copts = [
@@ -5141,6 +5177,15 @@ cc_binary(
 cc_binary(
     name = "mere_array",
     srcs = ["mere_array.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "zuma",
+    srcs = ["zuma.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
