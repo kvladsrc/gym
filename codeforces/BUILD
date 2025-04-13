@@ -3285,6 +3285,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "raspberries",
+    srcs = ["raspberries.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "winner",
     srcs = ["winner.cc"],
     copts = [
@@ -3701,6 +3710,15 @@ cc_binary(
 cc_binary(
     name = "kana_and_dragon_quest_game",
     srcs = ["kana_and_dragon_quest_game.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "line_breaks",
+    srcs = ["line_breaks.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -5454,6 +5472,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "say_no_to_palindromes",
+    srcs = ["say_no_to_palindromes.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "balanced_round",
     srcs = ["balanced_round.cc"],
     copts = [
@@ -6473,6 +6500,15 @@ cc_binary(
 cc_binary(
     name = "circle_of_monsters",
     srcs = ["circle_of_monsters.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "swap_and_delete",
+    srcs = ["swap_and_delete.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
