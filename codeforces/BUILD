@@ -6354,6 +6354,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "array_destruction",
+    srcs = ["array_destruction.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "bitpp",
     srcs = ["bitpp.cc"],
     copts = [
