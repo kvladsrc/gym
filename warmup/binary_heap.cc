@@ -7,6 +7,7 @@ using std::vector;
 namespace {
 
 /*
+ * The binary heap implemention uses a vector for storing the tree.
  * From the heap's point of view indexes starts from 1, otherwise
  * second node should have 0 * 2 = 0 index.
  */

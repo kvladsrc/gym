@@ -7,7 +7,7 @@ using std::vector;
 namespace {
 
 /*
-  Sort array a, where a_i = {1, 2, 3}.
+  Sort an array of elements 1, 2 or 3.
 */
 void dutch_flag(vector<int> &a) {
   // EDGE_CASE: Empty or one element.

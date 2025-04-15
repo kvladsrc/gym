@@ -4,7 +4,15 @@
 
 using std::string;
 
-static int64_t fast_power(int x, int y, int modulo) {
+namespace {
+
+/*
+ * Compute x^y mod m by O(log y) time complexity.
+ */
+
+const int64_t modulo = 1000000007;
+
+int64_t fast_power(int64_t x, int64_t y, int64_t m) {
   if (y == 1) {
     return x;
   }
@@ -13,27 +21,23 @@ static int64_t fast_power(int x, int y, int modulo) {
     return 1;
   }
 
-  // x^y = (x^2)^y/2
-  int64_t buf = 0;
   if ((y % 2) != 0) {
-    buf = fast_power(x, y - 1, modulo);
-    buf *= x;
-  } else {
-    buf = fast_power(x * x, y / 2, modulo);
+    auto buf = fast_power(x, y - 1, m);
+    buf = (buf * x) % m;
+    return buf;
   }
 
-  buf %= modulo;
-  return buf;
+  return fast_power((x * x) % m, y / 2, m);  // x^y = (x^2)^y/2
 }
 
+}  // namespace
+
 int main(int /*argc*/, char* /*argv*/[]) {
-  int x = 0;
-  int y = 0;
+  int64_t x = 0;
+  int64_t y = 0;
   std::cin >> x >> y;
 
-  int const m = 1000000000;
-
-  std::cout << fast_power(x, y, m) << "\n";
+  std::cout << fast_power(x, y, modulo) << "\n";
 
   return 0;
 }

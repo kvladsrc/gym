@@ -19,13 +19,12 @@ void dfs_cc(const graph& g, vector<int>& cc_table, int start, int cc) {
   if (cc_table[start] != 0) {
     return;
   }
-
   cc_table[start] = cc;
-
   for (auto n : g[start]) {
     dfs_cc(g, cc_table, n, cc);
   }
 }
+
 bool connected(const graph& g) {
   vector<int> cc_table(g.size(), 0);
   const int init_cc = 1;
