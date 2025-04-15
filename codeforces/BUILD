@@ -1296,6 +1296,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "grid_00100",
+    srcs = ["grid_00100.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "sum_in_binary_tree",
     srcs = ["sum_in_binary_tree.cc"],
     copts = [
