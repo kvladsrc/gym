@@ -6,25 +6,29 @@
 using std::max;
 using std::vector;
 
-// We can pick each item once.
-static int knapsack(const vector<int> &weights, const vector<int> &costs,
-                    int w) {
+namespace {
+
+/*
+ * Recurent form:
+ *
+ * for each item:
+ *   case1 = knapsack(rest_items, w - item.w) + item.c
+ *   case2 = knapsack(rest_items, w)
+ *   return max(case1, case2)
+ */
+
+int knapsack(const vector<int> &weights, const vector<int> &costs, int w) {
+  // We can pick each item once.
   vector<vector<int>> dp(weights.size() + 1, vector<int>(w + 1));
 
   for (int i = 0; i <= w; ++i) {
-    dp[0][i] = 0;
+    dp[0][i] = 0;  // No capacity.
   }
 
   for (size_t i = 0; i <= weights.size(); ++i) {
-    dp[i][0] = 0;
+    dp[i][0] = 0;  // No elements to chose from.
   }
 
-  // Recurent form:
-  //
-  // for each item:
-  //   case1 = knapsack(rest_items, w - item.w) + item.c
-  //   case2 = knapsack(rest_items, w)
-  //   return max(case1, case2)
   for (size_t i = 1; i <= weights.size(); ++i) {
     for (int j = 0; j <= w; ++j) {
       if (weights[i - 1] <= j) {
@@ -39,6 +43,8 @@ static int knapsack(const vector<int> &weights, const vector<int> &costs,
 
   return dp.back().back();
 }
+
+}  // namespace
 
 int main(int /*argc*/, char * /*argv*/[]) {
   int n = 0;
