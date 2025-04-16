@@ -2097,6 +2097,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "strange_test",
+    srcs = ["strange_test.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "ehab_and_gcd",
     srcs = ["ehab_and_gcd.cc"],
     copts = [
