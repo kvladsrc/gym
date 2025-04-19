@@ -3726,6 +3726,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "journey_800",
+    srcs = ["journey_800.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "kana_and_dragon_quest_game",
     srcs = ["kana_and_dragon_quest_game.cc"],
     copts = [
@@ -6948,8 +6957,26 @@ cc_binary(
 )
 
 cc_binary(
+    name = "cobb",
+    srcs = ["cobb.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "journey",
     srcs = ["journey.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "longest_good_array",
+    srcs = ["longest_good_array.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
