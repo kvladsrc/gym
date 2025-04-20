@@ -6237,6 +6237,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "minimize_the_integer",
+    srcs = ["minimize_the_integer.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "arrow_path",
     srcs = ["arrow_path.cc"],
     copts = [
