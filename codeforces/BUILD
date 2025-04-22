@@ -5067,6 +5067,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "least_prefix_sum",
+    srcs = ["least_prefix_sum.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "canine_poetry",
     srcs = ["canine_poetry.cc"],
     copts = [
