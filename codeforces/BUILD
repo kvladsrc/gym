@@ -135,6 +135,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "forbidden_integer",
+    srcs = ["forbidden_integer.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "a_and_b_and_team_training",
     srcs = ["a_and_b_and_team_training.cc"],
     copts = [
@@ -479,6 +488,15 @@ cc_binary(
 cc_binary(
     name = "and_then_there_were_k",
     srcs = ["and_then_there_were_k.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "olympiad_date",
+    srcs = ["olympiad_date.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -1181,6 +1199,15 @@ cc_binary(
 cc_binary(
     name = "vasilije_in_cacak",
     srcs = ["vasilije_in_cacak.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "jagged_swaps",
+    srcs = ["jagged_swaps.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3150,6 +3177,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "ski_resort",
+    srcs = ["ski_resort.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "ten_words_of_wisdom",
     srcs = ["ten_words_of_wisdom.cc"],
     copts = [
@@ -3485,6 +3521,15 @@ cc_binary(
 cc_binary(
     name = "ezzat_and_two_subsequences",
     srcs = ["ezzat_and_two_subsequences.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "guessing_the_greatest_easy_version",
+    srcs = ["guessing_the_greatest_easy_version.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -4088,6 +4133,15 @@ cc_binary(
 cc_binary(
     name = "make_it_white",
     srcs = ["make_it_white.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "decreasing_string",
+    srcs = ["decreasing_string.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -7004,6 +7058,15 @@ cc_binary(
 cc_binary(
     name = "fox_and_snake",
     srcs = ["fox_and_snake.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "negatives_and_positives",
+    srcs = ["negatives_and_positives.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
