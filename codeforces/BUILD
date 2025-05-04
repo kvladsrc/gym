@@ -342,6 +342,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "constant_palindrome_sum",
+    srcs = ["constant_palindrome_sum.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "dijkstra",
     srcs = ["dijkstra.cc"],
     copts = [
@@ -938,6 +947,15 @@ cc_binary(
 cc_binary(
     name = "potions_easy_version",
     srcs = ["potions_easy_version.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "trippi_troppi",
+    srcs = ["trippi_troppi.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3053,6 +3071,15 @@ cc_binary(
 cc_binary(
     name = "trouble_sort",
     srcs = ["trouble_sort.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "balanced_stone_heaps",
+    srcs = ["balanced_stone_heaps.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -5573,6 +5600,15 @@ cc_binary(
 cc_binary(
     name = "balanced_round",
     srcs = ["balanced_round.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "symmetric_encoding",
+    srcs = ["symmetric_encoding.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <climits>
 #include <cmath>
-#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
@@ -33,39 +32,18 @@ using std::unordered_map;
 using std::vector;
 
 int main(int /*argc*/, char* /*argv*/[]) {
+  std::ios::sync_with_stdio(false);
+  std::cin.tie(nullptr);
+
   int t = 0;
   std::cin >> t;
   while ((t--) != 0) {
+    string f;
     string s;
-    std::cin >> s;
-
-    int64_t n = 0;
-    std::cin >> n;
-
-    if (n <= static_cast<int64_t>(s.size())) {
-      std::cout << s[n - 1];
-      continue;
-    }
-
-    int64_t cur_size = s.size();
-    while ((n - cur_size) > 0) {
-      n -= cur_size--;
-    }
-
-    vector<char> st;
-    int64_t need_to_remove = s.size() - cur_size;
-    for (char i : s) {
-      while (!st.empty() && i < st.back() && need_to_remove > 0) {
-        st.pop_back();
-        need_to_remove--;
-      }
-
-      st.push_back(i);
-    }
-
-    std::cout << st[n - 1];
+    string th;
+    std::cin >> f >> s >> th;
+    std::cout << f.front() << s.front() << th.front() << "\n";
   }
-  std::cout << "\n";
 
   return 0;
 }

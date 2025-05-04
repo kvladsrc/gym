@@ -36,36 +36,34 @@ int main(int /*argc*/, char* /*argv*/[]) {
   int t = 0;
   std::cin >> t;
   while ((t--) != 0) {
-    string s;
-    std::cin >> s;
-
-    int64_t n = 0;
+    int n = 0;
     std::cin >> n;
 
-    if (n <= static_cast<int64_t>(s.size())) {
-      std::cout << s[n - 1];
-      continue;
+    string b;
+    std::cin >> b;
+
+    map<char, char> m;
+    for (auto c : b) {
+      m[c] = c;
     }
 
-    int64_t cur_size = s.size();
-    while ((n - cur_size) > 0) {
-      n -= cur_size--;
+    vector<char> table;
+    table.reserve(m.size());
+    for (auto p : m) {
+      table.push_back(p.first);
     }
 
-    vector<char> st;
-    int64_t need_to_remove = s.size() - cur_size;
-    for (char i : s) {
-      while (!st.empty() && i < st.back() && need_to_remove > 0) {
-        st.pop_back();
-        need_to_remove--;
-      }
-
-      st.push_back(i);
+    for (size_t idx = 0; idx < table.size(); ++idx) {
+      m[table[idx]] = table[(table.size() - 1) - idx];
     }
 
-    std::cout << st[n - 1];
+    string s;
+    for (auto c : b) {
+      s.push_back(m[c]);
+    }
+
+    std::cout << s << "\n";
   }
-  std::cout << "\n";
 
   return 0;
 }
