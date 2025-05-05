@@ -3105,6 +3105,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "dzy_loves_sequences",
+    srcs = ["dzy_loves_sequences.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "buttons_b",
     srcs = ["buttons_b.cc"],
     copts = [
