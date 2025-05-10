@@ -369,6 +369,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "different_divisors",
+    srcs = ["different_divisors.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "alternating_subsequence",
     srcs = ["alternating_subsequence.cc"],
     copts = [
@@ -425,6 +434,15 @@ cc_binary(
 cc_binary(
     name = "pretty_permutations",
     srcs = ["pretty_permutations.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "twin_permutations",
+    srcs = ["twin_permutations.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -1638,6 +1656,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "rudolf_and_121",
+    srcs = ["rudolf_and_121.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "valid_bfs",
     srcs = ["valid_bfs.cc"],
     copts = [
@@ -2394,6 +2421,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "modulo_sum",
+    srcs = ["modulo_sum.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "fair_playoff",
     srcs = ["fair_playoff.cc"],
     copts = [
@@ -2441,6 +2477,15 @@ cc_binary(
 cc_binary(
     name = "draw_a_square",
     srcs = ["draw_a_square.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "traffic_light",
+    srcs = ["traffic_light.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
