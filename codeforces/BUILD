@@ -4509,6 +4509,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "deleting_divisors",
+    srcs = ["deleting_divisors.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "showering",
     srcs = ["showering.cc"],
     copts = [
