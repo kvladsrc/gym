@@ -342,6 +342,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "keshi_is_throwing_a_party",
+    srcs = ["keshi_is_throwing_a_party.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "constant_palindrome_sum",
     srcs = ["constant_palindrome_sum.cc"],
     copts = [
