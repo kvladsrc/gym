@@ -117,6 +117,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "another_problem_on_strings",
+    srcs = ["another_problem_on_strings.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "omkar_and_completion",
     srcs = ["omkar_and_completion.cc"],
     copts = [
@@ -5411,6 +5420,15 @@ cc_binary(
 cc_binary(
     name = "move_brackets",
     srcs = ["move_brackets.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "ideal_generator",
+    srcs = ["ideal_generator.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

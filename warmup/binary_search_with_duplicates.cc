@@ -10,7 +10,7 @@ using std::vector;
 
 namespace {
 
-optional<size_t> upper_bound(vector<int> &a, int i) {
+optional<size_t> lower_bound(vector<int> &a, int i) {
   // EDGE_CASE: empty vector do not contain any elements.
   if (a.empty()) {
     return std::nullopt;
@@ -45,7 +45,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
   int el = 0;
   std::cin >> el;
-  auto ub = upper_bound(a, el);
+  auto ub = lower_bound(a, el);
   if (ub) {
     std::cout << *ub << "\n";
   } else {
