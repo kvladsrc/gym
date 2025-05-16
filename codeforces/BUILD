@@ -3501,6 +3501,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "eugene_and_an_array",
+    srcs = ["eugene_and_an_array.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "ultra_fast_mathematician",
     srcs = ["ultra_fast_mathematician.cc"],
     copts = [
@@ -5150,6 +5159,15 @@ cc_binary(
 cc_binary(
     name = "big_vova",
     srcs = ["big_vova.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "closest_point",
+    srcs = ["closest_point.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
