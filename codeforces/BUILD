@@ -5265,6 +5265,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "sum_and_product",
+    srcs = ["sum_and_product.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "is_it_a_cat",
     srcs = ["is_it_a_cat.cc"],
     copts = [
