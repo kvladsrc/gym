@@ -6120,6 +6120,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "chocolate_bunny",
+    srcs = ["chocolate_bunny.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "divide_and_equalize",
     srcs = ["divide_and_equalize.cc"],
     copts = [
