@@ -2610,6 +2610,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "guess_the_k_th_zero_easy_version",
+    srcs = ["guess_the_k_th_zero_easy_version.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "make_it_good",
     srcs = ["make_it_good.cc"],
     copts = [
