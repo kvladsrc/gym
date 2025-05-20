@@ -4437,6 +4437,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "spy_string",
+    srcs = ["spy_string.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "nastya_and_rice",
     srcs = ["nastya_and_rice.cc"],
     copts = [
