@@ -70,17 +70,12 @@ int main(int /*argc*/, char* /*argv*/[]) {
     string res = "-1";
     bool done = false;
     for (int c = 0; c < m; ++c) {
-      for (int i = 0; i < n; ++i) {
-        for (int l = 0; l < 26; ++l) {
-          auto s = strings[i];
-          s[c] = 'a' + l;
-          if (check(s, strings)) {
-            res = s;
-            done = true;
-            break;
-          }
-        }
-        if (done) {
+      for (int l = 0; l < 26; ++l) {
+        auto s = strings.front();
+        s[c] = 'a' + l;
+        if (check(s, strings)) {
+          res = s;
+          done = true;
           break;
         }
       }
