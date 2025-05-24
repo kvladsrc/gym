@@ -1431,6 +1431,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "olya_and_game_with_arrays",
+    srcs = ["olya_and_game_with_arrays.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "grouping_increases",
     srcs = ["grouping_increases.cc"],
     copts = [
@@ -2043,6 +2052,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "longest_divisors_interval",
+    srcs = ["longest_divisors_interval.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "gregor_and_cryptography",
     srcs = ["gregor_and_cryptography.cc"],
     copts = [
@@ -2432,6 +2450,15 @@ cc_binary(
 cc_binary(
     name = "long_jumps",
     srcs = ["long_jumps.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "the_two_routes",
+    srcs = ["the_two_routes.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -6311,6 +6338,15 @@ cc_binary(
 cc_binary(
     name = "divide_by_three_multiply_by_two",
     srcs = ["divide_by_three_multiply_by_two.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "roads_not_only_in_berland",
+    srcs = ["roads_not_only_in_berland.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
