@@ -4437,6 +4437,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "sequence_and_swaps",
+    srcs = ["sequence_and_swaps.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "twins",
     srcs = ["twins.cc"],
     copts = [
