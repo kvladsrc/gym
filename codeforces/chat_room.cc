@@ -10,8 +10,7 @@ bool to_hello(string &a) {
   for (char c : a) {
     if (c == goal[cur]) {
       cur++;
-      if (cur == goal.size())
-        return true;
+      if (cur == goal.size()) return true;
     }
   }
 

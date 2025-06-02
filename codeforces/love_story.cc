@@ -28,8 +28,7 @@ int main(int argc, char *argv[]) {
     std::cin >> in;
     int res = 0;
     for (size_t i = 0; i < sample.size(); ++i) {
-      if (in[i] != sample[i])
-        res++;
+      if (in[i] != sample[i]) res++;
     }
     std::cout << res << "\n";
   }

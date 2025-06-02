@@ -34,7 +34,7 @@ using std::unordered_map;
 using std::vector;
 
 class CompareBuckets {
-public:
+ public:
   bool operator()(const pair<int, int64_t> &p1,
                   const pair<int, int64_t> &p2) const {
     return p1.first > p2.first;

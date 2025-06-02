@@ -58,15 +58,13 @@ int main(int argc, char *argv[]) {
     // move.
 
     int res = k % n;
-    if (!res)
-      res = n;
+    if (!res) res = n;
 
     if (!(n % 2 == 0)) {
       int collisson_cnt = (k - 1) / (n / 2);
       res += collisson_cnt;
       res %= n;
-      if (!res)
-        res = n;
+      if (!res) res = n;
     }
 
     std::cout << res << "\n";

@@ -31,7 +31,7 @@ using std::unordered_map;
 using std::vector;
 
 class CompareRanges {
-public:
+ public:
   bool operator()(const pair<int, int> &a, const pair<int, int> &b) const {
     if ((a.second - a.first) == (b.second - b.first)) {
       return a.first > b.first;

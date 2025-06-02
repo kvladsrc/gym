@@ -21,8 +21,7 @@ bool compare_dragons(const pair<int, int> &a, const pair<int, int> &b) {
 bool winable(vector<pair<int, int>> dragons, int s) {
   sort(dragons.begin(), dragons.end(), compare_dragons);
   for (auto d : dragons) {
-    if (s <= d.first)
-      return false;
+    if (s <= d.first) return false;
     s += d.second;
   }
   return true;
@@ -36,8 +35,7 @@ bool winable_naive(vector<pair<int, int>> dragons, int s) {
   while (defeated_num < dragons.size()) {
     bool wining = false;
     for (size_t i = 0; i < dragons.size(); ++i) {
-      if (defeated[i])
-        continue;
+      if (defeated[i]) continue;
       if (dragons[i].first < s) {
         s += dragons[i].second;
         defeated[i] = true;
@@ -47,8 +45,7 @@ bool winable_naive(vector<pair<int, int>> dragons, int s) {
       }
     }
 
-    if (!wining)
-      return false;
+    if (!wining) return false;
   }
 
   return true;

@@ -58,7 +58,6 @@ int main(int argc, char *argv[]) {
   int need = k - (n + int(powers.size()));
   while (n--) {
     if (need > 0) {
-
       if (power / 2 == 0) {
         std::cout << "NO" << "\n";
         return 0;

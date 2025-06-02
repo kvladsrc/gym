@@ -35,8 +35,7 @@ typedef vector<vector<int>> graph;
 int deg(int start, int from, graph &g) {
   int res = 1;
   for (auto v : g[start]) {
-    if (v == from)
-      continue;
+    if (v == from) continue;
     res += deg(v, start, g);
   }
   return res;

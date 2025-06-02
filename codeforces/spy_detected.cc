@@ -18,8 +18,7 @@ using std::unordered_map;
 using std::vector;
 
 int find_spy(vector<int> input) {
-  if (input[0] != input[1] && input[0] != input[2])
-    return 1;
+  if (input[0] != input[1] && input[0] != input[2]) return 1;
   if (input[input.size() - 1] != input[input.size() - 2] &&
       input[input.size() - 1] != input[input.size() - 3])
     return input.size();

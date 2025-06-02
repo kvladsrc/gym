@@ -42,7 +42,6 @@ int main(int argc, char *argv[]) {
 
   // Need to swap last digin to get even number.
   if (ctoi(cur.back() % 2 == 1)) {
-
     // Trying to find leftmost even digit less than last.
     int best = -1;
     bool swapped = false;
@@ -62,7 +61,6 @@ int main(int argc, char *argv[]) {
       if (best != -1) {
         swap(cur.back(), cur[best]);
       } else {
-
         // All digits are odd. Cannot solve.
         std::cout << -1 << "\n";
         return 0;

@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include <algorithm>
 #include <climits>
 #include <cmath>
@@ -5,7 +7,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <math.h>
 #include <memory>
 #include <numeric>
 #include <queue>
@@ -56,8 +57,7 @@ int main(int argc, char *argv[]) {
     // Looks like it same. Have no proof, but let's try.
     vector<int> positions;
     for (int i = 0; i < n; ++i) {
-      if (s[i] == '.')
-        continue;
+      if (s[i] == '.') continue;
 
       positions.push_back(i + 1);
     }

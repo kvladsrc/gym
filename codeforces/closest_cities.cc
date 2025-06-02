@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     right_to_left[n - 1] = 0;
     right_to_left[n - 2] = 1;
     left_to_right[0] = 0;
-    left_to_right[1] = 1; // Second city is closest city from first.
+    left_to_right[1] = 1;  // Second city is closest city from first.
 
     for (size_t idx = 2; idx < n; ++idx) {
       int cost;

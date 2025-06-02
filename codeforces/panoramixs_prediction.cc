@@ -42,8 +42,7 @@ vector<bool> make_erato(int n) {
 
 int next_prime(int n, vector<bool> &erato) {
   for (size_t i = n + 1; i < erato.size(); i++) {
-    if (!erato[i])
-      return i;
+    if (!erato[i]) return i;
   }
   return 1;
 }

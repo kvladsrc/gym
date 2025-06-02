@@ -12,8 +12,7 @@ using std::vector;
 
 bool is_wrong(const string &input) {
   for (size_t i = 1; i < input.size(); ++i) {
-    if (input[i] != std::toupper(input[i]))
-      return false;
+    if (input[i] != std::toupper(input[i])) return false;
   }
   return true;
 }

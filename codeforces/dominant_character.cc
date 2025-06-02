@@ -58,14 +58,14 @@ int main(int argc, char *argv[]) {
       prefix_b[idx + 1] = prefix_b[idx];
       prefix_c[idx + 1] = prefix_c[idx];
       switch (s[idx]) {
-      case 'a':
-        prefix_a[idx + 1]++;
-        break;
-      case 'b':
-        prefix_b[idx + 1]++;
-        break;
-      default:
-        prefix_c[idx + 1]++;
+        case 'a':
+          prefix_a[idx + 1]++;
+          break;
+        case 'b':
+          prefix_b[idx + 1]++;
+          break;
+        default:
+          prefix_c[idx + 1]++;
       }
     }
 

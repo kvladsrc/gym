@@ -16,12 +16,13 @@
 #include <vector>
 
 using std::abs;
-using std::gcd;
+using std::endl;
 using std::map;
 using std::max;
 using std::min;
 using std::pair;
 using std::priority_queue;
+using std::queue;
 using std::set;
 using std::sort;
 using std::sqrt;
@@ -30,27 +31,24 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int *minamal(int *a, int *b, int *c) {
-  if (*a <= *b && *a <= *c) return a;
+int main(int /*argc*/, char* /*argv*/[]) {
+  std::ios::sync_with_stdio(false);
+  std::cin.tie(nullptr);
 
-  if (*b <= *a && *b <= *c) return b;
-
-  return c;
-}
-
-int main(int argc, char *argv[]) {
-  int t;
+  int t = 0;
   std::cin >> t;
-  while (t--) {
-    int a, b, c;
-    std::cin >> a >> b >> c;
-
-    for (int i = 0; i < 5; ++i) {
-      auto to_increase = minamal(&a, &b, &c);
-      (*to_increase)++;
+  while ((t--) != 0) {
+    int n = 0;
+    std::cin >> n;
+    int res = 0;
+    for (int i = 1; i < n; ++i) {
+      int buf = 0;
+      std::cin >> buf;
+      res += buf;
     }
 
-    std::cout << a * b * c << "\n";
+    res *= -1;
+    std::cout << res << "\n";
   }
 
   return 0;

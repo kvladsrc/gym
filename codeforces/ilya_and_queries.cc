@@ -62,8 +62,7 @@ void build(Node *root, int l, int r, string &in) {
   build(root->right, mid + 1, r, in);
 
   root->num = root->left->num + root->right->num;
-  if (in[mid] == in[mid + 1])
-    root->num++;
+  if (in[mid] == in[mid + 1]) root->num++;
 }
 
 int query(Node *root, int l, int r, int cur_l, int cur_r, string &in) {
@@ -80,8 +79,7 @@ int query(Node *root, int l, int r, int cur_l, int cur_r, string &in) {
   res += query(root->left, l, r, cur_l, mid, in);
   res += query(root->right, l, r, mid + 1, cur_r, in);
   if (l <= mid && r >= mid + 1) {
-    if (in[mid] == in[mid + 1])
-      res++;
+    if (in[mid] == in[mid + 1]) res++;
   }
   return res;
 }

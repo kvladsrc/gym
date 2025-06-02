@@ -50,8 +50,7 @@ int main(int argc, char *argv[]) {
   }
 
   auto res = c_map.size();
-  if (on_y)
-    res++;
+  if (on_y) res++;
   std::cout << res << "\n";
 
   return 0;

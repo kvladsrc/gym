@@ -53,13 +53,13 @@ int main(int argc, char *argv[]) {
 
     for (size_t i = 0; i < s.size(); ++i) {
       // 0...i1...1
-      int inc = pref_sums[i + 1]; // Swap all ones 0...i.
+      int inc = pref_sums[i + 1];  // Swap all ones 0...i.
       inc += (s.size() - (i + 1)) -
              (pref_sums.back() -
-              pref_sums[i + 1]); // Swap all zeroes i + 1...size;
+              pref_sums[i + 1]);  // Swap all zeroes i + 1...size;
 
       // 1...i0...0
-      int dec = (i + 1) - pref_sums[i + 1]; // Swal all zeroes 0...i.
+      int dec = (i + 1) - pref_sums[i + 1];  // Swal all zeroes 0...i.
       dec += pref_sums.back() - pref_sums[i + 1];
 
       auto local_min = min(inc, dec);

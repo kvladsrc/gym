@@ -35,7 +35,7 @@ class dsu {
   vector<size_t> parent;
   vector<int> rank;
 
-public:
+ public:
   size_t find_parent(size_t a) {
     if (parent[a] == a) {
       return a;
@@ -79,8 +79,7 @@ public:
   int cc(map<int, bool> &used_language) {
     int res = 0;
     for (size_t idx = 0; idx < parent.size(); ++idx) {
-      if (!used_language[idx])
-        continue;
+      if (!used_language[idx]) continue;
       if (parent[idx] == idx) {
         res++;
       }
@@ -103,8 +102,7 @@ int main(int argc, char *argv[]) {
   while (n--) {
     int langs;
     std::cin >> langs;
-    if (!langs)
-      zero++;
+    if (!langs) zero++;
     vector<int> l(langs);
     for (auto &i : l) {
       std::cin >> i;

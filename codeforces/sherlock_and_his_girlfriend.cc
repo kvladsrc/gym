@@ -33,8 +33,7 @@ using std::vector;
 
 void fill_erato(vector<bool> &a) {
   for (size_t i = 0; i < a.size(); ++i) {
-    if (!a[i])
-      continue;
+    if (!a[i]) continue;
     for (size_t j = 2; (((i + 2) * j) - 2) < a.size(); ++j) {
       a[(((i + 2) * j) - 2)] = false;
     }

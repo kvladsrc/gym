@@ -17,11 +17,9 @@ using std::vector;
 
 bool solveble(vector<int> &a) {
   sort(a.begin(), a.end());
-  if (a.size() == 1)
-    return true;
+  if (a.size() == 1) return true;
   for (size_t i = 1; i < a.size(); ++i) {
-    if (a[i] - a[i - 1] > 1)
-      return false;
+    if (a[i] - a[i - 1] > 1) return false;
   }
   return true;
 }

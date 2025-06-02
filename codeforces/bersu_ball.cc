@@ -20,8 +20,7 @@ using std::unordered_map;
 using std::vector;
 
 int abs(int a) {
-  if (a < 0)
-    return -a;
+  if (a < 0) return -a;
   return a;
 }
 

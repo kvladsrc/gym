@@ -35,7 +35,7 @@ using std::vector;
 const int DEFAULT_DSU_SIZE = 100;
 
 class dsu {
-public:
+ public:
   dsu() : dsu(DEFAULT_DSU_SIZE) {}
   dsu(int size) {
     parent.resize(size);
@@ -66,7 +66,7 @@ public:
     }
   }
 
-private:
+ private:
   vector<int> rank;
   vector<int> parent;
 

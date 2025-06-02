@@ -60,7 +60,7 @@ RUN="bazel run :3sum"
 
 @test "large numbers" {
     input=$'4 1000000000 1000000000 -1000000000 0'
-    expected="YES"  # 1e9 + 1e9 + (-1e9) = 1e9
+    expected="YES" # 1e9 + 1e9 + (-1e9) = 1e9
     result="$(echo "$input" | $RUN)"
     [ "$result" = "$expected" ]
 }

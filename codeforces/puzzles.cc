@@ -15,11 +15,10 @@ using std::vector;
 int solve(vector<int> available, int n) {
   sort(available.begin(), available.end());
   int best = available[available.size() - 1] - available[0];
-  n--; // index
+  n--;  // index
 
   for (size_t i = 0; i < available.size(); ++i) {
-    if (i + n >= available.size())
-      break;
+    if (i + n >= available.size()) break;
     if (available[i + n] - available[i] < best) {
       best = available[i + n] - available[i];
     }

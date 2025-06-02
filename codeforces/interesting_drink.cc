@@ -16,10 +16,8 @@ using std::unordered_map;
 using std::vector;
 
 int bin_search(vector<int> shops, int i) {
-  if (i < shops[0])
-    return 0;
-  if (i >= shops[shops.size() - 1])
-    return shops.size();
+  if (i < shops[0]) return 0;
+  if (i >= shops[shops.size() - 1]) return shops.size();
 
   int left = 0, right = shops.size() - 1, mid = right / 2;
 

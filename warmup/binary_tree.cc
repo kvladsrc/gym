@@ -3,6 +3,8 @@
 
 using std::string;
 
+namespace {
+
 struct node {
   int val;
   node *left;
@@ -127,7 +129,6 @@ struct bin_tree {
       return;
     }
     root->preorder();
-    std::cout << "\n";
   }
 
   void inorder() const {
@@ -135,7 +136,6 @@ struct bin_tree {
       return;
     }
     root->inorder();
-    std::cout << "\n";
   }
 
   void postorder() const {
@@ -143,23 +143,23 @@ struct bin_tree {
       return;
     }
     root->postorder();
-    std::cout << "\n";
   }
 };
 
+}  // namespace
+
 int main(int /*argc*/, char * /*argv*/[]) {
   bin_tree a;
-  std::cout << a.size << "\n";
-
   int n = 0;
   std::cin >> n;
+
   for (int i = 0; i < n; ++i) {
     int buf = 0;
     std::cin >> buf;
     a.insert(buf);
   }
 
-  std::cout << a.size << "\n";
+  std::cout << a.size << " ";
   a.preorder();
   a.inorder();
   a.postorder();

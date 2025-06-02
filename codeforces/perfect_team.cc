@@ -44,8 +44,7 @@ int main(int argc, char *argv[]) {
     while (c && m) {
       if (c == m) {
         res += (c / 3) * 2;
-        if ((c % 3) == 2)
-          res++;
+        if ((c % 3) == 2) res++;
         break;
       }
 

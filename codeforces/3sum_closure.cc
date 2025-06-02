@@ -45,10 +45,8 @@ int main(int argc, char *argv[]) {
     int pos_cnt = 0, neg_cnt = 0;
     for (auto &i : a) {
       std::cin >> i;
-      if (i > 0)
-        pos_cnt++;
-      if (i < 0)
-        neg_cnt++;
+      if (i > 0) pos_cnt++;
+      if (i < 0) neg_cnt++;
       m[i]++;
     }
 
@@ -65,8 +63,8 @@ int main(int argc, char *argv[]) {
 
     vector<int> brute_force;
     for (auto p : m) {
-      int to_add = min(3, p.second); // Many zeroes. No need more than
-                                     // 3 nums because of a + b + c.
+      int to_add = min(3, p.second);  // Many zeroes. No need more than
+                                      // 3 nums because of a + b + c.
       while (to_add--) {
         brute_force.push_back(p.first);
       }

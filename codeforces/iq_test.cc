@@ -18,10 +18,8 @@ int solve(vector<int> &nums) {
   }
 
   for (size_t i = 0; i < nums.size(); ++i) {
-    if (odds >= 2 && !(nums[i] % 2))
-      return i + 1;
-    if (odds <= 1 && nums[i] % 2)
-      return i + 1;
+    if (odds >= 2 && !(nums[i] % 2)) return i + 1;
+    if (odds <= 1 && nums[i] % 2) return i + 1;
   }
 
   return 0;

@@ -39,8 +39,7 @@ int main(int argc, char *argv[]) {
       int cur_plays, cur_clears;
       std::cin >> cur_plays >> cur_clears;
 
-      if (!res)
-        continue;
+      if (!res) continue;
 
       int change_plays = cur_plays - plays;
       int change_clears = cur_clears - clears;

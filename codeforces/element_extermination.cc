@@ -46,8 +46,7 @@ bool solve(vector<int> &a) {
     case1.push_back(a[i]);
     case2.push_back(a[i]);
 
-    if (branched)
-      continue;
+    if (branched) continue;
 
     if (a[i - 1] < a[i]) {
       // a = {10 1 2}

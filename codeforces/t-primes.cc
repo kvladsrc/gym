@@ -19,13 +19,11 @@ using std::vector;
 bool t_num(int64_t n) {
   int64_t guess = 2;
   while ((guess * guess) <= n) {
-    if (guess * guess == n)
-      return true;
-    if (!(n % guess))
-      return false;
+    if (guess * guess == n) return true;
+    if (!(n % guess)) return false;
     guess++;
   }
-  return false; // prime
+  return false;  // prime
 }
 
 set<int64_t> *precalculate() {

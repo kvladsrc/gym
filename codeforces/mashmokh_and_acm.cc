@@ -53,7 +53,6 @@ int rec_solve(int n, int k) {
 }
 
 int dp_solve(int n, int k) {
-
   // n + 1 and k + 1 is just for clearance, skipping i - 1 to address
   // array.
   vector<vector<int>> dp(n + 1, vector<int>(k + 1));

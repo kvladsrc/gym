@@ -7,8 +7,7 @@ using std::string;
 // O(n)
 int lex_compare(string &a, string &b) {
   for (size_t i = 0; i < a.size(); ++i) {
-    if (std::tolower(a[i]) == std::tolower(b[i]))
-      continue;
+    if (std::tolower(a[i]) == std::tolower(b[i])) continue;
 
     if (std::tolower(a[i]) > std::tolower(b[i]))
       return 1;

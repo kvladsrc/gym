@@ -30,8 +30,7 @@ using std::vector;
 
 int dfs(vector<vector<int>> &g, int start, int comp_id, vector<int> &comp_ids,
         vector<int> &costs) {
-  if (comp_ids[start] != 0)
-    return costs[start];
+  if (comp_ids[start] != 0) return costs[start];
   ;
 
   comp_ids[start] = comp_id;

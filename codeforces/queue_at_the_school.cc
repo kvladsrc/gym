@@ -5,8 +5,7 @@
 using std::string;
 
 void tick(string &q) {
-  if (q.size() <= 1)
-    return;
+  if (q.size() <= 1) return;
 
   for (size_t i = 1; i < q.size(); ++i) {
     if (q[i] == 'G' && q[i - 1] == 'B') {

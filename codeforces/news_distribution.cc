@@ -32,8 +32,7 @@ using std::unordered_map;
 using std::vector;
 
 size_t find_parent(vector<int> &p, int el) {
-  if (p[el] == el)
-    return el;
+  if (p[el] == el) return el;
   return find_parent(p, p[el]);
 }
 

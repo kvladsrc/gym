@@ -9,8 +9,7 @@ int solved(const vector<int> &first, const vector<int> &second,
   int res = 0;
   for (size_t i = 0; i < first.size(); ++i) {
     int count = first[i] + second[i] + third[i];
-    if (count < 2)
-      continue;
+    if (count < 2) continue;
     res++;
   }
   return res;

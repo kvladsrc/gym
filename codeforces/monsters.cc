@@ -16,12 +16,13 @@
 #include <vector>
 
 using std::abs;
-using std::gcd;
+using std::endl;
 using std::map;
 using std::max;
 using std::min;
 using std::pair;
 using std::priority_queue;
+using std::queue;
 using std::set;
 using std::sort;
 using std::sqrt;
@@ -30,27 +31,31 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int *minamal(int *a, int *b, int *c) {
-  if (*a <= *b && *a <= *c) return a;
-
-  if (*b <= *a && *b <= *c) return b;
-
-  return c;
-}
-
-int main(int argc, char *argv[]) {
-  int t;
+int main(int /*argc*/, char* /*argv*/[]) {
+  int t = 0;
   std::cin >> t;
-  while (t--) {
-    int a, b, c;
-    std::cin >> a >> b >> c;
+  while ((t--) != 0) {
+    int n = 0;
+    int k = 0;
+    std::cin >> n >> k;
 
-    for (int i = 0; i < 5; ++i) {
-      auto to_increase = minamal(&a, &b, &c);
-      (*to_increase)++;
+    map<int, vector<int>> m;
+    for (int i = 1; i <= n; ++i) {
+      int buf = 0;
+      std::cin >> buf;
+      buf %= k;
+      if (buf == 0) {
+        buf = k;
+      }
+      m[buf].push_back(i);
     }
 
-    std::cout << a * b * c << "\n";
+    for (auto it = m.rbegin(); it != m.rend(); ++it) {
+      for (auto el : (*it).second) {
+        std::cout << el << " ";
+      }
+    }
+    std::cout << "\n";
   }
 
   return 0;

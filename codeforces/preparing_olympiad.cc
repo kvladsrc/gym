@@ -42,8 +42,7 @@ using std::vector;
 // min_used < x || num_used < 2 => 0 else 1
 int solution_rec(vector<int> &problems, size_t start, int l, int r,
                  int min_used, int max_used, int x, int num_used) {
-  if (r < 0)
-    return 0;
+  if (r < 0) return 0;
 
   if (start == problems.size()) {
     if (l > 0 || r < 0 || (max_used - min_used) < x || num_used < 2) {

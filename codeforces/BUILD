@@ -1368,6 +1368,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "make_it_increasing",
+    srcs = ["make_it_increasing.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "helpful_maths",
     srcs = ["helpful_maths.cc"],
     copts = [
@@ -1676,6 +1685,15 @@ cc_binary(
 cc_binary(
     name = "tram",
     srcs = ["tram.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "jellyfish_and_undertale",
+    srcs = ["jellyfish_and_undertale.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -2099,6 +2117,15 @@ cc_binary(
 cc_binary(
     name = "fadi_and_lcm",
     srcs = ["fadi_and_lcm.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "goals_of_victory",
+    srcs = ["goals_of_victory.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -2682,6 +2709,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "building_an_aquarium",
+    srcs = ["building_an_aquarium.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "team",
     srcs = ["team.cc"],
     copts = [
@@ -2693,6 +2729,15 @@ cc_binary(
 cc_binary(
     name = "shuffle",
     srcs = ["shuffle.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "twice",
+    srcs = ["twice.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -4590,6 +4635,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "enemy_is_weak",
+    srcs = ["enemy_is_weak.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "deleting_divisors",
     srcs = ["deleting_divisors.cc"],
     copts = [
@@ -4952,6 +5006,15 @@ cc_binary(
 cc_binary(
     name = "special_elements",
     srcs = ["special_elements.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "extremely_round",
+    srcs = ["extremely_round.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -6464,6 +6527,15 @@ cc_binary(
 cc_binary(
     name = "keyboard",
     srcs = ["keyboard.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "monsters",
+    srcs = ["monsters.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

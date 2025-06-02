@@ -34,10 +34,8 @@ bool isDigit(char c) { return c <= '9' && c >= '0'; }
 int get_type(string s) {
   bool digit_found = false;
   for (auto c : s) {
-    if (digit_found && !isDigit(c))
-      return 2;
-    if (isDigit(c))
-      digit_found = true;
+    if (digit_found && !isDigit(c)) return 2;
+    if (isDigit(c)) digit_found = true;
   }
   return 1;
 }
@@ -76,7 +74,7 @@ pair<int, int> decode_b_type(string s) {
     col = s.back() + col;
     s.pop_back();
   }
-  s.pop_back(); // -> R
+  s.pop_back();  // -> R
   while (isDigit(s.back())) {
     row = s.back() + row;
     s.pop_back();
