@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <climits>
 #include <cstddef>
 #include <iostream>
 #include <string>
@@ -8,32 +9,54 @@ using std::max;
 using std::string;
 using std::vector;
 
-// Can be optimized by binary search. Current implementation has
-// O(n^2) runtime complexity.
-static int lis(vector<int> &a) {
-  vector<int> dp(a.size() + 1);
-  dp.front() = 0;
-  int res = 0;
+namespace {
 
-  for (size_t idx = 0; idx < a.size(); ++idx) {
-    dp[idx + 1] = 1;
-    for (size_t prev = 0; prev < idx; ++prev) {
-      if (a[prev] < a[idx]) {
-        dp[idx + 1] = max(dp[idx + 1], dp[prev + 1] + 1);
-      }
+int upper_bound(vector<int> &a, int el) {
+  int l = 0;
+  int r = a.size() - 1;
+  int res = -1;
+
+  while (l <= r) {
+    auto mid = (l + r) / 2;
+    if (a[mid] >= el) {
+      r = mid - 1;
+    } else {
+      res = mid;
+      l = mid + 1;
     }
-
-    res = max(res, dp[idx + 1]);
   }
 
   return res;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
+static int lis(vector<int> &a) {
+  // EDGE_CASE: empty array.
+  if (a.empty()) {
+    return 0;
+  }
 
-  int n = 0;
+  vector<int> dp(a.size(), INT_MAX);
+  int res = 1;
+
+  for (auto i : a) {
+    auto best = upper_bound(dp, i);
+    dp.front() = std::min(dp.front(), i);
+
+    if (best == -1) {
+      continue;
+    }
+
+    dp[best + 1] = std::min(dp[best + 1], i);
+    res = std::max(res, best + 2);
+  }
+
+  return res;
+}
+
+}  // namespace
+
+int main(int /*argc*/, char * /*argv*/[]) {
+  size_t n = 0;
   std::cin >> n;
   vector<int> a(n);
   for (auto &i : a) {
