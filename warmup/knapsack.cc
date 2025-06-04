@@ -21,12 +21,14 @@ int knapsack(const vector<int> &weights, const vector<int> &costs, int w) {
   // We can pick each item once.
   vector<vector<int>> dp(weights.size() + 1, vector<int>(w + 1));
 
+  // No elements to chose from.
   for (int i = 0; i <= w; ++i) {
-    dp[0][i] = 0;  // No capacity.
+    dp[0][i] = 0;
   }
 
+  // No capacity.
   for (size_t i = 0; i <= weights.size(); ++i) {
-    dp[i][0] = 0;  // No elements to chose from.
+    dp[i][0] = 0;
   }
 
   for (size_t i = 1; i <= weights.size(); ++i) {

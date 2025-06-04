@@ -2259,6 +2259,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "preparing_for_the_olympiad",
+    srcs = ["preparing_for_the_olympiad.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "spy_detected",
     srcs = ["spy_detected.cc"],
     copts = [
@@ -4250,6 +4259,15 @@ cc_binary(
 cc_binary(
     name = "new_year_transportation",
     srcs = ["new_year_transportation.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "baby_ehab_partitions_again",
+    srcs = ["baby_ehab_partitions_again.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
