@@ -1602,6 +1602,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "soldier_and_number_game",
+    srcs = ["soldier_and_number_game.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "odd_selection",
     srcs = ["odd_selection.cc"],
     copts = [
@@ -1856,6 +1865,15 @@ cc_binary(
 cc_binary(
     name = "in_search_of_an_easy_problem",
     srcs = ["in_search_of_an_easy_problem.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = ".#ehab_the_xorcist",
+    srcs = [".#ehab_the_xorcist.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -2261,6 +2279,15 @@ cc_binary(
 cc_binary(
     name = "preparing_for_the_olympiad",
     srcs = ["preparing_for_the_olympiad.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "question_marks",
+    srcs = ["question_marks.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -3035,6 +3062,15 @@ cc_binary(
 cc_binary(
     name = "game_with_chips",
     srcs = ["game_with_chips.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "make_all_equal",
+    srcs = ["make_all_equal.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -5913,6 +5949,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "ehab_the_xorcist",
+    srcs = ["ehab_the_xorcist.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "and_0_sum_big",
     srcs = ["and_0_sum_big.cc"],
     copts = [
@@ -6986,6 +7031,15 @@ cc_binary(
 cc_binary(
     name = "stair_peak_or_neither_",
     srcs = ["stair_peak_or_neither_.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "square_year",
+    srcs = ["square_year.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
