@@ -1872,15 +1872,6 @@ cc_binary(
 )
 
 cc_binary(
-    name = ".#ehab_the_xorcist",
-    srcs = [".#ehab_the_xorcist.cc"],
-    copts = [
-        "-Werror",
-        "-std=c++17",
-    ],
-)
-
-cc_binary(
     name = "the_new_year_meeting_friends",
     srcs = ["the_new_year_meeting_friends.cc"],
     copts = [
@@ -3296,6 +3287,15 @@ cc_binary(
 cc_binary(
     name = "dzy_loves_sequences",
     srcs = ["dzy_loves_sequences.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "carrying_conundrum",
+    srcs = ["carrying_conundrum.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
@@ -4763,6 +4763,15 @@ cc_binary(
 cc_binary(
     name = "ternary_string",
     srcs = ["ternary_string.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "ambitious_kid",
+    srcs = ["ambitious_kid.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
