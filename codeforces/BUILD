@@ -2925,6 +2925,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "d_elections",
+    srcs = ["d_elections.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "do_not_be_distracted",
     srcs = ["do_not_be_distracted.cc"],
     copts = [
@@ -4088,6 +4097,15 @@ cc_binary(
 cc_binary(
     name = "two_substrings",
     srcs = ["two_substrings.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "graph_without_long_directed_paths",
+    srcs = ["graph_without_long_directed_paths.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
