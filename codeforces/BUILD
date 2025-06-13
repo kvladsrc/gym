@@ -3051,6 +3051,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "perfect_keyboard",
+    srcs = ["perfect_keyboard.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "following_the_string",
     srcs = ["following_the_string.cc"],
     copts = [
