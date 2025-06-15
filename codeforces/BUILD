@@ -7434,6 +7434,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "good_substrings",
+    srcs = ["good_substrings.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "cobb",
     srcs = ["cobb.cc"],
     copts = [
@@ -7445,6 +7454,15 @@ cc_binary(
 cc_binary(
     name = "journey",
     srcs = ["journey.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "make_it_divisible_by_25",
+    srcs = ["make_it_divisible_by_25.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
