@@ -1,0 +1,4 @@
+/bazel-*
+/third_party
+/node_modules
+/.ruff_cache

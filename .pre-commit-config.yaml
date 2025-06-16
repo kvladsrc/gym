@@ -1,0 +1,88 @@
+---
+minimum_pre_commit_version: "3.5.0"
+
+default_language_version:
+  python: python3.12
+
+# Ignore generated or vendor folders
+exclude: |
+  (?x)
+  (^\.git/)|
+  (^archive/)|
+  (?:^|/)vendor/|
+  (?:^|/)third_party/|
+  (^node_modules/)
+
+repos:
+  # ---------- Generic sanity checks ----------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: debug-statements
+
+  # ---------- C++ checks ----------
+  - repo: https://github.com/pocc/pre-commit-hooks
+    rev: v1.3.5
+    hooks:
+      - id: clang-format
+      - id: clang-tidy
+      - id: cppcheck
+        args:
+          - --check-level=exhaustive
+      - id: cpplint
+        args:
+          - --filter=-legal/copyright
+
+  # ---------- Documentation & markup ----------
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.45.0
+    hooks:
+      - id: markdownlint
+        args: ["--fix"]
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        files: "\\.(js|jsx|ts|tsx|json|css|scss|html)$"
+
+  # ---------- YAML quality ----------
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.37.1
+    hooks:
+      - id: yamllint
+        exclude: ^production/kubernetes/helm-charts/.+/templates/
+
+  # ---------- Helm charts ------------
+  - repo: https://github.com/gruntwork-io/pre-commit
+    rev: v0.1.29
+    hooks:
+      - id: helmlint
+
+  # ---------- Shell scripts ----------
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.11.0-1
+    hooks:
+      - id: shfmt
+        args: ["-i", "4", "-s", "-w"]
+
+  # ---------- Dockerfiles ----------
+  - repo: https://github.com/AleksaC/hadolint-py
+    rev: v2.12.1b3
+    hooks:
+      - id: hadolint
+        args: [--ignore, DL3008, --ignore, DL3018]
+
+  # ---------- Secret scanning ----------
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        exclude: ^production/secrets/
