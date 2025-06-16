@@ -6453,6 +6453,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "ciel_and_flowers",
+    srcs = ["ciel_and_flowers.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "mahmoud_and_ehab_and_the_even-odd_game",
     srcs = ["mahmoud_and_ehab_and_the_even-odd_game.cc"],
     copts = [

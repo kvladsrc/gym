@@ -306,6 +306,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "trie",
+    srcs = ["trie.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "prime_test",
     srcs = ["prime_test.cc"],
     copts = [
@@ -362,6 +371,15 @@ cc_binary(
 cc_binary(
     name = "subsets",
     srcs = ["subsets.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "cycle_detection",
+    srcs = ["cycle_detection.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

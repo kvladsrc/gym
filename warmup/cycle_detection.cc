@@ -3,10 +3,15 @@
 #include <utility>
 #include <vector>
 
-namespace {
+using std::vector;
+
+namespace dsu {
+
+const size_t default_size = 100;
 
 class DisjointSetUnion {
  public:
+  DisjointSetUnion() : DisjointSetUnion(default_size) {}
   explicit DisjointSetUnion(size_t /*size*/);
   bool connected(size_t /*a*/, size_t /*b*/);
   void unite(size_t /*a*/, size_t /*b*/);
@@ -54,35 +59,32 @@ void DisjointSetUnion::unite(size_t a, size_t b) {
   }
 }
 
-}  // namespace
+}  // namespace dsu
 
 int main(int /*argc*/, char* /*argv*/[]) {
-  size_t n = 0;
+  int n = 0;
   std::cin >> n;
-  auto dsu = DisjointSetUnion(n);
 
-  int ops = 0;
-  std::cin >> ops;
-  for (int i = 0; i < ops; ++i) {
-    size_t a = 0;
-    size_t b = 0;
-    std::cin >> a >> b;
-    dsu.unite(a, b);
-  }
+  int m = 0;
+  std::cin >> m;
 
-  int q = 0;
-  std::cin >> q;
-  for (int i = 0; i < q; ++i) {
-    size_t a = 0;
-    size_t b = 0;
+  dsu::DisjointSetUnion d(n);
+
+  bool cycle_detected = false;
+
+  while ((m--) != 0) {
+    int a = 0;
+    int b = 0;
     std::cin >> a >> b;
 
-    if (dsu.connected(a, b)) {
-      std::cout << "CONNECTED" << "\n";
-    } else {
-      std::cout << "DISCONNECTED" << "\n";
+    if (d.connected(a, b)) {
+      cycle_detected = true;
     }
+
+    d.unite(a, b);
   }
+
+  std::cout << (cycle_detected ? "YES" : "NO") << "\n";
 
   return 0;
 }

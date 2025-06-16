@@ -1,97 +1,61 @@
 #include <algorithm>
-#include <climits>
-#include <cmath>
 #include <cstddef>
-#include <cstdint>
-#include <cstdlib>
-#include <ctime>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <numeric>
-#include <optional>
-#include <queue>
-#include <set>
-#include <stack>
 #include <string>
-#include <tuple>
-#include <unordered_map>
-#include <utility>
-#include <vector>
 
-using std::abs;
-using std::endl;
-using std::map;
-using std::max;
-using std::min;
-using std::pair;
-using std::priority_queue;
-using std::queue;
-using std::set;
-using std::sort;
-using std::sqrt;
-using std::stack;
-using std::string;
-using std::unordered_map;
-using std::vector;
+namespace {
+
+/*
+ * Very raw implementation of prefix trie. Space complexity can be
+ * optimized by using a compressed suffix tree.
+ */
 
 struct node {
-  char c{};
-  map<char, node*> children;
+  std::map<char, std::unique_ptr<node>> children;
 };
 
-int count_nodes(const node* root) {
-  int res = 1;
-
-  res += std::accumulate(
-      root->children.begin(), root->children.end(), 0,
-      [](int acc, const auto& p) { return acc + count_nodes(p.second); });
-
-  return res;
-}
-
-int main(int /*argc*/, char* /*argv*/[]) {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
-
-  string s;
-  std::cin >> s;
-
-  string mask;
-  std::cin >> mask;
-
-  int k = 0;
-  std::cin >> k;
-
-  auto* root = new node;
-  root->c = 'R';
+std::unique_ptr<node> build_trie(const std::string& s) {
+  auto root = std::make_unique<node>();
 
   for (size_t idx = 0; idx < s.size(); ++idx) {
-    int bad = 0;
-    auto* n = root;
-
+    auto* n = root.get();
     for (size_t cur = idx; cur < s.size(); ++cur) {
-      auto c = s[cur];
-
-      if (mask[c - 'a'] == '0') {
-        bad++;
+      auto& next = n->children[s[cur]];
+      if (!next) {
+        next = std::make_unique<node>();
       }
-
-      if (bad > k) {
-        break;
-      }
-
-      if (n->children.count(c) == 0) {
-        n->children[c] = new node;
-        n->children[c]->c = c;
-      }
-
-      n = n->children[c];
+      n = next.get();
     }
   }
 
-  auto res = count_nodes(root);
-  std::cout << res - 1 << "\n";
+  return root;
+}
+
+bool contains(const node* root, const std::string& w) {
+  for (auto ch : w) {
+    auto it = root->children.find(ch);
+    if (it == root->children.end()) {
+      return false;
+    }
+    root = it->second.get();
+  }
+
+  return true;
+}
+
+}  // namespace
+
+int main(int /*argc*/, char* /*argv*/[]) {
+  std::string s;
+  std::cin >> s;
+
+  std::string patt;
+  std::cin >> patt;
+
+  std::unique_ptr<node> root = build_trie(s);
+  std::cout << (contains(root.get(), patt) ? "YES\n" : "NO\n");
 
   return 0;
 }
