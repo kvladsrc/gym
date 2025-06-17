@@ -1458,6 +1458,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "and_or_and_square_sum",
+    srcs = ["and_or_and_square_sum.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "right_left_wrong",
     srcs = ["right_left_wrong.cc"],
     copts = [

@@ -547,3 +547,12 @@ cc_binary(
         "-std=c++17",
     ],
 )
+
+cc_binary(
+    name = "fibonacci",
+    srcs = ["fibonacci.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
