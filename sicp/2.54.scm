@@ -1,0 +1,11 @@
+(define (equal? a b)
+  (cond ((and (null? a) (null? b)) #t)
+	((and (simbol? (car a))
+	      (simbol? (car b)))
+	 (if (eq? (car a) (car b))
+	     (equal? (cdr a) (cdr b))
+	     #f))
+	(else (if (and (equal? (car a) (car b))
+		       (equal? (cdr a) (cdr b)))
+		  #t
+		  #f))))

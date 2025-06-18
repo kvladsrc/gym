@@ -1,0 +1,28 @@
+(define (count-pairs x)
+  (let ((unique `()))
+    (define (count-unique x)
+      (if (pair? x)
+	  (if (in-set? x unique)
+	      0
+	      (+ (this-pair x)
+		 (count-unique (car x))
+		 (count-unique (cdr x))))
+	  0))
+    (define (this-pair x)
+      (if (in-set? x unique)
+	  0
+	  (begin (append! unique x)
+		 1)))
+    (define (append! seq element)
+      (if (not (null? seq))
+	  (if (null? (cdr seq))
+	      (set-cdr! seq (list element))
+	      (append! (cdr seq) element))
+	  (list element)))
+    (define (in-set? element seq)
+      (if (null? seq)
+	  #f
+	  (if (eq? (car seq) element)
+	      #t
+	      (in-set? element (cdr seq)))))
+    (count-unique x)))

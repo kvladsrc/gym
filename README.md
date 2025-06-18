@@ -14,6 +14,9 @@ This repository is a curated collection of my programming solutions, algorithm e
 ### Algorithms & Data Structures
 `/warmup` — Educational implementations of core algorithms, data structures and techniques.
 
+### SICP solutions
+`/warmup` — My first experience in programming: exercises from a book that I worked through around 2007.
+
 ## Purpose
 
 This repository showcases my journey in programming and algorithms. Feel free to explore the code and use it as a reference. All constructive feedback is appreciated!

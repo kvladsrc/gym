@@ -1,0 +1,80 @@
+(define (lookup-variable-value var env)
+  (define (env-loop env)
+    (define (scan vars vals)
+      (cond ((null? vars)
+             (env-loop (enclosing-environment env)))
+	    ((eq? var (car vars))
+	     (if (unassigned? (car vals))
+		 unassigned
+		 (car vals)))
+	    (else (scan (cdr vars) (cdr vals)))))
+    (if (eq? env the-empty-environment)
+	(error "Несвязанная переменная" var)
+	(let ((frame (first-frame env)))
+	  (scan (frame-variables frame)
+		(frame-values frame)))))
+  (env-loop env))
+
+;a
+(define (unassigned? val)
+  (eq? val `*unassigned*))
+(define unassigned `*unassigned*)
+
+;b
+(define (scan-out-defines body)
+  (if (defines? body)
+      (defines-transform body)
+      body))
+
+(define (defines? body)
+  (cond ((null? body)
+	 false)
+	((tagged-list? (car body) `define)
+	 true)
+	(else (defines? (cdr body)))))
+
+(define (defines-transform body)
+  (append (list `let
+		(map
+		 (lambda (x)
+		   (cons x `*unassigned*))
+		 (defines-vars body)))
+	  (append (make-set-list (defines-vars body)
+				 (defines-vals body))
+		  (list (defines-proc body)))))
+
+(define (defines-vars body)
+  (map (lambda (exp)
+	 (if (pair? (cadr exp))
+	     (car (cadr exp))
+	     (cadr exp)))
+       (defines-define-list body)))
+
+(define (defines-define-list body)
+  (cond ((null? body)
+	 `())
+	((tagged-list? (car body) `define)
+	 (cons (car body) (defines-define-list (cdr body))))
+	(else (defines-define-list (cdr body)))))
+
+(define (defines-vals body)
+  (map (lambda (exp)
+	 (if (pair? (cadr exp))
+	     (make-lambda (cdadr exp)
+			  (cddr exp))
+	     (caddr exp)))
+       (defines-define-list body)))
+
+(define (make-set-list vars vals)
+  (cond ((null? vars)
+	 `())
+	(else (cons (list `set! (car vars) (car vals))
+		    (make-set-list (cdr vars) (cdr vals))))))
+
+
+(define (defines-proc body)
+  (cond ((null? body)
+	 "ERROR")
+	((not (tagged-list? (car body) `define))
+	 (car body))
+	(else (defines-proc (cdr body)))))

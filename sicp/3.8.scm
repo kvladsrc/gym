@@ -1,0 +1,10 @@
+(define flag 0)
+
+(define (f x)
+  (if (= flag 0)
+      (if (= x 0)
+	  (begin (set! flag 1)
+		 0)
+	  (begin (set! flag 1)
+		 1))
+      0))
