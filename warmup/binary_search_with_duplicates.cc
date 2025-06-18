@@ -1,28 +1,26 @@
 #include <cstddef>
 #include <iostream>
 #include <optional>
-#include <string>
 #include <vector>
-
-using std::optional;
-using std::string;
-using std::vector;
 
 namespace {
 
-optional<size_t> lower_bound(vector<int> &a, int i) {
+std::optional<size_t> lower_bound(const std::vector<int> &a, int value) {
   // EDGE_CASE: empty vector do not contain any elements.
   if (a.empty()) {
     return std::nullopt;
   }
 
-  int l = 0;
-  int r = a.size() - 1;
+  // Negative values needed to break cycle on r = -1, l = 0.
+  ssize_t l = 0;
+  ssize_t r = a.size() - 1;
   std::optional<size_t> res = std::nullopt;
 
   while (l <= r) {
-    auto const mid = (l + r) / 2;
-    if (a[mid] >= i) {
+    // (l + r) / 2 can lead to overvlow.
+    auto const mid = l + ((r - l) / 2);
+
+    if (a[mid] >= value) {
       r = mid - 1;
       res = mid;
     } else {
@@ -38,7 +36,7 @@ optional<size_t> lower_bound(vector<int> &a, int i) {
 int main(int /*argc*/, char * /*argv*/[]) {
   int n = 0;
   std::cin >> n;
-  vector<int> a(n);
+  std::vector<int> a(n);
   for (auto &i : a) {
     std::cin >> i;
   }

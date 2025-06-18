@@ -2628,6 +2628,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "good_triples",
+    srcs = ["good_triples.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "bus_to_udayland",
     srcs = ["bus_to_udayland.cc"],
     copts = [
