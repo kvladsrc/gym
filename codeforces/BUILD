@@ -792,6 +792,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "zero_path",
+    srcs = ["zero_path.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "exams",
     srcs = ["exams.cc"],
     copts = [
