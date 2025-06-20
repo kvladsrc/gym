@@ -54,6 +54,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "searching_local_minimum",
+    srcs = ["searching_local_minimum.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "fence",
     srcs = ["fence.cc"],
     copts = [
