@@ -396,6 +396,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "two_divisors",
+    srcs = ["two_divisors.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "different_divisors",
     srcs = ["different_divisors.cc"],
     copts = [
@@ -4223,6 +4232,15 @@ cc_binary(
 cc_binary(
     name = "lecture_sleep",
     srcs = ["lecture_sleep.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "the_least_round_way",
+    srcs = ["the_least_round_way.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
