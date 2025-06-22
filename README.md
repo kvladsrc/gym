@@ -15,7 +15,7 @@ This repository is a curated collection of my programming solutions, algorithm e
 `/warmup` — Educational implementations of core algorithms, data structures and techniques.
 
 ### SICP solutions
-`/sicp` — My first experience in programming: exercises from a book that I worked through around 2007.
+`/sicp` — My first experience in programming.
 
 ## Purpose
 
