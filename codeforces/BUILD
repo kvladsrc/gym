@@ -6129,6 +6129,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "engineer_artem",
+    srcs = ["engineer_artem.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "basketball_exercise",
     srcs = ["basketball_exercise.cc"],
     copts = [
