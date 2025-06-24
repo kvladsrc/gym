@@ -459,6 +459,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = ".#prefixes_and_suffixes",
+    srcs = [".#prefixes_and_suffixes.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "forever_winter",
     srcs = ["forever_winter.cc"],
     copts = [
@@ -3861,6 +3870,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "prefixes_and_suffixes",
+    srcs = ["prefixes_and_suffixes.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "sofia_and_the_lost_operations",
     srcs = ["sofia_and_the_lost_operations.cc"],
     copts = [
@@ -6032,6 +6050,15 @@ cc_binary(
 cc_binary(
     name = "less_or_equal",
     srcs = ["less_or_equal.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "unit_array",
+    srcs = ["unit_array.cc"],
     copts = [
         "-Werror",
         "-std=c++17",
