@@ -459,15 +459,6 @@ cc_binary(
 )
 
 cc_binary(
-    name = ".#prefixes_and_suffixes",
-    srcs = [".#prefixes_and_suffixes.cc"],
-    copts = [
-        "-Werror",
-        "-std=c++17",
-    ],
-)
-
-cc_binary(
     name = "forever_winter",
     srcs = ["forever_winter.cc"],
     copts = [
@@ -3051,6 +3042,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "xor_on_segment",
+    srcs = ["xor_on_segment.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "abc",
     srcs = ["abc.cc"],
     copts = [
@@ -3269,6 +3269,15 @@ cc_binary(
 cc_binary(
     name = "two_elevators",
     srcs = ["two_elevators.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
+    name = "strong_password",
+    srcs = ["strong_password.cc"],
     copts = [
         "-Werror",
         "-std=c++17",

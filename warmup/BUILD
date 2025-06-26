@@ -252,6 +252,15 @@ cc_binary(
 )
 
 cc_binary(
+    name = "lazy_propagated_segment_tree",
+    srcs = ["lazy_propagated_segment_tree.cc"],
+    copts = [
+        "-Werror",
+        "-std=c++17",
+    ],
+)
+
+cc_binary(
     name = "graph_topological_sort",
     srcs = ["graph_topological_sort.cc"],
     copts = [
