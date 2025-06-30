@@ -1,14 +1,9 @@
+#include "cpp/warmup/fibonacci.hpp"
+
 #include <iostream>
 #include <utility>
 
-namespace {
-
-struct Matrix2x2 {
-  int64_t a11, a12;
-  int64_t a21, a22;
-
-  Matrix2x2 operator*(const Matrix2x2& other) const;
-};
+namespace warmup {
 
 Matrix2x2 Matrix2x2::operator*(const Matrix2x2& other) const {
   return {(a11 * other.a11) + (a12 * other.a21),
@@ -40,19 +35,4 @@ int64_t fibonacci(int n) {
   return res.a21;
 }
 
-}  // namespace
-
-int main(int /*argc*/, char* /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-
-  if (n < 0) {
-    std::cout << "MUST BE POSITIVE" << "\n";
-    return 0;
-  }
-
-  auto res = fibonacci(n);
-  std::cout << res << "\n";
-
-  return 0;
-}
+}  // namespace warmup

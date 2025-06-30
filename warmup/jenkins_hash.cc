@@ -1,10 +1,14 @@
+#include "cpp/warmup/jenkins_hash.hpp"
+
 #include <cstdint>
 #include <iostream>
 #include <string>
 
 using std::string;
 
-static uint32_t jenkins_one_at_a_time_hash(const string &key) {
+namespace warmup {
+
+uint32_t jenkins_one_at_a_time_hash(const string &key) {
   uint32_t hash = 0;
   for (char const idx : key) {
     hash += idx;
@@ -17,14 +21,4 @@ static uint32_t jenkins_one_at_a_time_hash(const string &key) {
   return hash;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
-
-  string s;
-  std::getline(std::cin, s);
-  auto value = jenkins_one_at_a_time_hash(s);
-  std::cout << "0x" << std::hex << value << '\n';
-
-  return 0;
-}
+}  // namespace warmup

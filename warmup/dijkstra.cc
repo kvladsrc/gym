@@ -1,7 +1,10 @@
+#include "cpp/warmup/dijkstra.hpp"
+
 #include <climits>
 #include <iostream>
 #include <queue>
 #include <string>
+#include <utility>
 #include <vector>
 
 using std::pair;
@@ -9,7 +12,7 @@ using std::priority_queue;
 using std::string;
 using std::vector;
 
-using graph = vector<vector<pair<int, int>>>;
+namespace warmup {
 
 class CompareDistance {
  public:
@@ -18,7 +21,7 @@ class CompareDistance {
   }
 };
 
-static int dijkstra(graph &g, int start, int end) {
+int dijkstra(graph &g, int start, int end) {
   vector<bool> visited(g.size(), false);
 
   priority_queue<pair<int, int>, vector<pair<int, int>>, CompareDistance>
@@ -49,26 +52,4 @@ static int dijkstra(graph &g, int start, int end) {
   return INT_MAX;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  int v = 0;
-  int e = 0;
-  std::cin >> v >> e;
-
-  graph g(v);
-
-  while ((e--) != 0) {
-    int a = 0;
-    int b = 0;
-    int d = 0;
-    std::cin >> a >> b >> d;
-    g[a].emplace_back(b, d);
-    g[b].emplace_back(a, d);
-  }
-
-  int a = 0;
-  int b = 0;
-  std::cin >> a >> b;
-  std::cout << dijkstra(g, a, b) << "\n";
-
-  return 0;
-}
+}  // namespace warmup

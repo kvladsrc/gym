@@ -1,11 +1,13 @@
+#include "cpp/warmup/binary_search_with_duplicates.hpp"
+
 #include <cstddef>
 #include <iostream>
 #include <optional>
 #include <vector>
 
-namespace {
+namespace warmup {
 
-std::optional<size_t> lower_bound(const std::vector<int> &a, int value) {
+std::optional<std::size_t> lower_bound(const std::vector<int> &a, int value) {
   // EDGE_CASE: empty vector do not contain any elements.
   if (a.empty()) {
     return std::nullopt;
@@ -14,7 +16,7 @@ std::optional<size_t> lower_bound(const std::vector<int> &a, int value) {
   // Negative values needed to break cycle on r = -1, l = 0.
   ssize_t l = 0;
   ssize_t r = a.size() - 1;
-  std::optional<size_t> res = std::nullopt;
+  std::optional<std::size_t> res = std::nullopt;
 
   while (l <= r) {
     // (l + r) / 2 can lead to overvlow.
@@ -31,24 +33,4 @@ std::optional<size_t> lower_bound(const std::vector<int> &a, int value) {
   return res;
 }
 
-}  // namespace
-
-int main(int /*argc*/, char * /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-  std::vector<int> a(n);
-  for (auto &i : a) {
-    std::cin >> i;
-  }
-
-  int el = 0;
-  std::cin >> el;
-  auto ub = lower_bound(a, el);
-  if (ub) {
-    std::cout << *ub << "\n";
-  } else {
-    std::cout << -1 << "\n";
-  }
-
-  return 0;
-}
+}  // namespace warmup

@@ -20,9 +20,7 @@ static int64_t permutations_heaps(std::vector<int> &arr, int size) {
     // If size is odd, swap first and last element
     if (size % 2 == 1) {
       std::swap(arr[0], arr[size - 1]);
-    }
-    // If size is even, swap i-th and last element
-    else {
+    } else {
       std::swap(arr[i], arr[size - 1]);
     }
   }

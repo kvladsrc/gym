@@ -1,14 +1,15 @@
+#include "cpp/warmup/counting_sort.hpp"
+
 #include <algorithm>
-#include <boost/range/algorithm/sort.hpp>
 #include <cstddef>
-#include <iostream>
-#include <string>
 #include <vector>
 
-using std::string;
-using std::vector;
+namespace warmup {
 
-static void couting_sort(vector<int> &v) {
+void counting_sort(std::vector<int> &v) {
+  if (v.empty()) {
+    return;
+  }
   int max_val = 0;
 
   for (auto i : v) {
@@ -19,13 +20,13 @@ static void couting_sort(vector<int> &v) {
     }
   }
 
-  vector<int> table(max_val + 1, 0);
+  std::vector<int> table(max_val + 1, 0);
   for (auto i : v) {
     table[i]++;
   }
 
   v.clear();
-  for (size_t i = 1; i < table.size(); ++i) {
+  for (std::size_t i = 0; i < table.size(); ++i) {
     while (table[i] != 0) {
       v.push_back(i);
       table[i]--;
@@ -33,29 +34,4 @@ static void couting_sort(vector<int> &v) {
   }
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-  vector<int> a(n);
-  vector<int> b(n);
-  for (int i = 0; i < n; ++i) {
-    int buf = 0;
-    std::cin >> buf;
-    a[i] = b[i] = buf;
-  }
-
-  boost::range::sort(a);
-  couting_sort(b);
-
-  for (int i = 0; i < n; ++i) {
-    if (a[i] != b[i]) {
-      std::cout << "ERROR"
-                << "\n";
-    } else {
-      std::cout << "OK"
-                << "\n";
-    }
-  }
-
-  return 0;
-}
+}  // namespace warmup

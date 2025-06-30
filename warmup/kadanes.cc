@@ -1,11 +1,13 @@
+#include "cpp/warmup/kadanes.hpp"
+
 #include <algorithm>
-#include <iostream>
+#include <cstdint>
 #include <vector>
 
 using std::max;
 using std::vector;
 
-namespace {
+namespace warmup {
 
 /*
  * Kadane's Algorithm <3.
@@ -20,15 +22,4 @@ int64_t kadanes(vector<int64_t> const &a) {
   return global;
 }
 
-}  // namespace
-
-int main(int /*argc*/, char * /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-  vector<int64_t> a(n);
-  for (auto &i : a) {
-    std::cin >> i;
-  }
-  std::cout << kadanes(a) << "\n";
-  return 0;
-}
+}  // namespace warmup

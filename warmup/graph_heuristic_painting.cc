@@ -38,8 +38,8 @@ int main(int /*argc*/, char* /*argv*/[]) {
   int max_color = 1;
   color_map[max_degree] = 1;
   vector<set<int>> colored_deg(n);
-  for (auto n : g[max_degree]) {
-    colored_deg[n].insert(1);
+  for (auto nv : g[max_degree]) {
+    colored_deg[nv].insert(1);
   }
 
   for (int i = 1; i < n; ++i) {
@@ -55,18 +55,14 @@ int main(int /*argc*/, char* /*argv*/[]) {
     }
 
     for (int color = 1;; ++color) {
-      bool can_be = true;
-      for (auto n : g[best_v]) {
-        if (color_map[n] == color) {
-          can_be = false;
-          break;
-        }
-      }
+      bool can_be =
+          !std::any_of(g[best_v].begin(), g[best_v].end(),
+                       [&](int nv) { return color_map[nv] == color; });
       if (can_be) {
         color_map[best_v] = color;
         max_color = max(max_color, color);
-        for (auto n : g[best_v]) {
-          colored_deg[n].insert(color);
+        for (auto nv : g[best_v]) {
+          colored_deg[nv].insert(color);
         }
         break;
       }

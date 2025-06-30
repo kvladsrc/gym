@@ -1,12 +1,14 @@
-#include <iostream>
+#include "cpp/warmup/quick_sort.hpp"
+
+#include <utility>
 #include <vector>
 
-using std::vector;
+namespace warmup {
 
 // The partition algorithm is simplest for array with duplicates among
 // those that I saw, much easier to make a mistake on l++&r--
 // algorithm in case of duplicates.
-static int partition(vector<int> &a, int l, int r) {
+int partition(std::vector<int> &a, int l, int r) {
   int const pivot = a[r];
 
   // It always increase the sep before swapping.
@@ -23,7 +25,7 @@ static int partition(vector<int> &a, int l, int r) {
   return sep;
 }
 
-static void quick_sort(vector<int> &a, int l, int r) {
+void quick_sort(std::vector<int> &a, int l, int r) {
   if (l >= r) {
     return;
   }
@@ -33,20 +35,4 @@ static void quick_sort(vector<int> &a, int l, int r) {
   quick_sort(a, pos + 1, r);
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-  vector<int> a(n);
-  for (auto &i : a) {
-    std::cin >> i;
-  }
-
-  quick_sort(a, 0, n - 1);
-
-  for (auto i : a) {
-    std::cout << i << " ";
-  }
-  std::cout << "\n";
-
-  return 0;
-}
+}  // namespace warmup

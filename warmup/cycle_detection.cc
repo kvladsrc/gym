@@ -1,3 +1,5 @@
+#include "cpp/warmup/cycle_detection.hpp"
+
 #include <iostream>
 #include <numeric>
 #include <utility>
@@ -5,30 +7,21 @@
 
 using std::vector;
 
-namespace dsu {
+namespace warmup {
 
-const size_t default_size = 100;
-
-class DisjointSetUnion {
- public:
-  DisjointSetUnion() : DisjointSetUnion(default_size) {}
-  explicit DisjointSetUnion(size_t /*size*/);
-  bool connected(size_t /*a*/, size_t /*b*/);
-  void unite(size_t /*a*/, size_t /*b*/);
-
- private:
-  std::vector<size_t> parent;
-  std::vector<int> rank;
-  size_t find(size_t /*i*/);
-};
-
-DisjointSetUnion::DisjointSetUnion(size_t size) {
+DisjointSetUnion::DisjointSetUnion(std::size_t size) {
   parent.resize(size);
   std::iota(parent.begin(), parent.end(), 0);
   rank.resize(size, 0);
 }
 
-size_t DisjointSetUnion::find(size_t i) {
+std::size_t DisjointSetUnion::find(std::size_t i) {
+  if (i >= parent.size()) {
+    // Handle out-of-bounds access, e.g., return i or throw an exception.
+    // For now, returning i to avoid crash, but this might need better error
+    // handling.
+    return i;
+  }
   // Path compression.
   if (parent[i] != i) {
     parent[i] = find(parent[i]);
@@ -36,11 +29,17 @@ size_t DisjointSetUnion::find(size_t i) {
   return parent[i];
 }
 
-bool DisjointSetUnion::connected(size_t a, size_t b) {
+bool DisjointSetUnion::connected(std::size_t a, std::size_t b) {
+  if (a >= parent.size() || b >= parent.size()) {
+    return false;  // Out of bounds indices are not connected
+  }
   return find(a) == find(b);
 }
 
-void DisjointSetUnion::unite(size_t a, size_t b) {
+void DisjointSetUnion::unite(std::size_t a, std::size_t b) {
+  if (a >= parent.size() || b >= parent.size()) {
+    return;  // Out of bounds indices cannot be united
+  }
   auto pa = find(a);
   auto pb = find(b);
 
@@ -59,32 +58,4 @@ void DisjointSetUnion::unite(size_t a, size_t b) {
   }
 }
 
-}  // namespace dsu
-
-int main(int /*argc*/, char* /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-
-  int m = 0;
-  std::cin >> m;
-
-  dsu::DisjointSetUnion d(n);
-
-  bool cycle_detected = false;
-
-  while ((m--) != 0) {
-    int a = 0;
-    int b = 0;
-    std::cin >> a >> b;
-
-    if (d.connected(a, b)) {
-      cycle_detected = true;
-    }
-
-    d.unite(a, b);
-  }
-
-  std::cout << (cycle_detected ? "YES" : "NO") << "\n";
-
-  return 0;
-}
+}  // namespace warmup

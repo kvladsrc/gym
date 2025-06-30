@@ -1,86 +1,64 @@
-#include <boost/range/algorithm/sort.hpp>
-#include <iostream>
-#include <string>
+#include "cpp/warmup/minimum_spanning_tree.hpp"
+
+#include <algorithm>
+#include <utility>
 #include <vector>
 
-using std::pair;
-using std::string;
-using std::vector;
+namespace warmup {
 
-static int find_parent(vector<int> &parent, int i) {
-  if (parent[i] == i) {
-    return i;
-  }
-
-  return find_parent(parent, parent[i]);
-}
-
-static void join(int a, int b, vector<int> &parent, vector<int> &rank) {
-  auto p_a = find_parent(parent, a);
-  auto p_b = find_parent(parent, b);
-
-  if (p_a == p_b) {
-    return;
-  }
-
-  if (rank[p_a] < rank[p_b]) {
-    parent[p_a] = p_b;
-  } else if (rank[p_a] > rank[p_b]) {
-    parent[p_b] = p_a;
-  } else {
-    parent[p_b] = p_a;
-    rank[p_a]++;
-  }
-}
-
-static bool in_same(vector<int> &parent, int a, int b) {
-  auto p_a = find_parent(parent, a);
-  auto p_b = find_parent(parent, b);
-
-  return p_a == p_b;
-}
-
-using edge = pair<int, pair<int, int>>;
-
-static bool compare_pair(const edge &a, const edge &b) {
-  return a.first < b.first;
-}
-
-// Kruskal's algorithm on DSU. Assumes graph is connected.
-int main(int /*argc*/, char * /*argv*/[]) {
-  int v = 0;
-  int e = 0;
-  std::cin >> v >> e;
-
-  // Init DSU.
-  vector<int> rank(v, 1);
-  vector<int> parent(v);
-  for (int i = 0; i < v; ++i) {
-    parent[i] = i;
-  }
-
-  vector<edge> edges;
-  while ((e--) != 0) {
-    int a = 0;
-    int b = 0;
-    int d = 0;
-    std::cin >> a >> b >> d;
-    edges.push_back({d, {a, b}});
-  }
-
-  boost::range::sort(edges, compare_pair);
-
-  vector<edge> mst;
-  for (auto e : edges) {
-    if (!in_same(parent, e.second.first, e.second.second)) {
-      mst.push_back(e);
-      join(e.second.first, e.second.second, parent, rank);
+class DSU {
+ public:
+  explicit DSU(int n) : parent_(n), rank_(n, 1) {
+    for (int i = 0; i < n; ++i) {
+      parent_[i] = i;
     }
   }
 
-  for (auto e : mst) {
-    std::cout << e.second.first << " " << e.second.second << "\n";
+  int find(int i) {
+    if (parent_[i] == i) {
+      return i;
+    }
+    return parent_[i] = find(parent_[i]);
   }
 
-  return 0;
+  void unite(int i, int j) {
+    int root_i = find(i);
+    int root_j = find(j);
+    if (root_i != root_j) {
+      if (rank_[root_i] < rank_[root_j]) {
+        std::swap(root_i, root_j);
+      }
+      parent_[root_j] = root_i;
+      if (rank_[root_i] == rank_[root_j]) {
+        rank_[root_i]++;
+      }
+    }
+  }
+
+ private:
+  std::vector<int> parent_;
+  std::vector<int> rank_;
+};
+
+bool compare_edges(const edge &a, const edge &b) { return a.first < b.first; }
+
+std::vector<edge> kruskal(int v, std::vector<edge> &edges) {
+  if (v == 0) {
+    return {};
+  }
+
+  std::sort(edges.begin(), edges.end(), compare_edges);
+
+  DSU dsu(v);
+  std::vector<edge> mst;
+  for (const auto &e : edges) {
+    if (dsu.find(e.second.first) != dsu.find(e.second.second)) {
+      dsu.unite(e.second.first, e.second.second);
+      mst.push_back(e);
+    }
+  }
+
+  return mst;
 }
+
+}  // namespace warmup

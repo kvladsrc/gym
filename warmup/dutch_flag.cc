@@ -1,10 +1,15 @@
-#include <cstdlib>
+#include "cpp/warmup/dutch_flag.hpp"
+
+#include <cstddef>
 #include <iostream>
+#include <string>
+#include <utility>
 #include <vector>
 
+using std::string;
 using std::vector;
 
-namespace {
+namespace warmup {
 
 /*
   Sort an array of elements 1, 2 or 3.
@@ -15,9 +20,9 @@ void dutch_flag(vector<int> &a) {
     return;
   }
 
-  size_t l = 0;
-  size_t m = 0;
-  size_t r = a.size() - 1;
+  std::size_t l = 0;
+  std::size_t m = 0;
+  std::size_t r = a.size() - 1;
 
   while (m <= r) {
     switch (a[m]) {
@@ -39,21 +44,4 @@ void dutch_flag(vector<int> &a) {
   }
 }
 
-}  // namespace
-
-int main(int /*argc*/, char * /*argv*/[]) {
-  size_t n = 0;
-  std::cin >> n;
-  vector<int> a(n);
-  for (auto &i : a) {
-    std::cin >> i;
-  }
-
-  dutch_flag(a);
-  for (auto i : a) {
-    std::cout << i << " ";
-  }
-  std::cout << "\n";
-
-  return 0;
-}
+}  // namespace warmup

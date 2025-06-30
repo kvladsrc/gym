@@ -1,3 +1,5 @@
+#include "cpp/warmup/edit_distance.hpp"
+
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
@@ -8,7 +10,7 @@ using std::min;
 using std::string;
 using std::vector;
 
-namespace {
+namespace warmup {
 
 /*
  * Classical dynamic programming algorithm for calculating a minimal
@@ -21,15 +23,15 @@ namespace {
  */
 int edit_distance(string const &a, string const &b) {
   vector<vector<int>> dp(a.size() + 1, vector<int>(b.size() + 1));
-  for (size_t i = 0; i <= a.size(); ++i) {
+  for (std::size_t i = 0; i <= a.size(); ++i) {
     dp[i][0] = static_cast<int>(i);  // Remove all.
   }
-  for (size_t i = 0; i <= b.size(); ++i) {
+  for (std::size_t i = 0; i <= b.size(); ++i) {
     dp[0][i] = static_cast<int>(i);  // Add all to empty.
   }
 
-  for (size_t a_idx = 1; a_idx <= a.size(); ++a_idx) {
-    for (size_t b_idx = 1; b_idx <= b.size(); ++b_idx) {
+  for (std::size_t a_idx = 1; a_idx <= a.size(); ++a_idx) {
+    for (std::size_t b_idx = 1; b_idx <= b.size(); ++b_idx) {
       /*
        * Recurrent form:
        * ed(a, b) -- edit distance from a to b:
@@ -57,13 +59,4 @@ int edit_distance(string const &a, string const &b) {
   return dp.back().back();
 }
 
-}  // namespace
-
-int main(int /*argc*/, char * /*argv*/[]) {
-  string a;
-  string b;
-  std::cin >> a >> b;
-  std::cout << edit_distance(a, b) << "\n";
-
-  return 0;
-}
+}  // namespace warmup

@@ -1,3 +1,5 @@
+#include "cpp/warmup/all_divisors.hpp"
+
 #include <algorithm>
 #include <iostream>
 #include <vector>
@@ -5,7 +7,7 @@
 using std::sort;
 using std::vector;
 
-namespace {
+namespace warmup {
 
 vector<int> all_divisors(int n) {
   vector<int> res;
@@ -26,19 +28,4 @@ vector<int> all_divisors(int n) {
   return res;
 }
 
-}  // namespace
-
-int main(int /*argc*/, char* /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-
-  auto divs = all_divisors(n);
-  sort(divs.begin(), divs.end());
-
-  for (auto d : divs) {
-    std::cout << d << " ";
-  }
-  std::cout << "\n";
-
-  return 0;
-}
+}  // namespace warmup

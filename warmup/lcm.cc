@@ -1,22 +1,19 @@
+#include "cpp/warmup/lcm.hpp"
+
 #include <cstdlib>
 #include <iostream>
 
 using std::abs;
 
-static int gcd(int a, int b) { return b == 0 ? abs(a) : gcd(b, a % b); }
+namespace warmup {
 
-static int lcm(int a, int b) {
+int gcd(int a, int b) { return b == 0 ? abs(a) : gcd(b, a % b); }
+
+int lcm(int a, int b) {
   auto g = gcd(a, b);
 
   // EDGE_CASE: GCD(a, b) = 0.
   return g != 0 ? abs(a * b) / g : 0;
 }
 
-int main(int /*argc*/, char* /*argv*/[]) {
-  int a = 0;
-  int b = 0;
-  std::cin >> a >> b;
-  std::cout << lcm(a, b) << "\n";
-
-  return 0;
-}
+}  // namespace warmup

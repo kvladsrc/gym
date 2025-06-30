@@ -5,7 +5,7 @@
 
 using std::vector;
 
-void print_subset(vector<int> &a, uint64_t ss) {
+void print_subset(const vector<int> &a, uint64_t ss) {
   for (auto el : a) {
     if (ss % 2 != 0) {
       std::cout << el << " ";
@@ -15,7 +15,7 @@ void print_subset(vector<int> &a, uint64_t ss) {
   std::cout << "\n";
 }
 
-void print_subsets(vector<int> &a) {
+void print_subsets(const vector<int> &a) {
   auto power = a.size();
 
   if (power > 64) {
@@ -24,7 +24,7 @@ void print_subsets(vector<int> &a) {
   }
 
   uint64_t powerset = 1;
-  for (size_t i = 0; i < power; ++i) {
+  for (std::size_t i = 0; i < power; ++i) {
     powerset *= 2;
   }
 

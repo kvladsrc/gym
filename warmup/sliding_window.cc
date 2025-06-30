@@ -1,10 +1,11 @@
+#include <algorithm>
 #include <iostream>
 #include <string>
 
 using std::max;
 using std::string;
 
-static int find_max(string &s, char c, int k) {
+static int find_max(string const &s, char c, int k) {
   int const n = s.size();
   int l = 0;
   int r = 0;

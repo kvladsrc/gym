@@ -1,3 +1,5 @@
+#include "cpp/warmup/knapsack.hpp"
+
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
@@ -6,7 +8,7 @@
 using std::max;
 using std::vector;
 
-namespace {
+namespace warmup {
 
 /*
  * Recurent form:
@@ -27,11 +29,11 @@ int knapsack(const vector<int> &weights, const vector<int> &costs, int w) {
   }
 
   // No capacity.
-  for (size_t i = 0; i <= weights.size(); ++i) {
+  for (std::size_t i = 0; i <= weights.size(); ++i) {
     dp[i][0] = 0;
   }
 
-  for (size_t i = 1; i <= weights.size(); ++i) {
+  for (std::size_t i = 1; i <= weights.size(); ++i) {
     for (int j = 0; j <= w; ++j) {
       if (weights[i - 1] <= j) {
         auto case1 = dp[i - 1][j - weights[i - 1]] + costs[i - 1];
@@ -46,24 +48,4 @@ int knapsack(const vector<int> &weights, const vector<int> &costs, int w) {
   return dp.back().back();
 }
 
-}  // namespace
-
-int main(int /*argc*/, char * /*argv*/[]) {
-  int n = 0;
-  int w = 0;
-  std::cin >> n >> w;
-
-  vector<int> weights(n);
-  for (auto &i : weights) {
-    std::cin >> i;
-  }
-
-  vector<int> costs(n);
-  for (auto &i : costs) {
-    std::cin >> i;
-  }
-
-  std::cout << knapsack(weights, costs, w) << "\n";
-
-  return 0;
-}
+}  // namespace warmup

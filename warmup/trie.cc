@@ -19,9 +19,9 @@ struct node {
 std::unique_ptr<node> build_trie(const std::string& s) {
   auto root = std::make_unique<node>();
 
-  for (size_t idx = 0; idx < s.size(); ++idx) {
+  for (std::size_t idx = 0; idx < s.size(); ++idx) {
     auto* n = root.get();
-    for (size_t cur = idx; cur < s.size(); ++cur) {
+    for (std::size_t cur = idx; cur < s.size(); ++cur) {
       auto& next = n->children[s[cur]];
       if (!next) {
         next = std::make_unique<node>();

@@ -14,7 +14,7 @@ static int partition_to_right(vector<int> &a) {
 
   int const pivot = a.back();
   int less = -1;
-  size_t more = 0;
+  std::size_t more = 0;
   while (more < a.size() - 1) {
     if (a[more] < pivot) {
       std::swap(a[++less], a[more]);
@@ -72,7 +72,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   }
 
   std::cout << pivot_to_mid << " ";
-  for (size_t idx = 0; idx < a.size(); ++idx) {
+  for (std::size_t idx = 0; idx < a.size(); ++idx) {
     if (a[idx] != a_cpy[idx]) {
       same = false;
     }

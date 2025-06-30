@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <iostream>
 #include <queue>
+#include <utility>
 #include <vector>
 
 using std::pair;
@@ -41,14 +42,14 @@ void dfs_cc(graph &g, int start, int cc, vector<int> &cc_table) {
 void topological_sort(graph &g, vector<int> &rank) {
   int clock = 0;
 
-  for (size_t v = 0; v < g.size(); ++v) {
+  for (std::size_t v = 0; v < g.size(); ++v) {
     dfs(g, v, clock, rank);
   }
 }
 
 // Kosaraju's algorithm.
 int main(int /*argc*/, char * /*argv*/[]) {
-  size_t v = 0;
+  std::size_t v = 0;
   int e = 0;
   std::cin >> v >> e;
 
@@ -77,7 +78,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   priority_queue<pair<int, int>, vector<pair<int, int>>, CompareDistance>
       max_first_pair_heap;
 
-  for (size_t idx = 0; idx < v; ++idx) {
+  for (std::size_t idx = 0; idx < v; ++idx) {
     pair<int, int> r = {rank[idx], idx};
     max_first_pair_heap.push(r);
   }
@@ -96,7 +97,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     dfs_cc(g, best.second, cc++, cc_table);
   }
 
-  for (size_t idx = 0; idx < v; ++idx) {
+  for (std::size_t idx = 0; idx < v; ++idx) {
     std::cout << idx << " " << cc_table[idx] << "\n";
   }
 

@@ -1,6 +1,8 @@
+#include "cpp/warmup/combinations.hpp"
+
 #include <iostream>
 
-namespace {
+namespace warmup {
 
 /*
  * Combinations formula:
@@ -16,8 +18,6 @@ namespace {
  *
  * C(n, k) = n! / k!(n - k)! = n! * (k!(n - k)!)^-1.
  */
-
-const int modulo = 1000000007;
 
 int fast_power(int a, int p) {
   if (p == 0) {
@@ -57,13 +57,4 @@ int combinations(int n, int k) {
   return r;
 }
 
-}  // namespace
-
-int main(int /*argc*/, char* /*argv*/[]) {
-  int n = 0;
-  int k = 0;
-  std::cin >> n >> k;
-  std::cout << combinations(n, k) << "\n";
-
-  return 0;
-}
+}  // namespace warmup

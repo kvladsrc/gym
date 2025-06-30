@@ -1,12 +1,13 @@
+#include "cpp/warmup/boyer_moore.hpp"
+
 #include <cstddef>
-#include <iostream>
 #include <map>
 #include <string>
 
 using std::map;
 using std::string;
 
-namespace {
+namespace warmup {
 
 /*
  * The Boyer-Moore algorithm searches for the occurrence of the
@@ -30,13 +31,13 @@ namespace {
  * missed. All earlier occurrences are left for later consideration.
  */
 
-void fill_last_seen(string &pattern, map<char, size_t> &last_seen) {
-  for (size_t i = 0; i < pattern.size(); ++i) {
+void fill_last_seen(const string &pattern, map<char, std::size_t> &last_seen) {
+  for (std::size_t i = 0; i < pattern.size(); ++i) {
     last_seen[pattern[i]] = i + 1;
   }
 }
 
-bool boyer_moore(string &s, string &pattern) {
+bool boyer_moore(const string &s, const string &pattern) {
   // EDGE_CASE: Every string contain empty substring.
   if (pattern.empty()) {
     return true;
@@ -47,7 +48,7 @@ bool boyer_moore(string &s, string &pattern) {
     return false;
   }
 
-  map<char, size_t> last_seen;
+  map<char, std::size_t> last_seen;
   fill_last_seen(pattern, last_seen);
 
   auto last = pattern.size() - 1;
@@ -59,7 +60,7 @@ bool boyer_moore(string &s, string &pattern) {
 
     bool found = true;
 
-    for (size_t i = 0; i < pattern.size(); ++i) {
+    for (std::size_t i = 0; i < pattern.size(); ++i) {
       if (pattern[i] != s[i + (last + 1) - pattern.size()]) {
         found = false;
         break;
@@ -76,28 +77,4 @@ bool boyer_moore(string &s, string &pattern) {
   return false;
 }
 
-}  // namespace
-
-int main() {
-  size_t patt_len = 0;
-  size_t s_len = 0;
-  string patt;
-  string s;
-
-  std::cin >> patt_len;
-  if (patt_len != 0) {
-    std::cin >> patt;
-  }
-
-  std::cin >> s_len;
-  if (s_len != 0) {
-    std::cin >> s;
-  }
-
-  if (boyer_moore(s, patt)) {
-    std::cout << "FOUND" << "\n";
-  } else {
-    std::cout << "NOT FOUND" << "\n";
-  }
-  return 0;
-}
+}  // namespace warmup

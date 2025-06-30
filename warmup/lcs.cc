@@ -1,24 +1,27 @@
+#include "cpp/warmup/lcs.hpp"
+
 #include <algorithm>
 #include <cstddef>
-#include <iostream>
 #include <vector>
 
 using std::max;
 using std::vector;
 
-static int lcs_dp(vector<int> &a, vector<int> &b) {
+namespace warmup {
+
+int lcs_dp(const vector<int> &a, const vector<int> &b) {
   vector<vector<int>> dp(a.size() + 1, vector<int>(b.size() + 1));
 
-  for (size_t i = 0; i <= a.size(); ++i) {
+  for (std::size_t i = 0; i <= a.size(); ++i) {
     dp[i][0] = 0;
   }
 
-  for (size_t i = 0; i <= b.size(); ++i) {
+  for (std::size_t i = 0; i <= b.size(); ++i) {
     dp[0][i] = 0;
   }
 
-  for (size_t a_i = 1; a_i <= a.size(); ++a_i) {
-    for (size_t b_i = 1; b_i <= b.size(); ++b_i) {
+  for (std::size_t a_i = 1; a_i <= a.size(); ++a_i) {
+    for (std::size_t b_i = 1; b_i <= b.size(); ++b_i) {
       if (a[a_i - 1] == b[b_i - 1]) {
         dp[a_i][b_i] = dp[a_i - 1][b_i - 1] + 1;
         continue;
@@ -33,7 +36,7 @@ static int lcs_dp(vector<int> &a, vector<int> &b) {
   return dp.back().back();
 }
 
-static int lcs_rec(vector<int> a, vector<int> b) {
+int lcs_rec(const vector<int> &a, const vector<int> &b) {
   if (a.empty() || b.empty()) {
     return 0;
   }
@@ -48,21 +51,4 @@ static int lcs_rec(vector<int> a, vector<int> b) {
   return max(lcs_rec(a, b_case), lcs_rec(a_case, b));
 }
 
-int main() {
-  size_t n = 0;
-  std::cin >> n;
-  vector<int> a(n);
-  for (size_t i = 0; i < n; i++) {
-    std::cin >> a[i];
-  }
-
-  size_t m = 0;
-  std::cin >> m;
-  vector<int> b(m);
-  for (size_t i = 0; i < m; i++) {
-    std::cin >> b[i];
-  }
-
-  std::cout << lcs_rec(a, b) << '\n';
-  std::cout << lcs_dp(a, b) << '\n';
-}
+}  // namespace warmup

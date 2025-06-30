@@ -1,69 +1,37 @@
+#include "cpp/warmup/lis.hpp"
+
 #include <algorithm>
 #include <climits>
 #include <cstddef>
 #include <iostream>
-#include <string>
 #include <vector>
 
 using std::max;
-using std::string;
 using std::vector;
 
-namespace {
+namespace warmup {
 
-int upper_bound(vector<int> &a, int el) {
-  int l = 0;
-  int r = a.size() - 1;
-  int res = -1;
-
-  while (l <= r) {
-    auto mid = (l + r) / 2;
-    if (a[mid] >= el) {
-      r = mid - 1;
-    } else {
-      res = mid;
-      l = mid + 1;
-    }
-  }
-
-  return res;
-}
-
-static int lis(vector<int> &a) {
+int lis(vector<int> &a) {
   // EDGE_CASE: empty array.
   if (a.empty()) {
     return 0;
   }
 
-  vector<int> dp(a.size(), INT_MAX);
-  int res = 1;
+  // dp[i] stores the smallest ending element of an increasing subsequence of
+  // length i+1.
+  vector<int> dp;
+  dp.push_back(a[0]);
 
-  for (auto i : a) {
-    auto best = upper_bound(dp, i);
-    dp.front() = std::min(dp.front(), i);
-
-    if (best == -1) {
-      continue;
+  for (std::size_t i = 1; i < a.size(); ++i) {
+    if (a[i] > dp.back()) {
+      dp.push_back(a[i]);
+    } else {
+      // Find the first element in dp that is greater than or equal to a[i]
+      *std::lower_bound(dp.begin(), dp.end(), a[i]) = a[i];
     }
-
-    dp[best + 1] = std::min(dp[best + 1], i);
-    res = std::max(res, best + 2);
   }
 
-  return res;
+  return dp.size();
 }
 
-}  // namespace
-
-int main(int /*argc*/, char * /*argv*/[]) {
-  size_t n = 0;
-  std::cin >> n;
-  vector<int> a(n);
-  for (auto &i : a) {
-    std::cin >> i;
-  }
-
-  std::cout << lis(a) << "\n";
-
-  return 0;
-}
+}  // namespace warmup

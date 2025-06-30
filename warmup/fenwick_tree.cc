@@ -1,3 +1,5 @@
+#include "cpp/warmup/fenwick_tree.hpp"
+
 #include <algorithm>
 #include <climits>
 #include <iostream>
@@ -10,24 +12,15 @@ using std::pair;
 using std::string;
 using std::vector;
 
-struct meta {
-  int minimal{};
-  int maximal{};
+namespace warmup {
 
-  meta() = default;
+meta::meta() : minimal(INT_MAX), maximal(INT_MIN) {}
 
-  meta(int mn, int mx) : minimal(mn), maximal(mx) {}
+meta::meta(int mn, int mx) : minimal(mn), maximal(mx) {}
 
-  meta operator+(const meta &other) const {
-    return {min(minimal, other.minimal), max(maximal, other.maximal)};
-  }
-};
-
-struct node {
-  meta m;
-  node *left{};
-  node *right{};
-};
+meta meta::operator+(const meta &other) const {
+  return {min(minimal, other.minimal), max(maximal, other.maximal)};
+}
 
 meta query(node *root, int ql, int qr, int l, int r) {
   if (ql <= l && qr >= r) {
@@ -45,7 +38,7 @@ meta query(node *root, int ql, int qr, int l, int r) {
   return left + right;
 }
 
-static node *build_tree(vector<int> &a, int start, int end) {
+node *build_tree(vector<int> &a, int start, int end) {
   auto *res = new node;
 
   if (start == end) {
@@ -62,35 +55,4 @@ static node *build_tree(vector<int> &a, int start, int end) {
   return res;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
-
-  int n = 0;
-  std::cin >> n;
-  vector<int> a(n);
-  for (auto &i : a) {
-    std::cin >> i;
-  }
-
-  if (n == 0) {
-    return 0;
-  }
-
-  auto *root = build_tree(a, 0, n - 1);
-
-  int m = 0;
-  std::cin >> m;
-  while ((m--) != 0) {
-    int l = 0;
-    int r = 0;
-    std::cin >> l >> r;
-    l--;
-    r--;
-    auto resp = query(root, l, r, 0, n - 1);
-    std::cout << resp.maximal << "\n";
-    std::cout << resp.minimal << "\n";
-  }
-
-  return 0;
-}
+}  // namespace warmup

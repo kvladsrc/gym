@@ -1,12 +1,10 @@
+#include "cpp/warmup/knuth_morris_pratt.hpp"
+
 #include <cstddef>
-#include <iostream>
 #include <string>
 #include <vector>
 
-using std::string;
-using std::vector;
-
-namespace {
+namespace warmup {
 
 /*
  * Definitions:
@@ -41,10 +39,10 @@ namespace {
  * suffix size i. Dynamic programming algorithm with O(n) complexity
  * based on the fact that a_i = a_j + 1, 1 <= j < i or 0;
  */
-void compute_border_lengths(const string& pattern, vector<size_t>& borders) {
+void compute_border_lengths(const std::string& pattern,
+                            std::vector<std::size_t>& borders) {
   borders.front() = 0;
-
-  for (size_t idx = 1; idx < pattern.size(); ++idx) {
+  for (std::size_t idx = 1; idx < pattern.size(); ++idx) {
     auto len = borders[idx - 1];
 
     while (pattern[len] != pattern[idx] && len > 0) {
@@ -59,7 +57,7 @@ void compute_border_lengths(const string& pattern, vector<size_t>& borders) {
   }
 }
 
-static bool kmp(const string& s, const string& pattern) {
+bool kmp(const std::string& s, const std::string& pattern) {
   // EDGE_CASE: Every string contain empty substring.
   if (pattern.empty()) {
     return true;
@@ -70,9 +68,9 @@ static bool kmp(const string& s, const string& pattern) {
     return false;
   }
 
-  vector<size_t> borders(pattern.size());
+  std::vector<std::size_t> borders(pattern.size());
   compute_border_lengths(pattern, borders);
-  size_t current_len = 0;
+  std::size_t current_len = 0;
 
   for (char const c : s) {
     while (pattern[current_len] != c && (current_len > 0)) {
@@ -81,8 +79,6 @@ static bool kmp(const string& s, const string& pattern) {
 
     if (pattern[current_len] == c) {
       current_len++;
-    } else {
-      current_len = 0;
     }
 
     if (current_len == pattern.size()) {
@@ -93,28 +89,4 @@ static bool kmp(const string& s, const string& pattern) {
   return false;
 }
 
-}  // namespace
-
-int main() {
-  size_t patt_len = 0;
-  size_t s_len = 0;
-  string patt;
-  string s;
-
-  std::cin >> patt_len;
-  if (patt_len != 0) {
-    std::cin >> patt;
-  }
-
-  std::cin >> s_len;
-  if (s_len != 0) {
-    std::cin >> s;
-  }
-
-  if (kmp(s, patt)) {
-    std::cout << "FOUND" << "\n";
-  } else {
-    std::cout << "NOT FOUND" << "\n";
-  }
-  return 0;
-}
+}  // namespace warmup

@@ -1,14 +1,19 @@
+#include "cpp/warmup/bubble_sort.hpp"
+
 #include <cstddef>
 #include <iostream>
+#include <utility>
 #include <vector>
 
 using std::vector;
 
-static void bubble_sort(vector<int> &a) {
+namespace warmup {
+
+void bubble_sort(vector<int> &a) {
   while (true) {
     bool swapped = false;
 
-    for (size_t i = 1; i < a.size(); ++i) {
+    for (std::size_t i = 1; i < a.size(); ++i) {
       if (a[i - 1] > a[i]) {
         std::swap(a[i - 1], a[i]);
         swapped = true;
@@ -21,20 +26,4 @@ static void bubble_sort(vector<int> &a) {
   }
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-  vector<int> a(n);
-  for (auto &i : a) {
-    std::cin >> i;
-  }
-
-  bubble_sort(a);
-
-  for (auto i : a) {
-    std::cout << i << " ";
-  }
-  std::cout << "\n";
-
-  return 0;
-}
+}  // namespace warmup

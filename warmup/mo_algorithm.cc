@@ -7,6 +7,7 @@
 #include <ctime>
 #include <iostream>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 using std::sort;
@@ -75,16 +76,16 @@ struct mo_state {
  public:
   mo_state() = default;
 
-  mo_state(int pos, vector<int64_t>& a) : l(pos), r(pos) {
+  mo_state(int pos, const vector<int64_t>& a) : l(pos), r(pos) {
     auto el = a[pos];
     val = 1;
     cnt[el]++;
   }
 
-  int move(int, int, vector<int64_t>&);
+  int64_t move(int, int, const vector<int64_t>&);
 };
 
-int mo_state::move(int nl, int nr, vector<int64_t>& a) {
+int64_t mo_state::move(int nl, int nr, const vector<int64_t>& a) {
   while (r > nr) {
     auto el = a[r--];
     remove(el);
@@ -109,9 +110,9 @@ int mo_state::move(int nl, int nr, vector<int64_t>& a) {
 }
 
 struct query {
-  int l;
-  int r;
-  int num;
+  int l{};
+  int r{};
+  int num{};
 
   query() = default;
 
@@ -121,8 +122,8 @@ struct query {
 }  // namespace
 
 int main(int /*argc*/, char* /*argv*/[]) {
-  size_t n = 0;
-  size_t t = 0;
+  std::size_t n = 0;
+  std::size_t t = 0;
   std::cin >> n >> t;
 
   vector<int64_t> a(n);
@@ -136,7 +137,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
   }
 
   vector<query> queries(t);
-  for (size_t i = 0; i < t; ++i) {
+  for (std::size_t i = 0; i < t; ++i) {
     int l = 0;
     int r = 0;
     std::cin >> l >> r;
