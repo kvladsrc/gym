@@ -12,7 +12,7 @@ This repository is a curated collection of my programming solutions, algorithm e
 - Progressive complexity with focus on regular practice
 
 ### Algorithms & Data Structures
-`/warmup` — Educational implementations of core algorithms, data structures and techniques.
+`/warmup` — Educational implementations of core algorithms, data structures and techniques. Tests for this section were written with the help of Gemini CLI.
 
 ### SICP solutions
 `/sicp` — My first experience in programming.
