@@ -35,7 +35,7 @@ using std::unordered_map;
 using std::vector;
 
 int ask(int i, vector<int>& table) {
-  if (i == 0 || i == table.size() + 1) {
+  if (i == 0 || i == static_cast<int>(table.size()) + 1) {
     return INT_MAX;
   }
 

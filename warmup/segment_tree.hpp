@@ -26,4 +26,4 @@ node *build_tree(std::vector<int> &a, int start, int end);
 
 }  // namespace warmup
 
-#endif  // CPP_WARMUP_FENWICK_TREE_H_
+#endif  // CPP_WARMUP_SEGMENT_TREE_H_

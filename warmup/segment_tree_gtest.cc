@@ -4,9 +4,9 @@
 #include <climits>
 #include <vector>
 
-#include "cpp/warmup/fenwick_tree.hpp"
+#include "cpp/warmup/segment_tree.hpp"
 
-TEST(FenwickTreeTest, Empty) {
+TEST(SegmentTreeTest, Empty) {
   std::vector<int> a = {};
   warmup::node* root = nullptr;
   // No assertions, just ensure it doesn't crash
@@ -15,7 +15,7 @@ TEST(FenwickTreeTest, Empty) {
   EXPECT_EQ(root, nullptr);
 }
 
-TEST(FenwickTreeTest, OneElement) {
+TEST(SegmentTreeTest, OneElement) {
   std::vector<int> a = {1};
   warmup::node* root = warmup::build_tree(a, 0, 0);
   warmup::meta result = warmup::query(root, 0, 0, 0, 0);
@@ -24,7 +24,7 @@ TEST(FenwickTreeTest, OneElement) {
   delete root;
 }
 
-TEST(FenwickTreeTest, Simple) {
+TEST(SegmentTreeTest, Simple) {
   std::vector<int> a = {7, 6, 45, 32, 6, 89, 67, 4, 6, 8};
   warmup::node* root = warmup::build_tree(a, 0, a.size() - 1);
 
@@ -61,7 +61,7 @@ TEST(FenwickTreeTest, Simple) {
   deleteTree(root);
 }
 
-TEST(FenwickTreeTest, AllEqualElements) {
+TEST(SegmentTreeTest, AllEqualElements) {
   std::vector<int> a = {2, 2, 2, 2, 2};
   warmup::node* root = warmup::build_tree(a, 0, a.size() - 1);
 
@@ -89,7 +89,7 @@ TEST(FenwickTreeTest, AllEqualElements) {
   deleteTree(root);
 }
 
-TEST(FenwickTreeTest, FullRange) {
+TEST(SegmentTreeTest, FullRange) {
   std::vector<int> a = {5, 3, 8, 1, 9};
   warmup::node* root = warmup::build_tree(a, 0, a.size() - 1);
 

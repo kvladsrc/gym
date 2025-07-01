@@ -264,9 +264,9 @@ cc_library(
 
 #Explicitly define cc_library for fenwick_tree
 cc_library(
-    name = "fenwick_tree_lib",
-    srcs = ["fenwick_tree.cc"],
-    hdrs = ["fenwick_tree.hpp"],
+    name = "segment_tree_lib",
+    srcs = ["segment_tree.cc"],
+    hdrs = ["segment_tree.hpp"],
     copts = [
         "-Werror",
         "-std=c++17",
