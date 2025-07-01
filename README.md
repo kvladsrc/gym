@@ -15,14 +15,17 @@ production, and may contain errors.
 ## Repository Structure
 
 ### Codeforces Solutions
+
 `/codeforces` — Solutions from [Codeforces](https://codeforces.com).
 
 ### Algorithms & Data Structures
+
 `/warmup` — Educational implementations of core algorithms, data
 structures and techniques. Tests for this section were written with
 the help of Gemini CLI.
 
 ### SICP solutions
+
 `/sicp` — My first experience in programming.
 
 ![SICP](sicp.png)
