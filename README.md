@@ -21,6 +21,8 @@ This repository is a curated collection of my programming solutions, algorithm e
 ### SICP solutions
 `/sicp` — My first experience in programming.
 
+![SICP](sicp.png)
+
 ## Purpose
 
 This repository showcases my journey in programming and algorithms. Feel free to explore the code and use it as a reference. All constructive feedback is appreciated!
