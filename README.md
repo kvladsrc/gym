@@ -4,16 +4,14 @@
 >
 > &mdash; Donald Knuth
 
-This repository is a curated collection of my programming solutions, algorithm experiments, and learning notes on my computer science journey. You'll find both educational implementations and competitive programming solutions that reflect my problem-solving progress and approaches.
+This repository is a curated collection of my programming solutions, algorithm experiments, and learning notes on my computer science journey. You'll find both educational implementations and competitive programming solutions.
 
-**Note**: Code is written for educational purposes, not optimized for production, and may contain errors. Use as inspiration or reference material.
+**Note**: Code is written for educational purposes, not optimized for production, and may contain errors.
 
 ## Repository Structure
 
 ### Codeforces Solutions
-`/codeforces` — Solutions from [Codeforces](https://codeforces.com):
-- Problems from Div3A to Div1E
-- Progressive complexity with focus on regular practice
+`/codeforces` — Solutions from [Codeforces](https://codeforces.com).
 
 ### Algorithms & Data Structures
 `/warmup` — Educational implementations of core algorithms, data structures and techniques. Tests for this section were written with the help of Gemini CLI.
