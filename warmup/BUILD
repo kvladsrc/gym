@@ -1,3 +1,5 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
 #Explicitly define cc_library for dijkstra
 cc_library(
     name = "dijkstra_lib",
@@ -601,7 +603,10 @@ cc_binary(
             "-Werror",
             "-std=c++17",
         ],
-        deps = ["@googletest//:gtest_main", ":" + src.replace("_gtest.cc", "") + "_lib"],
+        deps = [
+            "@googletest//:gtest_main",
+            ":" + src.replace("_gtest.cc", "") + "_lib",
+        ],
     )
     for src in glob(["*_gtest.cc"])
 ]
