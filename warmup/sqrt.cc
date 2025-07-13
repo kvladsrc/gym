@@ -1,17 +1,15 @@
+#include "cpp/warmup/sqrt.hpp"
+
+#include <cmath>
 #include <cstdlib>
-#include <iostream>
 #include <limits>
-#include <string>
 
-using std::abs;
-using std::string;
-
-namespace {
+namespace warmup {
 
 const double precision = 0.0001;
 
 bool good_enought(double guess, double a) {
-  return abs(a - (guess * guess)) <= precision;
+  return std::abs(a - (guess * guess)) <= precision;
 }
 
 double average(double a, double b) { return (a + b) / 2; }
@@ -37,12 +35,4 @@ double sqrt(double a) {
   return guess;
 }
 
-}  // namespace
-
-int main(int /*argc*/, char* /*argv*/[]) {
-  double a = 0;
-  std::cin >> a;
-  std::cout << sqrt(a) << "\n";
-
-  return 0;
-}
+}  // namespace warmup

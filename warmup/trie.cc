@@ -1,61 +1,40 @@
-#include <algorithm>
-#include <cstddef>
-#include <iostream>
+#include "cpp/warmup/trie.hpp"
+
 #include <map>
 #include <memory>
 #include <string>
 
-namespace {
+namespace warmup {
 
-/*
- * Very raw implementation of prefix trie. Space complexity can be
- * optimized by using a compressed suffix tree.
- */
+Trie::Node::~Node() = default;
 
-struct node {
-  std::map<char, std::unique_ptr<node>> children;
-};
+Trie::Trie() : root(std::make_unique<Node>()) {}
 
-std::unique_ptr<node> build_trie(const std::string& s) {
-  auto root = std::make_unique<node>();
+Trie::~Trie() = default;
 
+void Trie::insert(const std::string& s) {
   for (std::size_t idx = 0; idx < s.size(); ++idx) {
-    auto* n = root.get();
+    Node* n = root.get();
     for (std::size_t cur = idx; cur < s.size(); ++cur) {
       auto& next = n->children[s[cur]];
       if (!next) {
-        next = std::make_unique<node>();
+        next = std::make_unique<Node>();
       }
       n = next.get();
     }
   }
-
-  return root;
 }
 
-bool contains(const node* root, const std::string& w) {
-  for (auto ch : w) {
-    auto it = root->children.find(ch);
-    if (it == root->children.end()) {
+bool Trie::contains(const std::string& w) const {
+  const Node* n = root.get();
+  for (char ch : w) {
+    auto it = n->children.find(ch);
+    if (it == n->children.end()) {
       return false;
     }
-    root = it->second.get();
+    n = it->second.get();
   }
-
   return true;
 }
 
-}  // namespace
-
-int main(int /*argc*/, char* /*argv*/[]) {
-  std::string s;
-  std::cin >> s;
-
-  std::string patt;
-  std::cin >> patt;
-
-  std::unique_ptr<node> root = build_trie(s);
-  std::cout << (contains(root.get(), patt) ? "YES\n" : "NO\n");
-
-  return 0;
-}
+}  // namespace warmup

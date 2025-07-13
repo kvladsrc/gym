@@ -1,13 +1,13 @@
+#include "cpp/warmup/nth_element.hpp"
+
 #include <cstddef>
-#include <iostream>
-#include <string>
+#include <optional>
 #include <utility>
 #include <vector>
 
-using std::string;
-using std::vector;
+namespace warmup {
 
-static int partition(vector<int> &a, int start, int end) {
+int partition(std::vector<int>& a, int start, int end) {
   if (start >= end) {
     return start;
   }
@@ -30,7 +30,7 @@ static int partition(vector<int> &a, int start, int end) {
   return less;
 }
 
-static int nth_element(vector<int> &a, int n, int start, int end) {
+int nth_element_recursive(std::vector<int>& a, int n, int start, int end) {
   auto pivot = partition(a, start, end);
 
   if (pivot == n) {
@@ -38,25 +38,18 @@ static int nth_element(vector<int> &a, int n, int start, int end) {
   }
 
   if (pivot > n) {
-    return nth_element(a, n, start, pivot - 1);
+    return nth_element_recursive(a, n, start, pivot - 1);
   }
 
-  return nth_element(a, n, pivot + 1, end);
+  return nth_element_recursive(a, n, pivot + 1, end);
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-  vector<int> a(n);
-  for (auto &i : a) {
-    std::cin >> i;
+std::optional<int> nth_element_median(std::vector<int>& a) {
+  if (a.empty()) {
+    return std::nullopt;
   }
-
-  if (n == 0) {
-    std::cout << "EMPTY" << "\n";
-  } else {
-    std::cout << nth_element(a, (n / 2), 0, n - 1) << "\n";
-  }
-
-  return 0;
+  int n = a.size();
+  return nth_element_recursive(a, (n / 2), 0, n - 1);
 }
+
+}  // namespace warmup

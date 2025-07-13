@@ -1,13 +1,12 @@
+#include "cpp/warmup/partition.hpp"
+
 #include <cstddef>
-#include <iostream>
-#include <string>
 #include <utility>
 #include <vector>
 
-using std::string;
-using std::vector;
+namespace warmup {
 
-static int partition_to_right(vector<int> &a) {
+int partition_to_right(std::vector<int>& a) {
   if (a.empty()) {
     return -1;
   }
@@ -19,7 +18,6 @@ static int partition_to_right(vector<int> &a) {
     if (a[more] < pivot) {
       std::swap(a[++less], a[more]);
     }
-
     more++;
   }
   std::swap(a[++less], a.back());
@@ -27,7 +25,7 @@ static int partition_to_right(vector<int> &a) {
   return less;
 }
 
-static int partition_to_mid(vector<int> &a) {
+int partition_to_mid(std::vector<int>& a) {
   if (a.empty()) {
     return -1;
   }
@@ -51,34 +49,4 @@ static int partition_to_mid(vector<int> &a) {
   return l;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  std::ios::sync_with_stdio(false);
-  std::cin.tie(nullptr);
-
-  int n = 0;
-  std::cin >> n;
-  vector<int> a(n);
-  for (auto &i : a) {
-    std::cin >> i;
-  }
-
-  auto a_cpy = a;
-  auto pivot_to_mid = partition_to_mid(a);
-  auto pivot_to_right = partition_to_right(a_cpy);
-  bool same = true;
-
-  if (pivot_to_mid != pivot_to_right) {
-    same = false;
-  }
-
-  std::cout << pivot_to_mid << " ";
-  for (std::size_t idx = 0; idx < a.size(); ++idx) {
-    if (a[idx] != a_cpy[idx]) {
-      same = false;
-    }
-    std::cout << a[idx] << " ";
-  }
-  std::cout << (same ? "YES" : "NO") << "\n";
-
-  return 0;
-}
+}  // namespace warmup

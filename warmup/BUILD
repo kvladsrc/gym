@@ -522,31 +522,37 @@ cc_binary(
     ],
 )
 
-cc_binary(
-    name = "min_stack",
+cc_library(
+    name = "min_stack_lib",
     srcs = ["min_stack.cc"],
+    hdrs = ["min_stack.hpp"],
     copts = [
         "-Werror",
         "-std=c++17",
     ],
+    visibility = ["//visibility:public"],
 )
 
-cc_binary(
-    name = "nth_element",
+cc_library(
+    name = "nth_element_lib",
     srcs = ["nth_element.cc"],
+    hdrs = ["nth_element.hpp"],
     copts = [
         "-Werror",
         "-std=c++17",
     ],
+    visibility = ["//visibility:public"],
 )
 
-cc_binary(
-    name = "partition",
+cc_library(
+    name = "partition_lib",
     srcs = ["partition.cc"],
+    hdrs = ["partition.hpp"],
     copts = [
         "-Werror",
         "-std=c++17",
     ],
+    visibility = ["//visibility:public"],
 )
 
 cc_binary(
@@ -567,13 +573,15 @@ cc_binary(
     ],
 )
 
-cc_binary(
-    name = "trie",
+cc_library(
+    name = "trie_lib",
     srcs = ["trie.cc"],
+    hdrs = ["trie.hpp"],
     copts = [
         "-Werror",
         "-std=c++17",
     ],
+    visibility = ["//visibility:public"],
 )
 
 cc_binary(
@@ -585,13 +593,15 @@ cc_binary(
     ],
 )
 
-cc_binary(
-    name = "sqrt",
+cc_library(
+    name = "sqrt_lib",
     srcs = ["sqrt.cc"],
+    hdrs = ["sqrt.hpp"],
     copts = [
         "-Werror",
         "-std=c++17",
     ],
+    visibility = ["//visibility:public"],
 )
 
 #Automatically create a cc_test for every _gtest.cc file.
