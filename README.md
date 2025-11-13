@@ -28,7 +28,7 @@ the help of Gemini CLI.
 
 `/sicp` — My first experience in programming.
 
-![SICP](https://cs.bonfire.lit/raw/src/sicp.png)
+![SICP](sicp.png)
 
 ## Purpose
 
