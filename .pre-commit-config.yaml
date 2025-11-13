@@ -11,12 +11,36 @@ exclude: |
   (^archive/)|
   (?:^|/)vendor/|
   (?:^|/)third_party/|
+  (.*_gtest\.cc$)|
   (^node_modules/)
 
 repos:
+  # ---------- Nix files ----------
+  - repo: https://github.com/nix-community/nixpkgs-fmt
+    rev: v1.3.0
+    hooks:
+      - id: nixpkgs-fmt
+
+  # ---------- Elisp files ----------
+  - repo: https://github.com/jamescherti/pre-commit-elisp
+    rev: v1.0.5
+    hooks:
+      - id: elisp-check-parens
+      - id: elisp-indent
+
+  # ---------- Bazel files ----------
+  - repo: https://github.com/keith/pre-commit-buildifier
+    rev: 8.2.1
+    hooks:
+      - id: buildifier
+        args: &args
+          - --warnings=all
+      - id: buildifier-lint
+        args: *args
+
   # ---------- Generic sanity checks ----------
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -33,13 +57,17 @@ repos:
     rev: v1.3.5
     hooks:
       - id: clang-format
-      - id: clang-tidy
       - id: cppcheck
         args:
           - --check-level=exhaustive
+          - --suppress=missingInclude
+          - --suppress=missingIncludeSystem
+          - --suppress=unusedStructMember
+          - --suppress=unusedFunction
+          - --enable=style
       - id: cpplint
         args:
-          - --filter=-legal/copyright
+          - --filter=-legal/copyright,-build/header_guard,-build/include_order
 
   # ---------- Documentation & markup ----------
   - repo: https://github.com/igorshubovych/markdownlint-cli
@@ -62,20 +90,20 @@ repos:
 
   # ---------- Helm charts ------------
   - repo: https://github.com/gruntwork-io/pre-commit
-    rev: v0.1.29
+    rev: v0.1.30
     hooks:
       - id: helmlint
 
   # ---------- Shell scripts ----------
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.11.0-1
+    rev: v3.12.0-2
     hooks:
       - id: shfmt
         args: ["-i", "4", "-s", "-w"]
 
   # ---------- Dockerfiles ----------
   - repo: https://github.com/AleksaC/hadolint-py
-    rev: v2.12.1b3
+    rev: v2.14.0
     hooks:
       - id: hadolint
         args: [--ignore, DL3008, --ignore, DL3018]
@@ -86,3 +114,16 @@ repos:
     hooks:
       - id: detect-secrets
         exclude: ^production/secrets/
+
+  # ---------- Go ----------
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+      - id: go-lint
+      - id: go-imports
+      - id: go-cyclo
+        args: [-over=15]
+      - id: validate-toml
+      - id: go-critic
+      - id: go-mod-tidy

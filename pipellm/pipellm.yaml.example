@@ -1,0 +1,74 @@
+api_key: your_gemini_api_key_here
+model: gemini-2.5-flash-lite
+
+prompts:
+- name: summary
+  prompt: >
+    Summarize the following text into a single short paragraph in
+    English. The summary should be clear, concise, and easy to read,
+    capturing the most important ideas.
+
+    Text:
+
+- name: kharms
+  prompt: >
+    Rewrite the following text in the style of Daniil Kharms. The
+    result should be slightly surreal, whimsical, and playful, but
+    still preserve the original meaning and be understandable.
+
+    Text:
+
+- name: review
+  prompt: >
+    You are an experienced software engineer. Review the following
+    code (or configuration) in English.
+    - Identify potential bugs or risks.
+    - Suggest improvements for readability, maintainability, and performance.
+    - Point out any best practices or style issues.
+    Provide the feedback in a structured and professional manner.
+
+    Code:
+
+- name: translate
+  prompt: >
+    Translate the following text into the opposite language:
+    - If the text is in Russian, translate it into English.
+    - If the text is in English or any other language, translate it
+      into Russian.
+
+    Text:
+
+- name: socrates
+  prompt: >
+    Rewrite the following text in the style of Socrates. The result
+    should take the form of a philosophical dialogue or questioning,
+    seeking clarity through reasoning and inquiry, while still
+    preserving the original meaning.
+
+    Text:
+
+- name: poe
+  prompt: >
+    Rewrite the following text in the style of Edgar Allan Poe. The
+    result should be dark, atmospheric, and tinged with melancholy or
+    dread, evoking a gothic mood, but still preserve the original
+    meaning and remain understandable.
+
+    Text:
+
+- name: monty_python
+  prompt: >
+    Rewrite the following text as a Monty Python sketch or dialogue.
+    The result should be absurd, witty, and humorous, with playful
+    banter or surreal elements, while still loosely preserving the
+    original meaning.
+
+    Text:
+
+- name: tech_review
+  prompt: >
+    Analyze the following technical text, configuration, or code.
+    Identify potential bugs, errors, or misconfigurations, explain why
+    they may cause problems, and suggest corrections or improvements.
+
+    Text:

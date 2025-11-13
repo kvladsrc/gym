@@ -1,0 +1,22 @@
+- job:
+    name: pre-submit-check
+    run: playbooks/check.yaml
+
+- job:
+    name: pre-submit-check-go
+    run: playbooks/check-go.yaml
+
+- job:
+    name: bazel-test-gate
+    run: playbooks/gate.yaml
+
+- project:
+    check:
+      jobs:
+        - pre-submit-check
+        - pre-submit-check-go
+    gate:
+      jobs:
+        - pre-submit-check
+        - pre-submit-check-go
+        - bazel-test-gate

@@ -1,0 +1,14 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "input",
+    srcs = ["input.go"],
+    importpath = "src/pipellm/input",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "input_test",
+    srcs = ["input_test.go"],
+    embed = [":input"],
+)

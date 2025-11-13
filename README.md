@@ -16,11 +16,11 @@ production, and may contain errors.
 
 ### Codeforces Solutions
 
-`/codeforces` — Solutions from [Codeforces](https://codeforces.com).
+`cpp/codeforces` — Solutions from [Codeforces](https://codeforces.com).
 
 ### Algorithms & Data Structures
 
-`/warmup` — Educational implementations of core algorithms, data
+`cpp/warmup` — Educational implementations of core algorithms, data
 structures and techniques. Tests for this section were written with
 the help of Gemini CLI.
 
@@ -28,7 +28,7 @@ the help of Gemini CLI.
 
 `/sicp` — My first experience in programming.
 
-![SICP](sicp.png)
+![SICP](https://cs.bonfire.lit/raw/src/sicp.png)
 
 ## Purpose
 
