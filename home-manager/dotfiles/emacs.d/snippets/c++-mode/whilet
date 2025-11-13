@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: whilet
+# key: wt
+# --
+int t = 0;
+std::cin >> t;
+while ((t--) != 0) {
+
+}

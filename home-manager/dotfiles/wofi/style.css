@@ -1,0 +1,39 @@
+window {
+  padding: 50px;
+  background-color: #1e1e2e;
+  font-family: "Mononoki Nerd Font", sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+#input {
+  margin: 20px 15px;
+  padding: 10px 20px;
+  color: #cdd6f4;
+  background-color: #313244;
+  border: none;
+}
+
+#input:focus {
+  box-shadow: none;
+}
+
+#inner-box {
+  margin: 0 15px;
+}
+
+#img {
+  margin: 10px;
+}
+
+#entry:selected {
+  background-color: #8aadf4;
+}
+
+#text {
+  color: #cdd6f4;
+}
+
+#text:selected {
+  color: #1e1e2e;
+}

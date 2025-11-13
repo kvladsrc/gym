@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: pref_sum
+# key: ps
+# --
+vector<int64_t> pref_sum(n + 1);
+pref_sum.front() = 0;

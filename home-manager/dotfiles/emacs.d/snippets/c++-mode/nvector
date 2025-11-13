@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: nvector
+# key: nv
+# --
+size_t n = 0;
+std::cin >> n;
+vector<int> a(n);
+for (auto &i : a) {
+  std::cin >> i;
+}
