@@ -1,9 +1,9 @@
 # PipeLLM
 
-✨ A simple and lightweight CLI tool for working with the **Gemini
-API** using named prompts and shell aliases.
+A simple and lightweight CLI tool for working with the **Gemini API**
+using named prompts and shell aliases.
 
-## 🚀 Installation
+## Installation
 
 ### 1. Build with Go
 
@@ -45,7 +45,7 @@ source ~/.bashrc
 
 ---
 
-## 💡 Usage
+## Usage
 
 Run prompts directly in pipelines:
 
