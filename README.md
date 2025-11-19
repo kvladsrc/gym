@@ -54,7 +54,7 @@ graph and a dynamic event journal.
 - **Dynamic Edges**: The LLM generates available player choices in
   real-time, effectively creating new edges in the graph.
 
-- **Living Context*: Key player actions are recorded and serves as
+- **Living Context**: Key player actions are recorded and serves as
   context for future generations.
 
 ## Purpose
