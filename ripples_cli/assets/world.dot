@@ -1,0 +1,10 @@
+digraph World {
+    gate [label="Городские ворота", description="Массивные деревянные ворота, обитые железом. Стражники лениво оглядывают входящих.", type="location"];
+    city [label="Город", description="Шумный торговый город. Узкие улочки, мощеные булыжником, петляют между высокими домами.", type="location"];
+    gate_guard [label="Страж у ворот", description="Усталый стражник в помятой кирасе. Он опирается на алебарду и, кажется, дремлет.", type="npc"];
+
+    gate -> city;
+    gate -> gate_guard;
+    gate_guard -> gate;
+    city -> gate;
+}

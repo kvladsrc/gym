@@ -30,6 +30,33 @@ the help of Gemini CLI.
 
 ![SICP](sicp.png)
 
+### PipeLLM
+
+`/pipellm` - A simple and lightweight CLI tool for working with the
+**Gemini API** using named prompts and shell aliases: 
+
+```bash
+cat error.txt | grep ERROR | summary | kharms
+# → Everything has vanished like smoke, the file exists no more.
+```
+
+### Ripples
+
+`/ripples_cli` is a text-based RPG engine powered by Google Gemini. It
+generates real-time dialogues and interactions based on a static world
+graph and a dynamic event journal.
+
+**Key Mechanics**:
+
+- **World Graph**: Define your world in [DOT](https://graphviz.org/)
+  format. Vertices (Nodes) serve as Locations or NPCs.
+
+- **Dynamic Edges**: The LLM generates available player choices in
+  real-time, effectively creating new edges in the graph.
+
+- **Living Context*: Key player actions are recorded and serves as
+  context for future generations.
+
 ## Purpose
 
 This repository showcases my journey in programming and

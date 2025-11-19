@@ -1,0 +1,12 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "engine",
+    srcs = ["engine.go"],
+    importpath = "src/ripples_cli/pkg/engine",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ripples_cli/pkg/llm",
+        "//ripples_cli/pkg/model",
+    ],
+)

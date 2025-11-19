@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "world",
+    srcs = ["loader.go"],
+    importpath = "src/ripples_cli/pkg/world",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ripples_cli/pkg/model",
+        "@com_github_awalterschulze_gographviz//:gographviz",
+        "@com_github_awalterschulze_gographviz//ast",
+    ],
+)

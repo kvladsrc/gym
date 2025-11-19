@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tui",
+    srcs = ["model.go"],
+    importpath = "src/ripples_cli/pkg/tui",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ripples_cli/pkg/engine",
+        "@com_github_charmbracelet_bubbletea//:bubbletea",
+        "@com_github_charmbracelet_lipgloss//:lipgloss",
+    ],
+)

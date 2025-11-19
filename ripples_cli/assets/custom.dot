@@ -1,0 +1,6 @@
+digraph G {
+    start_room [label="Start Room", description="An empty white room.", type="location"];
+    end_room [label="End Room", description="A dark void.", type="location"];
+
+    start_room -> end_room;
+}
