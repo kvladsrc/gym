@@ -8,7 +8,7 @@ API** using named prompts and shell aliases.
 ### 1. Build with Go
 
 ```bash
-go build -o pipellm
+bazelisk build //pipellm:pipellm
 ```
 
 ### 2. Create a config file `~/.pipellm.yaml`
@@ -39,7 +39,7 @@ prompts:
 Add them to `.bashrc` (or `.zshrc`):
 
 ```bash
-./pipellm --bash-alias >> ~/.bashrc
+bazelisk run //pipellm:pipellm -- --bash-alias >> ~/.bashrc
 source ~/.bashrc
 ```
 
@@ -60,16 +60,3 @@ Or combine them:
 cat error.txt | grep ERROR | summary | kharms
 # → Everything has vanished like smoke, the file exists no more.
 ```
-
-You can also chain prompts creatively:
-
-```bash
-cat dsu.cc | review | summary | kharms
-```
-
----
-
-## 📬 Contact
-
-Questions, feedback, or ideas?
-Feel free to reach out at: **<zjgkkn@gmail.com>**
