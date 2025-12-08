@@ -1,9 +1,8 @@
-#include <iostream>
-#include <string>
+#include "cpp/warmup/multiply.hpp"
 
-using std::string;
+namespace warmup {
 
-static int multiply(int a, int b) {
+int multiply(int a, int b) {
   if (a == 1) {
     return b;
   }
@@ -15,10 +14,4 @@ static int multiply(int a, int b) {
   return b + multiply(a / 2, b * 2);
 }
 
-int main(int /*argc*/, char* /*argv*/[]) {
-  int a = 0;
-  int b = 0;
-  std::cin >> a >> b;
-  std::cout << multiply(a, b) << "\n";
-  return 0;
-}
+}  // namespace warmup

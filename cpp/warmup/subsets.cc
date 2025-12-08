@@ -1,48 +1,34 @@
-#include <cstddef>
+#include "cpp/warmup/subsets.hpp"
+
 #include <cstdint>
-#include <iostream>
 #include <vector>
 
 using std::vector;
 
-void print_subset(const vector<int> &a, uint64_t ss) {
-  for (auto el : a) {
-    if (ss % 2 != 0) {
-      std::cout << el << " ";
-    }
-    ss /= 2;
-  }
-  std::cout << "\n";
-}
+namespace warmup {
 
-void print_subsets(const vector<int> &a) {
+vector<vector<int>> generate_subsets(const vector<int> &a) {
   auto power = a.size();
+  vector<vector<int>> result;
 
-  if (power > 64) {
-    std::cout << "TOO LARGE" << "\n";
-    return;
+  if (power > 63) {
+    return result;
   }
 
-  uint64_t powerset = 1;
-  for (std::size_t i = 0; i < power; ++i) {
-    powerset *= 2;
-  }
+  uint64_t powerset = 1ULL << power;
 
-  for (uint64_t el = 0; el < powerset; ++el) {
-    print_subset(a, el);
+  for (uint64_t i = 0; i < powerset; ++i) {
+    vector<int> subset;
+    uint64_t ss = i;
+    for (auto el : a) {
+      if (ss % 2 != 0) {
+        subset.push_back(el);
+      }
+      ss /= 2;
+    }
+    result.push_back(subset);
   }
+  return result;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-
-  vector<int> a(n);
-  for (auto &i : a) {
-    std::cin >> i;
-  }
-
-  print_subsets(a);
-
-  return 0;
-}
+}  // namespace warmup

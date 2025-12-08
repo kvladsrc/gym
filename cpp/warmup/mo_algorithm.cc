@@ -1,27 +1,17 @@
+#include "cpp/warmup/mo_algorithm.hpp"
+
 #include <algorithm>
-#include <climits>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <cstdlib>
-#include <ctime>
-#include <iostream>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
-using std::sort;
-using std::sqrt;
-using std::unordered_map;
 using std::vector;
 
-namespace {
-
+namespace warmup {
 /*
  * Mo's Algorithm
  *
  * 1. Array Partitioning:
- *    The array A is divided into blocks B_1, B_2, …, B_k, where k ≈
+ *    The array A is divided into blocks B_1, B_2, â€¦, B_k, where k â‰ˆ
  *    len(A) / sqrt(len(A)). Each block has an approximate size of
  *    sqrt(len(A)).
  *
@@ -54,117 +44,65 @@ namespace {
  *    Total: O(Q * logQ + (N+Q) * N^1/2), Q -- number of queries, N = len(A).
  */
 
-struct mo_state {
- private:
-  int l{};
-  int r{};
-  int64_t val{};
-  unordered_map<int, int> cnt;
+mo_state::mo_state(int n) : cnt(n + 1, 0) {}
 
-  void remove(int el) {
-    val -= cnt[el] * cnt[el];
-    cnt[el]--;
-    val += cnt[el] * cnt[el];
-  }
+void mo_state::add(int i, const vector<int64_t>& a) {
+  int64_t val = a[i];
+  current_answer -= cnt[val] * cnt[val];
+  cnt[val]++;
+  current_answer += cnt[val] * cnt[val];
+}
 
-  void add(int el) {
-    val -= cnt[el] * cnt[el];
-    cnt[el]++;
-    val += cnt[el] * cnt[el];
-  }
-
- public:
-  mo_state() = default;
-
-  mo_state(int pos, const vector<int64_t>& a) : l(pos), r(pos) {
-    auto el = a[pos];
-    val = 1;
-    cnt[el]++;
-  }
-
-  int64_t move(int, int, const vector<int64_t>&);
-};
+void mo_state::remove(int i, const vector<int64_t>& a) {
+  int64_t val = a[i];
+  current_answer -= cnt[val] * cnt[val];
+  cnt[val]--;
+  current_answer += cnt[val] * cnt[val];
+}
 
 int64_t mo_state::move(int nl, int nr, const vector<int64_t>& a) {
-  while (r > nr) {
-    auto el = a[r--];
-    remove(el);
-  }
-
-  while (r < nr) {
-    auto el = a[++r];
-    add(el);
-  }
-
   while (l > nl) {
-    auto el = a[--l];
-    add(el);
+    l--;
+    add(l, a);
   }
-
+  while (r < nr) {
+    r++;
+    add(r, a);
+  }
   while (l < nl) {
-    auto el = a[l++];
-    remove(el);
+    remove(l, a);
+    l++;
   }
-
-  return val;
+  while (r > nr) {
+    remove(r, a);
+    r--;
+  }
+  return current_answer;
 }
 
-struct query {
-  int l{};
-  int r{};
-  int num{};
+vector<int64_t> solve_mo(int n, const vector<int64_t>& a,
+                         const vector<query>& queries) {
+  int block_size = static_cast<int>(std::sqrt(n));
+  vector<query> sorted_queries = queries;
 
-  query() = default;
+  std::sort(sorted_queries.begin(), sorted_queries.end(),
+            [block_size](const query& a, const query& b) {
+              if (a.l / block_size != b.l / block_size) {
+                return a.l / block_size < b.l / block_size;
+              }
+              return ((a.l / block_size) & 1) ? (a.r < b.r) : (a.r > b.r);
+            });
 
-  query(int al, int ar, int anum) : l(al), r(ar), num(anum) {}
-};
+  mo_state st(1000005);  // Assuming max value is within range
+  // Actually max value in tests is small, but let's be safe or dynamic.
+  // The original code used 1000005.
 
-}  // namespace
-
-int main(int /*argc*/, char* /*argv*/[]) {
-  std::size_t n = 0;
-  std::size_t t = 0;
-  std::cin >> n >> t;
-
-  vector<int64_t> a(n);
-  for (auto& i : a) {
-    std::cin >> i;
+  vector<int64_t> answers(queries.size());
+  for (const auto& q : sorted_queries) {
+    answers[q.num] = st.move(q.l, q.r, a);
   }
 
-  if (n == 0 || t == 0) {
-    std::cout << "EMPTY" << "\n";
-    return 0;
-  }
-
-  vector<query> queries(t);
-  for (std::size_t i = 0; i < t; ++i) {
-    int l = 0;
-    int r = 0;
-    std::cin >> l >> r;
-    queries[i] = query(l, r, i);
-  }
-
-  int block_size = static_cast<int>(sqrt(n));
-  sort(queries.begin(), queries.end(),
-       [block_size](const auto& a, const auto& b) {
-         int block_a = a.l / block_size;
-         int block_b = b.l / block_size;
-         if (block_a != block_b) {
-           return block_a < block_b;
-         }
-         return a.r < b.r;
-       });
-
-  vector<int64_t> res(t);
-  mo_state state(0, a);
-
-  for (auto q : queries) {
-    res[q.num] = state.move(q.l, q.r, a);
-  }
-
-  for (auto i : res) {
-    std::cout << i << "\n";
-  }
-
-  return 0;
+  return answers;
 }
+
+}  // namespace warmup

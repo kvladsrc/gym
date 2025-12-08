@@ -1,11 +1,12 @@
-#include <iostream>
-#include <string>
+#include "cpp/warmup/divide.hpp"
+
 #include <utility>
 
 using std::pair;
-using std::string;
 
-static pair<int, int> divide(int a, int b) {
+namespace warmup {
+
+pair<int, int> divide(int a, int b) {
   if (a < b) {
     return {0, a};
   }
@@ -21,20 +22,4 @@ static pair<int, int> divide(int a, int b) {
   return buf;
 }
 
-int main(int /*argc*/, char* /*argv*/[]) {
-  int t = 0;
-  std::cin >> t;
-  while ((t--) != 0) {
-    int a = 0;
-    int b = 0;
-    std::cin >> a >> b;
-    auto res = divide(a, b);
-    if ((res.first != a / b) || res.second != a % b) {
-      std::cout << "Wrong!\n";
-    } else {
-      std::cout << "Ok!\n";
-    }
-  }
-
-  return 0;
-}
+}  // namespace warmup

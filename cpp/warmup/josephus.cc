@@ -1,6 +1,8 @@
-#include <iostream>
+#include "cpp/warmup/josephus.hpp"
 
-static int josephus(int n, int k) {
+namespace warmup {
+
+int josephus(int n, int k) {
   if (n == 1) {
     return 0;
   }
@@ -8,10 +10,4 @@ static int josephus(int n, int k) {
   return (josephus(n - 1, k) + k) % n;
 }
 
-int main() {
-  int n = 0;
-  int k = 0;
-  std::cin >> n >> k;
-  std::cout << josephus(n, k) << '\n';
-  return 0;
-}
+}  // namespace warmup

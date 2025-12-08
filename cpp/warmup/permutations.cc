@@ -1,15 +1,15 @@
-#include <chrono>
+#include "cpp/warmup/permutations.hpp"
+
 #include <cstdint>
-#include <iostream>
-#include <string>
 #include <utility>
 #include <vector>
 
-using std::string;
 using std::vector;
 
+namespace warmup {
+
 // Heap's algorithm.
-static int64_t permutations_heaps(std::vector<int> &arr, int size) {
+int64_t permutations_heaps(vector<int> &arr, int size) {
   if (size == 1) {
     return 1;
   }
@@ -28,22 +28,4 @@ static int64_t permutations_heaps(std::vector<int> &arr, int size) {
   return res;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
-
-  vector<int> perms(n);
-  for (int i = 0; i < n; ++i) {
-    perms[i] = i;
-  }
-  auto start_heaps = std::chrono::high_resolution_clock::now();
-  auto t = permutations_heaps(perms, n);
-  auto end_heaps = std::chrono::high_resolution_clock::now();
-  auto duration_heaps =
-      std::chrono::duration_cast<std::chrono::seconds>(end_heaps - start_heaps);
-
-  std::cout << "Duration: " << duration_heaps.count() << "\n";
-  std::cout << "Permutations: " << t << "\n";
-
-  return 0;
-}
+}  // namespace warmup

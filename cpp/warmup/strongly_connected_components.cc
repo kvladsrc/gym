@@ -1,6 +1,5 @@
-#include <climits>
-#include <cstddef>
-#include <iostream>
+#include "cpp/warmup/strongly_connected_components.hpp"
+
 #include <queue>
 #include <utility>
 #include <vector>
@@ -9,9 +8,9 @@ using std::pair;
 using std::priority_queue;
 using std::vector;
 
-using graph = vector<vector<int>>;
+namespace warmup {
 
-void dfs(graph &g, int start, int &clock, vector<int> &rank) {
+void dfs(const graph &g, int start, int &clock, vector<int> &rank) {
   if (rank[start] != 0) {
     return;
   }
@@ -27,7 +26,7 @@ void dfs(graph &g, int start, int &clock, vector<int> &rank) {
   rank[start] = clock++;
 }
 
-void dfs_cc(graph &g, int start, int cc, vector<int> &cc_table) {
+void dfs_cc(const graph &g, int start, int cc, vector<int> &cc_table) {
   if (cc_table[start] != 0) {
     return;
   }
@@ -39,7 +38,7 @@ void dfs_cc(graph &g, int start, int cc, vector<int> &cc_table) {
   }
 }
 
-void topological_sort(graph &g, vector<int> &rank) {
+void topological_sort(const graph &g, vector<int> &rank) {
   int clock = 0;
 
   for (std::size_t v = 0; v < g.size(); ++v) {
@@ -48,21 +47,15 @@ void topological_sort(graph &g, vector<int> &rank) {
 }
 
 // Kosaraju's algorithm.
-int main(int /*argc*/, char * /*argv*/[]) {
-  std::size_t v = 0;
-  int e = 0;
-  std::cin >> v >> e;
+vector<int> find_scc(int v, const vector<pair<int, int>> &edges) {
+  if (v == 0) return {};
 
   vector<vector<int>> g(v);
   vector<vector<int>> g_reversed(v);
 
-  while ((e--) != 0) {
-    int a = 0;
-    int b = 0;
-    std::cin >> a >> b;
-
-    g[a].push_back(b);
-    g_reversed[b].push_back(a);
+  for (const auto &edge : edges) {
+    g[edge.first].push_back(edge.second);
+    g_reversed[edge.second].push_back(edge.first);
   }
 
   vector<int> rank(v, 0);
@@ -78,7 +71,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   priority_queue<pair<int, int>, vector<pair<int, int>>, CompareDistance>
       max_first_pair_heap;
 
-  for (std::size_t idx = 0; idx < v; ++idx) {
+  for (int idx = 0; idx < v; ++idx) {
     pair<int, int> r = {rank[idx], idx};
     max_first_pair_heap.push(r);
   }
@@ -97,9 +90,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     dfs_cc(g, best.second, cc++, cc_table);
   }
 
-  for (std::size_t idx = 0; idx < v; ++idx) {
-    std::cout << idx << " " << cc_table[idx] << "\n";
-  }
-
-  return 0;
+  return cc_table;
 }
+
+}  // namespace warmup

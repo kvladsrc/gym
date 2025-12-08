@@ -1,28 +1,13 @@
+#include "cpp/warmup/ford_bellman.hpp"
+
 #include <algorithm>
-#include <iostream>
-#include <string>
 #include <vector>
 
-using std::string;
 using std::vector;
 
-int main(int /*argc*/, char* /*argv*/[]) {
-  int n = 0;
-  std::cin >> n;
+namespace warmup {
 
-  const int inf = 1000000000;
-  vector<vector<int>> graph(n, vector<int>(n, inf));
-
-  int e = 0;
-  std::cin >> e;
-  while ((e--) != 0) {
-    int a = 0;
-    int b = 0;
-    int d = 0;
-    std::cin >> a >> b >> d;
-    graph[a][b] = d;
-  }
-
+vector<int> ford_bellman(int n, const vector<vector<int>>& graph) {
   // Searching for shortest path from 0 to all other verticies.
   // Init dists.
   vector<int> dists(n);
@@ -43,9 +28,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
     }
   }
 
-  for (int i = 1; i < n; ++i) {
-    std::cout << "0 to " << i << " dist: " << dists[i] << "\n";
-  }
-
-  return 0;
+  return dists;
 }
+
+}  // namespace warmup

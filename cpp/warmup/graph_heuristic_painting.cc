@@ -1,30 +1,21 @@
+#include "cpp/warmup/graph_heuristic_painting.hpp"
+
 #include <algorithm>
-#include <iostream>
 #include <map>
 #include <set>
-#include <string>
 #include <vector>
 
 using std::map;
 using std::max;
 using std::set;
-using std::string;
 using std::vector;
 
-using graph = vector<vector<int>>;
+namespace warmup {
 
-int main(int /*argc*/, char* /*argv*/[]) {
-  int n = 0;
-  int m = 0;
-  std::cin >> n >> m;
-
-  graph g(n);
-  while ((m--) != 0) {
-    int a = 0;
-    int b = 0;
-    std::cin >> a >> b;
-    g[a - 1].push_back(b - 1);
-    g[b - 1].push_back(a - 1);
+map<int, int> heuristic_painting(int n, const graph& g, int& max_color_out) {
+  if (n == 0) {
+    max_color_out = 0;
+    return {};
   }
 
   int max_degree = 0;
@@ -69,11 +60,8 @@ int main(int /*argc*/, char* /*argv*/[]) {
     }
   }
 
-  std::cout << max_color << "\n";
-  for (int idx = 0; idx < n; ++idx) {
-    std::cout << color_map[idx] << " ";
-  }
-  std::cout << "\n";
-
-  return 0;
+  max_color_out = max_color;
+  return color_map;
 }
+
+}  // namespace warmup
