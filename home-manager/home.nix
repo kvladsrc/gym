@@ -5,7 +5,7 @@
 }:
 let
   user = "myuser";
-  version = "25.05";
+  version = "25.11";
 in
 {
   home.username = user;
@@ -36,10 +36,14 @@ in
 
   home.packages = with pkgs; [
     # Apps
+    antigravity
     baobab
+    celestia
     dropbox
+    easyeffects
     eog
     evince
+    fdupes
     firefox
     gocryptfs
     google-chrome
@@ -58,6 +62,7 @@ in
     blueman
     brightnessctl
     cliphist
+    grim
     hypridle
     hyprpaper
     hyprsunset
@@ -67,7 +72,9 @@ in
     nerd-fonts.symbols-only
     networkmanagerapplet
     pavucontrol
+    slurp
     wl-clipboard
+    wlogout
 
     # GPU enabled.
     (config.lib.nixGL.wrap ghostty)
@@ -85,6 +92,7 @@ in
     loccount
     podman
     racket
+    uv
     zeal
   ];
 
@@ -156,6 +164,7 @@ in
       em = "emacs -nw";
       mv = "mv -i";
       rm = "rm -i";
+      ll = "ls -l";
     };
   };
 
@@ -175,8 +184,6 @@ in
     };
   };
 
-  programs.lsd.enable = true;
-
   programs.bat = {
     enable = true;
     config = {
@@ -190,10 +197,10 @@ in
     };
   };
 
-  programs.ripgrep.enable = true;
-
   programs.git = {
     enable = true;
+    userName = "Vladimir Kim";
+    userEmail = "myuser@your.domain";
     lfs.enable = true;
     extraConfig = {
       credential.helper = "cache";
@@ -225,11 +232,19 @@ in
       ui_font_size = 19.0;
       buffer_font_size = 19.0;
       theme = {
-        mode = "system";
-        dark = "One Dark";
-        light = "One Light";
+        dark = "Monosami Dark";
+        light = "Monosami Light";
+        mode = "dark";
       };
       hour_format = "hour24";
+
+      agent_servers = {
+        "Kimi CLI" = {
+          command = "kimi";
+          args = [ "--acp" ];
+          env = { };
+        };
+      };
     };
   };
 }

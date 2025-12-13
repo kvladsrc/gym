@@ -40,8 +40,22 @@ func writeConfigFile(t *testing.T, dir, content string) string {
 	return configPath
 }
 
-func TestLoadConfig_Success(t *testing.T) {
-	const configContent = `api_key: test_api_key_12345
+func TestLoadConfig(t *testing.T) {
+	tests := []struct {
+		name             string
+		configContent    string
+		noConfigFile     bool
+		wantAPIKey       string
+		wantModel        string
+		wantPromptCount  int
+		wantFirstPrompt  Prompt
+		wantSecondPrompt Prompt
+		wantErr          bool
+		wantErrSubstr    string
+	}{
+		{
+			name: "success",
+			configContent: `api_key: test_api_key_12345
 model: gemini-pro
 prompts:
 - name: test1
@@ -52,112 +66,95 @@ prompts:
     test prompt 2
 - name: CaseSensitive
   prompt: Case test prompt
-`
-
-	tempDir, cleanup := tempHomeDir(t)
-	defer cleanup()
-
-	writeConfigFile(t, tempDir, configContent)
-
-	config, err := LoadConfig()
-	if err != nil {
-		t.Fatalf("LoadConfig() failed: %v", err)
-	}
-
-	// Verify API key.
-	wantAPIKey := "test_api_key_12345" // pragma: allowlist secret
-	if config.APIKey != wantAPIKey {   // pragma: allowlist secret
-		t.Errorf("APIKey mismatch:\n  got:  %q\n  want: %q", config.APIKey, wantAPIKey)
-	}
-
-	// Verify model.
-	wantModel := "gemini-pro"
-	if config.Model != wantModel {
-		t.Errorf("Model mismatch:\n  got:  %q\n  want: %q", config.Model, wantModel)
-	}
-
-	// Verify number of prompts.
-	wantPromptCount := 3
-	if got := len(config.Prompts); got != wantPromptCount {
-		t.Fatalf("prompt count mismatch: got %d, want %d", got, wantPromptCount)
-	}
-
-	// Verify first prompt.
-	if got, want := config.Prompts[0].Name, "test1"; got != want {
-		t.Errorf("Prompts[0].Name = %q, want %q", got, want)
-	}
-	if got, want := config.Prompts[0].Prompt, "This is test prompt 1"; got != want {
-		t.Errorf("Prompts[0].Prompt = %q, want %q", got, want)
-	}
-
-	// Verify multi-line prompt (YAML > operator folds lines with spaces).
-	wantMultiLine := "This is a multi-line test prompt 2"
-	if got := strings.TrimSpace(config.Prompts[1].Prompt); got != wantMultiLine {
-		t.Errorf("Prompts[1].Prompt mismatch:\n  got:  %q\n  want: %q", got, wantMultiLine)
-	}
-}
-
-func TestLoadConfig_FileNotFound(t *testing.T) {
-	_, cleanup := tempHomeDir(t)
-	defer cleanup()
-
-	// Don't create a config file.
-	_, err := LoadConfig()
-	if err == nil {
-		t.Fatal("LoadConfig() succeeded with missing config file, want error")
-	}
-
-	wantErrSubstring := "config file not found"
-	if !strings.Contains(err.Error(), wantErrSubstring) {
-		t.Errorf("error message mismatch:\n  got:  %v\n  want substring: %q", err, wantErrSubstring)
-	}
-}
-
-func TestLoadConfig_InvalidYAML(t *testing.T) {
-	const invalidYAML = `api_key: test_key
+`,
+			wantAPIKey:       "test_api_key_12345", // pragma: allowlist secret
+			wantModel:        "gemini-pro",
+			wantPromptCount:  3,
+			wantFirstPrompt:  Prompt{Name: "test1", Prompt: "This is test prompt 1"},
+			wantSecondPrompt: Prompt{Name: "test2", Prompt: "This is a multi-line test prompt 2"},
+		},
+		{
+			name:          "file not found",
+			noConfigFile:  true,
+			wantErr:       true,
+			wantErrSubstr: "config file not found",
+		},
+		{
+			name: "invalid yaml",
+			configContent: `api_key: test_key
 prompts:
   - name: test
     prompt: valid
   invalid_yaml_structure: [unclosed array
-`
-
-	tempDir, cleanup := tempHomeDir(t)
-	defer cleanup()
-
-	writeConfigFile(t, tempDir, invalidYAML)
-
-	_, err := LoadConfig()
-	if err == nil {
-		t.Fatal("LoadConfig() succeeded with invalid YAML, want error")
-	}
-
-	wantErrSubstring := "failed to parse config"
-	if !strings.Contains(err.Error(), wantErrSubstring) {
-		t.Errorf("error message mismatch:\n  got:  %v\n  want substring: %q", err, wantErrSubstring)
-	}
-}
-
-func TestLoadConfig_WithoutModel(t *testing.T) {
-	// Test backwards compatibility: config without model field.
-	const configContent = `api_key: test_api_key_old
+`,
+			wantErr:       true,
+			wantErrSubstr: "failed to parse config",
+		},
+		{
+			name: "without model",
+			configContent: `api_key: test_api_key_old
 prompts:
 - name: test
   prompt: Test prompt
-`
-
-	tempDir, cleanup := tempHomeDir(t)
-	defer cleanup()
-
-	writeConfigFile(t, tempDir, configContent)
-
-	config, err := LoadConfig()
-	if err != nil {
-		t.Fatalf("LoadConfig() failed: %v", err)
+`,
+			wantAPIKey:      "test_api_key_old", // pragma: allowlist secret
+			wantModel:       "",
+			wantPromptCount: 1,
+			wantFirstPrompt: Prompt{Name: "test", Prompt: "Test prompt"},
+		},
 	}
 
-	// Model should be empty when not specified.
-	if config.Model != "" {
-		t.Errorf("Model = %q, want empty string", config.Model)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tempDir, cleanup := tempHomeDir(t)
+			defer cleanup()
+
+			if !tt.noConfigFile {
+				writeConfigFile(t, tempDir, tt.configContent)
+			}
+
+			config, err := LoadConfig()
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("LoadConfig() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				if tt.wantErrSubstr != "" && !strings.Contains(err.Error(), tt.wantErrSubstr) {
+					t.Errorf("LoadConfig() error mismatch:\n  got:  %v\n  want substring: %q", err, tt.wantErrSubstr)
+				}
+				return
+			}
+
+			if config.APIKey != tt.wantAPIKey { // pragma: allowlist secret
+				t.Errorf("APIKey = %q, want %q", config.APIKey, tt.wantAPIKey)
+			}
+
+			if config.Model != tt.wantModel {
+				t.Errorf("Model = %q, want %q", config.Model, tt.wantModel)
+			}
+
+			if len(config.Prompts) != tt.wantPromptCount {
+				t.Fatalf("prompt count = %d, want %d", len(config.Prompts), tt.wantPromptCount)
+			}
+
+			if tt.wantPromptCount > 0 {
+				if config.Prompts[0].Name != tt.wantFirstPrompt.Name {
+					t.Errorf("Prompts[0].Name = %q, want %q", config.Prompts[0].Name, tt.wantFirstPrompt.Name)
+				}
+				if config.Prompts[0].Prompt != tt.wantFirstPrompt.Prompt {
+					t.Errorf("Prompts[0].Prompt = %q, want %q", config.Prompts[0].Prompt, tt.wantFirstPrompt.Prompt)
+				}
+			}
+
+			if tt.wantPromptCount > 1 {
+				// Check second prompt for multi-line test
+				if strings.TrimSpace(config.Prompts[1].Prompt) != tt.wantSecondPrompt.Prompt {
+					t.Errorf("Prompts[1].Prompt = %q, want %q", strings.TrimSpace(config.Prompts[1].Prompt), tt.wantSecondPrompt.Prompt)
+				}
+			}
+		})
 	}
 }
 

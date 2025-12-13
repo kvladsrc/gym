@@ -11,26 +11,10 @@ namespace warmup {
   a Range Minimum Query (RMQ) on the Euler Tour of the
   tree. (Alternative solution exists using Binary Lifting for LCA.)
 
-  RMQ is computed using a segment tree. The tree is stored in an array
-  (or vector) of size 4 * N. While a complete binary tree with N
-  leaves has exactly 2 * N - 1 nodes, we allocate 4 * N elements. The
-  reason is that child indices are calculated as 2 * v and 2 * v + 1,
-  which creates gaps in the array representation. As a result, some
-  node indices may exceed 2 * N - 1, requiring the larger allocation.
+  RMQ is computed using a sparce table with O(1) time on each query.
 */
 
 using graph = std::vector<std::vector<std::size_t>>;
-
-// I just like to use tree[v] = tree[v * 2] + tree[v * 2 + 1], so use
-// struct with overloaded + operator.
-struct meta {
-  int d;
-  std::size_t idx;
-
-  meta();
-  meta(int ad, std::size_t aidx);
-  meta operator+(const meta& other) const;
-};
 
 class lca {
  public:
@@ -38,15 +22,16 @@ class lca {
   std::size_t find(std::size_t a, std::size_t b);
 
  private:
+  std::vector<std::vector<std::size_t>> st;
+  std::vector<int> depths;
+  std::vector<size_t> logs;
   std::vector<std::size_t> path;
-  std::vector<int> dists;
-  std::vector<meta> tree;
   std::vector<std::size_t> pre;
 
   void ett(const graph& g, std::size_t v, std::size_t p);
-  void build_tree(std::size_t l, std::size_t r, std::size_t v);
-  meta query_tree(std::size_t l, std::size_t r, std::size_t cl, std::size_t cr,
-                  std::size_t v);
+  void build_st();
+  std::size_t query(std::size_t l, std::size_t r);
+  int depth(std::size_t v);
 };
 
 }  // namespace warmup

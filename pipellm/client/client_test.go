@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	"src/pipellm/config"
+
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
@@ -85,7 +87,7 @@ func setupTestClient(t *testing.T, serverURL string) *genai.Client {
 func TestNewClient(t *testing.T) {
 	// NewClient should succeed with valid parameters even without a real API key.
 	// Actual API requests will fail, but client creation should not.
-	client, err := NewClient("test-api-key", "gemini-pro") // pragma: allowlist secret
+	client, err := NewClient("test-api-key", "gemini-pro", config.GenerationConfig{}) // pragma: allowlist secret
 	if err != nil {
 		t.Fatalf("NewClient() failed: %v", err)
 	}
@@ -95,122 +97,100 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_SendPrompt(t *testing.T) {
-	const (
-		testPrompt   = "Test prompt"
-		testInput    = "Test input"
-		testResponse = "Test response from AI"
-	)
-
-	server := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
-		// Validate HTTP method.
-		if r.Method != http.MethodPost {
-			t.Errorf("expected POST request, got %s", r.Method)
-		}
-
-		// Validate URL path.
-		if !strings.Contains(r.URL.Path, "gemini-pro:generateContent") {
-			t.Errorf("expected path to contain 'gemini-pro:generateContent', got %s", r.URL.Path)
-		}
-
-		// Validate request body.
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			t.Fatalf("failed to read request body: %v", err)
-		}
-		expectedContent := testPrompt + "\n\n" + testInput
-		validateGeminiRequest(t, body, expectedContent)
-
-		// Send mock response.
-		w.Header().Set("Content-Type", "application/json")
-		if _, err := w.Write([]byte(mockGeminiResponse(testResponse))); err != nil {
-			t.Fatalf("failed to write response: %v", err)
-		}
-	})
-
-	client := setupTestClient(t, server.URL)
-	model := client.GenerativeModel("gemini-pro")
-	pipellmClient := &Client{model: model}
-
-	response, err := pipellmClient.SendPrompt(testPrompt, testInput)
-	if err != nil {
-		t.Fatalf("SendPrompt() failed: %v", err)
+	tests := []struct {
+		name          string
+		prompt        string
+		input         string
+		mockResponse  string
+		wantResponse  string
+		wantErr       bool
+		wantErrSubstr string
+	}{
+		{
+			name:         "success with input",
+			prompt:       "Test prompt",
+			input:        "Test input",
+			mockResponse: mockGeminiResponse("Test response from AI"),
+			wantResponse: "Test response from AI",
+		},
+		{
+			name:         "success without input",
+			prompt:       "Test prompt only",
+			input:        "",
+			mockResponse: mockGeminiResponse("Response to prompt only"),
+			wantResponse: "Response to prompt only",
+		},
+		{
+			name:          "no candidates error",
+			prompt:        "Test prompt",
+			input:         "Test input",
+			mockResponse:  `{"candidates": []}`,
+			wantErr:       true,
+			wantErrSubstr: "no response from Gemini",
+		},
+		{
+			name:         "invalid json error",
+			prompt:       "Test prompt",
+			input:        "Test input",
+			mockResponse: "invalid json response",
+			wantErr:      true,
+		},
 	}
 
-	if response != testResponse {
-		t.Errorf("SendPrompt() response mismatch:\n  got:  %q\n  want: %q", response, testResponse)
-	}
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
+				// Validate HTTP method.
+				if r.Method != http.MethodPost {
+					t.Errorf("expected POST request, got %s", r.Method)
+				}
 
-func TestClient_SendPrompt_NoInput(t *testing.T) {
-	const (
-		testPrompt   = "Test prompt only"
-		testResponse = "Response to prompt only"
-	)
+				// Validate URL path.
+				if !strings.Contains(r.URL.Path, "gemini-pro:generateContent") {
+					t.Errorf("expected path to contain 'gemini-pro:generateContent', got %s", r.URL.Path)
+				}
 
-	server := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			t.Fatalf("failed to read request body: %v", err)
-		}
-		validateGeminiRequest(t, body, testPrompt)
+				// Validate request body if it's a valid JSON case
+				if !tt.wantErr && tt.mockResponse != "invalid json response" {
+					body, err := io.ReadAll(r.Body)
+					if err != nil {
+						t.Fatalf("failed to read request body: %v", err)
+					}
+					expectedContent := tt.prompt
+					if tt.input != "" {
+						expectedContent += "\n\n" + tt.input
+					}
+					validateGeminiRequest(t, body, expectedContent)
+				}
 
-		w.Header().Set("Content-Type", "application/json")
-		if _, err := w.Write([]byte(mockGeminiResponse(testResponse))); err != nil {
-			t.Fatalf("failed to write response: %v", err)
-		}
-	})
+				// Send mock response.
+				w.Header().Set("Content-Type", "application/json")
+				if _, err := w.Write([]byte(tt.mockResponse)); err != nil {
+					t.Fatalf("failed to write response: %v", err)
+				}
+			})
 
-	client := setupTestClient(t, server.URL)
-	model := client.GenerativeModel("gemini-pro")
-	pipellmClient := &Client{model: model}
+			client := setupTestClient(t, server.URL)
+			model := client.GenerativeModel("gemini-pro")
+			pipellmClient := &Client{model: model}
 
-	response, err := pipellmClient.SendPrompt(testPrompt, "")
-	if err != nil {
-		t.Fatalf("SendPrompt() with empty input failed: %v", err)
-	}
+			response, err := pipellmClient.SendPrompt(tt.prompt, tt.input)
 
-	if response != testResponse {
-		t.Errorf("SendPrompt() response mismatch:\n  got:  %q\n  want: %q", response, testResponse)
-	}
-}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SendPrompt() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
 
-func TestClient_SendPrompt_NoCandidates(t *testing.T) {
-	server := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		if _, err := w.Write([]byte(`{"candidates": []}`)); err != nil {
-			t.Fatalf("failed to write response: %v", err)
-		}
-	})
+			if tt.wantErr {
+				if tt.wantErrSubstr != "" && !strings.Contains(err.Error(), tt.wantErrSubstr) {
+					t.Errorf("SendPrompt() error mismatch:\n  got:  %v\n  want substring: %q", err, tt.wantErrSubstr)
+				}
+				return
+			}
 
-	client := setupTestClient(t, server.URL)
-	model := client.GenerativeModel("gemini-pro")
-	pipellmClient := &Client{model: model}
-
-	_, err := pipellmClient.SendPrompt("Test prompt", "Test input")
-	if err == nil {
-		t.Fatal("SendPrompt() succeeded with empty candidates, want error")
-	}
-
-	wantErrSubstring := "no response from Gemini"
-	if !strings.Contains(err.Error(), wantErrSubstring) {
-		t.Errorf("SendPrompt() error mismatch:\n  got:  %v\n  want substring: %q", err, wantErrSubstring)
-	}
-}
-
-func TestClient_SendPrompt_InvalidJSON(t *testing.T) {
-	server := setupTestServer(t, func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		if _, err := w.Write([]byte("invalid json response")); err != nil {
-			t.Fatalf("failed to write response: %v", err)
-		}
-	})
-
-	client := setupTestClient(t, server.URL)
-	model := client.GenerativeModel("gemini-pro")
-	pipellmClient := &Client{model: model}
-
-	_, err := pipellmClient.SendPrompt("Test prompt", "Test input")
-	if err == nil {
-		t.Fatal("SendPrompt() succeeded with invalid JSON, want error")
+			if response != tt.wantResponse {
+				t.Errorf("SendPrompt() response mismatch:\n  got:  %q\n  want: %q", response, tt.wantResponse)
+			}
+		})
 	}
 }

@@ -1,9 +1,16 @@
-load("@rules_go//go:def.bzl", "go_binary")
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
 
 go_binary(
     name = "pipellm",
-    srcs = ["main.go"],
+    embed = [":pipellm_lib"],
     visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "pipellm_lib",
+    srcs = ["main.go"],
+    importpath = "src/pipellm",
+    visibility = ["//visibility:private"],
     deps = [
         "//pipellm/client",
         "//pipellm/config",

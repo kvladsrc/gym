@@ -4,18 +4,23 @@
 #include <cstdint>
 #include <cstdlib>
 #include <ctime>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <queue>
 #include <set>
 #include <stack>
 #include <string>
+#include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 using std::abs;
+using std::endl;
 using std::map;
 using std::max;
 using std::min;
@@ -30,37 +35,21 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
-  int t;
+  int t = 0;
   std::cin >> t;
-  while (t--) {
-    int n;
-    std::cin >> n;
+  while ((t--) != 0) {
+    string s;
+    std::cin >> s;
 
-    if (n % 2 == 0) {
-      std::cout << "NO" << "\n";
-      continue;
-    }
-
-    vector<int> f(n);
-    vector<int> s(n);
-
-    // TODO(myuser): use std::reverse.
-    for (int i = 0; i < n; ++i) {
-      if (i < (n / 2)) {
-        f[i] = n / 2 - i;
-      } else {
-        f[i] = n - (i - (n / 2));
-      }
-      s[i] = (2 * n) - i;
-    }
-
-    std::cout << "YES" << "\n";
-    for (int i = 0; i < n; ++i) {
-      std::cout << f[i] << " " << s[i] << "\n";
+    if (s.front() != s.back()) {
+      s.back() = s.front();
+      std::cout << s << "\n";
+    } else {
+      std::cout << s << "\n";
     }
   }
 

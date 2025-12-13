@@ -11,9 +11,18 @@ import (
 
 // Config represents the pipellm configuration loaded from ~/.pipellm.yaml.
 type Config struct {
-	APIKey  string   `yaml:"api_key"`
-	Model   string   `yaml:"model"`
-	Prompts []Prompt `yaml:"prompts"`
+	APIKey           string           `yaml:"api_key"`
+	Model            string           `yaml:"model"`
+	GenerationConfig GenerationConfig `yaml:"generation_config"`
+	Prompts          []Prompt         `yaml:"prompts"`
+}
+
+// GenerationConfig holds model generation parameters.
+type GenerationConfig struct {
+	Temperature     *float32 `yaml:"temperature,omitempty"`
+	TopP            *float32 `yaml:"top_p,omitempty"`
+	TopK            *int32   `yaml:"top_k,omitempty"`
+	MaxOutputTokens *int32   `yaml:"max_output_tokens,omitempty"`
 }
 
 // Prompt represents a named prompt template in the configuration.

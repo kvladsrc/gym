@@ -17,6 +17,14 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
 
+        helm-plugins-dir = pkgs.symlinkJoin {
+          name = "helm-plugins";
+          paths = with pkgs.kubernetes-helmPlugins; [
+            helm-diff
+            helm-secrets
+          ];
+        };
+
         os = with pkgs; [
           bash
           cacert
@@ -46,10 +54,17 @@
           golangci-lint
           golint
           gotools
+          helmfile
           kubernetes-helm
           nodejs
           perl
           pre-commit
+        ];
+
+        cd = with pkgs; [
+          age
+          kubectl
+          sops
         ];
 
         dynamicLibs = with pkgs; [
@@ -61,9 +76,7 @@
         workstation = with pkgs; [
           # Admin
           buildah
-          kubectl
           kubectx
-          kubernetes-helm
           podman
 
           # Development
@@ -84,6 +97,7 @@
                 openssh
               ]
               ++ ci
+              ++ cd
               ++ workstation
               ++ os;
 
@@ -95,12 +109,14 @@
               alias kgp='kubectl get pods'
               alias kgpa='kubectl get pods --all-namespaces'
               source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
+              export SOPS_AGE_KEY_FILE=$HOME/plain/keys.txt
+              export HELM_PLUGINS="${helm-plugins-dir}"
             '';
           };
         };
 
         packages.zuulContainer = pkgs.dockerTools.buildImage {
-          name = "registry.bonfire.lit/build";
+          name = "registry.your.domain/build";
           tag = "1.0";
 
           copyToRoot = pkgs.buildEnv {
@@ -110,6 +126,7 @@
             ]
             ++ os
             ++ ci
+            ++ cd
             ++ dynamicLibs;
             pathsToLink = [
               "/bin"
@@ -165,12 +182,13 @@
             };
             User = "root";
             Env = [
-              "NIX_LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath dynamicLibs}"
-              "NIX_LD=${pkgs.lib.fileContents "${pkgs.stdenv.cc}/nix-support/dynamic-linker"}"
-              "SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt"
-              "GIT_SSL_CAINFO=/etc/ssl/certs/ca-bundle.crt"
-              "NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt"
               "CURL_CA_BUNDLE=/etc/ssl/certs/ca-bundle.crt"
+              "GIT_SSL_CAINFO=/etc/ssl/certs/ca-bundle.crt"
+              "HELM_PLUGINS=${helm-plugins-dir}"
+              "NIX_LD=${pkgs.lib.fileContents "${pkgs.stdenv.cc}/nix-support/dynamic-linker"}"
+              "NIX_LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath dynamicLibs}"
+              "NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt"
+              "SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt"
             ];
           };
         };

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"src/pipellm/config"
+
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
 )
@@ -15,7 +17,7 @@ type Client struct {
 
 // NewClient creates a new Gemini API client with the specified API key and model name.
 // Returns an error if the client cannot be initialized.
-func NewClient(apiKey, modelName string) (*Client, error) {
+func NewClient(apiKey, modelName string, genConfig config.GenerationConfig) (*Client, error) {
 	ctx := context.Background()
 	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
@@ -23,6 +25,19 @@ func NewClient(apiKey, modelName string) (*Client, error) {
 	}
 
 	model := client.GenerativeModel(modelName)
+	if genConfig.Temperature != nil {
+		model.SetTemperature(*genConfig.Temperature)
+	}
+	if genConfig.TopP != nil {
+		model.SetTopP(*genConfig.TopP)
+	}
+	if genConfig.TopK != nil {
+		model.SetTopK(*genConfig.TopK)
+	}
+	if genConfig.MaxOutputTokens != nil {
+		model.SetMaxOutputTokens(*genConfig.MaxOutputTokens)
+	}
+
 	return &Client{
 		model: model,
 	}, nil

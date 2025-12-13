@@ -2,11 +2,12 @@
 ;;; Commentary:
 ;;; Code:
 
-(setq gc-cons-threshold (* 100 1024 1024)
-      read-process-output-max (* 1024 1024))
+;; Увеличение лимитов для лучшей производительности LSP
+(setq gc-cons-threshold (* 100 1024 1024)     ; Увеличиваем порог сборщика мусора
+      read-process-output-max (* 1024 1024))  ; Увеличиваем максимальный размер вывода процесса
 
-(setq-default indent-tabs-mode nil)
-
+;; Общие настройки
+(setq-default indent-tabs-mode nil)           ; Использовать пробелы вместо табов
 (setq c-default-style "linux"
       c-basic-offset 4)
 
@@ -32,11 +33,13 @@
   :init
   (global-eldoc-mode))
 
+;; Which-key для подсказок по клавишам
 (use-package which-key
   :ensure t
   :config
   (which-key-mode))
 
+;; Yasnippet для сниппетов
 (use-package yasnippet
   :ensure t
   :hook (prog-mode . yas-minor-mode)
@@ -47,22 +50,27 @@
   :ensure t
   :after yasnippet)
 
+;; Настройка Eglot
 (use-package eglot
   :hook ((c-mode          . eglot-ensure)
          (c++-mode        . eglot-ensure)
          (rust-mode       . eglot-ensure)
          (go-mode         . eglot-ensure))
   :config
+  ;; Настройка серверов LSP
   (add-to-list 'eglot-server-programs
                '((c++-mode c-mode) . ("clangd" "--clang-tidy")))
+  ;; Настройка префикса для команд eglot
   (define-key eglot-mode-map (kbd "C-c e") 'eglot-command-map))
 
+;; Настройка для C/C++
 (use-package cc-mode
-  :ensure nil
+  :ensure nil  ; Встроенный пакет
   :mode ("\\.tpp\\'" . c++-mode)
   :hook ((c-mode-common . google-set-c-style)
          (c-mode-common . google-make-newline-indent))
   :config
+  ;; Функция форматирования перед сохранением
   (defun my-c++-mode-before-save-hook ()
     (when (eq major-mode 'c++-mode)
       (eglot-format-buffer)))
@@ -70,6 +78,7 @@
             (lambda ()
               (add-hook 'before-save-hook #'my-c++-mode-before-save-hook nil t))))
 
+;; Настройка для Rust
 (use-package rust-mode
   :ensure t
   :hook (rust-mode . eglot-ensure))
@@ -84,6 +93,7 @@
   :config
   (global-flycheck-eglot-mode 1))
 
+;; Настройка для Go
 (use-package go-mode
   :ensure t
   :hook ((go-mode . eglot-ensure)
@@ -97,6 +107,7 @@
   :config
   (setq godoctor-executable (executable-find "godoctor")))
 
+;; Дополнительные настройки
 (add-hook 'c-mode-common-hook 'google-set-c-style)
 
 (use-package yaml-mode

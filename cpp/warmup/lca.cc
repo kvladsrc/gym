@@ -8,33 +8,25 @@
 
 namespace warmup {
 
-meta::meta() : d(INT_MAX), idx(0) {}
-
-meta::meta(int ad, std::size_t aidx) : d(ad), idx(aidx) {}
-
-meta meta::operator+(const meta& other) const {
-  if (d < other.d) {
-    return {d, idx};
-  }
-  return {other.d, other.idx};
-}
-
 lca::lca(const graph& g) {
   if (g.empty()) {
     return;
   }
 
   pre.resize(g.size());
-  dists.resize(g.size());
-  dists[0] = 0;
+  depths.resize(g.size());
+  depths.front() = 0;
   ett(g, 0, 0);
-  tree.resize(path.size() * 4);
-  build_tree(0, path.size() - 1, 1);
+
+  logs.resize(path.size() + 1);
+  build_st();
 }
 
+int lca::depth(std::size_t v) { return depths[v]; }
+
 void lca::ett(const graph& g, std::size_t v, std::size_t p) {
-  dists[v] = dists[p] + 1;
   pre[v] = path.size();
+  depths[v] = depths[p] + 1;
   path.push_back(v);
   for (auto n : g[v]) {
     if (n == p) {
@@ -45,39 +37,43 @@ void lca::ett(const graph& g, std::size_t v, std::size_t p) {
   }
 }
 
-void lca::build_tree(std::size_t l, std::size_t r, std::size_t v) {
-  if (l == r) {
-    tree[v].d = dists[path[l]];
-    tree[v].idx = path[l];
-    return;
+void lca::build_st() {
+  st.emplace_back(path);
+  int window = 2;
+  int cur_power = 1;
+
+  while (window <= path.size()) {
+    st.emplace_back();
+    st.back().resize(path.size() - window + 1);
+
+    for (size_t i = 0; i + window - 1 < path.size(); ++i) {
+      if (depth(st[cur_power - 1][i]) <
+          depth(st[cur_power - 1][i + (window / 2)])) {
+        st[cur_power][i] = st[cur_power - 1][i];
+      } else {
+        st[cur_power][i] = st[cur_power - 1][i + (window / 2)];
+      }
+    }
+    window *= 2;
+    cur_power++;
   }
 
-  auto m = (l + r) / 2;
-  build_tree(l, m, v * 2);
-  build_tree(m + 1, r, (v * 2) + 1);
-
-  tree[v] = tree[v * 2] + tree[(v * 2) + 1];
+  logs[0] = 0;
+  logs[1] = 0;
+  for (size_t i = 2; i < logs.size(); ++i) {
+    logs[i] = logs[i / 2] + 1;
+  }
 }
 
-meta lca::query_tree(std::size_t l, std::size_t r, std::size_t cl,
-                     std::size_t cr, std::size_t v) {
-  if (cl > r || cr < l) {
-    return {INT_MAX, 0};
+std::size_t lca::query(std::size_t l, std::size_t r) {
+  auto power = logs[r - l + 1];
+  if (depth(st[power][l]) < depth(st[power][r - (1 << power) + 1])) {
+    return st[power][l];
   }
-
-  if (cl >= l && cr <= r) {
-    return tree[v];
-  }
-
-  auto m = (cl + cr) / 2;
-  return query_tree(l, r, cl, m, v * 2) +
-         query_tree(l, r, m + 1, cr, (v * 2) + 1);
+  return st[power][r - (1 << power) + 1];
 }
 
 std::size_t lca::find(std::size_t a, std::size_t b) {
-  if (pre.empty()) {
-    return 0;
-  }
   if (a >= pre.size() || b >= pre.size()) {
     return 0;
   }
@@ -88,8 +84,7 @@ std::size_t lca::find(std::size_t a, std::size_t b) {
     std::swap(prea, preb);
   }
 
-  auto q = query_tree(prea, preb, 0, path.size() - 1, 1);
-  return q.idx;
+  return query(prea, preb);
 }
 
 }  // namespace warmup

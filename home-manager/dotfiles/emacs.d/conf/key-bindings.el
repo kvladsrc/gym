@@ -23,12 +23,8 @@
 (define-key helm-map (kbd "C-i") 'helm-execute-persistent-action) ; make TAB work in terminal
 (define-key helm-map (kbd "C-z")  'helm-select-action) ; list actions using C-z
 
-;; Ace jump buffer
-;; (global-set-key (kbd "C-x o") #'ace-window)
-
 ;; Avy
-;; (global-set-key (kbd "M-g e") 'avy-goto-word-0)
-;; (global-set-key (kbd "C-:") 'avy-goto-char)
+(global-set-key (kbd "C-:") 'avy-goto-char)
 
 ;; Org-mode
 (global-set-key (kbd "C-c l") 'org-store-link)

@@ -9,7 +9,7 @@
 
 window#waybar {
   color: @text;
-  background: @mantle;
+  background: black;
 }
 
 #workspaces,
@@ -21,7 +21,7 @@ window#waybar {
 
 #workspaces {
   margin: 5px 0 5px 1rem;
-  background-color: rgba(54, 58, 79, 0.5);
+  background-color: black;
 }
 
 #workspaces button {
@@ -30,11 +30,11 @@ window#waybar {
 }
 
 #workspaces button.active {
-  color: @mauve;
+  color: white;
 }
 
 #workspaces button:hover {
-  color: @lavender;
+  color: white;
   background: @surface1;
   border-color: @surface0;
 }
@@ -49,16 +49,17 @@ window#waybar {
 #battery,
 #language,
 #custom-lock,
-#custom-power {
+#custom-power,
+#custom-waybar-toggle {
   margin: 5px 0;
   padding: 0.5rem 1rem;
-  background-color: rgba(54, 58, 79, 0.5);
+  background-color: black;
 }
 
 #window {
   margin: 5px 0;
   padding: 0.5rem 1rem;
-  color: @blue;
+  color: @text;
 }
 
 /* make window module transparent when no windows present */
@@ -67,13 +68,13 @@ window#waybar.empty #window {
 }
 
 #clock {
-  color: @mauve;
+  color: @text;
   border-radius: 1.5rem;
 }
 
 #battery,
 #battery.charging {
-  color: @green;
+  color: @text;
 }
 
 #battery.warning:not(.charging) {
@@ -82,20 +83,27 @@ window#waybar.empty #window {
 
 #pulseaudio {
   margin-left: 1rem;
-  color: @maroon;
+  color: @text;
   border-radius: 1.5rem 0 0 1.5rem;
 }
 
 #backlight {
-  color: @yellow;
+  color: @text;
 }
 
 #language {
-  color: @lavender;
+  color: @text;
+  border-radius: 0 1.5rem 1.5rem 0;
 }
 
 #custom-power {
   margin-right: 1rem;
-  color: @red;
+  color: @text;
+  border-radius: 0 1.5rem 1.5rem 0;
+}
+
+#custom-waybar-toggle {
+  margin-right: 1rem;
+  color: @text;
   border-radius: 0 1.5rem 1.5rem 0;
 }

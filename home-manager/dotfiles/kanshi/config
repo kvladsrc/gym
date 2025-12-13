@@ -3,6 +3,25 @@ profile undocked {
 }
 
 profile docked {
-  output DP-1 enable
+  output DP-2 enable
   output eDP-1 disable
+}
+
+output "DP-2" {
+  mode 1920x1080@60.00
+  position 1600,0
+  scale 1.00
+  alias $HOME_1
+}
+
+output "eDP-1" {
+  mode 2560x1440@165.00
+  position 0,0
+  scale 1.60
+  alias $INTERNAL
+}
+
+profile dual {
+  output $HOME_1 enable
+  output $INTERNAL enable
 }

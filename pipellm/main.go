@@ -49,7 +49,7 @@ func main() {
 		modelName = "gemini-pro" // default model
 	}
 
-	client, err := client.NewClient(cfg.APIKey, modelName)
+	client, err := client.NewClient(cfg.APIKey, modelName, cfg.GenerationConfig)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating client: %v\n", err)
 		os.Exit(1)

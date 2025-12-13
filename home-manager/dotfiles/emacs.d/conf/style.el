@@ -11,9 +11,12 @@
                       :width 'normal)
 
   (use-package ef-themes
+    :ensure t)
+
+  (use-package almost-mono-themes
     :ensure t
     :config
-    (load-theme 'ef-dream t)))
+    (load-theme 'almost-mono-black t)))
 
 (use-package guru-mode
   :ensure t

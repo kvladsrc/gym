@@ -6,6 +6,7 @@ go_library(
     importpath = "src/pipellm/client",
     visibility = ["//visibility:public"],
     deps = [
+        "//pipellm/config",
         "@com_github_google_generative_ai_go//genai",
         "@org_golang_google_api//option",
     ],
@@ -16,6 +17,7 @@ go_test(
     srcs = ["client_test.go"],
     embed = [":client"],
     deps = [
+        "//pipellm/config",
         "@com_github_google_generative_ai_go//genai",
         "@org_golang_google_api//option",
     ],
