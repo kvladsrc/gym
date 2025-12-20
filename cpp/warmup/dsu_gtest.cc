@@ -55,3 +55,19 @@ TEST(DSUTest, AlreadyJoined) {
   dsu.unite(0, 2);
   EXPECT_TRUE(dsu.connected(0, 2));
 }
+TEST(DSUTest, OutOfBounds) {
+  warmup::DisjointSetUnion dsu(5);
+  // Test find out of bounds
+  EXPECT_EQ(dsu.find(10), 10);
+
+  // Test connected out of bounds
+  EXPECT_FALSE(dsu.connected(0, 10));
+  EXPECT_FALSE(dsu.connected(10, 0));
+  EXPECT_FALSE(dsu.connected(10, 11));
+
+  // Test unite out of bounds
+  dsu.unite(0, 10);
+  EXPECT_FALSE(dsu.connected(0, 10));
+  dsu.unite(10, 0);
+  EXPECT_FALSE(dsu.connected(0, 10));
+}

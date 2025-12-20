@@ -68,3 +68,9 @@ TEST(SubsetsTest, ThreeElements) {
   EXPECT_TRUE(result[0].empty());
   EXPECT_EQ(result[7].size(), 3);
 }
+
+TEST(SubsetsTest, TooLargeInput) {
+  std::vector<int> input(64, 0);
+  auto result = generate_subsets(input);
+  EXPECT_TRUE(result.empty());
+}

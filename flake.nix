@@ -27,7 +27,6 @@
 
         os = with pkgs; [
           bash
-          cacert
           coreutils-full
           curl
           file
@@ -41,13 +40,22 @@
           which
         ];
 
+        gcov = pkgs.runCommand "gcov" { } ''
+          mkdir -p $out/bin
+          ln -s ${pkgs.gcc14.cc}/bin/gcov $out/bin/gcov
+          ln -s ${pkgs.gcc14.cc}/bin/gcov-dump $out/bin/gcov-dump
+          ln -s ${pkgs.gcc14.cc}/bin/gcov-tool $out/bin/gcov-tool
+        '';
+
         ci = with pkgs; [
           bazelisk
+          buildifier
           clang-tools
           cppcheck
           cpplint
           emacs
           gcc14
+          gcov
           go
           go-critic
           gocyclo
@@ -56,7 +64,9 @@
           gotools
           helmfile
           kubernetes-helm
+          lcov
           nodejs
+          openjdk21_headless
           perl
           pre-commit
         ];
@@ -65,12 +75,6 @@
           age
           kubectl
           sops
-        ];
-
-        dynamicLibs = with pkgs; [
-          glibc
-          stdenv.cc.cc.lib
-          zlib
         ];
 
         workstation = with pkgs; [
@@ -112,84 +116,6 @@
               export SOPS_AGE_KEY_FILE=$HOME/plain/keys.txt
               export HELM_PLUGINS="${helm-plugins-dir}"
             '';
-          };
-        };
-
-        packages.zuulContainer = pkgs.dockerTools.buildImage {
-          name = "registry.your.domain/build";
-          tag = "1.0";
-
-          copyToRoot = pkgs.buildEnv {
-            name = "image-root";
-            paths = [
-              pkgs.nix-ld
-            ]
-            ++ os
-            ++ ci
-            ++ cd
-            ++ dynamicLibs;
-            pathsToLink = [
-              "/bin"
-              "/etc"
-              "/sbin"
-            ];
-          };
-
-          runAsRoot = ''
-            #!${pkgs.runtimeShell}
-            ${pkgs.dockerTools.shadowSetup}
-
-            mkdir -p lib64
-            ln -s ${pkgs.nix-ld}/bin/nix-ld lib64/ld-linux-x86-64.so.2
-            mkdir -p /usr/bin
-            ln -s ${pkgs.coreutils-full}/bin/env /usr/bin/env
-
-            # Create sshd system user for privilege separation
-            groupadd --system --gid 74 sshd
-            useradd --system --uid 74 --gid sshd --no-create-home --home-dir /var/empty --shell /bin/false sshd
-
-            # Create zuul user
-            groupadd --gid 9999 zuul
-            useradd --uid 9999 --gid zuul --create-home --shell /bin/bash zuul
-
-            # Setup sudo
-            mkdir -p /etc/sudoers.d
-            echo "zuul ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/zuul
-
-            # Setup SSH
-            mkdir -p /var/run/sshd /etc/ssh /var/empty
-            chmod 755 /var/empty
-            ssh-keygen -A
-
-            # SSH config
-            cat > /etc/ssh/sshd_config << EOF
-            Port 22
-            PermitRootLogin yes
-            PasswordAuthentication yes
-            PubkeyAuthentication yes
-            AuthorizedKeysFile .ssh/authorized_keys
-            Subsystem sftp internal-sftp
-            EOF
-          '';
-
-          config = {
-            Entrypoint = [
-              "/bin/sshd"
-              "-D"
-            ];
-            ExposedPorts = {
-              "22/tcp" = { };
-            };
-            User = "root";
-            Env = [
-              "CURL_CA_BUNDLE=/etc/ssl/certs/ca-bundle.crt"
-              "GIT_SSL_CAINFO=/etc/ssl/certs/ca-bundle.crt"
-              "HELM_PLUGINS=${helm-plugins-dir}"
-              "NIX_LD=${pkgs.lib.fileContents "${pkgs.stdenv.cc}/nix-support/dynamic-linker"}"
-              "NIX_LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath dynamicLibs}"
-              "NIX_SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt"
-              "SSL_CERT_FILE=/etc/ssl/certs/ca-bundle.crt"
-            ];
           };
         };
       }

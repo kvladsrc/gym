@@ -78,3 +78,9 @@ TEST(MinStackTest, NegativeNumbers) {
   std::vector<int> expected = {-2, -2, -2, 0};
   EXPECT_EQ(get_min_sequence(data), expected);
 }
+TEST(MinStackTest, EmptyStackOperations) {
+  warmup::MinStack s;
+  EXPECT_EQ(s.get_min(), INT_MAX);
+  s.pop(); // Should not crash
+  EXPECT_TRUE(s.empty());
+}

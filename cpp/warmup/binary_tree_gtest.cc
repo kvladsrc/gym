@@ -126,3 +126,27 @@ TEST(BinaryTreeTest, FiveNodesMixed) {
   output = testing::internal::GetCapturedStdout();
   EXPECT_EQ(output, "4 3 6 7 5 ");
 }
+TEST(BinaryTreeTest, Search) {
+  warmup::bin_tree tree;
+  tree.insert(5);
+  tree.insert(3);
+  tree.insert(7);
+
+  EXPECT_TRUE(tree.search(5));
+  EXPECT_TRUE(tree.search(3));
+  EXPECT_TRUE(tree.search(7));
+  EXPECT_FALSE(tree.search(4));
+  EXPECT_FALSE(tree.search(6));
+  EXPECT_FALSE(tree.search(10));
+}
+
+TEST(BinaryTreeTest, DuplicateInsertion) {
+  warmup::bin_tree tree;
+  tree.insert(5);
+  tree.insert(5);
+  EXPECT_EQ(tree.size, 1);
+  testing::internal::CaptureStdout();
+  tree.inorder();
+  std::string output = testing::internal::GetCapturedStdout();
+  EXPECT_EQ(output, "5 ");
+}
