@@ -36,11 +36,9 @@ in
 
   home.packages = with pkgs; [
     # Apps
-    antigravity
+    amberol
     baobab
-    celestia
     dropbox
-    easyeffects
     eog
     evince
     fdupes
@@ -50,6 +48,7 @@ in
     graphviz
     nautilus
     pandoc
+    rclone
     ryubing
     texliveTeTeX
     tor-browser
@@ -77,7 +76,10 @@ in
     wlogout
 
     # GPU enabled.
-    (config.lib.nixGL.wrap ghostty)
+    (config.lib.nixGL.wrap zeal)
+    (config.lib.nixGL.wrap celestia)
+    (config.lib.nixGL.wrap easyeffects)
+    (config.lib.nixGL.wrap antigravity)
 
     # Development
     clang-tools
@@ -93,7 +95,6 @@ in
     podman
     racket
     uv
-    zeal
   ];
 
   home.file = {
@@ -107,10 +108,6 @@ in
     };
     ".config/wofi" = {
       source = dotfiles/wofi;
-      recursive = true;
-    };
-    ".config/ghostty" = {
-      source = dotfiles/ghostty;
       recursive = true;
     };
     ".config/waybar" = {
@@ -128,11 +125,21 @@ in
   };
 
   home.sessionVariables = {
-    EDITOR = "emacs";
-    TERM = "xterm-256color";
+    EDITOR = "nano";
   };
 
   programs.waybar.enable = true;
+
+  programs.kitty = {
+    enable = true;
+    package = config.lib.nixGL.wrap pkgs.kitty;
+    font = {
+      name = "Mononoki Nerd Font";
+      size = 16;
+    };
+    shellIntegration.enableBashIntegration = true;
+    themeFile = "ayu";
+  };
 
   programs.wofi.enable = true;
 

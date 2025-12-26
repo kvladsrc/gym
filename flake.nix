@@ -82,6 +82,7 @@
           buildah
           kubectx
           podman
+          talosctl
 
           # Development
           git-review
@@ -107,14 +108,20 @@
 
             shellHook = ''
               PS1='\[\e[01;32m\]\u@nix\[\e[01;34m\] \w \$\[\e[00m\] '
+
               alias bazel=${pkgs.bazelisk}/bin/bazelisk
               alias k='kubectl'
               alias kg='kubectl get'
               alias kgp='kubectl get pods'
               alias kgpa='kubectl get pods --all-namespaces'
+
               source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
-              export SOPS_AGE_KEY_FILE=$HOME/plain/keys.txt
+
+              export CONTROL_PLANE_IP=192.168.1.128
               export HELM_PLUGINS="${helm-plugins-dir}"
+              export SOPS_AGE_KEY_FILE=$HOME/plain/keys.txt
+              export TALOSCONFIG="/home/myuser/src/production/kubernetes/talos/_out/talosconfig"
+              export KUBECONFIG="/home/myuser/talos/kubeconfig"
             '';
           };
         };

@@ -81,6 +81,6 @@ TEST(MinStackTest, NegativeNumbers) {
 TEST(MinStackTest, EmptyStackOperations) {
   warmup::MinStack s;
   EXPECT_EQ(s.get_min(), INT_MAX);
-  s.pop(); // Should not crash
+  s.pop();  // Should not crash
   EXPECT_TRUE(s.empty());
 }

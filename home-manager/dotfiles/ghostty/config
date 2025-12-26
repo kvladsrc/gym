@@ -1,7 +1,0 @@
-font-family = Mononoki Nerd Font
-font-size = 16
-theme = Adventure
-cursor-style = block
-clipboard-read = "allow"
-clipboard-paste-protection = false
-shell-integration-features = sudo
