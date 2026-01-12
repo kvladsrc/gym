@@ -32,7 +32,7 @@ Matrix2x2 power(const Matrix2x2& a, int n) {
 int64_t fibonacci(int n) {
   Matrix2x2 fm = {0, 1, 1, 1};
   auto res = power(fm, n);
-  return res.a21;
+  return static_cast<int64_t>(res.a21);
 }
 
 }  // namespace warmup

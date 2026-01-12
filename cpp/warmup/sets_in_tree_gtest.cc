@@ -25,7 +25,7 @@ TEST(SetsInTreeTest, Basic) {
   g[3] = {1};
 
   vector<int64_t> res(n);
-  solve(g, res, colors, 0, -1);
+  delete solve(g, res, colors, 0, -1);
 
   // Subtrees:
   // 2 (leaf): color {3}, max_freq 1, sum 3
@@ -50,7 +50,7 @@ TEST(SetsInTreeTest, SameColors) {
   g[2] = {1};
 
   vector<int64_t> res(n);
-  solve(g, res, colors, 0, -1);
+  delete solve(g, res, colors, 0, -1);
 
   // 2: {1}, sum 1
   // 1: {1, 1}, sum 1
@@ -94,7 +94,7 @@ TEST(SetsInTreeTest, SecondCase) {
   add_edge(4, 13);
 
   vector<int64_t> res(n);
-  solve(g, res, colors, 0, -1);
+  delete solve(g, res, colors, 0, -1);
 
   // Expected: 6 5 4 3 2 3 3 1 1 3 2 2 1 2 3
   std::vector<int64_t> expected = {6, 5, 4, 3, 2, 3, 3, 1, 1, 3, 2, 2, 1, 2, 3};

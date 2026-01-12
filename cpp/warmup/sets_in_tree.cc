@@ -22,6 +22,7 @@ node *merge(node *a, node *b) {
     }
   }
 
+  delete b;
   return a;
 }
 

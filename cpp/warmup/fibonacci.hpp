@@ -6,8 +6,8 @@
 namespace warmup {
 
 struct Matrix2x2 {
-  int64_t a11, a12;
-  int64_t a21, a22;
+  uint64_t a11, a12;
+  uint64_t a21, a22;
 
   Matrix2x2 operator*(const Matrix2x2& other) const;
 };
