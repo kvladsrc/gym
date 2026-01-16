@@ -14,9 +14,9 @@
     :ensure t)
 
   (use-package almost-mono-themes
-    :ensure t
-    :config
-    (load-theme 'ef-dream t)))
+    :ensure t)
+
+  (load-theme 'almost-mono-black t))
 
 (use-package guru-mode
   :ensure t

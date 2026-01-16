@@ -86,11 +86,9 @@ in
     cloc
     delta
     emacs-pgtk
-    git-review
     go
     golangci-lint
     gopls
-    kubectl
     loccount
     podman
     racket
@@ -130,6 +128,19 @@ in
 
   programs.waybar.enable = true;
 
+  programs.jujutsu = {
+    enable = true;
+    settings = {
+      user = {
+        email = "myuser@gmail.com";
+        name = "Vladimir Kim";
+      };
+      ui = {
+        paginate = "never";
+      };
+    };
+  };
+
   programs.kitty = {
     enable = true;
     package = config.lib.nixGL.wrap pkgs.kitty;
@@ -138,7 +149,10 @@ in
       size = 16;
     };
     shellIntegration.enableBashIntegration = true;
-    themeFile = "ayu";
+    themeFile = "Terafox";
+    settings = {
+      confirm_os_window_close = 0;
+    };
   };
 
   programs.wofi.enable = true;

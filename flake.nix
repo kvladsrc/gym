@@ -36,7 +36,6 @@
           openssh
           python312
           shadow
-          sudo
           which
         ];
 
@@ -85,9 +84,9 @@
           talosctl
 
           # Development
-          git-review
           just
           nixpkgs-fmt
+          sapling
           shfmt
         ];
       in
