@@ -6,9 +6,9 @@
 
 namespace warmup {
 
-void fill_last_seen(const std::string &pattern,
-                    std::map<char, std::size_t> &last_seen);
-bool boyer_moore(const std::string &s, const std::string &pattern);
+void fill_last_seen(const std::string& pattern,
+                    std::map<char, std::size_t>& last_seen);
+bool boyer_moore(const std::string& s, const std::string& pattern);
 
 }  // namespace warmup
 

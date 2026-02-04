@@ -17,7 +17,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int find_spy(vector<int> input) {
+int find_spy(const vector<int>& input) {
   if (input[0] != input[1] && input[0] != input[2]) return 1;
   if (input[input.size() - 1] != input[input.size() - 2] &&
       input[input.size() - 1] != input[input.size() - 3])
@@ -31,11 +31,11 @@ int find_spy(vector<int> input) {
   return 0;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   vector<vector<int>> inputs(t);
-  for (auto &v : inputs) {
+  for (auto& v : inputs) {
     int n;
     std::cin >> n;
     for (int i = 0; i < n; ++i) {
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  for (const auto &v : inputs) {
+  for (const auto& v : inputs) {
     std::cout << find_spy(v) << "\n";
   }
 

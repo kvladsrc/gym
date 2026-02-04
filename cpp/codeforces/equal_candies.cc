@@ -19,21 +19,21 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
     int n;
     std::cin >> n;
     int total = 0;
-    int min = 1000000000;
+    int min_val = 1000000000;
     for (int i = 0; i < n; i++) {
       int num;
       std::cin >> num;
-      if (num < min) min = num;
+      if (num < min_val) min_val = num;
       total += num;
     }
-    std::cout << total - n * min << "\n";
+    std::cout << total - n * min_val << "\n";
   }
   return 0;
 }

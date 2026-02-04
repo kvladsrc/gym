@@ -32,7 +32,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -43,17 +43,15 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> n;
 
     vector<string> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 
     std::reverse(a.begin(), a.end());
-    for (auto s : a) {
-      for (size_t idx = 0; idx < 4; ++idx) {
-        if (s[idx] == '#') {
-          std::cout << idx + 1 << " ";
-          break;
-        }
+    for (const auto& s : a) {
+      size_t idx = s.find('#');
+      if (idx != string::npos) {
+        std::cout << idx + 1 << " ";
       }
     }
     std::cout << "\n";

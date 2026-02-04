@@ -6,7 +6,7 @@
 
 namespace warmup {
 
-int64_t kadanes(std::vector<int64_t> const &a);
+int64_t kadanes(std::vector<int64_t> const& a);
 
 }  // namespace warmup
 

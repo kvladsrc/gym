@@ -29,7 +29,7 @@ int moves(char a, char b) {
   return min(up, down);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   string want;

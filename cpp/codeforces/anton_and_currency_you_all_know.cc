@@ -31,13 +31,13 @@ using std::vector;
 
 int ctoi(char c) { return c - '0'; }
 
-void swap(char &a, char &b) {
+void swap(char& a, char& b) {
   char buf = a;
   a = b;
   b = buf;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string cur;
   std::cin >> cur;
 

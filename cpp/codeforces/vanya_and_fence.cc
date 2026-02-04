@@ -3,7 +3,7 @@
 
 using std::vector;
 
-int dist(const vector<int> &heights, int h) {
+int dist(const vector<int>& heights, int h) {
   int res = 0;
   for (int a : heights) {
     if (a > h) {
@@ -15,7 +15,7 @@ int dist(const vector<int> &heights, int h) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, h;
   std::cin >> n >> h;
   vector<int> heights;

@@ -1,7 +1,8 @@
-{ config
-, pkgs
-, nixgl
-, ...
+{
+  config,
+  pkgs,
+  nixgl,
+  ...
 }:
 let
   user = "myuser";
@@ -68,8 +69,10 @@ in
     kanshi
     nerd-fonts.fira-code
     nerd-fonts.mononoki
+    nerd-fonts.noto
     nerd-fonts.symbols-only
     networkmanagerapplet
+    noto-fonts-color-emoji
     pavucontrol
     slurp
     wl-clipboard
@@ -124,6 +127,7 @@ in
 
   home.sessionVariables = {
     EDITOR = "nano";
+    VISUAL = "nano";
   };
 
   programs.waybar.enable = true;
@@ -149,9 +153,10 @@ in
       size = 16;
     };
     shellIntegration.enableBashIntegration = true;
-    themeFile = "Terafox";
+    themeFile = "daintyDark";
     settings = {
       confirm_os_window_close = 0;
+      term = "xterm-256color";
     };
   };
 
@@ -221,7 +226,7 @@ in
   programs.git = {
     enable = true;
     userName = "Vladimir Kim";
-    userEmail = "myuser@your.domain";
+    userEmail = "myuser@gmail.com";
     lfs.enable = true;
     extraConfig = {
       credential.helper = "cache";

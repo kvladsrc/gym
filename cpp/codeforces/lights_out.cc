@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   vector<vector<bool>> desk(3, vector<bool>(3, true));
   for (int i = 0; i < 3; ++i) {
     for (int j = 0; j < 3; ++j) {

@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string in;
   std::cin >> in;
 
@@ -35,12 +35,12 @@ int main(int argc, char *argv[]) {
     qs[i] = num;
   }
 
-  int res = 0;
-  for (size_t i = 0; i < in.size(); ++i) {
-    if (in[i] == 'A') {
-      res += qs[i] * (qs[qs.size() - 1] - qs[i]);
-    }
-  }
+  vector<size_t> indices(in.size());
+  std::iota(indices.begin(), indices.end(), 0);
+  int res = std::accumulate(
+      indices.begin(), indices.end(), 0, [&](int sum, size_t i) {
+        return sum + (in[i] == 'A' ? qs[i] * (qs.back() - qs[i]) : 0);
+      });
   std::cout << res << "\n";
 
   return 0;

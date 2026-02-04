@@ -8,7 +8,7 @@ namespace warmup {
 // The partition algorithm is simplest for array with duplicates among
 // those that I saw, much easier to make a mistake on l++&r--
 // algorithm in case of duplicates.
-int partition(std::vector<int> &a, int l, int r) {
+int partition(std::vector<int>& a, int l, int r) {
   int const pivot = a[r];
 
   // It always increase the sep before swapping.
@@ -25,7 +25,7 @@ int partition(std::vector<int> &a, int l, int r) {
   return sep;
 }
 
-void quick_sort(std::vector<int> &a, int l, int r) {
+void quick_sort(std::vector<int>& a, int l, int r) {
   if (l >= r) {
     return;
   }

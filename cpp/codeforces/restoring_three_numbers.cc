@@ -14,7 +14,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   vector<int> nums(4);
   std::cin >> nums[0] >> nums[1] >> nums[2] >> nums[3];
   sort(nums.begin(), nums.end());

@@ -19,19 +19,19 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
     int n;
     std::cin >> n;
-    int max = 0;
+    int max_val = 0;
     while (n--) {
       char c;
       std::cin >> c;
-      if (c - 'a' > max) max = c - 'a';
+      if (c - 'a' > max_val) max_val = c - 'a';
     }
-    std::cout << max + 1 << "\n";
+    std::cout << max_val + 1 << "\n";
   }
   return 0;
 }

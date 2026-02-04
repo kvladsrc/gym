@@ -77,7 +77,7 @@ string smallest(int m, int s) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int m, s;
   std::cin >> m >> s;
   std::cout << smallest(m, s) << " ";

@@ -31,8 +31,8 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-void reachable_from_start(vector<vector<char>> &field, int row, int column,
-                          vector<vector<bool>> &visited) {
+void reachable_from_start(vector<vector<char>>& field, int row, int column,
+                          vector<vector<bool>>& visited) {
   if (visited[row][column]) {
     return;
   }
@@ -59,7 +59,7 @@ void reachable_from_start(vector<vector<char>> &field, int row, int column,
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

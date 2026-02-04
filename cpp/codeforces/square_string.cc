@@ -21,7 +21,7 @@ using std::vector;
 
 // Check if a string is a square string. Example: "abab" is a square
 // string.
-bool is_square(const string &in) {
+bool is_square(const string& in) {
   int n = in.size();
   if (n % 2 != 0) {
     return false;
@@ -32,7 +32,7 @@ bool is_square(const string &in) {
   return first == second;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

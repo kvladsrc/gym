@@ -52,7 +52,7 @@ int64_t solve_rec(vector<int64_t>& pref_sum, int m, int k, int start) {
   return max(case1, case2);
 }
 
-int64_t solve_dp(vector<int64_t>& pref_sum, int m, size_t k) {
+int64_t solve_dp(const vector<int64_t>& pref_sum, int m, size_t k) {
   vector<vector<int64_t>> dp(k + 1, vector<int64_t>(pref_sum.size()));
   for (size_t idx = 0; idx < pref_sum.size(); ++idx) {
     dp[0][idx] = 0;

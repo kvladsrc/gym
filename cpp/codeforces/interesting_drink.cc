@@ -15,7 +15,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int bin_search(vector<int> shops, int i) {
+int bin_search(const vector<int>& shops, int i) {
   if (i < shops[0]) return 0;
   if (i >= shops[shops.size() - 1]) return shops.size();
 
@@ -35,7 +35,7 @@ int bin_search(vector<int> shops, int i) {
 }
 
 #define MAX_PRICE 100000
-vector<int> prefix_sum(vector<int> &shops) {
+vector<int> prefix_sum(const vector<int>& shops) {
   vector<int> dp(MAX_PRICE + 1);
   size_t ptr = 0;
   for (int i = 1; i <= MAX_PRICE; ++i) {
@@ -50,7 +50,7 @@ vector<int> prefix_sum(vector<int> &shops) {
   return dp;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<int> shops(n);

@@ -40,7 +40,7 @@ using std::vector;
 //
 // F([], l, r, min_used, max_used) := if l > 0 || r < 0 || max_used -
 // min_used < x || num_used < 2 => 0 else 1
-int solution_rec(vector<int> &problems, size_t start, int l, int r,
+int solution_rec(vector<int>& problems, size_t start, int l, int r,
                  int min_used, int max_used, int x, int num_used) {
   if (r < 0) return 0;
 
@@ -61,11 +61,11 @@ int solution_rec(vector<int> &problems, size_t start, int l, int r,
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, l, r, x;
   std::cin >> n >> l >> r >> x;
   vector<int> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

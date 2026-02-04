@@ -23,21 +23,21 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
 
   vector<vector<char>> desk(n, vector<char>(m));
-  for (auto &r : desk) {
-    for (auto &c : r) {
+  for (auto& r : desk) {
+    for (auto& c : r) {
       std::cin >> c;
     }
   }
 
   char row_begin = 'W';
-  for (auto &r : desk) {
+  for (auto& r : desk) {
     char next = row_begin;
-    for (auto &c : r) {
+    for (auto& c : r) {
       if (c != '-') {
         c = next;
       }

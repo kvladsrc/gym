@@ -37,7 +37,7 @@ using std::vector;
 
 int gcd(int a, int b) { return (b == 0 ? abs(a) : gcd(b, a % b)); }
 
-void build_tree(vector<int> &tree, const vector<int> &sum, int v, int l,
+void build_tree(vector<int>& tree, const vector<int>& sum, int v, int l,
                 int r) {
   if (l == r) {
     tree[v] = sum[l];
@@ -50,7 +50,7 @@ void build_tree(vector<int> &tree, const vector<int> &sum, int v, int l,
   tree[v] = gcd(tree[v * 2], tree[v * 2 + 1]);
 }
 
-int query_tree(vector<int> &tree, int v, int l, int r, int cl, int cr) {
+int query_tree(vector<int>& tree, int v, int l, int r, int cl, int cr) {
   if (l > cr || r < cl) {
     return 0;
   }
@@ -65,7 +65,7 @@ int query_tree(vector<int> &tree, int v, int l, int r, int cl, int cr) {
   return gcd(left, right);
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

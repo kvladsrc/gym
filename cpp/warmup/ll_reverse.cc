@@ -8,7 +8,7 @@ node::node() : next(nullptr), prev(nullptr) {}
 node::node(int aval) : node() { val = aval; }
 
 void node::reverse() {
-  auto *b_next = next;
+  auto* b_next = next;
   next = prev;
   prev = b_next;
 
@@ -28,14 +28,14 @@ void node::print() const {
 
 ll::~ll() {
   while (head != nullptr) {
-    auto *buf = head->next;
+    auto* buf = head->next;
     delete head;
     head = buf;
   }
 }
 
 void ll::append(int aval) {
-  auto *n = new node(aval);
+  auto* n = new node(aval);
   if (size > 0) {
     tail->next = n;
     n->prev = tail;
@@ -58,7 +58,7 @@ int ll::pop() {
 
   if (size > 0) {
     auto res = tail->val;
-    auto *buf = tail->prev;
+    auto* buf = tail->prev;
     buf->next = nullptr;
     delete tail;
     tail = buf;
@@ -79,7 +79,7 @@ void ll::print() const {
 void ll::reverse() {
   if (head != nullptr) {
     head->reverse();
-    auto *buf = head;
+    auto* buf = head;
     head = tail;
     tail = buf;
   }

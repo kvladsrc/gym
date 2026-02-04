@@ -4,7 +4,7 @@
 using std::string;
 
 // -1 is for Anton, 1 is fo Danik, 0 is for friendship.
-int winer(const string &a) {
+int winer(const string& a) {
   int a_w = 0, d_w = 0;
   for (char c : a) {
     if (c == 'A') {
@@ -19,7 +19,7 @@ int winer(const string &a) {
   return 0;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string table;
   int skip;
   std::cin >> skip;

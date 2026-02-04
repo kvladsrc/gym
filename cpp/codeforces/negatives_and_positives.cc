@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -44,7 +44,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     int64_t abs_minimal = INT64_MAX;
     int neg = 0;
     int64_t abs_sum = 0;
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
       if (i < 0) {
         neg++;

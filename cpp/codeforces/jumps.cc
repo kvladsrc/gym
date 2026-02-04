@@ -29,7 +29,7 @@ using std::vector;
 
 int sum_seq(int k) { return ((1 + k) * k) / 2; }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

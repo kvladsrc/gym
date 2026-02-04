@@ -9,7 +9,7 @@ using std::vector;
 namespace warmup {
 
 // Heap's algorithm.
-int64_t permutations_heaps(vector<int> &arr, int size) {
+int64_t permutations_heaps(vector<int>& arr, int size) {
   if (size == 1) {
     return 1;
   }

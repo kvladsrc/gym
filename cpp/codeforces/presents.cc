@@ -8,9 +8,9 @@ struct present {
   int i, pi;
 };
 
-bool compare_present(const present &a, const present &b) { return a.pi < b.pi; }
+bool compare_present(const present& a, const present& b) { return a.pi < b.pi; }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<present> table(n);

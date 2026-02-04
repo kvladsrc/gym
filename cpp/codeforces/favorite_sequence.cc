@@ -19,7 +19,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-vector<int> fav(vector<int> &seq) {
+vector<int> fav(const vector<int>& seq) {
   int left = 0, right = seq.size() - 1;
   bool left_turn = true;
   vector<int> res(seq.size());
@@ -34,7 +34,7 @@ vector<int> fav(vector<int> &seq) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

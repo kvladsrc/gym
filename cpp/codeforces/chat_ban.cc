@@ -46,7 +46,7 @@ int64_t emotions_in_message(int64_t k, int64_t m) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

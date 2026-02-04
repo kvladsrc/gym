@@ -34,7 +34,7 @@ int64_t combinations(int64_t k, int64_t n) {
   return factorial(n) / (factorial(n - k) * factorial(k));
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   int64_t k = static_cast<int64_t>(n - 1) * 2;

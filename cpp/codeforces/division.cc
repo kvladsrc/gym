@@ -24,7 +24,7 @@ using std::vector;
 // For Division 3: 1400≤rating≤1599
 // For Division 4: rating≤1399
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

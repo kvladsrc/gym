@@ -31,7 +31,7 @@ typedef vector<vector<char>> Maze;
 
 // Hacky and happy code. Stop DFS after marking certain amount of
 // vertices.
-int dfs(Maze &maze, int x, int y, int need_to_mark) {
+int dfs(Maze& maze, int x, int y, int need_to_mark) {
   if (need_to_mark == 0) {
     return 0;
   }
@@ -54,7 +54,7 @@ int dfs(Maze &maze, int x, int y, int need_to_mark) {
   return 1 + r + l + d + u;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m, k;
   std::cin >> n >> m >> k;
 

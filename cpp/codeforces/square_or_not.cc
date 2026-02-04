@@ -48,10 +48,9 @@ bool check_mid(const string& buf) {
   if (buf.front() != '1' || buf.back() != '1') {
     return false;
   }
-  for (size_t idx = 1; idx < buf.size() - 1; ++idx) {
-    if (buf[idx] != '0') {
-      return false;
-    }
+  if (std::any_of(buf.begin() + 1, buf.end() - 1,
+                  [](char c) { return c != '0'; })) {
+    return false;
   }
   return true;
 }

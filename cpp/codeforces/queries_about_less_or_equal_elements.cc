@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int binary_search(vector<int> &a, int x) {
+int binary_search(const vector<int>& a, int x) {
   if (x >= a.back()) return a.size() - 1;
   if (x < a.front()) return -1;
 
@@ -44,17 +44,17 @@ int binary_search(vector<int> &a, int x) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
 
   vector<int> a(n), b(m);
 
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 
-  for (auto &i : b) {
+  for (auto& i : b) {
     std::cin >> i;
   }
 

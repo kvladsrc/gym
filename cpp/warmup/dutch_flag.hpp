@@ -5,7 +5,7 @@
 
 namespace warmup {
 
-void dutch_flag(std::vector<int> &a);
+void dutch_flag(std::vector<int>& a);
 
 }  // namespace warmup
 

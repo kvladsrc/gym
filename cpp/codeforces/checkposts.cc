@@ -35,7 +35,7 @@ using std::vector;
 
 using graph = vector<vector<int>>;
 
-void dfs(graph &g, int start, int &clock, vector<int> &rank) {
+void dfs(graph& g, int start, int& clock, vector<int>& rank) {
   if (rank[start] != 0) {
     return;
   }
@@ -51,8 +51,8 @@ void dfs(graph &g, int start, int &clock, vector<int> &rank) {
   rank[start] = clock++;
 }
 
-void dfs_cc(graph &g, int start, int cc, vector<int> &cc_table,
-            vector<int> &cc_list) {
+void dfs_cc(graph& g, int start, int cc, vector<int>& cc_table,
+            vector<int>& cc_list) {
   if (cc_table[start] != 0) {
     return;
   }
@@ -65,7 +65,7 @@ void dfs_cc(graph &g, int start, int cc, vector<int> &cc_table,
   }
 }
 
-void topological_sort(graph &g, vector<int> &rank) {
+void topological_sort(graph& g, vector<int>& rank) {
   int clock = 0;
 
   for (size_t v = 0; v < g.size(); ++v) {
@@ -73,11 +73,11 @@ void topological_sort(graph &g, vector<int> &rank) {
   }
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   size_t n = 0;
   std::cin >> n;
   vector<int> costs(n);
-  for (auto &i : costs) {
+  for (auto& i : costs) {
     std::cin >> i;
   }
 
@@ -111,7 +111,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
   class CompareDistance {
    public:
-    bool operator()(const pair<int, int> &p1, const pair<int, int> &p2) const {
+    bool operator()(const pair<int, int>& p1, const pair<int, int>& p2) const {
       return p1.first < p2.first;
     }
   };

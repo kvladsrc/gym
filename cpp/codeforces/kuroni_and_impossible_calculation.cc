@@ -51,7 +51,7 @@ int fast_power(int a, int power, int m) {
   }
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -60,7 +60,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cin >> n >> m;
 
   vector<int> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

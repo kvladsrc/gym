@@ -12,7 +12,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, available = 0, crimes = 0;
   std::cin >> n;
   while (n) {

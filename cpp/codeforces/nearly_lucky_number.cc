@@ -40,7 +40,7 @@ bool is_near_lucky(int64_t n) {
   return is_lucky(four + seven);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int64_t input;
   std::cin >> input;
   if (is_near_lucky(input)) {

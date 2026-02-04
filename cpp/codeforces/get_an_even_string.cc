@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int solve_rec(string &s, size_t start, vector<int> &table) {
+int solve_rec(string& s, size_t start, vector<int>& table) {
   if (start >= s.size()) {
     return 0;
   }
@@ -41,12 +41,10 @@ int solve_rec(string &s, size_t start, vector<int> &table) {
   }
 
   int case1 = INT_MAX;
-  for (size_t idx = start + 1; idx < s.size(); ++idx) {
-    if (s[start] == s[idx]) {
-      case1 = idx - (start + 1);
-      case1 += solve_rec(s, idx + 1, table);
-      break;
-    }
+  size_t idx = s.find(s[start], start + 1);
+  if (idx != string::npos) {
+    case1 = idx - (start + 1);
+    case1 += solve_rec(s, idx + 1, table);
   }
 
   int case2 = solve_rec(s, start + 1, table) + 1;
@@ -56,7 +54,7 @@ int solve_rec(string &s, size_t start, vector<int> &table) {
   return table[start];
 }
 
-int solve_dp(const string &s) {
+int solve_dp(const string& s) {
   vector<int> dp(s.size() + 1, INT_MAX);
   dp.front() = 0;
 
@@ -79,7 +77,7 @@ int solve_dp(const string &s) {
   return dp.back();
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

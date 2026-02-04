@@ -34,9 +34,9 @@ using std::vector;
 
 using graph = vector<vector<int>>;
 
-pair<int64_t, int64_t> solve(graph &g, int start, int p, vector<int> &l,
-                             vector<int> &r,
-                             vector<pair<int64_t, int64_t>> &table) {
+pair<int64_t, int64_t> solve(graph& g, int start, int p, vector<int>& l,
+                             vector<int>& r,
+                             vector<pair<int64_t, int64_t>>& table) {
   if (table[start].first != -1) {
     return table[start];
   }
@@ -60,7 +60,7 @@ pair<int64_t, int64_t> solve(graph &g, int start, int p, vector<int> &l,
   return table[start];
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

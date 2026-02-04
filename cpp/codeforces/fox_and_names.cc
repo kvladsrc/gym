@@ -36,7 +36,7 @@ using graph = vector<set<size_t>>;
 
 static size_t c_to_i(char c) { return c - 'a'; }
 
-void dfs(size_t start, graph &g, vector<bool> &visited) {
+void dfs(size_t start, graph& g, vector<bool>& visited) {
   if (visited[start]) {
     return;
   }
@@ -47,20 +47,20 @@ void dfs(size_t start, graph &g, vector<bool> &visited) {
   }
 }
 
-bool reachable(size_t a, size_t b, graph &g) {
+bool reachable(size_t a, size_t b, graph& g) {
   vector<bool> visited(26, false);
   dfs(a, g, visited);
   return visited[b];
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
   size_t n = 0;
   std::cin >> n;
   vector<string> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

@@ -13,7 +13,7 @@ bool is_beautiful(int n) {
   return true;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int year;
   std::cin >> year;
   year++;

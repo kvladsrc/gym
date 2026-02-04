@@ -35,9 +35,9 @@ struct day_info {
   int cnt;
 };
 
-bool compare_day(const day_info &a, const day_info &b) { return a.cnt < b.cnt; }
+bool compare_day(const day_info& a, const day_info& b) { return a.cnt < b.cnt; }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

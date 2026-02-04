@@ -19,11 +19,11 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool in_word(const string &w, char l) {
+bool in_word(const string& w, char l) {
   return std::any_of(w.begin(), w.end(), [l](char c) { return c == l; });
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

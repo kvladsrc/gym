@@ -35,7 +35,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-void build_tree(vector<int64_t> &tree, const vector<int64_t> &sum, int v, int l,
+void build_tree(vector<int64_t>& tree, const vector<int64_t>& sum, int v, int l,
                 int r) {
   if (l == r) {
     tree[v] = sum[l];
@@ -48,7 +48,7 @@ void build_tree(vector<int64_t> &tree, const vector<int64_t> &sum, int v, int l,
   tree[v] = min(tree[v * 2], tree[(v * 2) + 1]);
 }
 
-void push(vector<int64_t> &tree, vector<int64_t> &lazy, int v, int l, int r) {
+void push(vector<int64_t>& tree, vector<int64_t>& lazy, int v, int l, int r) {
   if (l == r) {
     lazy[v] = 0;
     return;
@@ -61,7 +61,7 @@ void push(vector<int64_t> &tree, vector<int64_t> &lazy, int v, int l, int r) {
   lazy[v] = 0;
 }
 
-void update_tree(vector<int64_t> &tree, vector<int64_t> &lazy, int v, int l,
+void update_tree(vector<int64_t>& tree, vector<int64_t>& lazy, int v, int l,
                  int r, int cl, int cr, int64_t x) {
   if (cl > r || cr < l) {
     return;
@@ -80,7 +80,7 @@ void update_tree(vector<int64_t> &tree, vector<int64_t> &lazy, int v, int l,
   tree[v] = min(tree[v * 2], tree[(v * 2) + 1]);
 }
 
-int64_t query_tree(vector<int64_t> &tree, vector<int64_t> &lazy, int v, int l,
+int64_t query_tree(vector<int64_t>& tree, vector<int64_t>& lazy, int v, int l,
                    int r, int cl, int cr) {
   if (cl > r || cr < l) {
     return INT64_MAX;
@@ -97,11 +97,11 @@ int64_t query_tree(vector<int64_t> &tree, vector<int64_t> &lazy, int v, int l,
   return min(left, right);
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   int n = 0;
   std::cin >> n;
   vector<int64_t> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

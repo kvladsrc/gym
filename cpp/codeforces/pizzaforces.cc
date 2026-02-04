@@ -31,7 +31,7 @@ const int small_cnt = 6;
 const int medium_cnt = 8;
 const int large_cnt = 10;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

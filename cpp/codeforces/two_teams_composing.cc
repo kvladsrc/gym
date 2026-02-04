@@ -21,41 +21,29 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
     int n;
     std::cin >> n;
-
-    vector<int> skills(n);
     unordered_map<int, int> m;
-    int most_used = 0;
-
     for (int i = 0; i < n; ++i) {
       int buf;
       std::cin >> buf;
-      skills[i] = buf;
-
       m[buf]++;
-      if (m[buf] > m[most_used]) {
-        most_used = buf;
+    }
+
+    int max_freq = 0;
+    for (auto const& p : m) {
+      if (p.second > max_freq) {
+        max_freq = p.second;
       }
     }
 
-    int first_max = m.size() - 2;  // max element and 0;
-    int second_max = m[most_used];
-    int res;
-
-    if (second_max - first_max >= 2) {
-      res = first_max + 1;
-    } else {
-      res = min(first_max, second_max);
-    }
-    if (!res && n >= 2) res = 1;
-
+    int distinct = m.size();
+    int res = max(min(distinct - 1, max_freq), min(distinct, max_freq - 1));
     std::cout << res << "\n";
   }
-
   return 0;
 }

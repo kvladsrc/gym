@@ -30,7 +30,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-vector<int> factorize(int n, map<int, vector<int>> &table) {
+vector<int> factorize(int n, map<int, vector<int>>& table) {
   if (!table[n].empty()) {
     return table[n];
   }
@@ -46,7 +46,7 @@ vector<int> factorize(int n, map<int, vector<int>> &table) {
   return v;
 }
 
-void erato_fill(int maximal, map<int, vector<int>> &table) {
+void erato_fill(int maximal, map<int, vector<int>>& table) {
   vector<bool> erato(maximal + 1, true);
   for (int i = 2; i <= maximal; ++i) {
     if (!erato[i]) {
@@ -65,7 +65,7 @@ void erato_fill(int maximal, map<int, vector<int>> &table) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

@@ -3,7 +3,7 @@
 
 using std::string;
 
-bool to_hello(const string &a) {
+bool to_hello(const string& a) {
   size_t cur = 0;
   string goal("hello");
 
@@ -17,7 +17,7 @@ bool to_hello(const string &a) {
   return false;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string input;
   std::cin >> input;
   if (to_hello(input)) {

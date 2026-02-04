@@ -34,7 +34,7 @@ using std::vector;
 
 using graph = vector<set<int>>;
 
-void dfs(graph &g, int start, vector<int> &cc_table, int cc) {
+void dfs(graph& g, int start, vector<int>& cc_table, int cc) {
   if (cc_table[start] != 0) {
     return;
   }
@@ -46,7 +46,7 @@ void dfs(graph &g, int start, vector<int> &cc_table, int cc) {
   }
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -79,8 +79,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
 
     vector<bool> open(cc, false);
     for (int i = 0; i < n; ++i) {
-      auto local_cc = cc_table[i] - 1;
       if (g[i].size() == 1) {
+        auto local_cc = cc_table[i] - 1;
         open[local_cc] = true;
       }
     }

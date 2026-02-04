@@ -24,7 +24,7 @@ int abs(int a) {
   return a;
 }
 
-int pairs(vector<int> &boys, vector<int> &girls) {
+int pairs(vector<int>& boys, vector<int>& girls) {
   sort(girls.begin(), girls.end());
   sort(boys.begin(), boys.end());
 
@@ -48,7 +48,7 @@ int pairs(vector<int> &boys, vector<int> &girls) {
   return pairs;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<int> boys(n);

@@ -32,7 +32,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool solve(vector<int> &a, int pos, int k, int val) {
+bool solve(vector<int>& a, int pos, int k, int val) {
   if (pos >= static_cast<int>(a.size())) {
     return false;
   }
@@ -48,7 +48,7 @@ bool solve(vector<int> &a, int pos, int k, int val) {
   return solve(a, pos + 1, k - (val - a[pos]), val - 1);
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -60,7 +60,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> n >> k;
 
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

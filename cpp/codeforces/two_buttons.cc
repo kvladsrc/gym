@@ -24,7 +24,7 @@ using std::vector;
 
 #define INF 1000000000
 
-int device(int n, int m, int actions, unordered_map<int, int> &visited) {
+int device(int n, int m, int actions, unordered_map<int, int>& visited) {
   if (visited[n] && visited[n] < actions) return INF;
   visited[n] = actions;
 
@@ -56,7 +56,7 @@ int device_bfs(int n, int m) {
   return -1;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
   unordered_map<int, int> visited;

@@ -25,7 +25,7 @@ using std::vector;
 
 int64_t cube(int64_t a) { return a * a * a; }
 
-bool bin_search(int64_t a, vector<int64_t> &table) {
+bool bin_search(int64_t a, const vector<int64_t>& table) {
   int l = 0, r = table.size() - 1;
   int mid = (l + r) / 2;
 
@@ -44,7 +44,7 @@ bool bin_search(int64_t a, vector<int64_t> &table) {
   return table[l] == a;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
 

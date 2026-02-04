@@ -29,7 +29,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-uint64_t attack(vector<int> &a, uint64_t k) {
+uint64_t attack(const vector<int>& a, uint64_t k) {
   uint64_t res = 0;
   for (size_t i = 1; i < a.size(); ++i) {
     auto casted_diff = static_cast<uint64_t>(a[i] - a[i - 1]);
@@ -43,7 +43,7 @@ uint64_t attack(vector<int> &a, uint64_t k) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     std::cin >> h;
 
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
     sort(a.begin(), a.end());

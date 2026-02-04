@@ -5,8 +5,8 @@
 
 namespace warmup {
 
-int knapsack_duplicates(const std::vector<int> &weights,
-                        const std::vector<int> &costs, int w);
+int knapsack_duplicates(const std::vector<int>& weights,
+                        const std::vector<int>& costs, int w);
 
 }  // namespace warmup
 

@@ -75,7 +75,7 @@ class dsu {
     }
   }
 
-  int cc(const map<int, bool> &used_language) {
+  int cc(const map<int, bool>& used_language) {
     int res = 0;
     for (size_t idx = 0; idx < parent.size(); ++idx) {
       auto it = used_language.find(idx);
@@ -88,7 +88,7 @@ class dsu {
   }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     std::cin >> langs;
     if (!langs) zero++;
     vector<int> l(langs);
-    for (auto &i : l) {
+    for (auto& i : l) {
       std::cin >> i;
       used_language[i - 1] = true;
     }

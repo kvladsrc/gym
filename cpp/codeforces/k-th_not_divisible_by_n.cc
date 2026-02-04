@@ -32,7 +32,7 @@ int k_not_divisible(int n, int k) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

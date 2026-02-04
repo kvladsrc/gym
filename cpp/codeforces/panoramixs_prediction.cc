@@ -39,14 +39,15 @@ vector<bool> make_erato(int n) {
   return table;
 }
 
-int next_prime(int n, vector<bool> &erato) {
-  for (size_t i = n + 1; i < erato.size(); i++) {
-    if (!erato[i]) return i;
+int next_prime(int n, const vector<bool>& erato) {
+  auto it = std::find(erato.begin() + n + 1, erato.end(), false);
+  if (it != erato.end()) {
+    return std::distance(erato.begin(), it);
   }
   return 1;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
   auto table = make_erato(m);

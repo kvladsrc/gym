@@ -60,7 +60,7 @@ int solve(vector<int> groups) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<int> groups(4);

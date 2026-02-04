@@ -5,8 +5,8 @@ namespace warmup {
 
 struct node {
   int val{};
-  node *next;
-  node *prev;
+  node* next;
+  node* prev;
 
   node();
   explicit node(int aval);
@@ -16,8 +16,8 @@ struct node {
 };
 
 struct ll {
-  node *head{nullptr};
-  node *tail{nullptr};
+  node* head{nullptr};
+  node* tail{nullptr};
   int size{0};
 
   ll() = default;

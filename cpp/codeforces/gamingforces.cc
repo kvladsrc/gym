@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     std::cin >> n;
     vector<int> monsters(n);
     int one_hp_cnt = 0;
-    for (auto &i : monsters) {
+    for (auto& i : monsters) {
       std::cin >> i;
       if (i == 1) one_hp_cnt++;
     }

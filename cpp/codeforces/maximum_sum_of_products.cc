@@ -32,19 +32,19 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
   size_t n = 0;
   std::cin >> n;
   vector<int64_t> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 
   vector<int64_t> b(n);
-  for (auto &i : b) {
+  for (auto& i : b) {
     std::cin >> i;
   }
 

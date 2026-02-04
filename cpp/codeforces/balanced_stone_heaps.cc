@@ -32,7 +32,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int solve(vector<int> &a, int back) {
+int solve(const vector<int>& a, int back) {
   vector<int> buf(a.size(), 0);
   int res = back;
   for (size_t idx = a.size() - 1; idx >= 2; --idx) {
@@ -50,14 +50,14 @@ int solve(vector<int> &a, int back) {
   return res;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   int t = 0;
   std::cin >> t;
   while ((t--) != 0) {
     size_t n = 0;
     std::cin >> n;
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

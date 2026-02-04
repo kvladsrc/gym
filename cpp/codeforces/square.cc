@@ -40,7 +40,7 @@ int square::area() {
          abs(upper_right.x - bottom_left.x);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

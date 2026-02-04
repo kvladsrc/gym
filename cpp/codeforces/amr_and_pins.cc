@@ -29,7 +29,7 @@ using std::vector;
 
 double square(double a) { return a * a; }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int r, x, y, x_new, y_new;
   std::cin >> r >> x >> y >> x_new >> y_new;
   double dist = sqrt(square(abs(x_new - x)) + square(abs(y_new - y)));

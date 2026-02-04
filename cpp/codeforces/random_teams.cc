@@ -23,7 +23,7 @@ using std::vector;
 
 int64_t pairs(int64_t team_size) { return (team_size * (team_size - 1)) / 2; }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int64_t n, m;
   std::cin >> n >> m;
 

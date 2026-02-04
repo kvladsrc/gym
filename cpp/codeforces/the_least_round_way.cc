@@ -58,7 +58,7 @@ void min_path(vector<vector<int64_t>>& table, vector<vector<char>>& path) {
   }
 }
 
-void print_path(vector<vector<char>>& path) {
+void print_path(const vector<vector<char>>& path) {
   int i = 0;
   int j = 0;
   int size = path.size() - 1;

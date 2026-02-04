@@ -81,9 +81,10 @@ int main(int /*argc*/, char* /*argv*/[]) {
         break;
       }
 
-      if (n->children.count(c) == 0) {
-        n->children[c] = new node;
-        n->children[c]->c = c;
+      auto [it, inserted] = n->children.try_emplace(c, nullptr);
+      if (inserted) {
+        it->second = new node;
+        it->second->c = c;
       }
 
       n = n->children[c];

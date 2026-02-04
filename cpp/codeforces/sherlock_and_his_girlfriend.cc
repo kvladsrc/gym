@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-void fill_erato(vector<bool> &a) {
+void fill_erato(vector<bool>& a) {
   for (size_t i = 0; i < a.size(); ++i) {
     if (!a[i]) continue;
     for (size_t j = 2; (((i + 2) * j) - 2) < a.size(); ++j) {
@@ -40,7 +40,7 @@ void fill_erato(vector<bool> &a) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
 

@@ -32,8 +32,8 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int64_t solve_rec(vector<int64_t> &a, size_t l, size_t r,
-                  vector<vector<int64_t>> &dp) {
+int64_t solve_rec(vector<int64_t>& a, size_t l, size_t r,
+                  vector<vector<int64_t>>& dp) {
   if (l >= r) {
     return 0;
   }
@@ -49,7 +49,7 @@ int64_t solve_rec(vector<int64_t> &a, size_t l, size_t r,
   return dp[l][r];
 }
 
-int64_t solve_dp(vector<int64_t> &a) {
+int64_t solve_dp(const vector<int64_t>& a) {
   vector<vector<int64_t>> dp(a.size(), vector<int64_t>(a.size()));
 
   for (size_t i = 0; i < a.size(); ++i) {
@@ -68,14 +68,14 @@ int64_t solve_dp(vector<int64_t> &a) {
   return dp[0][a.size() - 1];
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
   size_t n = 0;
   std::cin >> n;
   vector<int64_t> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

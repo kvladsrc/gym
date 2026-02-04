@@ -14,7 +14,7 @@ bool is_vowel(char c) {
 }
 
 // O(n)
-string task(const string &input) {
+string task(const string& input) {
   string res;
   for (char c : input) {
     if (is_vowel(c)) continue;
@@ -26,7 +26,7 @@ string task(const string &input) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string input;
   std::cin >> input;
   std::cout << task(input) << "\n";

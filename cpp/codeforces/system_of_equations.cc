@@ -36,7 +36,7 @@ int number_of_roots(int n, int m) {
   return count;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
   std::cout << number_of_roots(n, m) << std::endl;

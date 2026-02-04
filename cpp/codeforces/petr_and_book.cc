@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
 
@@ -37,11 +37,10 @@ int main(int argc, char *argv[]) {
   n %= pages_per_week;
   int day;
   if (!n) {
-    for (int i = 6; i >= 0; --i) {
-      if (cal[i]) {
-        day = i;
-        break;
-      }
+    auto it = std::find_if(cal.rbegin(), cal.rend(),
+                           [](int pages) { return pages > 0; });
+    if (it != cal.rend()) {
+      day = 6 - std::distance(cal.rbegin(), it);
     }
   } else {
     day = 6;

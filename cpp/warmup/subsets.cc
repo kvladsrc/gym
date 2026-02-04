@@ -7,7 +7,7 @@ using std::vector;
 
 namespace warmup {
 
-vector<vector<int>> generate_subsets(const vector<int> &a) {
+vector<vector<int>> generate_subsets(const vector<int>& a) {
   auto power = a.size();
   vector<vector<int>> result;
 

@@ -7,7 +7,7 @@ namespace warmup {
 
 using graph = std::vector<std::vector<int>>;
 
-void cc_bfs(const graph &g, int v, std::vector<int> &cc_table, int cc);
+void cc_bfs(const graph& g, int v, std::vector<int>& cc_table, int cc);
 
 }  // namespace warmup
 

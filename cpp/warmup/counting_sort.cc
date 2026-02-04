@@ -6,7 +6,7 @@
 
 namespace warmup {
 
-void counting_sort(std::vector<int> &v) {
+void counting_sort(std::vector<int>& v) {
   if (v.empty()) {
     return;
   }

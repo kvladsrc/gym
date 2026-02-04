@@ -28,7 +28,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int rec_solve(vector<int> &s, int last_idx, int loc_idx) {
+int rec_solve(vector<int>& s, int last_idx, int loc_idx) {
   if (last_idx != -1 && loc_idx % last_idx != 0) {
     return rec_solve(s, last_idx, loc_idx + 1);
   }
@@ -47,7 +47,7 @@ int rec_solve(vector<int> &s, int last_idx, int loc_idx) {
   return max(case1, case2);
 }
 
-int dp_solve(vector<int> &s) {
+int dp_solve(const vector<int>& s) {
   vector<int> dp(s.size());
   for (int idx = static_cast<int>(dp.size()) - 1; idx >= 0; --idx) {
     dp[idx] = 0;
@@ -64,14 +64,14 @@ int dp_solve(vector<int> &s) {
   return best;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
     int n;
     std::cin >> n;
     vector<int> s(n);
-    for (auto &i : s) {
+    for (auto& i : s) {
       std::cin >> i;
     }
 

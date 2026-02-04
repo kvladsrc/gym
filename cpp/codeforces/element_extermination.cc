@@ -28,10 +28,10 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool solve_fast(vector<int> &a) { return a.front() < a.back(); }
+bool solve_fast(const vector<int>& a) { return a.front() < a.back(); }
 
 // O(n) = 2^n
-bool solve(vector<int> &a) {
+bool solve(const vector<int>& a) {
   if (a.size() == 1) {
     return true;
   }
@@ -68,7 +68,7 @@ bool solve(vector<int> &a) {
   return solve(case1) || solve(case2);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
     std::cin >> n;
 
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

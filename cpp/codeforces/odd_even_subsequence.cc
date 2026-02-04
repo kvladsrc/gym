@@ -35,7 +35,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool solve(const std::vector<int> &a, std::map<int, int> &m, int lim, int k) {
+bool solve(const std::vector<int>& a, std::map<int, int>& m, int lim, int k) {
   int added_odd = 0;
   for (size_t idx = 0; idx < a.size(); ++idx) {
     if (m[a[idx]] <= lim) {
@@ -69,14 +69,14 @@ bool solve(const std::vector<int> &a, std::map<int, int> &m, int lim, int k) {
   return added_even >= k;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   size_t n = 0;
   int k = 0;
   std::cin >> n;
   std::cin >> k;
 
   vector<int> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

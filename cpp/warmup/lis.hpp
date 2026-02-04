@@ -5,8 +5,8 @@
 
 namespace warmup {
 
-int upper_bound(std::vector<int> &a, int el);
-int lis(std::vector<int> &a);
+int upper_bound(std::vector<int>& a, int el);
+int lis(std::vector<int>& a);
 
 }  // namespace warmup
 

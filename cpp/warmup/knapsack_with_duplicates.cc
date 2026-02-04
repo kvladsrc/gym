@@ -11,7 +11,7 @@ using std::vector;
 
 namespace warmup {
 
-int knapsack_duplicates(const vector<int> &weights, const vector<int> &costs,
+int knapsack_duplicates(const vector<int>& weights, const vector<int>& costs,
                         int w) {
   vector<int> dp(w + 1, 0);
 

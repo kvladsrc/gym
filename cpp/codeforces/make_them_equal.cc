@@ -34,7 +34,7 @@ using std::unordered_map;
 using std::vector;
 
 // Minimal number of operations to get A from 1.
-void min_cost(vector<int> &table) {
+void min_cost(vector<int>& table) {
   int maximal = table.size() - 1;
 
   // {dist, v}
@@ -64,7 +64,7 @@ void min_cost(vector<int> &table) {
   }
 }
 
-int backpack_rec(vector<int> &table, vector<int> &b, vector<int> &c, int k,
+int backpack_rec(vector<int>& table, vector<int>& b, vector<int>& c, int k,
                  size_t start) {
   if (start >= b.size()) {
     return 0;
@@ -81,7 +81,7 @@ int backpack_rec(vector<int> &table, vector<int> &b, vector<int> &c, int k,
   return backpack_rec(table, b, c, k, start + 1);
 }
 
-bool compare_nums(const pair<int, int> &a, const pair<int, int> &b) {
+bool compare_nums(const pair<int, int>& a, const pair<int, int>& b) {
   float aval = static_cast<float>(a.second) / static_cast<float>(a.first);
   float bval = static_cast<float>(b.second) / static_cast<float>(b.first);
 
@@ -96,7 +96,7 @@ bool compare_nums(const pair<int, int> &a, const pair<int, int> &b) {
   return false;
 }
 
-int backpack_greedy(vector<int> &table, vector<int> &b, vector<int> &c, int k) {
+int backpack_greedy(vector<int>& table, vector<int>& b, vector<int>& c, int k) {
   vector<pair<int, int>> v(b.size());
   for (size_t idx = 0; idx < b.size(); ++idx) {
     v[idx] = {table[b[idx]], c[idx]};
@@ -118,7 +118,7 @@ int backpack_greedy(vector<int> &table, vector<int> &b, vector<int> &c, int k) {
   return res;
 }
 
-int backpack(vector<int> &b, const vector<int> &c, int k) {
+int backpack(const vector<int>& b, const vector<int>& c, int k) {
   vector<vector<int>> dp(b.size() + 1, vector<int>(k + 1));
   for (int k_idx = 0; k_idx <= k; ++k_idx) {
     dp[0][k_idx] = 0;
@@ -140,7 +140,7 @@ int backpack(vector<int> &b, const vector<int> &c, int k) {
   return dp.back().back();
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -157,14 +157,14 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> n >> k;
 
     vector<int> b(n);
-    for (auto &i : b) {
+    for (auto& i : b) {
       int buf = 0;
       std::cin >> buf;
       i = table[buf];
     }
 
     vector<int> c(n);
-    for (auto &i : c) {
+    for (auto& i : c) {
       std::cin >> i;
     }
 

@@ -32,7 +32,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -40,7 +40,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cin >> v;
 
   vector<int> a(9);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 
@@ -61,7 +61,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     v -= a[cheapest];
   }
 
-  for (auto &rd : res) {
+  for (auto& rd : res) {
     for (int d = rd + 1; d < 9; ++d) {
       if (v + a[rd] - a[d] >= 0) {
         v = v + a[rd] - a[d];

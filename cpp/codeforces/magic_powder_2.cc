@@ -30,7 +30,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int64_t n, k;
   std::cin >> n >> k;
   vector<int64_t> a(n), b(n);
@@ -40,12 +40,12 @@ int main(int argc, char *argv[]) {
   int64_t one_cookie = 0;
   int64_t total = k;
 
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
     one_cookie += i;
   }
 
-  for (auto &i : b) {
+  for (auto& i : b) {
     std::cin >> i;
     total += i;
   }

@@ -33,7 +33,7 @@ using std::vector;
 
 int ctoi(char c) { return c - '0'; }
 
-int len(vector<vector<size_t>> &table, int fd, int sd) {
+int len(const vector<vector<size_t>>& table, int fd, int sd) {
   if (table[fd].empty() || table[sd].empty()) {
     return 0;
   }
@@ -78,7 +78,7 @@ int len(vector<vector<size_t>> &table, int fd, int sd) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

@@ -32,7 +32,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-pair<int, int> lcs(const vector<int> &a) {
+pair<int, int> lcs(const vector<int>& a) {
   map<int, int> m;
   int best_end = 0;
   for (auto i : a) {
@@ -45,11 +45,11 @@ pair<int, int> lcs(const vector<int> &a) {
   return {best_end, m[best_end]};
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<int> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

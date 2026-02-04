@@ -4,7 +4,7 @@
 
 using std::string;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string a, b;
   std::cin >> a >> b;
   for (size_t i = 0; i < a.size(); ++i) {

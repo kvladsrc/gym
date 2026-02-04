@@ -32,7 +32,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int64_t lower_bound(vector<int64_t> &a, int el) {
+int64_t lower_bound(const vector<int64_t>& a, int el) {
   int l = 0;
   int r = a.size() - 1;
   int res = -1;
@@ -49,7 +49,7 @@ int64_t lower_bound(vector<int64_t> &a, int el) {
   return res;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

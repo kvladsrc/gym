@@ -34,7 +34,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool is_good(vector<int> const &a) {
+bool is_good(vector<int> const& a) {
   int sum = std::accumulate(a.begin(), a.end(), 0,
                             [](int sum, const auto i) { return sum + i; });
 
@@ -73,13 +73,13 @@ bool is_good(vector<int> const &a) {
   return true;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   size_t n = 0;
   std::cin >> n;
   vector<int> a(n);
 
   int64_t sum = 0;
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
     sum += i;
   }
@@ -94,12 +94,11 @@ int main(int /*argc*/, char * /*argv*/[]) {
     return 0;
   }
 
-  for (size_t idx = 0; idx < n; ++idx) {
-    if (a[idx] % 2 != 0) {
-      std::cout << 1 << "\n";
-      std::cout << idx + 1 << "\n";
-      return 0;
-    }
+  auto it = std::find_if(a.begin(), a.end(), [](int i) { return i % 2 != 0; });
+  if (it != a.end()) {
+    std::cout << 1 << "\n";
+    std::cout << std::distance(a.begin(), it) + 1 << "\n";
+    return 0;
   }
 
   int removed = a.back();

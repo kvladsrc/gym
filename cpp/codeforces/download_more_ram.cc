@@ -24,11 +24,11 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool compare(const pair<int, int> &a, const pair<int, int> &b) {
+bool compare(const pair<int, int>& a, const pair<int, int>& b) {
   return a.first < b.first;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -36,15 +36,15 @@ int main(int argc, char *argv[]) {
     std::cin >> n >> k;
 
     vector<pair<int, int>> ab(n);
-    for (auto &p : ab) {
+    for (auto& p : ab) {
       std::cin >> p.first;
     }
-    for (auto &p : ab) {
+    for (auto& p : ab) {
       std::cin >> p.second;
     }
 
     sort(ab.begin(), ab.end(), compare);
-    for (const auto &p : ab) {
+    for (const auto& p : ab) {
       if (k >= p.first) {
         k += p.second;
       } else {

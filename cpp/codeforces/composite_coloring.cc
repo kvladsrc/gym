@@ -39,7 +39,7 @@ int gcd(int a, int b) {
 
 using graph = vector<vector<int>>;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     std::cin >> n;
 
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 
@@ -89,6 +89,10 @@ int main(int argc, char *argv[]) {
             colored_deg[best_v].size() < colored_deg[v].size()) {
           best_v = v;
         }
+      }
+
+      if (best_v == -1) {
+        break;
       }
 
       for (int color = 1;; ++color) {

@@ -55,7 +55,7 @@ int solve_up(const vector<int64_t>& a) {
   return res;
 }
 
-int solve_down(vector<int64_t>& a) {
+int solve_down(const vector<int64_t>& a) {
   int res = 0;
   int64_t cur = 0;
   priority_queue<int64_t> heap;

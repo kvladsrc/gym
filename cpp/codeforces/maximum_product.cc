@@ -30,7 +30,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     std::cin >> n;
 
     vector<int64_t> all(n);
-    for (auto &i : all) {
+    for (auto& i : all) {
       std::cin >> i;
     }
     sort(all.begin(), all.end());
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     int64_t res = 1;
     // We can took 0, 2 or 4 negative numbers.
     int64_t case1 = INT64_MIN, case2 = INT64_MIN, case3 = INT64_MIN;
-    if (all.size() >= 2 && all.size() >= 3) {
+    if (all.size() >= 3) {
       case1 = all[0];
       case1 *= all[1];
       case1 *= all[all.size() - 1];
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
       case1 *= all[all.size() - 3];
     }
 
-    if (all.size() >= 4 && all.size() >= 1) {
+    if (all.size() >= 4) {
       case2 = all[0];
       case2 *= all[1];
       case2 *= all[2];

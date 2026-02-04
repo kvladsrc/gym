@@ -30,7 +30,7 @@ int64_t factorial(int64_t a) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int a, b;
   std::cin >> a >> b;
   std::cout << factorial(min(a, b)) << "\n";

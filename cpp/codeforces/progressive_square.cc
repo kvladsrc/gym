@@ -54,6 +54,10 @@ int main(int /*argc*/, char* /*argv*/[]) {
       m[buf]++;
     }
 
+    if (m.empty()) {
+      std::cout << "YES\n";
+      continue;
+    }
     auto first = (*m.begin()).first;
     bool res = true;
     for (int col = 0; col < n; ++col) {

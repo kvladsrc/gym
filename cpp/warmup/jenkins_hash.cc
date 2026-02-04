@@ -8,7 +8,7 @@ using std::string;
 
 namespace warmup {
 
-uint32_t jenkins_one_at_a_time_hash(const string &key) {
+uint32_t jenkins_one_at_a_time_hash(const string& key) {
   uint32_t hash = 0;
   for (char const idx : key) {
     hash += idx;

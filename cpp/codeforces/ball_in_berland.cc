@@ -28,7 +28,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -37,10 +37,10 @@ int main(int argc, char *argv[]) {
     vector<pair<int, int>> pairs(k);
     unordered_map<int, vector<int>> pairs_by_boys;
     unordered_map<int, vector<int>> pairs_by_girls;
-    for (auto &p : pairs) {
+    for (auto& p : pairs) {
       std::cin >> p.first;
     }
-    for (auto &p : pairs) {
+    for (auto& p : pairs) {
       std::cin >> p.second;
       pairs_by_boys[p.first].push_back(p.second);
       pairs_by_girls[p.second].push_back(p.first);

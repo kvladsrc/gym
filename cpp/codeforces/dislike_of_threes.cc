@@ -28,7 +28,7 @@ vector<int> fill_table() {
   return dp;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   auto table = fill_table();

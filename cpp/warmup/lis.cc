@@ -11,7 +11,7 @@ using std::vector;
 
 namespace warmup {
 
-int lis(vector<int> &a) {
+int lis(vector<int>& a) {
   // EDGE_CASE: empty array.
   if (a.empty()) {
     return 0;

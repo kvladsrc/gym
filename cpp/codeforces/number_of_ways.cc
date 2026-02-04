@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int binary_count(vector<int> &a, int val) {
+int binary_count(const vector<int>& a, int val) {
   // Not nessesary. l <= r solve the problem.
   if (val < a[0]) return a.size();
   if (a[a.size() - 1] <= val) return 0;
@@ -43,7 +43,7 @@ int binary_count(vector<int> &a, int val) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
 

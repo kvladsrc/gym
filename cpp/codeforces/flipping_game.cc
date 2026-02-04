@@ -20,7 +20,7 @@ using std::unordered_map;
 using std::vector;
 
 // TODO(myuser): Use Kadane's algorithm.
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
 

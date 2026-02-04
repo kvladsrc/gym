@@ -6,7 +6,7 @@
 
 namespace warmup {
 
-int64_t permutations_heaps(std::vector<int> &arr, int size);
+int64_t permutations_heaps(std::vector<int>& arr, int size);
 
 }  // namespace warmup
 

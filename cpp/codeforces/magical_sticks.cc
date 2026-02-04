@@ -21,7 +21,7 @@ using std::vector;
 
 int equal_count(int n) { return (n - 1) / 2 + 1; }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

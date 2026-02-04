@@ -32,7 +32,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int solve(vector<int> &a, int start, int end, vector<vector<int>> &memo) {
+int solve(vector<int>& a, int start, int end, vector<vector<int>>& memo) {
   if (start == end) {
     return 1;
   }
@@ -68,14 +68,14 @@ int solve(vector<int> &a, int start, int end, vector<vector<int>> &memo) {
   return memo[start][end];
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
   size_t n = 0;
   std::cin >> n;
   vector<int> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

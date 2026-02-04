@@ -34,7 +34,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-optional<size_t> upper_bound(vector<size_t>& a, size_t i) {
+optional<size_t> upper_bound(const vector<size_t>& a, size_t i) {
   // EDGE_CASE: empty vector do not contain any elements.
   if (a.empty()) {
     return std::nullopt;

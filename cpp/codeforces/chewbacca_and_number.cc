@@ -19,7 +19,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-string min_invert(const string &in) {
+string min_invert(const string& in) {
   string res;
 
   bool first = true;
@@ -41,7 +41,7 @@ string min_invert(const string &in) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string in;
   std::cin >> in;
   std::cout << min_invert(in) << "\n";

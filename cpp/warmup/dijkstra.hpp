@@ -9,7 +9,7 @@ namespace warmup {
 
 using graph = std::vector<std::vector<std::pair<int, int>>>;
 
-int dijkstra(graph &g, int start, int end);
+int dijkstra(graph& g, int start, int end);
 
 }  // namespace warmup
 

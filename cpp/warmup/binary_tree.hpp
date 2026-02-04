@@ -7,8 +7,8 @@ namespace warmup {
 
 struct node {
   int val;
-  node *left;
-  node *right;
+  node* left;
+  node* right;
 
   node();
 
@@ -28,7 +28,7 @@ struct node {
 };
 
 struct bin_tree {
-  node *root;
+  node* root;
   int size;
 
   bin_tree();

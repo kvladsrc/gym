@@ -32,8 +32,8 @@ using std::vector;
 
 typedef vector<vector<int>> graph;
 
-void dfs_cc(graph &g, int cc, int start, vector<int> &cc_table,
-            map<int, vector<int>> &cc_map) {
+void dfs_cc(graph& g, int cc, int start, vector<int>& cc_table,
+            map<int, vector<int>>& cc_map) {
   if (cc_table[start] != 0) {
     return;
   }
@@ -45,7 +45,7 @@ void dfs_cc(graph &g, int cc, int start, vector<int> &cc_table,
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
   graph g(n);

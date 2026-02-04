@@ -49,7 +49,7 @@ int64_t gcd_iterative(int64_t a, int64_t b) {
   return abs(b);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -57,12 +57,12 @@ int main(int argc, char *argv[]) {
   std::cin >> n >> m;
 
   vector<int64_t> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 
   vector<int64_t> b(m);
-  for (auto &i : b) {
+  for (auto& i : b) {
     std::cin >> i;
   }
 
@@ -74,10 +74,9 @@ int main(int argc, char *argv[]) {
   }
 
   auto f = a.front();
-  auto g = a[1] - f;
-  for (size_t idx = 1; idx < a.size(); ++idx) {
-    g = gcd_iterative(g, a[idx] - f);
-  }
+  auto g = std::accumulate(
+      a.begin() + 1, a.end(), static_cast<int64_t>(0),
+      [f](int64_t acc, int64_t val) { return gcd_iterative(acc, val - f); });
 
   for (auto i : b) {
     auto res = gcd_iterative(g, f + i);

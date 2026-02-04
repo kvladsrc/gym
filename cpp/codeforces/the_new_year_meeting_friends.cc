@@ -12,7 +12,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   vector<int> h(3);
   std::cin >> h[0] >> h[1] >> h[2];
   sort(h.begin(), h.end());

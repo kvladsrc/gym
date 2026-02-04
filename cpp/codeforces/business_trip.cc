@@ -24,7 +24,7 @@ using std::vector;
 
 #define MONTH 12
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int k;
   std::cin >> k;
   vector<int> month(MONTH);

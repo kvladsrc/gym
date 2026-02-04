@@ -26,11 +26,11 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int d, sum_time;
   std::cin >> d >> sum_time;
   vector<pair<int, int>> per_day(d);
-  for (auto &p : per_day) {
+  for (auto& p : per_day) {
     std::cin >> p.first >> p.second;
   }
 

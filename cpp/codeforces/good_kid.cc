@@ -19,13 +19,13 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
     int n;
     std::cin >> n;
-    int min = 10;
+    int min_val = 10;
     int prod = 1;
     int zeroes = 0;
     while (n--) {
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
         continue;
       }
 
-      if (buf < min) min = buf;
+      if (buf < min_val) min_val = buf;
       prod *= buf;
     }
 
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    std::cout << prod / min * (min + 1) << "\n";
+    std::cout << prod / min_val * (min_val + 1) << "\n";
   }
   return 0;
 }

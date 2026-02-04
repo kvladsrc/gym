@@ -9,7 +9,7 @@ using std::vector;
 
 namespace warmup {
 
-void bubble_sort(vector<int> &a) {
+void bubble_sort(vector<int>& a) {
   while (true) {
     bool swapped = false;
 

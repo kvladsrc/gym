@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
       std::cin >> num;
 
       auto it = std::find_if(m.begin(), m.end(),
-                             [num](const auto &p) { return p.second == num; });
+                             [num](const auto& p) { return p.second == num; });
       if (it != m.end()) {
         std::cout << it->first;
         m[it->first]++;

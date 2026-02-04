@@ -19,7 +19,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int find_worm(vector<int> &piles, int num) {
+int find_worm(const vector<int>& piles, int num) {
   if (num <= piles[0]) return 0;
   if (num > piles[piles.size() - 1]) return piles.size() - 1;
 
@@ -40,7 +40,7 @@ int find_worm(vector<int> &piles, int num) {
   return end;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   int total = 0;

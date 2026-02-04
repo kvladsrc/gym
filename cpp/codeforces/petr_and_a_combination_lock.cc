@@ -30,7 +30,7 @@ struct node {
   node() : val(0), left(nullptr), right(nullptr) {}
 };
 
-void insert(std::unique_ptr<node> &root, int val, int p_val) {
+void insert(std::unique_ptr<node>& root, int val, int p_val) {
   if (!root) {
     root = std::make_unique<node>();
     root->val = p_val + val;
@@ -40,7 +40,7 @@ void insert(std::unique_ptr<node> &root, int val, int p_val) {
   }
 }
 
-bool check(std::unique_ptr<node> &root) {
+bool check(std::unique_ptr<node>& root) {
   if (!root->left && !root->right) {
     return (root->val % 360) == 0;
   } else {

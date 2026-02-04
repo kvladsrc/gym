@@ -19,7 +19,7 @@ namespace warmup {
  *   return max(case1, case2)
  */
 
-int knapsack(const vector<int> &weights, const vector<int> &costs, int w) {
+int knapsack(const vector<int>& weights, const vector<int>& costs, int w) {
   // We can pick each item once.
   vector<vector<int>> dp(weights.size() + 1, vector<int>(w + 1));
 

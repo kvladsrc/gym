@@ -40,9 +40,9 @@ class DSU {
   std::vector<int> rank_;
 };
 
-bool compare_edges(const edge &a, const edge &b) { return a.first < b.first; }
+bool compare_edges(const edge& a, const edge& b) { return a.first < b.first; }
 
-std::vector<edge> kruskal(int v, std::vector<edge> &edges) {
+std::vector<edge> kruskal(int v, std::vector<edge>& edges) {
   if (v == 0) {
     return {};
   }
@@ -51,7 +51,7 @@ std::vector<edge> kruskal(int v, std::vector<edge> &edges) {
 
   DSU dsu(v);
   std::vector<edge> mst;
-  for (const auto &e : edges) {
+  for (const auto& e : edges) {
     if (dsu.find(e.second.first) != dsu.find(e.second.second)) {
       dsu.unite(e.second.first, e.second.second);
       mst.push_back(e);

@@ -36,7 +36,7 @@ int gcd(int a, int b) {
   return gcd(b, a % b);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int64_t x;
   std::cin >> x;
 

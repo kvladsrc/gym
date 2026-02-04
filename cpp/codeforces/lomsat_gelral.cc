@@ -42,7 +42,7 @@ struct node {
   node() : table(), sum(0), max_color(0) {}
 };
 
-node *merge(node *a, node *b) {
+node* merge(node* a, node* b) {
   auto mx = a;
   auto mn = b;
   if (a->table.size() < b->table.size()) {
@@ -66,7 +66,7 @@ node *merge(node *a, node *b) {
   return mx;
 }
 
-node *solve(graph &g, vector<int64_t> &res, vector<int64_t> &colors, int start,
+node* solve(graph& g, vector<int64_t>& res, vector<int64_t>& colors, int start,
             int p) {
   auto m = new node;
   m->max_color = 1;
@@ -87,7 +87,7 @@ node *solve(graph &g, vector<int64_t> &res, vector<int64_t> &colors, int start,
   return m;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -95,7 +95,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cin >> n;
 
   vector<int64_t> colors(n);
-  for (auto &i : colors) {
+  for (auto& i : colors) {
     std::cin >> i;
   }
 

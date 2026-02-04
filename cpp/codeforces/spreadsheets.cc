@@ -31,7 +31,7 @@ using std::vector;
 bool isDigit(char c) { return c <= '9' && c >= '0'; }
 
 // First type: A1. Second type R1C1.
-int get_type(const string &s) {
+int get_type(const string& s) {
   bool digit_found = false;
   for (auto c : s) {
     if (digit_found && !isDigit(c)) return 2;
@@ -40,7 +40,7 @@ int get_type(const string &s) {
   return 1;
 }
 
-int decode_a_type_col(const string &s) {
+int decode_a_type_col(const string& s) {
   int res = 0;
   // A = 1, B = 2, ..., Z = 26.
   for (auto c : s) {
@@ -51,10 +51,10 @@ int decode_a_type_col(const string &s) {
   return res;
 }
 
-int decode_a_type_row(const string &s) { return std::stoi(s); }
+int decode_a_type_row(const string& s) { return std::stoi(s); }
 
 // res.first is for row, res.second is for col.
-pair<int, int> decode_a_type(const string &s) {
+pair<int, int> decode_a_type(const string& s) {
   string col = s;
   string row = "";
   while (isDigit(col.back())) {
@@ -113,7 +113,7 @@ string encode_to_b_type(pair<int, int> p) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

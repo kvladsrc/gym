@@ -41,7 +41,7 @@ int64_t factorial(int64_t a, int64_t modulo) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

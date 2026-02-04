@@ -52,7 +52,7 @@ vector<int> factor(int n) {
   return res;
 }
 
-static int upper_bound(vector<int>& a, int i) {
+static int upper_bound(const vector<int>& a, int i) {
   int l = 0;
   int r = a.size() - 1;
   int res = -1;

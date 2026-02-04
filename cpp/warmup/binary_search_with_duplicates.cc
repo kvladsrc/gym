@@ -6,7 +6,7 @@
 
 namespace warmup {
 
-std::optional<std::size_t> lower_bound(const std::vector<int> &a, int value) {
+std::optional<std::size_t> lower_bound(const std::vector<int>& a, int value) {
   // EDGE_CASE: empty vector do not contain any elements.
   if (a.empty()) {
     return std::nullopt;

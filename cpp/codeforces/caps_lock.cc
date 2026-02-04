@@ -10,14 +10,14 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool is_wrong(const string &input) {
-  for (size_t i = 1; i < input.size(); ++i) {
-    if (input[i] != std::toupper(input[i])) return false;
-  }
+bool is_wrong(const string& input) {
+  if (std::any_of(input.begin() + 1, input.end(),
+                  [](char c) { return c != std::toupper(c); }))
+    return false;
   return true;
 }
 
-string decaps(const string &input) {
+string decaps(const string& input) {
   string res;
 
   if (is_wrong(input)) {
@@ -38,7 +38,7 @@ string decaps(const string &input) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string input;
   std::cin >> input;
   std::cout << decaps(input) << "\n";

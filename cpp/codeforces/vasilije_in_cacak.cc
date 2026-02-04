@@ -24,17 +24,17 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
     int64_t n, k, x;
     std::cin >> n >> k >> x;
 
-    int64_t max = (((n - k + 1) + n) * k) / 2;
-    int64_t min = ((1 + k) * k) / 2;
+    int64_t max_val = (((n - k + 1) + n) * k) / 2;
+    int64_t min_val = ((1 + k) * k) / 2;
 
-    if (x >= min && x <= max) {
+    if (x >= min_val && x <= max_val) {
       std::cout << "YES"
                 << "\n";
     } else {

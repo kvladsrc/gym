@@ -6,7 +6,7 @@ using std::string;
 using std::vector;
 
 // O(1)
-void print_coded(const string &a) {
+void print_coded(const string& a) {
   if (a.size() <= 10) {
     std::cout << a << "\n";
   } else {
@@ -16,7 +16,7 @@ void print_coded(const string &a) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<string> a(n);
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     std::cin >> a[i];
   }
 
-  for (const string &s : a) {
+  for (const string& s : a) {
     print_coded(s);
   }
 

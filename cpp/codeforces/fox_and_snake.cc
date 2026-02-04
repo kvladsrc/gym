@@ -35,7 +35,7 @@ void draw_the_snake(int n, int m) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
   draw_the_snake(n, m);

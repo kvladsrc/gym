@@ -33,7 +33,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     std::cin >> n;
 
     vector<int> university(n);
-    for (auto &i : university) {
+    for (auto& i : university) {
       std::cin >> i;
     }
 
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     }
 
     vector<int64_t> res(n, 0);
-    for (auto &p : m) {
+    for (auto& p : m) {
       sort(p.second.begin(), p.second.end(), std::greater<int>());
       vector<int64_t> pref_sum(p.second.size() + 1);
       pref_sum.front() = 0;

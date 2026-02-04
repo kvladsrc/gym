@@ -46,10 +46,6 @@ int64_t add_v(const adj_matrix& g, vector<int>& available,
   // Shortest pathes from any V to New_V.
   for (auto from : available) {
     for (auto by : available) {
-      if (from == by) {
-        continue;
-      }
-
       auto cur_dist = dists[from][new_v];
       auto new_dist = dists[from][by] + dists[by][new_v];
       if (cur_dist > new_dist) {
@@ -63,10 +59,6 @@ int64_t add_v(const adj_matrix& g, vector<int>& available,
   // Shortest pathes from New_V to any V.
   for (auto to : available) {
     for (auto by : available) {
-      if (to == by) {
-        continue;
-      }
-
       auto cur_dist = dists[new_v][to];
       auto new_dist = dists[new_v][by] + dists[by][to];
       if (cur_dist > new_dist) {
@@ -80,10 +72,6 @@ int64_t add_v(const adj_matrix& g, vector<int>& available,
   // Shortest pathes from any V_1 to any V_2 by New_V.
   for (auto from : available) {
     for (auto to : available) {
-      if (from == to) {
-        continue;
-      }
-
       auto cur_dist = dists[from][to];
       auto new_dist = dists[from][new_v] + dists[new_v][to];
       if (cur_dist > new_dist) {

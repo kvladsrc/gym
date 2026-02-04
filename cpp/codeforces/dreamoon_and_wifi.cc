@@ -33,7 +33,7 @@ int64_t factorial(int64_t n) {
   return result;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string want, got;
   std::cin >> want >> got;
 

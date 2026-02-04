@@ -33,7 +33,7 @@ int max_height(int i) {
   return len;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int i;
   std::cin >> i;
   std::cout << max_height(i) << "\n";

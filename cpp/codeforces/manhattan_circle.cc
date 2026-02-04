@@ -32,7 +32,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -44,8 +44,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> n >> m;
 
     vector<vector<char>> table(n, vector<char>(m));
-    for (auto &r : table) {
-      for (auto &c : r) {
+    for (auto& r : table) {
+      for (auto& c : r) {
         std::cin >> c;
       }
     }
@@ -67,14 +67,12 @@ int main(int /*argc*/, char * /*argv*/[]) {
     }
 
     for (size_t col = 0; col < table.front().size(); ++col) {
-      for (size_t row = 0; row < table.size(); ++row) {
-        if (table[row][col] == '#') {
-          res_y = row + 1;
-          break;
-        }
-      }
+      auto it =
+          std::find_if(table.begin(), table.end(),
+                       [col](const vector<char>& r) { return r[col] == '#'; });
 
-      if (res_y != -1) {
+      if (it != table.end()) {
+        res_y = std::distance(table.begin(), it) + 1;
         break;
       }
     }

@@ -27,15 +27,15 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<int> first(n);
   vector<int> second(n);
-  for (auto &i : first) {
+  for (auto& i : first) {
     std::cin >> i;
   }
-  for (auto &i : second) {
+  for (auto& i : second) {
     std::cin >> i;
   }
 

@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool compare_pair(const pair<int, int> &a, const pair<int, int> &b) {
+bool compare_pair(const pair<int, int>& a, const pair<int, int>& b) {
   if (a.second == b.second) {
     return a.first < b.first;
   }
@@ -39,7 +39,7 @@ bool compare_pair(const pair<int, int> &a, const pair<int, int> &b) {
   return a.second < b.second;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

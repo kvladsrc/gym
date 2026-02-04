@@ -14,7 +14,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool compare_dragons(const pair<int, int> &a, const pair<int, int> &b) {
+bool compare_dragons(const pair<int, int>& a, const pair<int, int>& b) {
   return a.first < b.first;
 }
 
@@ -29,7 +29,7 @@ bool winable(vector<pair<int, int>> dragons, int s) {
 }
 
 // O(n^2)
-bool winable_naive(vector<pair<int, int>> dragons, int s) {
+bool winable_naive(const vector<pair<int, int>>& dragons, int s) {
   vector<bool> defeated(dragons.size());
   size_t defeated_num = 0;
 
@@ -52,7 +52,7 @@ bool winable_naive(vector<pair<int, int>> dragons, int s) {
   return true;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int s, n;
   std::cin >> s >> n;
   vector<pair<int, int>> dragons(n);

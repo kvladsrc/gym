@@ -5,7 +5,7 @@
 
 namespace warmup {
 
-void erato_fill(std::vector<bool> &table);
+void erato_fill(std::vector<bool>& table);
 
 }  // namespace warmup
 

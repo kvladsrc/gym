@@ -27,11 +27,11 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool compare(const pair<int, int> &a, const pair<int, int> &b) {
+bool compare(const pair<int, int>& a, const pair<int, int>& b) {
   return a.first < b.first;
 }
 
-int binary_search(const vector<pair<int, int>> &friends, int i) {
+int binary_search(const vector<pair<int, int>>& friends, int i) {
   int l = 0, r = friends.size() - 1;
   int pos = -1;
 
@@ -49,12 +49,12 @@ int binary_search(const vector<pair<int, int>> &friends, int i) {
   return pos;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, d;
   std::cin >> n >> d;
 
   vector<pair<int, int>> friends(n);
-  for (auto &p : friends) {
+  for (auto& p : friends) {
     std::cin >> p.first >> p.second;
   }
 

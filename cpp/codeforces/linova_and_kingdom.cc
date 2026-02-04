@@ -32,7 +32,7 @@ using std::vector;
 
 typedef vector<vector<int>> graph;
 
-int dfs(graph &g, vector<int64_t> &city_impact, int from, int start,
+int dfs(graph& g, vector<int64_t>& city_impact, int from, int start,
         int dist_from_capital) {
   int rank = 0;
   for (auto c : g[start]) {
@@ -46,7 +46,7 @@ int dfs(graph &g, vector<int64_t> &city_impact, int from, int start,
   return rank + 1;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, k;
   std::cin >> n >> k;
 

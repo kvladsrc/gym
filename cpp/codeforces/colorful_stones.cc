@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string s, t;
   std::cin >> s >> t;
   int pos = std::accumulate(t.begin(), t.end(), 0,

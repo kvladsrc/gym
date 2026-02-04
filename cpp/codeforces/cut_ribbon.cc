@@ -33,7 +33,7 @@ int cut_ribbon(int n, int a, int b, int c) {
   return dp[n];
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, a, b, c;
   std::cin >> n >> a >> b >> c;
   std::cout << cut_ribbon(n, a, b, c) << "\n";

@@ -2,15 +2,15 @@
   description = "A flake that loads some packages";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
-    { self
-    , nixpkgs
-    , flake-utils
-    ,
+    {
+      self,
+      nixpkgs,
+      flake-utils,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -34,9 +34,10 @@
           gnugrep
           gnused
           openssh
-          python312
+          python314
           shadow
           which
+          zip
         ];
 
         gcov = pkgs.runCommand "gcov" { } ''
@@ -49,6 +50,7 @@
         ci = with pkgs; [
           bazelisk
           buildifier
+          cabal-install
           clang-tools
           cppcheck
           cpplint
@@ -61,6 +63,8 @@
           golangci-lint
           golint
           gotools
+          grpc-health-probe
+          haskell.compiler.ghc984Binary
           helmfile
           kubernetes-helm
           lcov
@@ -68,6 +72,7 @@
           openjdk21_headless
           perl
           pre-commit
+          renovate
         ];
 
         cd = with pkgs; [
@@ -82,11 +87,10 @@
           kubectx
           podman
           talosctl
+          yq
 
           # Development
           just
-          nixpkgs-fmt
-          sapling
           shfmt
         ];
       in

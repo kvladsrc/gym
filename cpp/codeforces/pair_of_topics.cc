@@ -26,9 +26,9 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int binary_search_first(vector<int64_t> &a, int64_t i) {
+int binary_search_first(const vector<int64_t>& a, int64_t i) {
   int l = 0, r = a.size() - 1;
-  size_t res = -1;
+  int res = -1;
   while (l <= r) {
     int mid = (l + r) / 2;
     if (a[mid] >= i) {
@@ -42,7 +42,7 @@ int binary_search_first(vector<int64_t> &a, int64_t i) {
   return res;
 }
 
-int64_t count_pairs(vector<int64_t> &a, const vector<int64_t> &b) {
+int64_t count_pairs(const vector<int64_t>& a, const vector<int64_t>& b) {
   int64_t res = 0;
   vector<int64_t> diff(a.size());
   for (size_t i = 0; i < a.size(); ++i) {
@@ -66,7 +66,7 @@ int64_t count_pairs(vector<int64_t> &a, const vector<int64_t> &b) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<int64_t> a(n), b(n);

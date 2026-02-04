@@ -7,10 +7,10 @@ using std::max;
 using std::vector;
 
 // O(n)
-int64_t optimal_gain(const vector<int64_t> &nums) {
+int64_t optimal_gain(const vector<int64_t>& nums) {
   int64_t max_num = 0;
-  for (int64_t num : nums) {
-    if (num > max_num) max_num = num;
+  if (!nums.empty()) {
+    max_num = *std::max_element(nums.begin(), nums.end());
   }
   vector<int64_t> elements(max_num + 1);
   for (int64_t num : nums) {

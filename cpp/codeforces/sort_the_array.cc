@@ -20,7 +20,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-void print_prop(vector<int> &orig) {
+void print_prop(const vector<int>& orig) {
   int first, last;
   int switched = 0;
 
@@ -80,7 +80,7 @@ void print_prop(vector<int> &orig) {
   std::cout << last + 1 << "\n";
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<int> orig(n);

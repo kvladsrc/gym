@@ -36,13 +36,13 @@ using std::vector;
 
 class CompareBuckets {
  public:
-  bool operator()(const pair<int, int64_t> &p1,
-                  const pair<int, int64_t> &p2) const {
+  bool operator()(const pair<int, int64_t>& p1,
+                  const pair<int, int64_t>& p2) const {
     return p1.first > p2.first;
   }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     int n, m, x;
     std::cin >> n >> m >> x;
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

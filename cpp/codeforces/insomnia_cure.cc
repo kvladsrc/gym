@@ -37,7 +37,7 @@ int damaged_dragons(int k, int l, int m, int n, int d) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int k, l, m, n, d;
   std::cin >> k >> l >> m >> n >> d;
   std::cout << damaged_dragons(k, l, m, n, d) << "\n";

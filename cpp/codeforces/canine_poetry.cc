@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int n_in_pal(const string &s, int n) {
+int n_in_pal(const string& s, int n) {
   int res = 0;
   int size = s.size();
   if (n - 1 >= 0 && s[n - 1] != '*' && s[n] != '*' && s[n] == s[n - 1]) {
@@ -49,7 +49,7 @@ int n_in_pal(const string &s, int n) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

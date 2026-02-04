@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int solve_dp(vector<int> &a) {
+int solve_dp(const vector<int>& a) {
   vector<int> table(a.size());
   int max_points = 0;
 
@@ -38,7 +38,7 @@ int solve_dp(vector<int> &a) {
   return max_points;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

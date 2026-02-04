@@ -33,7 +33,7 @@ using std::vector;
 
 const int64_t modulo = 1000000000 + 7;
 
-vector<int64_t> char_segments(const string &s, char c, char not_allowed) {
+vector<int64_t> char_segments(const string& s, char c, char not_allowed) {
   vector<int64_t> res;
   int64_t cnt = 0;
   for (auto el : s) {
@@ -57,7 +57,7 @@ vector<int64_t> char_segments(const string &s, char c, char not_allowed) {
   return res;
 }
 
-int64_t num_messages(int64_t cnt, map<int64_t, int64_t> &table) {
+int64_t num_messages(int64_t cnt, map<int64_t, int64_t>& table) {
   if (cnt <= 1) {
     return 1;
   }
@@ -72,7 +72,7 @@ int64_t num_messages(int64_t cnt, map<int64_t, int64_t> &table) {
   return table[cnt];
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

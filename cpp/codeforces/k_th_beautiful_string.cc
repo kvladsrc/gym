@@ -40,7 +40,7 @@ int bin_search(int l, int r, int64_t k) {
   return l;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

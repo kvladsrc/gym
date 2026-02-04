@@ -32,7 +32,7 @@ using std::vector;
 
 typedef vector<vector<int>> graph;
 
-int deg(int start, int from, graph &g) {
+int deg(int start, int from, graph& g) {
   int res = 1;
   for (auto v : g[start]) {
     if (v == from) continue;
@@ -41,7 +41,7 @@ int deg(int start, int from, graph &g) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
