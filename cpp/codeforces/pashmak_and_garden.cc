@@ -25,7 +25,7 @@ struct point {
   int x, y;
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   point first, second;
   std::cin >> first.x >> first.y >> second.x >> second.y;
 

@@ -8,7 +8,7 @@ using std::string;
 
 namespace warmup {
 
-int find_max(string const &s, char c, int k) {
+int find_max(string const& s, char c, int k) {
   int const n = s.size();
   int l = 0;
   int r = 0;

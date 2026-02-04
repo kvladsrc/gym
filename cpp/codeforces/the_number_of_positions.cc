@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, a, b;
   std::cin >> n >> a >> b;
   std::cout << min(b + 1, n - a) << "\n";

@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int k2, k3, k5, k6;
   std::cin >> k2 >> k3 >> k5 >> k6;
 

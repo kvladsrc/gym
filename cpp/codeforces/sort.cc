@@ -49,7 +49,7 @@ int node::count_diff() {
   return res;
 }
 
-void merge(node *l, node *r, node *root) {
+void merge(node* l, node* r, node* root) {
   root->l = l;
   root->r = r;
   for (int i = 0; i < 26; ++i) {
@@ -58,7 +58,7 @@ void merge(node *l, node *r, node *root) {
   }
 }
 
-node query(int l, int r, int ql, int qr, node *root) {
+node query(int l, int r, int ql, int qr, node* root) {
   if (l > qr || r < ql) {
     return node();
   }
@@ -77,7 +77,7 @@ node query(int l, int r, int ql, int qr, node *root) {
   return res;
 }
 
-void build_tree(string &a, string &b, int l, int r, node *root) {
+void build_tree(string& a, string& b, int l, int r, node* root) {
   if (l > r) {
     return;
   }
@@ -96,7 +96,7 @@ void build_tree(string &a, string &b, int l, int r, node *root) {
   merge(left_child, right_child, root);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

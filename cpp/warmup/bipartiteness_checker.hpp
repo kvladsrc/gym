@@ -7,7 +7,7 @@ namespace warmup {
 
 using graph = std::vector<std::vector<int>>;
 
-bool bipartiteness_test(const graph &g);
+bool bipartiteness_test(const graph& g);
 
 }  // namespace warmup
 

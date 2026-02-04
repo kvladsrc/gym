@@ -5,7 +5,7 @@
 using std::string;
 
 // O(n)
-int lex_compare(const string &a, const string &b) {
+int lex_compare(const string& a, const string& b) {
   for (size_t i = 0; i < a.size(); ++i) {
     if (std::tolower(a[i]) == std::tolower(b[i])) continue;
 
@@ -17,7 +17,7 @@ int lex_compare(const string &a, const string &b) {
   return 0;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string a, b;
   std::cin >> a;
   std::cin >> b;

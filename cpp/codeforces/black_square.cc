@@ -20,7 +20,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int a1, a2, a3, a4;
   std::cin >> a1 >> a2 >> a3 >> a4;
 

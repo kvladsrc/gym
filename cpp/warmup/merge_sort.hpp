@@ -5,7 +5,7 @@
 
 namespace warmup {
 
-void merge_sort(std::vector<int> &a);
+void merge_sort(std::vector<int>& a);
 
 }  // namespace warmup
 

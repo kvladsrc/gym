@@ -9,7 +9,7 @@ using std::vector;
 
 namespace warmup {
 
-int lcs_dp(const vector<int> &a, const vector<int> &b) {
+int lcs_dp(const vector<int>& a, const vector<int>& b) {
   vector<vector<int>> dp(a.size() + 1, vector<int>(b.size() + 1));
 
   for (std::size_t i = 0; i <= a.size(); ++i) {
@@ -36,7 +36,7 @@ int lcs_dp(const vector<int> &a, const vector<int> &b) {
   return dp.back().back();
 }
 
-int lcs_rec(const vector<int> &a, const vector<int> &b) {
+int lcs_rec(const vector<int>& a, const vector<int>& b) {
   if (a.empty() || b.empty()) {
     return 0;
   }

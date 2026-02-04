@@ -67,42 +67,34 @@ int main(int /*argc*/, char* /*argv*/[]) {
     moves[xk + b][yk + a] = true;
 
     if (moves[xq - a][yq - b]) {
-      moves[xq - a][yq - b] = false;
       res++;
     }
 
     if (moves[xq - a][yq + b]) {
-      moves[xq - a][yq + b] = false;
       res++;
     }
 
     if (moves[xq + a][yq - b]) {
-      moves[xq + a][yq - b] = false;
       res++;
     }
 
     if (moves[xq + a][yq + b]) {
-      moves[xq + a][yq + b] = false;
       res++;
     }
 
     if (moves[xq - b][yq - a]) {
-      moves[xq - b][yq - a] = false;
       res++;
     }
 
     if (moves[xq - b][yq + a]) {
-      moves[xq - b][yq + a] = false;
       res++;
     }
 
     if (moves[xq + b][yq - a]) {
-      moves[xq + b][yq - a] = false;
       res++;
     }
 
     if (moves[xq + b][yq + a]) {
-      moves[xq + b][yq + a] = false;
       res++;
     }
 

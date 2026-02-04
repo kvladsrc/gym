@@ -47,7 +47,7 @@ void solve() {
   std::cout << res << std::endl;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

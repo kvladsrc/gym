@@ -4,7 +4,7 @@
 
 using std::string;
 
-void tick(string &q) {
+void tick(string& q) {
   if (q.size() <= 1) return;
 
   for (size_t i = 1; i < q.size(); ++i) {
@@ -15,7 +15,7 @@ void tick(string &q) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, t;
   std::cin >> n >> t;
   string q;

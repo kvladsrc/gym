@@ -9,7 +9,7 @@ using std::vector;
 
 namespace warmup {
 
-void merge_sort(vector<int> &a) {
+void merge_sort(vector<int>& a) {
   if (a.size() <= 1) {
     return;
   }

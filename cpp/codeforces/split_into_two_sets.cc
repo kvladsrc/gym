@@ -33,9 +33,9 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool bipartite_component(vector<int> &colors,
-                         unordered_map<int, vector<size_t>> &pos_by_color,
-                         vector<pair<int, int>> &a, size_t start, int color) {
+bool bipartite_component(vector<int>& colors,
+                         unordered_map<int, vector<size_t>>& pos_by_color,
+                         vector<pair<int, int>>& a, size_t start, int color) {
   if (colors[start] == color) {
     return true;
   }
@@ -74,7 +74,7 @@ bool bipartite_component(vector<int> &colors,
   return true;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

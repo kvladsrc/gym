@@ -14,7 +14,7 @@ namespace warmup {
  * optimal.
  */
 
-bool three_sum(const vector<int> &a, int sum) {
+bool three_sum(const vector<int>& a, int sum) {
   // EDGE_CASE: input vector has less than 3 elements.
   if (a.size() < 3) {
     return false;

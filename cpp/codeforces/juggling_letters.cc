@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 
     vector<string> input(n);
     unordered_map<char, int> map;
-    for (auto &s : input) {
+    for (auto& s : input) {
       std::cin >> s;
       for (auto c : s) {
         map[c]++;
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     }
 
     bool res = std::none_of(map.begin(), map.end(),
-                            [n](const auto &p) { return p.second % n; });
+                            [n](const auto& p) { return p.second % n; });
 
     std::cout << (res ? "YES" : "NO") << "\n";
   }

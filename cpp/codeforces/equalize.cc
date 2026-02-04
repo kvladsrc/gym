@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-void invert(char &c) {
+void invert(char& c) {
   if (c == '1') {
     c = '0';
   } else {
@@ -39,7 +39,7 @@ void invert(char &c) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

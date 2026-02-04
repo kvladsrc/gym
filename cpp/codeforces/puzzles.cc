@@ -27,7 +27,7 @@ int solve(vector<int> available, int n) {
   return best;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
   vector<int> available(m);

@@ -4,7 +4,7 @@
 
 using std::vector;
 
-int min_larger_sum(vector<int> &coins, int sum) {
+int min_larger_sum(vector<int>& coins, int sum) {
   int res = 0, cur = 0;
   std::sort(coins.begin(), coins.end());
 
@@ -17,7 +17,7 @@ int min_larger_sum(vector<int> &coins, int sum) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, sum = 0;
   std::cin >> n;
   vector<int> coins(n);

@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <iostream>
+#include <numeric>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -11,11 +12,10 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int solve(vector<int> &nums) {
+int solve(const vector<int>& nums) {
   int odds = 0;
-  for (int i = 0; i < 3; ++i) {
-    odds += nums[i] % 2;
-  }
+  odds = std::accumulate(nums.begin(), nums.begin() + 3, 0,
+                         [](int acc, int n) { return acc + n % 2; });
 
   for (size_t i = 0; i < nums.size(); ++i) {
     if (odds >= 2 && !(nums[i] % 2)) return i + 1;
@@ -25,7 +25,7 @@ int solve(vector<int> &nums) {
   return 0;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<int> nums(n);

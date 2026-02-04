@@ -40,7 +40,7 @@ int cheap_travel(int n, int m, int a, int b) {
   return dp[n];
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m, a, b;
   std::cin >> n >> m >> a >> b;
   std::cout << cheap_travel(n, m, a, b) << "\n";

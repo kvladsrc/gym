@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int r, c;
   std::cin >> r >> c;
   unordered_map<int, bool> rows, columns;

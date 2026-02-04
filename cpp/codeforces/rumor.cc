@@ -28,8 +28,8 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int dfs(vector<vector<int>> &g, int start, int comp_id, vector<int> &comp_ids,
-        vector<int> &costs) {
+int dfs(vector<vector<int>>& g, int start, int comp_id, vector<int>& comp_ids,
+        vector<int>& costs) {
   if (comp_ids[start] != 0) return costs[start];
 
   comp_ids[start] = comp_id;
@@ -42,7 +42,7 @@ int dfs(vector<vector<int>> &g, int start, int comp_id, vector<int> &comp_ids,
   return cheapest;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
   vector<int> costs(n);

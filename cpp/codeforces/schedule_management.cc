@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int64_t can_be_done(vector<int64_t> tasks, int64_t hours) {
+int64_t can_be_done(const vector<int64_t>& tasks, int64_t hours) {
   int64_t res = 0;
   for (auto i : tasks) {
     auto local = min(i, hours);
@@ -43,7 +43,7 @@ int64_t can_be_done(vector<int64_t> tasks, int64_t hours) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

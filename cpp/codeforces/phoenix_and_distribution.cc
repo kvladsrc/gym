@@ -77,7 +77,7 @@ int main(int /*argc*/, char* /*argv*/[]) {
     }
 
     string case2 = res.front();
-    for (auto s : res) {
+    for (const auto& s : res) {
       case2 = max(s, case2);
     }
 

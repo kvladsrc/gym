@@ -94,7 +94,7 @@ int64_t fast_solution(int64_t x, int64_t y, int64_t dest_x, int64_t dest_y) {
   return w * h + 1;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

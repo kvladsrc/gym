@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-string shift(const string &in, char dir) {
+string shift(const string& in, char dir) {
   unordered_map<char, pair<char, char>> table;
 
   string row1("qwertyuiop");
@@ -62,7 +62,7 @@ string shift(const string &in, char dir) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   char dir;
   std::cin >> dir;
   string in;

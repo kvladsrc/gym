@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int64_t bin_search(vector<int64_t> &a, int64_t el) {
+int64_t bin_search(const vector<int64_t>& a, int64_t el) {
   int64_t l = 0, r = a.size() - 1;
   int64_t res = -1;
   while (l <= r) {
@@ -46,7 +46,7 @@ int64_t bin_search(vector<int64_t> &a, int64_t el) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
   std::cin >> n;
   vector<int64_t> a(n);
   int64_t total = 0;
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
     total += i;
   }

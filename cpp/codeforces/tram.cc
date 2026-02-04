@@ -1,6 +1,6 @@
 #include <iostream>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int stops;
   std::cin >> stops;
   int max = 0;

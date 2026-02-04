@@ -31,11 +31,11 @@ vector<bool> eratosthenes() {
   return res;
 }
 
-bool is_prime(const vector<bool> &erato_table, int num) {
+bool is_prime(const vector<bool>& erato_table, int num) {
   return !erato_table[num];
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto erato = eratosthenes();
 
   int n;

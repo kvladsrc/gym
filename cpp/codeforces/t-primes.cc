@@ -26,7 +26,7 @@ bool t_num(int64_t n) {
   return false;  // prime
 }
 
-set<int64_t> *precalculate() {
+set<int64_t>* precalculate() {
   auto precalculated = new set<int64_t>;
   vector<bool> eratosthenes(MAX_SIZE);
   for (int64_t i = 2; i < MAX_SIZE; ++i) {
@@ -45,7 +45,7 @@ set<int64_t> *precalculate() {
   return precalculated;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<int64_t> nums(n);

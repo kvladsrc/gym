@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -31,7 +31,6 @@ int main(int argc, char *argv[]) {
     std::cin >> n >> k;
 
     vector<int> a(n);
-    vector<int> res(n);
     unordered_map<int, int> colors;
 
     for (int i = 0; i < n; ++i) {

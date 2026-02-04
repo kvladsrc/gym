@@ -20,7 +20,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int64_t count(vector<int64_t> &in) {
+int64_t count(const vector<int64_t>& in) {
   int64_t res = 0;
   unordered_map<int64_t, int64_t> m;
   for (size_t i = 0; i < in.size(); ++i) {
@@ -31,7 +31,7 @@ int64_t count(vector<int64_t> &in) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

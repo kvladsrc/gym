@@ -28,7 +28,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     // Alice can chose minimal element from 2 to n. Bob can chose
     // between all except chosed by alice.
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

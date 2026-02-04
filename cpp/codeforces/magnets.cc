@@ -1,6 +1,6 @@
 #include <iostream>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, prev, groups = 1;
   std::cin >> n;
 

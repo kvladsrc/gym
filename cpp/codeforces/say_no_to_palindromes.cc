@@ -87,10 +87,10 @@ int main(int /*argc*/, char* /*argv*/[]) {
     int r = 0;
     std::cin >> l >> r;
 
-    int best = r - l + 1;
-    for (size_t j = 0; j < pref_sums.size(); ++j) {
-      best = min(best, pref_sums[j][r] - pref_sums[j][l - 1]);
-    }
+    int best = std::accumulate(pref_sums.begin(), pref_sums.end(), r - l + 1,
+                               [&](int current_best, const vector<int>& ps) {
+                                 return min(current_best, ps[r] - ps[l - 1]);
+                               });
 
     std::cout << best << "\n";
   }

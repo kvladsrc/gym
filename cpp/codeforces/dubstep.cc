@@ -11,7 +11,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-void remove_extra_spaces(string &s) {
+void remove_extra_spaces(string& s) {
   int pre = true;
   auto it = s.begin();
   while (it != s.end()) {
@@ -31,7 +31,7 @@ void remove_extra_spaces(string &s) {
   }
 }
 
-string orig(const string &mix) {
+string orig(const string& mix) {
   string wub("WUB");
   string buf;
   string res;
@@ -63,7 +63,7 @@ string orig(const string &mix) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string mix;
   std::cin >> mix;
   std::cout << orig(mix) << "\n";

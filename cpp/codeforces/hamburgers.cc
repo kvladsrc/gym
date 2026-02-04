@@ -26,7 +26,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string receipt;
   std::cin >> receipt;
   int n_b, n_s, n_c;

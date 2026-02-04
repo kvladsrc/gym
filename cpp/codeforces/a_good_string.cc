@@ -32,7 +32,7 @@ using std::vector;
 
 int c_to_i(char c) { return c - 'a'; }
 
-int solve_rec(int c, int start, int end, vector<vector<int>> &char_table) {
+int solve_rec(int c, int start, int end, vector<vector<int>>& char_table) {
   if (start == end) {
     if (char_table[start][c] == char_table[start - 1][c]) {
       return 1;
@@ -52,7 +52,7 @@ int solve_rec(int c, int start, int end, vector<vector<int>> &char_table) {
   return min(case1, case2);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

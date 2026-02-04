@@ -15,7 +15,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool solveble(vector<int> &a) {
+bool solveble(vector<int>& a) {
   sort(a.begin(), a.end());
   if (a.size() == 1) return true;
   for (size_t i = 1; i < a.size(); ++i) {
@@ -24,7 +24,7 @@ bool solveble(vector<int> &a) {
   return true;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<vector<int>> arrays(n);

@@ -17,7 +17,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-vector<int> decode(const string &in) {
+vector<int> decode(const string& in) {
   vector<int> res;
   bool inside = false;
   for (char c : in) {
@@ -44,7 +44,7 @@ vector<int> decode(const string &in) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string in;
   std::cin >> in;
 

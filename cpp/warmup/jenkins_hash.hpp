@@ -6,7 +6,7 @@
 
 namespace warmup {
 
-uint32_t jenkins_one_at_a_time_hash(const std::string &key);
+uint32_t jenkins_one_at_a_time_hash(const std::string& key);
 
 }  // namespace warmup
 

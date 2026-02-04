@@ -30,7 +30,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-void operation(string &a, int pref) {
+void operation(string& a, int pref) {
   for (int i = 0; i <= pref; ++i) {
     a[i] = (a[i] == '1' ? '0' : '1');
   }
@@ -38,7 +38,7 @@ void operation(string &a, int pref) {
   std::reverse(a.begin(), a.begin() + pref + 1);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

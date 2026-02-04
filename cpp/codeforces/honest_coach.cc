@@ -22,7 +22,7 @@ using std::vector;
 
 #define INF 1000000000;
 
-int min_diff(vector<int> &athletes) {
+int min_diff(vector<int>& athletes) {
   sort(athletes.begin(), athletes.end());
   int res = INF;
   for (size_t i = 1; i < athletes.size(); ++i) {
@@ -32,7 +32,7 @@ int min_diff(vector<int> &athletes) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

@@ -12,7 +12,7 @@ using graph = vector<vector<int>>;
 
 enum Color { None = 0, Red = 1, Blue = 2 };
 
-bool bipartiteness_cc(const graph &g, vector<Color> &colors, std::size_t start,
+bool bipartiteness_cc(const graph& g, vector<Color>& colors, std::size_t start,
                       Color cur_color) {
   if (colors[start] == cur_color) {
     return true;
@@ -34,7 +34,7 @@ bool bipartiteness_cc(const graph &g, vector<Color> &colors, std::size_t start,
   return true;
 }
 
-bool bipartiteness_test(const graph &g) {
+bool bipartiteness_test(const graph& g) {
   vector<Color> colors(g.size(), None);
 
   for (std::size_t v = 0; v < g.size(); ++v) {

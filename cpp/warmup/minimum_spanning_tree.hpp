@@ -8,7 +8,7 @@ namespace warmup {
 
 using edge = std::pair<int, std::pair<int, int>>;
 
-std::vector<edge> kruskal(int v, std::vector<edge> &edges);
+std::vector<edge> kruskal(int v, std::vector<edge>& edges);
 
 }  // namespace warmup
 

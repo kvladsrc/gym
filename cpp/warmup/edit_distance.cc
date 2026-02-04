@@ -21,7 +21,7 @@ namespace warmup {
  * - Replace char;
  * - Incert a char.
  */
-int edit_distance(string const &a, string const &b) {
+int edit_distance(string const& a, string const& b) {
   vector<vector<int>> dp(a.size() + 1, vector<int>(b.size() + 1));
   for (std::size_t i = 0; i <= a.size(); ++i) {
     dp[i][0] = static_cast<int>(i);  // Remove all.

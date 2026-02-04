@@ -17,7 +17,7 @@ bool is_lucky(int a) {
   return true;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   bool found = false;

@@ -30,7 +30,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int *minamal(int *a, int *b, int *c) {
+int* minamal(int* a, int* b, int* c) {
   if (*a <= *b && *a <= *c) return a;
 
   if (*b <= *a && *b <= *c) return b;
@@ -38,7 +38,7 @@ int *minamal(int *a, int *b, int *c) {
   return c;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

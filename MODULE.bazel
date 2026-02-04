@@ -8,14 +8,14 @@ module(
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
 git_override(
     module_name = "hedron_compile_commands",
-    commit = "0e990032f3c5a866e72615cf67e5ce22186dcb97",  # pragma: allowlist secret`
+    commit = "abb61a688167623088f8768cc9264798df6a9d10",  # pragma: allowlist secret`
     remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
     # Replace the commit hash (above) with the latest (https://github.com/hedronvision/bazel-compile-commands-extractor/commits/main).
     # Even better, set up Renovate and let it do the work for you (see "Suggestion: Updates" in the README).
 )
 
 # Python
-bazel_dep(name = "rules_python", version = "1.7.0")
+bazel_dep(name = "rules_python", version = "1.8.3")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.defaults(python_version = "3.12")
@@ -28,12 +28,12 @@ bazel_dep(name = "platforms", version = "1.0.0")
 
 # C++
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
-bazel_dep(name = "rules_cc", version = "0.2.14")
+bazel_dep(name = "rules_cc", version = "0.2.16")
 bazel_dep(name = "boost.algorithm", version = "1.89.0.bcr.2")
 
 # JavaScript/Node.js
-bazel_dep(name = "aspect_rules_js", version = "2.1.0")
-bazel_dep(name = "rules_nodejs", version = "6.3.0")
+bazel_dep(name = "aspect_rules_js", version = "2.9.2")
+bazel_dep(name = "rules_nodejs", version = "6.7.3")
 
 # Java
 bazel_dep(name = "rules_java", version = "9.3.0")

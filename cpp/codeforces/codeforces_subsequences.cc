@@ -30,7 +30,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int64_t k;
   std::cin >> k;
   int cf_size = string("codeforces").size();

@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
 
@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   }
 
   unordered_map<string, int> m;
-  int max = 0;
+  int max_count = 0;
   string res;
   for (int i = 0; i + 1 < n; ++i) {
     string buf;
@@ -39,8 +39,8 @@ int main(int argc, char *argv[]) {
     buf += in[i + 1];
     m[buf]++;
 
-    if (m[buf] > max) {
-      max = m[buf];
+    if (m[buf] > max_count) {
+      max_count = m[buf];
       res = buf;
     }
   }

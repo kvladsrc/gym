@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, k;
   std::cin >> n >> k;
   vector<int> a(n);

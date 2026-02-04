@@ -6,7 +6,7 @@ using std::string;
 using std::unordered_map;
 
 // O(n)
-bool is_girl(const string &name) {
+bool is_girl(const string& name) {
   unordered_map<char, bool> used;
   int unique = 0;
 
@@ -19,7 +19,7 @@ bool is_girl(const string &name) {
   return (unique % 2 == 0);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string name;
   std::cin >> name;
   if (is_girl(name))

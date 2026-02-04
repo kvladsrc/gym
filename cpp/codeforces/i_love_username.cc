@@ -12,26 +12,26 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
 
-  int max, min, amazing = 0;
-  std::cin >> max;
-  min = max;
+  int max_val, min_val, amazing = 0;
+  std::cin >> max_val;
+  min_val = max_val;
 
   for (int i = 1; i < n; ++i) {
     int points;
     std::cin >> points;
-    if (points > max) {
+    if (points > max_val) {
       amazing++;
-      max = points;
+      max_val = points;
       continue;
     }
 
-    if (points < min) {
+    if (points < min_val) {
       amazing++;
-      min = points;
+      min_val = points;
       continue;
     }
   }

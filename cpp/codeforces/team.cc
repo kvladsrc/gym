@@ -4,8 +4,8 @@
 using std::vector;
 
 // O(n)
-int solved(const vector<int> &first, const vector<int> &second,
-           const vector<int> &third) {
+int solved(const vector<int>& first, const vector<int>& second,
+           const vector<int>& third) {
   int res = 0;
   for (size_t i = 0; i < first.size(); ++i) {
     int count = first[i] + second[i] + third[i];

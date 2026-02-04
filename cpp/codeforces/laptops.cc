@@ -20,11 +20,11 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool compare_laptops(const pair<int, int> &a, const pair<int, int> &b) {
+bool compare_laptops(const pair<int, int>& a, const pair<int, int>& b) {
   return a.first < b.first;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<pair<int, int>> laptops(n);

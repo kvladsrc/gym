@@ -25,7 +25,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     vector<int> a(n);
     int max_val = -1000000000;
     double sum = 0;
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
       sum += i;
       if (i > max_val) max_val = i;

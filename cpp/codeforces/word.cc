@@ -3,7 +3,7 @@
 
 using std::string;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string word, lower, upper;
   std::cin >> word;
   int upper_num = 0;

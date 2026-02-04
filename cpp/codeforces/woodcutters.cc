@@ -25,7 +25,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool cmp(const pair<int, int> &a, const pair<int, int> &b) {
+bool cmp(const pair<int, int>& a, const pair<int, int>& b) {
   return a.first < b.first;
 }
 
@@ -39,7 +39,7 @@ int main() {
   }
 
   vector<pair<int, int>> trees(n);
-  for (auto &tree : trees) {
+  for (auto& tree : trees) {
     std::cin >> tree.first >> tree.second;
   }
 

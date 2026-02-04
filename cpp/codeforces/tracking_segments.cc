@@ -33,7 +33,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   int t = 0;
   std::cin >> t;
   while ((t--) != 0) {
@@ -42,14 +42,14 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> n >> m;
 
     vector<pair<int, int>> segments(m);
-    for (auto &s : segments) {
+    for (auto& s : segments) {
       std::cin >> s.first >> s.second;
     }
 
     int q = 0;
     std::cin >> q;
     vector<int> operations(q);
-    for (auto &o : operations) {
+    for (auto& o : operations) {
       std::cin >> o;
     }
 

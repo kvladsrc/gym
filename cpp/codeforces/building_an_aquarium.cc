@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool filed(const vector<int64_t> &a, int64_t h, int64_t x) {
+bool filed(const vector<int64_t>& a, int64_t h, int64_t x) {
   int64_t need = std::accumulate(
       a.begin(), a.end(), static_cast<int64_t>(0), [h](int64_t acc, int64_t i) {
         return acc + max(static_cast<int64_t>(0), h - i);
@@ -39,7 +39,7 @@ bool filed(const vector<int64_t> &a, int64_t h, int64_t x) {
   return need <= x;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -50,7 +50,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     int64_t x = 0;
     std::cin >> n >> x;
     vector<int64_t> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

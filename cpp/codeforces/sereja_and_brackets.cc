@@ -14,7 +14,7 @@ using std::vector;
 struct Node {
   int o, c, t;
 
-  Node operator+(const Node &other) {
+  Node operator+(const Node& other) {
     Node result;
     int tmp = min(o, other.c);
     result.t = t + other.t + tmp * 2;
@@ -26,7 +26,7 @@ struct Node {
 
 // T(n) = 2T(n/2) + 1
 // O(n log n)
-void build(int id, int l, int r, vector<Node> &tree, string &s) {
+void build(int id, int l, int r, vector<Node>& tree, string& s) {
   if (r == l) {
     if (s[l] == '(')
       tree[id].o++;
@@ -43,7 +43,7 @@ void build(int id, int l, int r, vector<Node> &tree, string &s) {
 }
 
 // O(n log n)
-Node query(vector<Node> &tree, int id, int x, int y, int l, int r) {
+Node query(vector<Node>& tree, int id, int x, int y, int l, int r) {
   if (l > y || x > r) return Node();
   if (x <= l && r <= y) return tree[id];
 

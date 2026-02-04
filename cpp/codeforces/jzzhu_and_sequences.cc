@@ -33,7 +33,7 @@ int mod(int a, int b) {
   return result;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int f_1, f_2;
   std::cin >> f_1 >> f_2;
   int n;

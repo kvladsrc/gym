@@ -27,7 +27,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     std::cin >> n;
 
     vector<int> orig(n);
-    for (auto &i : orig) {
+    for (auto& i : orig) {
       std::cin >> i;
     }
 
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    bool res = std::all_of(need.begin(), need.end(), [&](const auto &p) {
+    bool res = std::all_of(need.begin(), need.end(), [&](const auto& p) {
       return p.second <= ops[p.first];
     });
 

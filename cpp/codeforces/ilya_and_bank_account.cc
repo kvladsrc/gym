@@ -33,7 +33,7 @@ int maximize(int64_t n) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int64_t n;
   std::cin >> n;
   std::cout << maximize(n) << "\n";

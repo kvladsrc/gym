@@ -32,7 +32,7 @@ using std::vector;
 
 using graph = vector<vector<int>>;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     }
 
     map<int, int> table;
-    for (auto v : g) {
+    for (const auto& v : g) {
       table[v.size()]++;
     }
 

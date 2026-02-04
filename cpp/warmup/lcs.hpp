@@ -5,8 +5,8 @@
 
 namespace warmup {
 
-int lcs_dp(const std::vector<int> &a, const std::vector<int> &b);
-int lcs_rec(const std::vector<int> &a, const std::vector<int> &b);
+int lcs_dp(const std::vector<int>& a, const std::vector<int>& b);
+int lcs_rec(const std::vector<int>& a, const std::vector<int>& b);
 
 }  // namespace warmup
 

@@ -59,11 +59,10 @@ int main(int /*argc*/, char* /*argv*/[]) {
     vector<int> leafs;
     vector<int> new_leafs;
 
-    for (int i = 0; i < n; ++i) {
-      if (g[i].size() <= 1) {
-        leafs.push_back(i);
-      }
-    }
+    vector<int> nodes(n);
+    std::iota(nodes.begin(), nodes.end(), 0);
+    std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(leafs),
+                 [&](int i) { return g[i].size() <= 1; });
 
     int res = n;
     for (int i = 0; i < k; ++i) {

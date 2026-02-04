@@ -5,7 +5,7 @@
 
 namespace warmup {
 
-int edit_distance(std::string const &a, std::string const &b);
+int edit_distance(std::string const& a, std::string const& b);
 
 }  // namespace warmup
 

@@ -32,7 +32,7 @@ using std::unordered_map;
 using std::vector;
 
 // Number of incert or remove operations to make a equal to b;
-int edit_distance(string const &a, string const &b) {
+int edit_distance(string const& a, string const& b) {
   size_t b_idx = 0, a_idx = 0;
   int res = 0;
   while (b_idx < b.size() && a_idx < a.size()) {
@@ -51,7 +51,7 @@ int edit_distance(string const &a, string const &b) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     std::cin >> s;
 
     int res = 100;
-    for (auto p : powers) {
+    for (const auto& p : powers) {
       auto local = edit_distance(s, p);
       res = min(res, local);
     }

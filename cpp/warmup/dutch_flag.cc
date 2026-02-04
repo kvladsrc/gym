@@ -14,7 +14,7 @@ namespace warmup {
 /*
   Sort an array of elements 1, 2 or 3.
 */
-void dutch_flag(vector<int> &a) {
+void dutch_flag(vector<int>& a) {
   // EDGE_CASE: Empty or one element.
   if (a.size() <= 1) {
     return;

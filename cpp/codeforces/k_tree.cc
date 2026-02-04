@@ -29,8 +29,8 @@ using std::vector;
 const int modulo = 1000000007;
 
 int64_t num_ways(int n, int k, int d, bool d_used,
-                 vector<int64_t> &table_with_d,
-                 vector<int64_t> &table_without_d) {
+                 vector<int64_t>& table_with_d,
+                 vector<int64_t>& table_without_d) {
   if (n == 0) {
     return (d_used ? 1 : 0);
   }
@@ -61,7 +61,7 @@ int64_t num_ways(int n, int k, int d, bool d_used,
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, k, d;
   std::cin >> n >> k >> d;
 

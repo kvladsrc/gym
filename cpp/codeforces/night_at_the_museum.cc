@@ -19,7 +19,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int min_rotations(const string &in) {
+int min_rotations(const string& in) {
   char ptr = 'a';
   int res = 0;
   for (char c : in) {
@@ -36,7 +36,7 @@ int min_rotations(const string &in) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string in;
   std::cin >> in;
   std::cout << min_rotations(in) << "\n";

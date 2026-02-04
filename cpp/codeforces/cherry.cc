@@ -24,7 +24,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     std::cin >> n;
 
     vector<int64_t> a(n);
-    for (auto &i : a) std::cin >> i;
+    for (auto& i : a) std::cin >> i;
 
     int64_t best = 0;
     for (int i = 0; i < n; ++i) {

@@ -33,7 +33,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool is_sorted(vector<int> &a) {
+bool is_sorted(const vector<int>& a) {
   for (size_t idx = 1; idx < a.size(); ++idx) {
     if (a[idx] < a[idx - 1]) {
       return false;
@@ -42,7 +42,7 @@ bool is_sorted(vector<int> &a) {
   return true;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -54,7 +54,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> n >> x;
 
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

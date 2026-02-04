@@ -27,7 +27,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     vector<int> d(n);
     int first_band = -1;
     bool r = false;
-    for (auto &i : d) {
+    for (auto& i : d) {
       std::cin >> i;
       if (first_band == -1) {
         first_band = i;

@@ -88,7 +88,7 @@ int path_num_dp(int steps_left) {
   return prev[0];
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   std::cout << path_num_dp(n) << "\n";

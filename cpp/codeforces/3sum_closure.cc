@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     vector<int> a(n);
     map<int, int> m;
     int pos_cnt = 0, neg_cnt = 0;
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
       if (i > 0) pos_cnt++;
       if (i < 0) neg_cnt++;

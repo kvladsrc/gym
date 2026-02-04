@@ -28,7 +28,7 @@ void print_round_nums(int n) {
   std::cout << res << "\n";
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<int> nums(n);

@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int64_t bs(vector<int64_t> &a, int64_t el) {
+int64_t bs(const vector<int64_t>& a, int64_t el) {
   int64_t res = a.size();
   int64_t l = 0, r = a.size() - 1;
   while (l <= r) {
@@ -46,14 +46,14 @@ int64_t bs(vector<int64_t> &a, int64_t el) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
   int64_t n, d;
   std::cin >> n >> d;
   vector<int64_t> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

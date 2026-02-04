@@ -110,7 +110,7 @@ pair<int64_t, int64_t> solve_dp(int n1, int n2, int k1, int k2) {
   return dp.back().back();
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n1, n2, k1, k2;
   std::cin >> n1 >> n2 >> k1 >> k2;
 

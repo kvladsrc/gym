@@ -22,7 +22,7 @@ using std::vector;
 #define MAX_B 1000000001;
 #define MIN_B 0;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   int64_t min_b = MAX_B;
   int64_t max_b = MIN_B;

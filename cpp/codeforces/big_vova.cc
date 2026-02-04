@@ -39,7 +39,7 @@ int gcd(int a, int b) {
   return gcd(b, a % b);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     std::cin >> n;
     vector<int> a(n);
     int cur_gcd = 0;
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
       cur_gcd = max(cur_gcd, i);
     }

@@ -114,19 +114,19 @@ struct cell {
   cell() {}
   cell(int ax, int ay) : x(ax), y(ay) {}
   ~cell() {}
-  int id(const Maze &maze);
-  bool is_valid(const Maze &);
-  bool is_empty(const Maze &);
-  bool is_available(const Maze &);
+  int id(const Maze& maze);
+  bool is_valid(const Maze&);
+  bool is_empty(const Maze&);
+  bool is_available(const Maze&);
 };
 
-int cell::id(const Maze &maze) {
+int cell::id(const Maze& maze) {
   auto width = maze.front().size();
   auto res = width * y + x;
   return res;
 }
 
-bool cell::is_valid(const Maze &maze) {
+bool cell::is_valid(const Maze& maze) {
   if (x < 0 || y < 0 || x >= static_cast<int>(maze[0].size()) ||
       y >= static_cast<int>(maze.size())) {
     return false;
@@ -134,21 +134,21 @@ bool cell::is_valid(const Maze &maze) {
   return true;
 }
 
-bool cell::is_empty(const Maze &maze) {
+bool cell::is_empty(const Maze& maze) {
   if (is_valid(maze)) {
     return maze[y][x] == '.';
   }
   return false;
 }
 
-bool cell::is_available(const Maze &maze) {
+bool cell::is_available(const Maze& maze) {
   if (is_valid(maze)) {
     return maze[y][x] != '#';
   }
   return false;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

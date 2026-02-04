@@ -11,7 +11,7 @@ struct cell {
   int x, y;
 };
 
-bool a_star_search(Maze &maze, const cell &start, const cell &end);
+bool a_star_search(Maze& maze, const cell& start, const cell& end);
 
 }  // namespace warmup
 

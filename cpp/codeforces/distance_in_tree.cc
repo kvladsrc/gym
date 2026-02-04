@@ -33,7 +33,7 @@ using std::vector;
 
 using graph = vector<vector<int>>;
 
-vector<int> solve(graph &g, int start, int p, int k, int &acc) {
+vector<int> solve(graph& g, int start, int p, int k, int& acc) {
   vector<int> res(k + 1, 0);
   res[0] = 1;
 
@@ -54,7 +54,7 @@ vector<int> solve(graph &g, int start, int p, int k, int &acc) {
   return res;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -74,7 +74,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   }
 
   int res = 0;
-  auto t = solve(g, 0, 0, k, res);
+  solve(g, 0, 0, k, res);
   std::cout << res << "\n";
 
   return 0;

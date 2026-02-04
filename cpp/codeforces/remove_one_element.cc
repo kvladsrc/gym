@@ -32,7 +32,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-size_t best_of_two(vector<int> &a, vector<int> &b) {
+size_t best_of_two(const vector<int>& a, const vector<int>& b) {
   auto res = max(a.size(), b.size());
   if (a.size() == 1 || b.size() == 1) {
     return res;
@@ -45,14 +45,14 @@ size_t best_of_two(vector<int> &a, vector<int> &b) {
   return res;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
   size_t n = 0;
   std::cin >> n;
   vector<int> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

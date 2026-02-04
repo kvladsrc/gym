@@ -35,7 +35,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-void calculate_prefix_suffix(const string &s, vector<int> &table) {
+void calculate_prefix_suffix(const string& s, vector<int>& table) {
   table.resize(s.size());
   table.front() = 0;
 
@@ -56,7 +56,7 @@ void calculate_prefix_suffix(const string &s, vector<int> &table) {
 
 using graph = vector<set<int>>;
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

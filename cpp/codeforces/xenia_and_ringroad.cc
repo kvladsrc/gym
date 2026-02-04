@@ -15,7 +15,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int64_t n, m;
   std::cin >> n >> m;
   int64_t cur = 1;

@@ -30,7 +30,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int binary_search(vector<int> &a, int el) {
+int binary_search(const vector<int>& a, int el) {
   int res = -1;
   int l = 0, r = a.size() - 1;
   while (l <= r) {
@@ -45,7 +45,7 @@ int binary_search(vector<int> &a, int el) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

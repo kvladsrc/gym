@@ -4,7 +4,7 @@
 using std::string;
 
 // O(n)
-void print_non_decreasing(const string &a) {
+void print_non_decreasing(const string& a) {
   int one = 0, two = 0, three = 0;
   for (char c : a) {
     switch (c) {
@@ -46,7 +46,7 @@ void print_non_decreasing(const string &a) {
   std::cout << res << "\n";
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string input;
   std::cin >> input;
   print_non_decreasing(input);

@@ -23,7 +23,7 @@ using std::vector;
 
 #define INF 1000000000
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

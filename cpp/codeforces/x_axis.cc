@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -39,7 +39,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cin >> t;
   while ((t--) != 0) {
     vector<int> points(3);
-    for (auto &i : points) {
+    for (auto& i : points) {
       std::cin >> i;
     }
 

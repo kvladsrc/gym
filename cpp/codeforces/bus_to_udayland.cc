@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vector<vector<int>> bus(n, vector<int>(5));
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 
   std::cout << "YES"
             << "\n";
-  for (auto row : bus) {
+  for (const auto& row : bus) {
     for (int i = 0; i < 5; ++i) {
       switch (row[i]) {
         case 0:

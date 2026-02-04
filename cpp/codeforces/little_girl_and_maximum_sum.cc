@@ -26,7 +26,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int binary_search_with_duplicates(vector<int64_t> &a, int64_t el) {
+int binary_search_with_duplicates(const vector<int64_t>& a, int64_t el) {
   int res = -1;
   int l = 0, r = a.size() - 1;
   while (l <= r) {
@@ -41,11 +41,11 @@ int binary_search_with_duplicates(vector<int64_t> &a, int64_t el) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, q;
   std::cin >> n >> q;
   vector<int64_t> a(n), l(q), r(q);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
   for (int i = 0; i < q; ++i) {

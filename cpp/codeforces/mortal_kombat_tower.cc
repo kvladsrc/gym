@@ -33,7 +33,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int solve_rec(vector<int> &a, bool you_turn, size_t start) {
+int solve_rec(vector<int>& a, bool you_turn, size_t start) {
   if (start >= a.size()) {
     return 0;
   }
@@ -54,7 +54,7 @@ int solve_rec(vector<int> &a, bool you_turn, size_t start) {
   return min(case1, case2);
 }
 
-int solve_dp(vector<int> &a) {
+int solve_dp(const vector<int>& a) {
   // p.first if for you, p.second is for friend.
   vector<pair<int, int>> dp(a.size() + 1);
   dp[0].first = 0;
@@ -84,14 +84,14 @@ int solve_dp(vector<int> &a) {
   return dp.back().second;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
     int n;
     std::cin >> n;
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

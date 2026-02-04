@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int64_t solve(vector<int> &a, int k, int z, int pos, int64_t acc) {
+int64_t solve(vector<int>& a, int k, int z, int pos, int64_t acc) {
   if (pos < 0 || pos >= static_cast<int>(a.size())) {
     return INT64_MIN;
   }
@@ -52,7 +52,7 @@ int64_t solve(vector<int> &a, int k, int z, int pos, int64_t acc) {
   return max(case1, case2);
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

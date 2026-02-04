@@ -8,7 +8,7 @@ namespace warmup {
 
 using graph = std::vector<std::vector<int>>;
 
-void topological_sort(graph &g, std::vector<int> &rank);
+void topological_sort(graph& g, std::vector<int>& rank);
 
 }  // namespace warmup
 

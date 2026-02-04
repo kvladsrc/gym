@@ -11,7 +11,7 @@ int64_t even_odds(int64_t n, int64_t k) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int64_t n, k;
   std::cin >> n >> k;
   std::cout << even_odds(n, k) << "\n";

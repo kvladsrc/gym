@@ -15,9 +15,9 @@ struct node {
   int64_t max_color{};
 };
 
-node *merge(node *a, node *b);
-node *solve(const graph &g, std::vector<int64_t> &res,
-            const std::vector<int64_t> &colors, int start, int p);
+node* merge(node* a, node* b);
+node* solve(const graph& g, std::vector<int64_t>& res,
+            const std::vector<int64_t>& colors, int start, int p);
 
 }  // namespace warmup
 

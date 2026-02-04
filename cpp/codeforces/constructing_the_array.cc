@@ -33,7 +33,7 @@ using std::vector;
 
 class CompareRanges {
  public:
-  bool operator()(const pair<int, int> &a, const pair<int, int> &b) const {
+  bool operator()(const pair<int, int>& a, const pair<int, int>& b) const {
     if ((a.second - a.first) == (b.second - b.first)) {
       return a.first > b.first;
     }
@@ -42,7 +42,7 @@ class CompareRanges {
   }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

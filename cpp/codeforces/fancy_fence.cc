@@ -27,7 +27,7 @@ bool is_fancy(int deg) {
   return false;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

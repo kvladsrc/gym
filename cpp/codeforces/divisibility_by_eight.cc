@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   vector<string> table;
   for (int i = 0; i < 1000; ++i) {
     int buf = 8 * i;

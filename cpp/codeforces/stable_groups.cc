@@ -28,11 +28,11 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int64_t n, k, x;
   std::cin >> n >> k >> x;
   vector<int64_t> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

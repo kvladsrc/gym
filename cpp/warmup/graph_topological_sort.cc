@@ -10,7 +10,7 @@ namespace warmup {
 
 using graph = vector<vector<int>>;
 
-void dfs(graph &g, int start, int &clock, vector<int> &rank) {
+void dfs(graph& g, int start, int& clock, vector<int>& rank) {
   if (rank[start] != 0) {
     return;
   }
@@ -26,7 +26,7 @@ void dfs(graph &g, int start, int &clock, vector<int> &rank) {
   rank[start] = clock++;
 }
 
-void topological_sort(graph &g, vector<int> &rank) {
+void topological_sort(graph& g, vector<int>& rank) {
   int clock = 0;
 
   for (std::size_t v = 0; v < g.size(); ++v) {

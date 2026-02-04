@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   int t = 0;
   std::cin >> t;
   while ((t--) != 0) {
@@ -40,8 +40,8 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> n >> k;
 
     vector<vector<char>> orig(n, vector<char>(n));
-    for (auto &r : orig) {
-      for (auto &c : r) {
+    for (auto& r : orig) {
+      for (auto& c : r) {
         std::cin >> c;
       }
     }
@@ -56,7 +56,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
       }
     }
 
-    for (auto r : res) {
+    for (const auto& r : res) {
       for (auto c : r) {
         std::cout << c;
       }

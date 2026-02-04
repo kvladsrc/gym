@@ -28,7 +28,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
 
     vector<int> b(n);
     int64_t sum = 0;
-    for (auto &i : b) {
+    for (auto& i : b) {
       std::cin >> i;
       sum += i;
     }

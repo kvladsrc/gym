@@ -35,8 +35,8 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-void build_tree(const vector<int> &sum, vector<int64_t> &tree,
-                vector<int> &maximal, int v, int l, int r) {
+void build_tree(const vector<int>& sum, vector<int64_t>& tree,
+                vector<int>& maximal, int v, int l, int r) {
   if (l == r) {
     tree[v] = sum[l];
     maximal[v] = sum[l];
@@ -50,7 +50,7 @@ void build_tree(const vector<int> &sum, vector<int64_t> &tree,
   maximal[v] = max(maximal[v * 2], maximal[(v * 2) + 1]);
 }
 
-int64_t query_tree(const vector<int64_t> &tree, int v, int l, int r, int cl,
+int64_t query_tree(const vector<int64_t>& tree, int v, int l, int r, int cl,
                    int cr) {
   if (cl > r || cr < l) {
     return 0;
@@ -65,7 +65,7 @@ int64_t query_tree(const vector<int64_t> &tree, int v, int l, int r, int cl,
          query_tree(tree, (v * 2) + 1, l, r, m + 1, cr);
 }
 
-void update_tree_2(vector<int64_t> &tree, vector<int> &maximal, int v, int l,
+void update_tree_2(vector<int64_t>& tree, vector<int>& maximal, int v, int l,
                    int r, int cl, int cr, int x) {
   if (cl > r || cr < l || maximal[v] < x) {
     return;
@@ -83,7 +83,7 @@ void update_tree_2(vector<int64_t> &tree, vector<int> &maximal, int v, int l,
   maximal[v] = max(maximal[v * 2], maximal[(v * 2) + 1]);
 }
 
-void update_tree_3(vector<int64_t> &tree, vector<int> &maximal, int v, int l,
+void update_tree_3(vector<int64_t>& tree, vector<int>& maximal, int v, int l,
                    int cl, int cr, int x) {
   if (l > cr || l < cl) {
     return;
@@ -101,7 +101,7 @@ void update_tree_3(vector<int64_t> &tree, vector<int> &maximal, int v, int l,
   maximal[v] = max(maximal[v * 2], maximal[(v * 2) + 1]);
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -110,7 +110,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
   std::cin >> n >> m;
 
   vector<int> a(n);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

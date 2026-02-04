@@ -5,7 +5,7 @@
 
 namespace warmup {
 
-int knapsack(const std::vector<int> &weights, const std::vector<int> &costs,
+int knapsack(const std::vector<int>& weights, const std::vector<int>& costs,
              int w);
 
 }  // namespace warmup

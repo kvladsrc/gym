@@ -11,7 +11,7 @@ using std::vector;
 
 namespace warmup {
 
-void cc_bfs(const graph &g, int v, vector<int> &cc_table, int cc) {
+void cc_bfs(const graph& g, int v, vector<int>& cc_table, int cc) {
   queue<int> q;
   q.push(v);
   while (!q.empty()) {

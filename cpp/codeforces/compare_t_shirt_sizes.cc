@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int size_to_int(const string &a) {
+int size_to_int(const string& a) {
   int res = 1;
 
   for (char c : a) {
@@ -44,7 +44,7 @@ int size_to_int(const string &a) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

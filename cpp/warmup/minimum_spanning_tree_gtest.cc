@@ -13,7 +13,7 @@ TEST(MinimumSpanningTreeTest, BasicTest) {
       {4, {2, 3}}, {5, {0, 3}}, {10, {0, 1}}};
   auto result_mst = kruskal(v, edges);
   int total_weight = 0;
-  for (const auto &e : result_mst) {
+  for (const auto& e : result_mst) {
     total_weight += e.first;
   }
   ASSERT_EQ(total_weight, 19);
@@ -38,7 +38,7 @@ TEST(MinimumSpanningTreeTest, DisconnectedGraph) {
   std::vector<edge> edges = {{1, {0, 1}}, {2, {2, 3}}};
   auto result_mst = kruskal(v, edges);
   int total_weight = 0;
-  for (const auto &e : result_mst) {
+  for (const auto& e : result_mst) {
     total_weight += e.first;
   }
   ASSERT_EQ(total_weight, 3);
@@ -51,7 +51,7 @@ TEST(MinimumSpanningTreeTest, AlreadySortedEdges) {
       {4, {2, 3}}, {5, {0, 3}}, {6, {0, 2}}, {10, {0, 1}}, {15, {1, 3}}};
   auto result_mst = kruskal(v, edges);
   int total_weight = 0;
-  for (const auto &e : result_mst) {
+  for (const auto& e : result_mst) {
     total_weight += e.first;
   }
   ASSERT_EQ(total_weight, 19);
@@ -64,7 +64,7 @@ TEST(MinimumSpanningTreeTest, AllWeightsSame) {
   auto result_mst = kruskal(v, edges);
   ASSERT_EQ(result_mst.size(), 3);
   int total_weight = 0;
-  for (const auto &e : result_mst) {
+  for (const auto& e : result_mst) {
     total_weight += e.first;
   }
   ASSERT_EQ(total_weight, 3);

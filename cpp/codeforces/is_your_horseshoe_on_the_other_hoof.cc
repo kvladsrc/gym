@@ -10,7 +10,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   unordered_map<int, bool> m;
   int missing = 0;
   for (int i = 0; i < 4; ++i) {

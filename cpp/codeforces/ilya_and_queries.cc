@@ -48,7 +48,7 @@ struct Node {
   Node *left, *right;
 };
 
-void build(Node *root, int l, int r, string &in) {
+void build(Node* root, int l, int r, string& in) {
   if (r == l) {
     root->num = 0;
     return;
@@ -65,7 +65,7 @@ void build(Node *root, int l, int r, string &in) {
   if (in[mid] == in[mid + 1]) root->num++;
 }
 
-int query(Node *root, int l, int r, int cur_l, int cur_r, string &in) {
+int query(Node* root, int l, int r, int cur_l, int cur_r, string& in) {
   if (r <= cur_l || l >= cur_r) {
     return 0;
   }
@@ -84,7 +84,7 @@ int query(Node *root, int l, int r, int cur_l, int cur_r, string &in) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string in;
   std::cin >> in;
 

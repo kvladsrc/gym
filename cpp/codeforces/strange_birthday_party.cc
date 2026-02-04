@@ -28,7 +28,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -36,12 +36,12 @@ int main(int argc, char *argv[]) {
     std::cin >> n >> m;
 
     vector<int> friends(n);
-    for (auto &i : friends) {
+    for (auto& i : friends) {
       std::cin >> i;
     }
 
     vector<int> costs(m);
-    for (auto &i : costs) {
+    for (auto& i : costs) {
       std::cin >> i;
     }
 

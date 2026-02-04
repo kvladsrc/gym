@@ -31,7 +31,7 @@ struct path {
   int start, end, dist;
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
   vector<int> dist(n, -1);
   vector<int> prev(n, -1);
 
-  auto comp = [](const path &a, const path &b) { return a.dist > b.dist; };
+  auto comp = [](const path& a, const path& b) { return a.dist > b.dist; };
   priority_queue<path, vector<path>, decltype(comp)> heap(comp);
   heap.push({0, 0, 1});
 

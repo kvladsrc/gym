@@ -10,7 +10,7 @@ using std::vector;
 
 namespace warmup {
 
-void dfs(const graph &g, int start, int &clock, vector<int> &rank) {
+void dfs(const graph& g, int start, int& clock, vector<int>& rank) {
   if (rank[start] != 0) {
     return;
   }
@@ -26,7 +26,7 @@ void dfs(const graph &g, int start, int &clock, vector<int> &rank) {
   rank[start] = clock++;
 }
 
-void dfs_cc(const graph &g, int start, int cc, vector<int> &cc_table) {
+void dfs_cc(const graph& g, int start, int cc, vector<int>& cc_table) {
   if (cc_table[start] != 0) {
     return;
   }
@@ -38,7 +38,7 @@ void dfs_cc(const graph &g, int start, int cc, vector<int> &cc_table) {
   }
 }
 
-void topological_sort(const graph &g, vector<int> &rank) {
+void topological_sort(const graph& g, vector<int>& rank) {
   int clock = 0;
 
   for (std::size_t v = 0; v < g.size(); ++v) {
@@ -47,13 +47,13 @@ void topological_sort(const graph &g, vector<int> &rank) {
 }
 
 // Kosaraju's algorithm.
-vector<int> find_scc(int v, const vector<pair<int, int>> &edges) {
+vector<int> find_scc(int v, const vector<pair<int, int>>& edges) {
   if (v == 0) return {};
 
   vector<vector<int>> g(v);
   vector<vector<int>> g_reversed(v);
 
-  for (const auto &edge : edges) {
+  for (const auto& edge : edges) {
     g[edge.first].push_back(edge.second);
     g_reversed[edge.second].push_back(edge.first);
   }
@@ -63,7 +63,7 @@ vector<int> find_scc(int v, const vector<pair<int, int>> &edges) {
 
   class CompareDistance {
    public:
-    bool operator()(const pair<int, int> &p1, const pair<int, int> &p2) const {
+    bool operator()(const pair<int, int>& p1, const pair<int, int>& p2) const {
       return p1.first < p2.first;
     }
   };

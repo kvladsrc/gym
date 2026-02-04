@@ -25,12 +25,12 @@ struct card {
   char suit;
   char rank;
 
-  bool fit(const card &other) {
+  bool fit(const card& other) {
     return other.suit == suit || other.rank == rank;
   }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   card on_desk;
   std::cin >> on_desk.rank >> on_desk.suit;
   bool res = false;

@@ -14,7 +14,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   // This winter is so cold in Nvodsk! A group of n friends decided to
   // buy k bottles of a soft drink called "Take-It-Light" to warm up a
   // bit. Each bottle has l milliliters of the drink. Also they bought
@@ -33,11 +33,8 @@ int main(int argc, char *argv[]) {
   toasts.push_back(soft_drink / nl);
   toasts.push_back(slices);
   toasts.push_back(p / np);
-  int min = toasts[0];
-  for (int t : toasts) {
-    if (min > t) min = t;
-  }
-  std::cout << min / n << "\n";
+  int min_val = *std::min_element(toasts.begin(), toasts.end());
+  std::cout << min_val / n << "\n";
 
   return 0;
 }

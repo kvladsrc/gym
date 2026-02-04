@@ -28,7 +28,7 @@ int gcd(int a, int b) {
   return gcd(b, a % b);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
 
@@ -56,9 +56,9 @@ int main(int argc, char *argv[]) {
         continue;
       }
 
-      for (int jdx = idx + 1; jdx < n; ++jdx) {
-        if (gcd(a[idx], 2 * a[jdx]) > 1) max_pairs++;
-      }
+      max_pairs += std::count_if(a.begin() + idx + 1, a.end(), [&](int val) {
+        return gcd(a[idx], 2 * val) > 1;
+      });
     }
 
     std::cout << max_pairs << "\n";

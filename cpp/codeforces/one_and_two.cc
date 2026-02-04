@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int binary_search(vector<int> &s, int a) {
+int binary_search(const vector<int>& s, int a) {
   if (a == s[0]) return 0;
 
   int l = 0, r = s.size() - 1;
@@ -41,7 +41,7 @@ int binary_search(vector<int> &s, int a) {
   return r;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

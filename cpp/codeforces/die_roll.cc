@@ -19,7 +19,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int Y, W;
   std::cin >> Y >> W;
   int needed = 6 - max(Y, W) + 1;

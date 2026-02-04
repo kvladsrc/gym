@@ -24,7 +24,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string s;
   std::cin >> s;
   vector<int> cnt(26);
@@ -49,22 +49,23 @@ int main(int argc, char *argv[]) {
 
     bool removed = false;
 
-    for (int c = 0; c < 26; ++c) {
-      if (cnt[c] > 0 && (cnt[c] % 2 == 0)) {
-        cnt[c]--;
-        odd_cnt++;
-        removed = true;
-        break;
-      }
+    auto it_even = std::find_if(cnt.begin(), cnt.end(), [](int val) {
+      return val > 0 && (val % 2 == 0);
+    });
+
+    if (it_even != cnt.end()) {
+      (*it_even)--;
+      odd_cnt++;
+      removed = true;
     }
 
     if (!removed) {
-      for (int c = 0; c < 26; ++c) {
-        if (cnt[c] > 0) {
-          cnt[c]--;
-          odd_cnt--;
-          break;
-        }
+      auto it_any =
+          std::find_if(cnt.begin(), cnt.end(), [](int val) { return val > 0; });
+
+      if (it_any != cnt.end()) {
+        (*it_any)--;
+        odd_cnt--;
       }
     }
 

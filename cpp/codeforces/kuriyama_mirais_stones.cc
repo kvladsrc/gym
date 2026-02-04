@@ -24,11 +24,11 @@ using std::vector;
 
 struct node {
   int64_t sum;
-  node *left;
-  node *right;
+  node* left;
+  node* right;
 };
 
-node *build_sums(const vector<int64_t> &nums, int start, int end) {
+node* build_sums(const vector<int64_t>& nums, int start, int end) {
   auto res = new node;
   if (start == end) {
     res->sum = nums[start];
@@ -43,7 +43,7 @@ node *build_sums(const vector<int64_t> &nums, int start, int end) {
   return res;
 }
 
-int64_t query(node *root, int l, int r, int cur_l, int cur_r) {
+int64_t query(node* root, int l, int r, int cur_l, int cur_r) {
   if (l <= cur_l && cur_r <= r) {
     return root->sum;
   }
@@ -91,7 +91,7 @@ void simple_solution() {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
 

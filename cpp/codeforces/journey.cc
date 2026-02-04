@@ -13,7 +13,7 @@ using std::vector;
 
 using graph = vector<vector<int>>;
 
-float dfs(graph &g, int start, int p) {
+float dfs(graph& g, int start, int p) {
   if (g[start].size() == 1 && start != p) {
     return 0;
   }
@@ -36,7 +36,7 @@ float dfs(graph &g, int start, int p) {
   return 1 + sum / c;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

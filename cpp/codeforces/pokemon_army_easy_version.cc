@@ -33,7 +33,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int64_t solve(vector<int> &a, bool add, size_t start) {
+int64_t solve(const vector<int>& a, bool add, size_t start) {
   if (start >= a.size()) {
     return 0;
   }
@@ -49,9 +49,9 @@ int64_t solve(vector<int> &a, bool add, size_t start) {
   return max(case1, case2);
 }
 
-int64_t solve(vector<int> &a) { return solve(a, true, 0); }
+int64_t solve(const vector<int>& a) { return solve(a, true, 0); }
 
-int64_t solve_dp(vector<int> &a) {
+int64_t solve_dp(const vector<int>& a) {
   pair<int64_t, int64_t> prev = {0, 0};
 
   for (size_t idx = 1; idx <= a.size(); ++idx) {
@@ -68,7 +68,7 @@ int64_t solve_dp(vector<int> &a) {
   return prev.first;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     std::cin >> n >> q;
 
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

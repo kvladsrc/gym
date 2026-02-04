@@ -10,7 +10,7 @@ struct tree {
   tree *l, *r;
 };
 
-void build_tree(vector<int> &a, int l, int r, bool excl, tree *root) {
+void build_tree(vector<int>& a, int l, int r, bool excl, tree* root) {
   if (l == r) {
     root->val = a[l];
     return;
@@ -29,7 +29,7 @@ void build_tree(vector<int> &a, int l, int r, bool excl, tree *root) {
   }
 }
 
-void modify_tree(tree *root, int pos, int new_val, int l, int r, bool excl) {
+void modify_tree(tree* root, int pos, int new_val, int l, int r, bool excl) {
   if (pos < l || pos > r) {
     return;
   }
@@ -50,14 +50,14 @@ void modify_tree(tree *root, int pos, int new_val, int l, int r, bool excl) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
 
   int size = 1 << n;
   bool excl = n % 2 == 0;
   vector<int> a(size);
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
   }
 

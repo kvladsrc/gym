@@ -27,7 +27,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int seg_num(const vector<int> &a, int el) {
+int seg_num(const vector<int>& a, int el) {
   bool in_seg = false;
   int res = 0;
   for (auto i : a) {
@@ -46,7 +46,7 @@ int seg_num(const vector<int> &a, int el) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 
     vector<int> a(n);
     unordered_map<int, int> m;
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
       m[i]++;
     }

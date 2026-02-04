@@ -32,7 +32,7 @@ using std::vector;
 
 typedef vector<vector<int>> field;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, x_0, y_0;
   std::cin >> n >> x_0 >> y_0;
 

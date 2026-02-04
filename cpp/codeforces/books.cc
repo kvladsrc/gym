@@ -19,7 +19,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int binary_search(const vector<int> &sums, int t, int start, int end) {
+int binary_search(const vector<int>& sums, int t, int start, int end) {
   int mid = (start + end) / 2, i = start, j = end;
   int before = start == 0 ? 0 : sums[start - 1];
 
@@ -39,7 +39,7 @@ int binary_search(const vector<int> &sums, int t, int start, int end) {
   return res;
 }
 
-int best_seq_naive(const vector<int> &sums, int t, int start, int end) {
+int best_seq_naive(const vector<int>& sums, int t, int start, int end) {
   int best_seq = 0;
   for (int i = start; i <= end; ++i) {
     int best_from_i = binary_search(sums, t, i, end);
@@ -49,7 +49,7 @@ int best_seq_naive(const vector<int> &sums, int t, int start, int end) {
   return best_seq;
 }
 
-int best_seq(vector<int> &time_to_read, int t, int start, int end) {
+int best_seq(vector<int>& time_to_read, int t, int start, int end) {
   if (start >= end - t) {
     return time_to_read[start] <= t ? 1 : 0;
   }
@@ -62,7 +62,7 @@ int best_seq(vector<int> &time_to_read, int t, int start, int end) {
   return max(max(l_best, r_best), m_best);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, t;
   std::cin >> n >> t;
   vector<int> time_to_read(n);

@@ -12,35 +12,35 @@ using std::vector;
 
 namespace warmup {
 
-cell cell_left(const cell &c) {
+cell cell_left(const cell& c) {
   cell res{};
   res.x = c.x - 1;
   res.y = c.y;
   return res;
 }
 
-cell cell_right(const cell &c) {
+cell cell_right(const cell& c) {
   cell res{};
   res.x = c.x + 1;
   res.y = c.y;
   return res;
 }
 
-cell cell_up(const cell &c) {
+cell cell_up(const cell& c) {
   cell res{};
   res.x = c.x;
   res.y = c.y - 1;
   return res;
 }
 
-cell cell_down(const cell &c) {
+cell cell_down(const cell& c) {
   cell res{};
   res.x = c.x;
   res.y = c.y + 1;
   return res;
 }
 
-bool is_empty(const Maze &maze, const cell &c) {
+bool is_empty(const Maze& maze, const cell& c) {
   if (maze.empty() || c.x < 0 || c.y < 0 ||
       c.x >= static_cast<int>(maze[0].size()) ||
       c.y >= static_cast<int>(maze.size())) {
@@ -58,12 +58,12 @@ class CompareDistance {
  public:
   explicit CompareDistance(const cell ref) : target(ref) {}
 
-  bool operator()(const cell &p1, const cell &p2) const {
+  bool operator()(const cell& p1, const cell& p2) const {
     return dist(p1, target) > dist(p2, target);
   }
 };
 
-bool a_star_search(Maze &maze, const cell &start, const cell &end) {
+bool a_star_search(Maze& maze, const cell& start, const cell& end) {
   if (maze.empty()) {
     return false;
   }

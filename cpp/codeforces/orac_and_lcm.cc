@@ -41,7 +41,7 @@ int64_t gcd(int64_t a, int64_t b) {
 
 int64_t lcm(int64_t a, int64_t b) { return (a * b) / gcd(a, b); }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
   std::cin >> n;
   vector<int64_t> a(n);
   int64_t l = 1;
-  for (auto &i : a) {
+  for (auto& i : a) {
     std::cin >> i;
     l = lcm(l, i);
   }

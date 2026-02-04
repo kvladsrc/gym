@@ -23,7 +23,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int ternary_string_naive(const string &s, int start, int end) {
+int ternary_string_naive(const string& s, int start, int end) {
   int min_cur = s.size() + 1;
   for (int i = start; i <= end; ++i) {
     bool one = false, two = false, three = false;
@@ -48,7 +48,7 @@ int ternary_string_naive(const string &s, int start, int end) {
   return 0;
 }
 
-int ternary_string_dc(const string &s, int start, int end) {
+int ternary_string_dc(const string& s, int start, int end) {
   if (start >= end) return 0;
 
   int mid = (start + end) / 2;
@@ -73,7 +73,7 @@ int ternary_string_dc(const string &s, int start, int end) {
   return min(best, mid_best);
 }
 
-vector<int> sums(const string &s, char c) {
+vector<int> sums(const string& s, char c) {
   vector<int> sum(s.size(), 0);
   if (s[0] == c) {
     sum[0] = 1;
@@ -89,7 +89,7 @@ vector<int> sums(const string &s, char c) {
   return sum;
 }
 
-int binary_search(vector<int> &sums, int target) {
+int binary_search(const vector<int>& sums, int target) {
   if (target > sums.back()) return 0;
 
   int left = 0, right = sums.size() - 1;
@@ -109,7 +109,7 @@ int binary_search(vector<int> &sums, int target) {
   return 0;
 }
 
-int ternary_string(const string &s) {
+int ternary_string(const string& s) {
   vector<int> ones = sums(s, '1');
   vector<int> twos = sums(s, '2');
   vector<int> threes = sums(s, '3');
@@ -144,7 +144,7 @@ int ternary_string(const string &s) {
   return best_result == inf ? 0 : best_result;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

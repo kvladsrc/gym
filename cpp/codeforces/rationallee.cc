@@ -31,7 +31,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {
@@ -39,12 +39,12 @@ int main(int argc, char *argv[]) {
     std::cin >> n >> k;
 
     vector<int> nums(n);
-    for (auto &i : nums) {
+    for (auto& i : nums) {
       std::cin >> i;
     }
 
     vector<int> nums_for_friend(k);
-    for (auto &i : nums_for_friend) {
+    for (auto& i : nums_for_friend) {
       std::cin >> i;
     }
 

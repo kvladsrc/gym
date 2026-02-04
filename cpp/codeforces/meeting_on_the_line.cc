@@ -54,7 +54,7 @@ meta meet(meta a, meta b) {
   return {time_to_meet, meet_point};
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   int t = 0;
   std::cin >> t;
   while ((t--) != 0) {
@@ -62,19 +62,20 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> n;
 
     vector<meta> pos_and_time(n);
-    for (auto &i : pos_and_time) {
+    for (auto& i : pos_and_time) {
       std::cin >> i.second;
     }
 
-    for (auto &i : pos_and_time) {
+    for (auto& i : pos_and_time) {
       std::cin >> i.first;
     }
 
     meta T = {-INT_MAX, 0};
-    for (auto p : pos_and_time) {
-      if (p.first > T.first) {
-        T = p;
-      }
+    auto max_it = std::max_element(
+        pos_and_time.begin(), pos_and_time.end(),
+        [](const meta& a, const meta& b) { return a.first < b.first; });
+    if (max_it != pos_and_time.end()) {
+      T = *max_it;
     }
 
     // EDGE_CASE: All elements can reach position of "longest to

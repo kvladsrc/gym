@@ -31,12 +31,12 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-size_t find_parent(vector<int> &p, int el) {
+size_t find_parent(vector<int>& p, int el) {
   if (p[el] == el) return el;
   return find_parent(p, p[el]);
 }
 
-void join(vector<int> &rank, vector<int> &p, int a, int b) {
+void join(vector<int>& rank, vector<int>& p, int a, int b) {
   auto p_a = find_parent(p, a);
   auto p_b = find_parent(p, b);
 
@@ -54,7 +54,7 @@ void join(vector<int> &rank, vector<int> &p, int a, int b) {
   }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 

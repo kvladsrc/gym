@@ -31,7 +31,7 @@ using std::vector;
 
 const unsigned int modulo = 1000000007;
 
-int variants_by_one(int n, int k, unordered_map<int, int> &dp) {
+int variants_by_one(int n, int k, unordered_map<int, int>& dp) {
   if (n < k)
     // empty seq only
     return 1;
@@ -46,7 +46,7 @@ int variants_by_one(int n, int k, unordered_map<int, int> &dp) {
   return casted;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t, k;
   std::cin >> t >> k;
 

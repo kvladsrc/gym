@@ -3,7 +3,7 @@
 
 using std::string;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string input;
   std::cin >> input;
   input[0] = std::toupper(input[0]);

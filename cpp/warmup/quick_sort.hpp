@@ -5,8 +5,8 @@
 
 namespace warmup {
 
-int partition(std::vector<int> &a, int l, int r);
-void quick_sort(std::vector<int> &a, int l, int r);
+int partition(std::vector<int>& a, int l, int r);
+void quick_sort(std::vector<int>& a, int l, int r);
 
 }  // namespace warmup
 

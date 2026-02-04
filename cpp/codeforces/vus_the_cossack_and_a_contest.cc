@@ -21,7 +21,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m, k;
   std::cin >> n >> m >> k;
   if (n > min(m, k)) {

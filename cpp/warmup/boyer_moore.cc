@@ -31,13 +31,13 @@ namespace warmup {
  * missed. All earlier occurrences are left for later consideration.
  */
 
-void fill_last_seen(const string &pattern, map<char, std::size_t> &last_seen) {
+void fill_last_seen(const string& pattern, map<char, std::size_t>& last_seen) {
   for (std::size_t i = 0; i < pattern.size(); ++i) {
     last_seen[pattern[i]] = i + 1;
   }
 }
 
-bool boyer_moore(const string &s, const string &pattern) {
+bool boyer_moore(const string& s, const string& pattern) {
   // EDGE_CASE: Every string contain empty substring.
   if (pattern.empty()) {
     return true;

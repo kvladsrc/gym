@@ -22,7 +22,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int binary_search(vector<int64_t> &table, int64_t val) {
+int binary_search(const vector<int64_t>& table, int64_t val) {
   if (table[0] > val) return -1;
   if (table[table.size() - 1] < val) return -1;
 
@@ -46,7 +46,7 @@ int binary_search(vector<int64_t> &table, int64_t val) {
   return (table[l] == val ? l : -1);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
 

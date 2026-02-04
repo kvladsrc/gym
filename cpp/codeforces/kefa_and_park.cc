@@ -19,7 +19,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int solve(vector<vector<int>> &g, vector<bool> &cats, int m, int cm, int cur_v,
+int solve(vector<vector<int>>& g, vector<bool>& cats, int m, int cm, int cur_v,
           int from) {
   if (cats[cur_v]) {
     cm--;
@@ -40,7 +40,7 @@ int solve(vector<vector<int>> &g, vector<bool> &cats, int m, int cm, int cur_v,
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, m;
   std::cin >> n >> m;
 

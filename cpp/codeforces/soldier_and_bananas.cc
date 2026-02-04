@@ -1,6 +1,6 @@
 #include <iostream>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int k, n, w;
   std::cin >> k >> n >> w;
   int need = ((w + 1) * w / 2) * k;

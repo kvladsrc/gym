@@ -46,7 +46,6 @@ int main(int /*argc*/, char* /*argv*/[]) {
     int x = 0;
     std::cin >> n >> x;
 
-    vector<int> a(n);
     int first_closed = -1;
     int last_closed = -1;
 

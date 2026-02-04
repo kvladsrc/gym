@@ -28,7 +28,7 @@ int score(int i, int j) {
   return 5 - tmp;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int t;
   std::cin >> t;
   while (t--) {

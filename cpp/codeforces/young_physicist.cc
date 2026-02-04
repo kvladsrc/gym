@@ -3,7 +3,7 @@
 struct vec {
   int x, y, z;
 
-  vec operator+(const vec &other) {
+  vec operator+(const vec& other) {
     vec res;
     res.x = x + other.x;
     res.y = y + other.y;
@@ -14,7 +14,7 @@ struct vec {
   bool is_zero() { return (!x && !y && !z); }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
   vec acc = {0, 0, 0};

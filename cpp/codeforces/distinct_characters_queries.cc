@@ -39,8 +39,8 @@ using alphabet = vector<int>;
 struct node {
   alphabet chars;
 
-  node *l;
-  node *r;
+  node* l;
+  node* r;
 
   node() : chars(26, 0), l(nullptr), r(nullptr) {}
 
@@ -49,7 +49,7 @@ struct node {
     delete r;
   }
 
-  alphabet add(node *other) {
+  alphabet add(node* other) {
     alphabet res(26, 0);
     for (size_t idx = 0; idx < 26; ++idx) {
       res[idx] = chars[idx] + other->chars[idx];
@@ -58,7 +58,7 @@ struct node {
   }
 };
 
-node *build_tree(string &s, int left, int right) {
+node* build_tree(string& s, int left, int right) {
   auto res = new node();
 
   if (left == right) {
@@ -74,7 +74,7 @@ node *build_tree(string &s, int left, int right) {
   return res;
 }
 
-void update_tree(node *root, int left, int right, int pos, char c) {
+void update_tree(node* root, int left, int right, int pos, char c) {
   if (pos < left || pos > right) {
     return;
   }
@@ -92,7 +92,7 @@ void update_tree(node *root, int left, int right, int pos, char c) {
   root->chars = root->l->add(root->r);
 }
 
-alphabet query(node *root, int left, int right, int qleft, int qright) {
+alphabet query(node* root, int left, int right, int qleft, int qright) {
   alphabet res(26, 0);
 
   if (qright < left || qleft > right) {
@@ -113,14 +113,14 @@ alphabet query(node *root, int left, int right, int qleft, int qright) {
   return res;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
   string s;
   std::cin >> s;
 
-  auto *ft = build_tree(s, 0, s.size() - 1);
+  auto* ft = build_tree(s, 0, s.size() - 1);
 
   int t = 0;
   std::cin >> t;

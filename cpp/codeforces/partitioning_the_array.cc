@@ -48,7 +48,7 @@ int gcd(int a, int b) {
   return gcd(b, a % b);
 }
 
-int good(vector<int> &a, size_t k) {
+int good(const vector<int>& a, size_t k) {
   if (k == a.size()) {
     return 1;
   }
@@ -99,7 +99,7 @@ int good(vector<int> &a, size_t k) {
   return 1;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -109,7 +109,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     size_t n = 0;
     std::cin >> n;
     vector<int> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

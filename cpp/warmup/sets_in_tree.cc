@@ -7,7 +7,7 @@ using std::vector;
 
 namespace warmup {
 
-node *merge(node *a, node *b) {
+node* merge(node* a, node* b) {
   if (a->table.size() < b->table.size()) {
     std::swap(a, b);
   }
@@ -26,9 +26,9 @@ node *merge(node *a, node *b) {
   return a;
 }
 
-node *solve(const graph &g, vector<int64_t> &res, const vector<int64_t> &colors,
+node* solve(const graph& g, vector<int64_t>& res, const vector<int64_t>& colors,
             int start, int p) {
-  auto *n = new node();
+  auto* n = new node();
   n->table[colors[start]] = 1;
   n->max_color = 1;
   n->sum = colors[start];

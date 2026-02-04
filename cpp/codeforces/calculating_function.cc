@@ -30,7 +30,7 @@ int64_t calculate_naive(int64_t n) {
   return res;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int64_t n;
   std::cin >> n;
   std::cout << calculate(n) << "\n";

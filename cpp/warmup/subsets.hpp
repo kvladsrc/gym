@@ -5,7 +5,7 @@
 
 namespace warmup {
 
-std::vector<std::vector<int>> generate_subsets(const std::vector<int> &a);
+std::vector<std::vector<int>> generate_subsets(const std::vector<int>& a);
 
 }  // namespace warmup
 

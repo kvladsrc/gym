@@ -5,7 +5,7 @@
 
 namespace warmup {
 
-int find_max(std::string const &s, char c, int k);
+int find_max(std::string const& s, char c, int k);
 
 }  // namespace warmup
 

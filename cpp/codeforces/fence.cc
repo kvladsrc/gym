@@ -20,11 +20,11 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-int fence(vector<int> fence, int k) {
-  int sum = 0, min_sum, res;
-  for (int i = 0; i < k; ++i) {
-    sum += fence[i];
-  }
+#include <numeric>
+
+int fence(const vector<int>& fence, int k) {
+  int sum = std::accumulate(fence.begin(), fence.begin() + k, 0);
+  int min_sum, res;
   min_sum = sum;
   res = 0;
 
@@ -41,7 +41,7 @@ int fence(vector<int> fence, int k) {
   return res + 1;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n, k;
   std::cin >> n >> k;
   vector<int> f(n);

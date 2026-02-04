@@ -24,7 +24,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool compare_pair(const pair<int, int> &a, const pair<int, int> &b) {
+bool compare_pair(const pair<int, int>& a, const pair<int, int>& b) {
   if (a.first == b.first) {
     return a.second < b.second;
   }
@@ -32,13 +32,13 @@ bool compare_pair(const pair<int, int> &a, const pair<int, int> &b) {
   return a.first < b.first;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int n;
   std::cin >> n;
 
   vector<pair<int, int>> schedule(n);
 
-  for (auto &p : schedule) {
+  for (auto& p : schedule) {
     std::cin >> p.first;
     std::cin >> p.second;
   }

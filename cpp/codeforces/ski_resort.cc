@@ -39,7 +39,7 @@ int64_t in_ranges(int64_t k, int64_t range) {
   return res;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
@@ -52,7 +52,7 @@ int main(int /*argc*/, char * /*argv*/[]) {
     std::cin >> n >> k >> q;
 
     vector<int64_t> a(n);
-    for (auto &i : a) {
+    for (auto& i : a) {
       std::cin >> i;
     }
 

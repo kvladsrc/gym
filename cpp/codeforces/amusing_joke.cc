@@ -10,7 +10,7 @@ using std::string;
 using std::unordered_map;
 using std::vector;
 
-bool yep(const string &first, const string &second, const string &pile) {
+bool yep(const string& first, const string& second, const string& pile) {
   unordered_map<char, int> m;
   for (char c : pile) {
     m[c]++;
@@ -22,10 +22,10 @@ bool yep(const string &first, const string &second, const string &pile) {
   }
 
   return std::all_of(m.begin(), m.end(),
-                     [](const auto &pair) { return pair.second == 0; });
+                     [](const auto& pair) { return pair.second == 0; });
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string first, second, pile;
   std::cin >> first >> second >> pile;
   if (yep(first, second, pile)) {

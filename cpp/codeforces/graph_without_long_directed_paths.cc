@@ -37,7 +37,7 @@ using std::vector;
 using graph = vector<vector<int>>;
 using edge = pair<int, int>;
 
-bool bipartiteness(graph &g, vector<int> &colors, int color, int start) {
+bool bipartiteness(graph& g, vector<int>& colors, int color, int start) {
   if (colors[start] == color) {
     return true;
   }
@@ -58,7 +58,7 @@ bool bipartiteness(graph &g, vector<int> &colors, int color, int start) {
   return true;
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
+int main(int /*argc*/, char* /*argv*/[]) {
   std::ios::sync_with_stdio(false);
   std::cin.tie(nullptr);
 
