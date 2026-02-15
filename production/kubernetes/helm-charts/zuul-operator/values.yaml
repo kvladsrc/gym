@@ -1,0 +1,16 @@
+---
+replicaCount: 1
+
+image:
+  repository: quay.io/zuul-ci/zuul-operator
+  tag: "latest"
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: "zuul-operator"
+
+podAnnotations: {}
+podLabels: {}
+
+installCRDs: true

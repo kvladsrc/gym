@@ -1,0 +1,5 @@
+---
+gerrit-operator:
+  installCRDs: true
+  ingress:
+    type: INGRESS

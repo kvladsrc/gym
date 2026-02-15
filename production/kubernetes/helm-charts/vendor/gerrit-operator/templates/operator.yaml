@@ -1,0 +1,114 @@
+{{- if .Values.externalKeyStore.enabled }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name:  gerrit-operator-ssl
+  namespace: {{ .Release.Namespace }}
+data:
+  keystore.jks: {{ .Values.externalKeyStore.jks }}
+  keystore.password: {{ .Values.externalKeyStore.password | b64enc }}
+type: Opaque
+{{- end }}
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gerrit-operator
+  namespace: {{ .Release.Namespace }}
+  {{- if .Values.deployment }}
+  {{- with .Values.deployment.labels }}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.deployment.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels:
+      app: gerrit-operator
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: gerrit-operator
+        {{- if and .Values.deployment .Values.deployment.pod }}
+        {{- with .Values.deployment.pod.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- end }}
+      {{- if and .Values.deployment .Values.deployment.pod }}
+      {{- with .Values.deployment.pod.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+    spec:
+      serviceAccountName: gerrit-operator
+      {{- with .Values.image.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: operator
+        image: {{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}
+        imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: INGRESS
+          value: {{ .Values.ingress.type }}
+        - name: CLUSTER_MODE
+          value: "{{ .Values.cluster.mode | toString }}"
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTPS
+          initialDelaySeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTPS
+          initialDelaySeconds: 30
+        {{- if .Values.externalKeyStore.enabled }}
+        volumeMounts:
+        - name: ssl
+          readOnly: true
+          mountPath: /operator
+        {{- end }}
+      {{- if .Values.externalKeyStore.enabled }}
+      volumes:
+      - name: ssl
+        secret:
+          secretName: gerrit-operator-ssl
+      {{- end }}
+      {{- if .Values.deployment }}
+      {{- with .Values.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.deployment }}
+      {{- with .Values.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.deployment }}
+      {{- with .Values.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}

@@ -1,0 +1,15 @@
+{{- $sc := .Values.persistence.storageClass }}
+{{- range $name, $size := .Values.persistence.volumes }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: opengrok-{{ $name }}-pvc
+  labels: {{- include "opengrok.labels" $ | nindent 4 }}
+spec:
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: {{ $size }}
+  storageClassName: {{ $sc }}
+---
+{{- end }}

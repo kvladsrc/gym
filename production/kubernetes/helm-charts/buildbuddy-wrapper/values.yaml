@@ -1,0 +1,25 @@
+---
+buildbuddy:
+  disk:
+    data:
+      enabled: true
+      size: 10Gi
+      storageClass: "nfs-client"
+      accessMode: ReadWriteOnce
+
+  service:
+    type: LoadBalancer
+    loadBalancerIP: "192.168.1.221"
+    externalHTTPPort: 80
+    externalGRPCPort: 1985
+    externalHTTPSPort: ""
+    externalGRPCSPort: ""
+
+  config:
+    app:
+      build_buddy_url: "http://bb.your.domain"
+      events_api_url: "grpc://bb-grpc.your.domain"
+      cache_api_url: "grpc://bb-grpc.your.domain"
+
+  ingress:
+    enabled: false

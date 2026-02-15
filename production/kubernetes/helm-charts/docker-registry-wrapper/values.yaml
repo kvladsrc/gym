@@ -1,0 +1,24 @@
+---
+docker-registry:
+  replicaCount: 1
+
+  ingress:
+    enabled: true
+    className: nginx
+    path: /
+    hosts:
+      - registry.your.domain
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+
+  garbageCollect:
+    enabled: true
+    deleteUntagged: true
+    schedule: "0 * * * *"
+
+  persistence:
+    accessMode: "ReadWriteOnce"
+    enabled: true
+    size: 10Gi
+    storageClass: "nfs-client"

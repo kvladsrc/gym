@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zuul-web-minimal
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+    app.kubernetes.io/component: zuul-web-minimal
+spec:
+  replicas: {{ .Values.zuul.webMinimal.replicas }}
+  selector:
+    matchLabels:
+      {{- include "zuul.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: zuul-web-minimal
+  template:
+    metadata:
+      labels:
+        {{- include "zuul.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: zuul-web-minimal
+    spec:
+      containers:
+        - name: web
+          image: {{ .Values.zuul.webMinimal.image }}
+          imagePullPolicy: {{ .Values.zuul.webMinimal.imagePullPolicy }}
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zuul-web-minimal
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+    app.kubernetes.io/component: zuul-web-minimal
+spec:
+  selector:
+    {{- include "zuul.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: zuul-web-minimal
+  ports:
+    - port: 80
+      targetPort: 80

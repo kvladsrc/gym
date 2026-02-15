@@ -1,0 +1,9 @@
+dependencies:
+- name: gerrit-operator
+  repository: file://../vendor/gerrit-operator
+  version: 0.1.0
+- name: gerrit-operator-crds
+  repository: file://../vendor/gerrit-operator-crds
+  version: 0.1.0
+digest: sha256:0c950b4db0feefc1ee07962c193034c5306684420c26219f8ae9ea8e9c5f9873
+generated: "2026-01-19T21:36:48.591120795+01:00"

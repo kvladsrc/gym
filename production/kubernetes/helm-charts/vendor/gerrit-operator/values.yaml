@@ -1,0 +1,36 @@
+image:
+  repository: docker.io/k8sgerrit/gerrit-operator
+  tag: latest
+  imagePullPolicy: Always
+  imagePullSecrets: []
+  # - name: my-secret-1
+
+# Install the Gerrit CRDs along with the operator
+installCRDs: true
+
+ingress:
+  # Which ingress provider to use (options: NONE, INGRESS, ISTIO, AMBASSADOR)
+  type: NONE
+
+## Required to use an external/persistent keystore, otherwise a keystore using
+## self-signed certificates will be generated
+externalKeyStore:
+  enabled: false
+  # base64-encoded Java keystore
+  jks: ""
+  # Java keystore password (not base64-encoded)
+  password: ""
+
+cluster:
+  mode: HIGH_AVAILABILITY
+
+# Additional configuration for the operator Deployment
+deployment:
+  annotations: {}
+  labels: {}
+  pod:
+    annotations: {}
+    labels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

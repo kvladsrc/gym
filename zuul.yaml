@@ -1,0 +1,42 @@
+- job:
+    name: pre-submit-check
+    run: playbooks/check.yaml
+
+- job:
+    name: pre-submit-check-go
+    run: playbooks/check-go.yaml
+
+- job:
+    name: pre-submit-check-coverage
+    run: playbooks/check-coverage.yaml
+
+- job:
+    name: bazel-test-gate
+    run: playbooks/gate.yaml
+
+- job:
+    name: deploy-production
+    parent: deploy-base
+    run: playbooks/deploy.yaml
+
+- job:
+    name: renovate-bot
+    parent: renovate-base
+
+- project:
+    check:
+      jobs:
+        - pre-submit-check
+        - pre-submit-check-go
+    gate:
+      jobs:
+        - pre-submit-check
+        - pre-submit-check-go
+        - pre-submit-check-coverage
+        - bazel-test-gate
+    post:
+      jobs:
+        - deploy-production
+    daily:
+      jobs:
+        - renovate-bot

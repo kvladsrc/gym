@@ -1,0 +1,6 @@
+dependencies:
+- name: cert-manager
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 1.5.14
+digest: sha256:3a1bf3913126ba01bfa72b88941b300f84bf723d3ad5abdadd88949108fffc4a
+generated: "2026-01-19T21:36:28.591552072+01:00"

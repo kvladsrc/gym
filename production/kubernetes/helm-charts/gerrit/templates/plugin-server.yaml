@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gerrit-plugin-server
+  labels:
+    {{- include "gerrit.labels" . | nindent 4 }}
+    app.kubernetes.io/component: plugin-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "gerrit.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: plugin-server
+  template:
+    metadata:
+      labels:
+        {{- include "gerrit.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: plugin-server
+    spec:
+      containers:
+      - name: nginx
+        image: {{ .Values.pluginServer.image.repository }}:{{ .Values.pluginServer.image.tag }}
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gerrit-plugin-server
+  labels:
+    {{- include "gerrit.labels" . | nindent 4 }}
+    app.kubernetes.io/component: plugin-server
+spec:
+  selector:
+    {{- include "gerrit.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: plugin-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

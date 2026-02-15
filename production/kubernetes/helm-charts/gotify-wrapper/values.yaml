@@ -1,0 +1,13 @@
+gotify:
+  image:
+    repository: gotify/server
+    tag: latest
+
+  ingress:
+    enabled: false
+
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: "nfs-client"
+    accessMode: ReadWriteOnce

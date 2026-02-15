@@ -1,0 +1,15 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Run helmfile apply
+      command: helmfile apply
+      args:
+        chdir: "{{ repo_dir }}/production/kubernetes/helm-charts"
+      environment:
+        SOPS_AGE_KEY_FILE: "{{ ansible_env.HOME }}/plain/keys.txt"
+        KUBECONFIG: "{{ ansible_env.HOME }}/.kube/config"

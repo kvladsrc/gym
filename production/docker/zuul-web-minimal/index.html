@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zuul CI - Minimal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="app-container">
+      <header class="app-header">
+        <div class="logo">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 2L2 7L12 12L22 7L12 2Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M2 17L12 22L22 17"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M2 12L12 17L22 12"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <h1>Zuul CI</h1>
+        </div>
+        <div class="status-indicator">
+          <span class="dot"></span>
+          <span class="status-text">Connected</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="dashboard">
+          <div class="section-header">
+            <h2>Active Builds</h2>
+            <button id="refresh-btn">Refresh</button>
+          </div>
+
+          <div class="table-container">
+            <table id="builds-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Job</th>
+                  <th>Pipeline</th>
+                  <th>Result</th>
+                  <th>Duration</th>
+                  <th>Start Time</th>
+                </tr>
+              </thead>
+              <tbody id="builds-body">
+                <!-- Rows will be injected here -->
+              </tbody>
+            </table>
+            <div id="loading-indicator" class="loading-state">
+              <div class="spinner"></div>
+              <p>Loading builds...</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: gotify-wrapper
+description: "Wrapper chart: gotify"
+type: application
+version: 0.1.0
+appVersion: "2.5.0" # Approx gotify version, just for display
+dependencies:
+  - name: gotify
+    version: 0.7.0
+    repository: "https://pmoscode-helm.github.io/gotify/"

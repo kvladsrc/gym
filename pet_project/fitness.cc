@@ -9,6 +9,10 @@
 #include <string>
 #include <vector>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace std::chrono;
 
 namespace evo {
@@ -29,8 +33,9 @@ Fitness::Fitness(const Config& config)
   opts.SetIntraOpNumThreads(0);
   opts.SetInterOpNumThreads(0);
 
-  // Enable CUDA provider if available
-  try {
+  // Enable CUDA provider if requested
+  if (config.use_gpu) {
+    try {
       OrtCUDAProviderOptions cuda_options;
       cuda_options.device_id = 0;
       cuda_options.arena_extend_strategy = 0;
@@ -39,8 +44,13 @@ Fitness::Fitness(const Config& config)
       cuda_options.do_copy_in_default_stream = 1;
       
       opts.AppendExecutionProvider_CUDA(cuda_options);
-  } catch (const std::exception& e) {
+      std::cout << "Using GPU (CUDA) for inference" << std::endl;
+    } catch (const std::exception& e) {
       std::cerr << "Failed to enable CUDA provider: " << e.what() << std::endl;
+      std::cerr << "Falling back to CPU" << std::endl;
+    }
+  } else {
+    std::cout << "Using CPU for inference" << std::endl;
   }
   for (const auto& path : config.model_paths) {
     sessions_.push_back(
@@ -108,17 +118,12 @@ float Fitness::run_model(Ort::Session& session,
   auto shape = output_tensors[0].GetTensorTypeAndShapeInfo().GetShape();
   int num_classes = static_cast<int>(shape[1]);
 
-  // Softmax for original (row 0) and flipped (row 1), return min.
+  // Return raw logit value for target class (min across augmentations).
+  // This allows continuous improvement beyond softmax saturation.
   float best = std::numeric_limits<float>::max();
   for (int b = 0; b < 2; b++) {
     float* row = logits + b * num_classes;
-    float max_val = *std::max_element(row, row + num_classes);
-    float sum = 0;
-    for (int i = 0; i < num_classes; i++) {
-      row[i] = std::exp(row[i] - max_val);
-      sum += row[i];
-    }
-    best = std::min(best, row[config_.imagenet_class] / sum);
+    best = std::min(best, row[config_.imagenet_class]);
   }
   return best;
 }
@@ -153,33 +158,10 @@ float Fitness::evaluate(const std::vector<uint8_t>& rgba, int width,
 
 void Fitness::evaluate_population(std::vector<Individual>& population,
                                   const Renderer& renderer) {
-  float total_render_time = 0;
-  float total_inference_time = 0;
-
-  for (auto& ind : population) {
-    auto start_render = high_resolution_clock::now();
-    auto image = renderer.render(ind.dna);
-    auto end_render = high_resolution_clock::now();
-    
-    if (config_.benchmark) {
-        duration<float, std::milli> duration_render = end_render - start_render;
-        total_render_time += duration_render.count();
-    }
-
-    auto start_inference = high_resolution_clock::now();
-    ind.fitness = evaluate(image, config_.image_width, config_.image_height);
-    auto end_inference = high_resolution_clock::now();
-
-    if (config_.benchmark) {
-        duration<float, std::milli> duration_inference = end_inference - start_inference;
-        total_inference_time += duration_inference.count();
-    }
-  }
-
-  if (config_.benchmark) {
-      std::cout << "Average render time per individual: " << total_render_time / population.size() << " ms" << std::endl;
-      std::cout << "Average inference time per individual: " << total_inference_time / population.size() << " ms" << std::endl;
-      std::cout << "Total time for population: " << total_render_time + total_inference_time << " ms" << std::endl;
+  #pragma omp parallel for schedule(dynamic)
+  for (size_t i = 0; i < population.size(); i++) {
+    auto image = renderer.render(population[i].dna);
+    population[i].fitness = evaluate(image, config_.image_width, config_.image_height);
   }
 }
 

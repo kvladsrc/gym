@@ -10,7 +10,7 @@
   "image_height": 224,
   "max_triangle_radius": 0.3,
   "model_paths": [
-    "/home/zjgkkn/Dropbox/src/pet_project/mobilenetv2-12.onnx"
+    "/home/myuser/Dropbox/src/pet_project/mobilenetv2-12.onnx"
   ],
   "output_dir": "/tmp/pet_project_test",
   "benchmark": true

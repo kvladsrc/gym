@@ -1,0 +1,11 @@
+---
+apiVersion: v2
+name: kyverno-wrapper
+description: A Helm chart for Kyverno
+type: application
+version: 3.6.1
+appVersion: "1.16.1"
+dependencies:
+  - name: kyverno
+    version: "3.7.0"
+    repository: "https://kyverno.github.io/kyverno/"

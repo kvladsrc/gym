@@ -1,0 +1,10 @@
+image:
+  repository: adminer
+  pullPolicy: IfNotPresent
+  tag: "5.4.1"
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources: {}

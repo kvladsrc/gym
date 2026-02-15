@@ -1,0 +1,29 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Run golangci-lint
+      shell: golangci-lint run --timeout 5m ./...
+      args:
+        chdir: "{{ repo_dir }}"
+
+    - name: Run go vet
+      shell: go vet ./...
+      args:
+        chdir: "{{ repo_dir }}"
+
+    - name: Run gazelle
+      shell: |
+        diff=$(bazelisk run //:gazelle -- -mode=diff)
+        if [[ -n "$diff" ]]; then
+          echo "Gazelle found changes:"
+          echo "$diff"
+          echo "Please run 'bazelisk run //:gazelle' and commit the changes."
+          exit 1
+        fi
+      args:
+        chdir: "{{ repo_dir }}"

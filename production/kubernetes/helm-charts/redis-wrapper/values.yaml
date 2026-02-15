@@ -1,0 +1,20 @@
+---
+redis:
+  global:
+    defaultStorageClass: "nfs-client"
+    storageClass: ""
+
+  architecture: standalone
+
+  auth:
+    enabled: false
+
+  master:
+    resourcesPreset: "none"
+    persistence:
+      enabled: true
+
+  replica:
+    resourcesPreset: "none"
+    persistence:
+      enabled: true

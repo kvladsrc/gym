@@ -1,0 +1,6 @@
+apiVersion: v2
+name: postgres-ui
+description: A Helm chart for Adminer, a PostgreSQL Web UI
+type: application
+version: 0.1.0
+appVersion: "4.8.1"

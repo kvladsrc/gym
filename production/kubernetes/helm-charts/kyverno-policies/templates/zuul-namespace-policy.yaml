@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: label-zuul-namespace-privileged
+  annotations:
+    policies.kyverno.io/title: Label Zuul Namespace Privileged
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/subject: Namespace
+    policies.kyverno.io/description: >-
+      This policy adds the privileged Pod Security Standard labels to the 'zuul' namespace.
+spec:
+  rules:
+  - name: label-namespace
+    match:
+      any:
+      - resources:
+          kinds:
+          - Namespace
+          names:
+          - zuul
+    mutate:
+      patchStrategicMerge:
+        metadata:
+          labels:
+            pod-security.kubernetes.io/enforce: privileged
+            pod-security.kubernetes.io/audit: privileged
+            pod-security.kubernetes.io/warn: privileged

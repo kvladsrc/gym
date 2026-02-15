@@ -1,0 +1,138 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zuul-logs-pvc
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+spec:
+  storageClassName: nfs-client
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: {{ .Values.logs.storage.logs }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zuul-ssh-config-pvc
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+spec:
+  storageClassName: nfs-client
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: {{ .Values.logs.storage.sshConfig }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zuul-logs-nginx-conf
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+data:
+  # yamllint disable rule:line-length
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+
+        root /usr/share/nginx/html;
+        autoindex  on;
+        charset    utf-8;
+
+        #
+        # 1.  Любой GET/HEAD: просто отдаём файл + нужные CORS-заголовки
+        #
+        location / {
+            add_header Access-Control-Allow-Origin      $http_origin             always;
+            add_header Access-Control-Allow-Credentials "true"                   always;
+            add_header Vary                             "Origin"                 always;
+            try_files $uri $uri/ =404;
+        }
+    }
+  # yamllint enable rule:line-length
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zuul-logs-store
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zuul-logs-store
+  template:
+    metadata:
+      labels:
+        app: zuul-logs-store
+        {{- include "zuul.selectorLabels" . | nindent 8 }}
+    spec:
+      volumes:
+        - name: logs
+          persistentVolumeClaim:
+            claimName: zuul-logs-pvc
+        - name: ssh-config
+          persistentVolumeClaim:
+            claimName: zuul-ssh-config-pvc
+        - name: nginx-conf
+          configMap:
+            name: zuul-logs-nginx-conf
+      containers:
+        - name: nginx
+          image: nginx:1.25-alpine
+          volumeMounts:
+            - name: logs
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+          ports:
+            - containerPort: 80
+              name: http
+              protocol: TCP
+        - name: sshd
+          image: {{ .Values.logs.image }}
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: USER_NAME
+              value: "zuul"
+            - name: TZ
+              value: "UTC"
+            - name: PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ssh-zuul-logs
+                  key: authorized_keys
+          volumeMounts:
+            - name: logs
+              mountPath: /srv/static/logs/
+            - name: ssh-config
+              mountPath: /config
+          ports:
+            - containerPort: 2222
+              name: ssh
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zuul-logs-svc
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "zuul.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: 80
+      targetPort: http
+      name: http
+    - port: 22
+      targetPort: ssh
+      name: ssh

@@ -1,0 +1,38 @@
+apiVersion: operator.zuul-ci.org/v1alpha2
+kind: Zuul
+metadata:
+  name: zuul
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+spec:
+  zuulImageVersion: {{ .Values.zuul.zuulImageVersion }}
+  database:
+    secretName: creds # pragma: allowlist secret
+  executor:
+    count: 1
+    sshkey:
+      secretName: gerrit-secrets # pragma: allowlist secret
+  jobVolumes:
+    - context: trusted
+      access: rw
+      path: /srv/static/logs
+      volume:
+        name: zuul-logs
+        persistentVolumeClaim:
+          claimName: zuul-logs-pvc
+  scheduler:
+    config:
+      secretName: zuul-tenant-config # pragma: allowlist secret
+  launcher:
+    config:
+      secretName: zuul-nodepool-config # pragma: allowlist secret
+  web:
+    count: 1
+    status_url: {{ .Values.zuul.web.statusUrl }}
+  connections:
+    gerrit:
+      driver: gerrit
+      server: {{ .Values.gerrit.server }}
+      user: {{ .Values.gerrit.user }}
+      secretName: gerrit-secrets # pragma: allowlist secret
+      baseurl: http://{{ .Values.gerrit.server }}

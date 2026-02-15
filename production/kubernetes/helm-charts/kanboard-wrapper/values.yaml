@@ -1,0 +1,29 @@
+kanboard:
+  image:
+    registry: docker.io
+    repository: kanboard/kanboard
+    tag: "latest"
+
+  application:
+    port: 80
+    persistence:
+      enabled: true
+      persistentVolumeClaim:
+        name: kanboard-pvc
+        create: true
+        storageClass: "nfs-client"
+        size: 5Gi
+        accessMode: ReadWriteOnce
+
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 80
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

@@ -1,0 +1,53 @@
+---
+gerrit:
+  server: cl.your.domain
+  user: zuul
+
+zuul:
+  zuulImageVersion: latest
+  web:
+    statusUrl: https://ci.your.domain
+  webMinimal:
+    image: registry.your.domain/zuul-web-minimal:1.0
+    imagePullPolicy: Always
+    replicas: 1
+  tenantConfig: |
+    - tenant:
+        name: your.domain
+        web-root: https://ci.your.domain/t/your.domain/
+        source:
+          gerrit:
+            config-projects:
+              - zuul-config
+            untrusted-projects:
+              - src
+  nodepoolConfig: |
+    labels:
+      - name: build-node
+    providers:
+      - name: dev-k8s
+        driver: kubernetes
+        context: admin-cluster.local
+        pools:
+          - name: main
+            labels:
+              - name: build-node
+                type: pod
+                image: registry.your.domain/build:1.0
+                image-pull: Always
+                volumes:
+                  - name: pre-commit-cache
+                    nfs:
+                      server: 192.168.1.185
+                      path: /srv/nfs/pre-commit-cache
+                volume-mounts:
+                  - name: pre-commit-cache
+                    mountPath: /root/.cache/pre-commit
+
+logs:
+  image: registry.your.domain/logs:1.0
+  # yamllint disable-line rule:line-length
+  sshPublicKey: c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUdrRHVIVW9NaHZ5bTlPUGFRNHhaZ2NSckFFK0dkU1BibDhKWG9TTGZJYUcgenV1bC1sb2ctdXBsb2FkCg== # pragma: allowlist secret
+  storage:
+    logs: 10Gi
+    sshConfig: 1Gi

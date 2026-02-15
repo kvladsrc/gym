@@ -1,0 +1,106 @@
+---
+# Default values for gerrit chart
+namespace: gerrit-cluster
+
+# Container image settings
+containerImages:
+  imagePullPolicy: IfNotPresent
+
+pluginServer:
+  image:
+    repository: registry.your.domain/gerrit-plugins
+    tag: "1.0"
+
+# Storage configuration
+storage:
+  storageClasses:
+    readWriteOnce: nfs-client
+    readWriteMany: nfs-client
+  sharedStorage:
+    size: 5Gi
+
+# Ingress configuration
+ingress:
+  enabled: false
+  host: review.your.domain
+  annotations: {}
+
+# Server ID
+serverId: "fa055522-fbb2-4b57-9edf-472ebb4425f4"
+
+# Gerrit instance configuration
+gerrit:
+  name: gerrit
+  mode: PRIMARY
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: 1
+      memory: 5Gi
+    limits:
+      cpu: 1
+      memory: 6Gi
+
+  service:
+    type: NodePort
+    httpPort: 80
+    sshPort: 29418
+
+  site:
+    size: 5Gi
+
+  startupProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 10
+    successThreshold: 1
+    failureThreshold: 10
+
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 10
+    successThreshold: 1
+    failureThreshold: 10
+
+  livenessProbe:
+    initialDelaySeconds: 120
+    periodSeconds: 10
+    timeoutSeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+
+  plugins:
+    - name: download-commands
+    - name: delete-project
+    - name: avatars-gravatar
+      url: http://gerrit-plugin-server/avatars-gravatar.jar
+      sha1: 0acf8222cda5839e99c38aaa541d5c186c7e4699 # pragma: allowlist secret
+    - name: checks-zuul
+      url: http://gerrit-plugin-server/checks-zuul.jar
+      sha1: b9af222dde3b6b9146bc4373580ec6cb444ba330 # pragma: allowlist secret
+    - name: commit-message-length-validator
+      url: http://gerrit-plugin-server/commit-message-length-validator.jar
+      sha1: a3ddecbd675c6cac7f17d592bf7c118280cc4e81 # pragma: allowlist secret
+
+  config: |-
+    [gerrit]
+      canonicalWebUrl = https://review.your.domain/
+    [index]
+      type = LUCENE
+    [auth]
+      type = HTTP
+      gitBasicAuth = true
+    [httpd]
+      listenUrl = proxy-https://*:8080/
+      httpHeader = X-Authentik-Username
+      requestLog = true
+      gracefulStopTimeout = 20s
+    [user]
+      name = Gerrit Code Review
+      email = gerrit@example.com
+      anonymousCoward = Unnamed User
+    [container]
+      javaOptions = -Xms200m
+      javaOptions = -Xmx4g

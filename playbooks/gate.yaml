@@ -1,0 +1,53 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Run bazel build
+      shell: >
+        bazelisk build //...
+        --verbose_failures
+        --sandbox_debug
+      args:
+        chdir: "{{ repo_dir }}"
+
+    - name: Run bazel test
+      shell: >
+        bazelisk test //...
+        --verbose_failures
+        --sandbox_debug
+      args:
+        chdir: "{{ repo_dir }}"
+
+    - name: Run bazel test (ASan)
+      shell: >
+        bazelisk test //...
+        --config=asan
+        --verbose_failures
+        --sandbox_debug
+        --test_output=errors
+      args:
+        chdir: "{{ repo_dir }}"
+
+    - name: Run bazel test (UBSan)
+      shell: >
+        bazelisk test //...
+        --config=ubsan
+        --verbose_failures
+        --sandbox_debug
+        --test_output=errors
+      args:
+        chdir: "{{ repo_dir }}"
+
+    - name: Run bazel test (TSan)
+      shell: >
+        bazelisk test //...
+        --config=tsan
+        --verbose_failures
+        --sandbox_debug
+        --test_output=errors
+      args:
+        chdir: "{{ repo_dir }}"

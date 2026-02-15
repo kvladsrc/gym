@@ -1,0 +1,13 @@
+---
+privatebin:
+  replicaCount: 0
+
+  controller:
+    pvc:
+      requests: "1Gi"
+      accessModes: "ReadWriteOnce"
+      storageClass: "nfs-client"
+    emptyDir: false
+
+  ingress:
+    enabled: false

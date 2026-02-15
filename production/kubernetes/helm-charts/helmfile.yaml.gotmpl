@@ -1,0 +1,254 @@
+---
+environments:
+  default:
+  lint:
+---
+# Helmfile for managing helm releases
+helmDefaults:
+  # Wait for resources to be ready
+  wait: true
+  # Timeout for helm operations
+  timeout: 600
+  # Recreate pods on helm upgrade
+  recreatePods: false
+  # Force resource updates
+  force: false
+
+repositories:
+  # Required for buildbuddy chart dependencies
+  - name: stable
+    url: https://charts.helm.sh/stable
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: jetstack
+    url: https://charts.jetstack.io
+  - name: kyverno
+    url: https://kyverno.github.io/kyverno/
+  - name: authentik
+    url: https://charts.goauthentik.io
+  - name: buildbuddy
+    url: https://buildbuddy-io.github.io/buildbuddy-helm/
+  - name: twuni
+    url: https://twuni.github.io/docker-registry.helm
+  - name: nfs-subdir-external-provisioner
+    url: https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+  - name: privatebin
+    url: https://privatebin.github.io/helm-chart
+  - name: kube-vip
+    url: https://kube-vip.github.io/helm-charts/
+  - name: gotify
+    url: https://pmoscode-helm.github.io/gotify/
+  - name: kanboard
+    url: https://kube-the-home.github.io/kanboard-helm/
+
+releases:
+  # A self-hosted, open source identity provider means prioritizing
+  # security and taking control of your most sensitive data.
+  {{- $chartPath := "./authentik-wrapper" }}
+  - name: authentik
+    namespace: authentik
+    createNamespace: true
+    chart: {{ $chartPath }}
+    {{- if eq .Environment.Name "lint" }}
+    values:
+      - {{ $chartPath }}/secrets.mock.yaml
+    {{- else }}
+    secrets:
+      - {{ $chartPath }}/secrets.yaml
+    {{- end }}
+
+  # BuildBuddy is the developer productivity platform built for Bazel.
+  - name: buildbuddy
+    namespace: buildbuddy
+    createNamespace: true
+    chart: ./buildbuddy-wrapper
+
+  # cert-manager is a powerful and extensible X.509 certificate
+  # controller for Kubernetes and OpenShift workloads.
+  {{- $chartPath := "./cert-manager-wrapper" }}
+  - name: cert-manager
+    namespace: cert-manager
+    createNamespace: true
+    chart: {{ $chartPath }}
+    {{- if eq .Environment.Name "lint" }}
+    values:
+      - {{ $chartPath }}/secrets.mock.yaml
+    {{- else }}
+    secrets:
+      - {{ $chartPath }}/secrets.yaml
+    {{- end }}
+
+  # Distribution implementation for storing and distributing of
+  # container images and artifacts.
+  {{- $chartPath := "./docker-registry-wrapper" }}
+  - name: docker-registry
+    namespace: docker-registry
+    createNamespace: true
+    chart: {{ $chartPath }}
+    {{- if eq .Environment.Name "lint" }}
+    values:
+      - {{ $chartPath }}/secrets.mock.yaml
+    {{- else }}
+    secrets:
+      - {{ $chartPath }}/secrets.yaml
+    {{- end }}
+
+  # A Gerrit Operator can be used to install and operate Gerrit in a
+  # Kubernetes cluster.
+  {{- $chartPath := "./gerrit" }}
+  - name: gerrit
+    namespace: gerrit-cluster
+    createNamespace: true
+    chart: {{ $chartPath }}
+    {{- if eq .Environment.Name "lint" }}
+    values:
+      - {{ $chartPath }}/secrets.mock.yaml
+    {{- else }}
+    secrets:
+      - {{ $chartPath }}/secrets.yaml
+    {{- end }}
+
+  # A Gerrit Operator can be used to install and operate Gerrit in a
+  # Kubernetes cluster.
+  - name: gerrit-operator
+    namespace: gerrit-operator
+    createNamespace: true
+    chart: ./gerrit-operator-wrapper
+
+  # Gotify - A simple server for sending and receiving messages
+  {{- $chartPath := "./gotify-wrapper" }}
+  - name: gotify
+    namespace: gotify
+    installed: false
+    createNamespace: true
+    chart: {{ $chartPath }}
+
+  # HedgeDoc collaborative markdown editor
+  {{- $chartPath := "./hedgedoc" }}
+  - name: hedgedoc
+    namespace: hedgedoc
+    createNamespace: true
+    chart: {{ $chartPath }}
+    {{- if eq .Environment.Name "lint" }}
+    values:
+      - {{ $chartPath }}/secrets.mock.yaml
+    {{- else }}
+    secrets:
+      - {{ $chartPath }}/secrets.yaml
+    {{- end }}
+
+  # Ingress NGINX Controller
+  - name: ingress-nginx
+    namespace: ingress-nginx
+    createNamespace: true
+    chart: ./ingress-nginx-wrapper
+
+  # Kanboard - project management board (Kanban)
+  - name: kanboard
+    namespace: kanboard
+    createNamespace: true
+    chart: ./kanboard-wrapper
+
+  # Kube-VIP for Service LoadBalancer
+  - name: kube-vip
+    namespace: kube-system
+    chart: ./kube-vip-wrapper
+
+  # Kyverno Policy Engine
+  - name: kyverno
+    namespace: kyverno
+    createNamespace: true
+    chart: ./kyverno-wrapper
+
+  # Kyverno Policies
+  - name: kyverno-policies
+    namespace: kyverno
+    chart: ./kyverno-policies
+    needs:
+      - kyverno/kyverno
+
+  # nfs-subdir-external-provisioner is an automatic provisioner that
+  # used your *already configured* NFS server, automatically creating
+  # Persistent Volumes.
+  - name: nfs
+    namespace: nfs
+    createNamespace: true
+    chart: ./nfs-subdir-external-provisioner-wrapper
+
+  # OpenGrok is a source code cross-reference and search engine.
+  {{- $chartPath := "./opengrok" }}
+  - name: opengrok
+    namespace: opengrok
+    createNamespace: true
+    chart: {{ $chartPath }}
+    {{- if eq .Environment.Name "lint" }}
+    values:
+      - {{ $chartPath }}/secrets.mock.yaml
+    {{- else }}
+    secrets:
+      - {{ $chartPath }}/secrets.yaml
+    {{- end }}
+
+  # PostgreSQL also known as Postgres, is a free and open-source
+  # relational database management system emphasizing extensibility
+  # and SQL compliance.
+  {{- $chartPath := "./postgresql-wrapper" }}
+  - name: postgresql
+    namespace: postgres
+    createNamespace: true
+    chart: {{ $chartPath }}
+    {{- if eq .Environment.Name "lint" }}
+    values:
+      - {{ $chartPath }}/secrets.mock.yaml
+    {{- else }}
+    secrets:
+      - {{ $chartPath }}/secrets.yaml
+    {{- end }}
+
+  # Adminer Web UI for PostgreSQL
+  - name: postgres-ui
+    namespace: postgres
+    chart: ./postgres-ui
+
+  # PrivateBin pastebin service
+  - name: privatebin
+    namespace: privatebin
+    createNamespace: true
+    installed: false
+    chart: ./privatebin-wrapper
+
+  # Redis(R) is an open source, advanced key-value store. It is often
+  # referred to as a data structure server since keys can contain
+  # strings, hashes, lists, sets and sorted sets.
+  {{- $chartPath := "./redis-wrapper" }}
+  - name: redis
+    namespace: redis
+    createNamespace: true
+    chart: {{ $chartPath }}
+    {{- if eq .Environment.Name "lint" }}
+    values:
+      - {{ $chartPath }}/secrets.mock.yaml
+    {{- else }}
+    secrets:
+      - {{ $chartPath }}/secrets.yaml
+    {{- end }}
+
+  # This is a Kubernetes Operator for the Zuul Project Gating System.
+  - name: zuul-operator
+    namespace: zuul-operator
+    createNamespace: true
+    chart: ./zuul-operator
+
+  # Zuul CI/CD system
+  {{- $chartPath := "./zuul" }}
+  - name: zuul
+    namespace: zuul
+    createNamespace: true
+    chart: {{ $chartPath }}
+    {{- if eq .Environment.Name "lint" }}
+    values:
+      - {{ $chartPath }}/secrets.mock.yaml
+    {{- else }}
+    secrets:
+      - {{ $chartPath }}/secrets.yaml
+    {{- end }}

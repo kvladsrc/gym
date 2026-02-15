@@ -1,0 +1,64 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+    coverage_threshold: 90
+
+  tasks:
+    - name: Run bazel coverage
+      shell: >
+        bazelisk coverage //cpp/warmup/...
+        --combined_report=lcov
+        --verbose_failures
+        --sandbox_debug
+      args:
+        chdir: "{{ repo_dir }}"
+
+    - name: Check coverage threshold
+      shell: |
+        awk -v threshold="{{ coverage_threshold }}" '
+        BEGIN { failed = 0; }
+        /^SF:/ {
+          current_file = substr($0, 4);
+          file_total = 0;
+          file_covered = 0;
+        }
+        /^DA:/ {
+          split($0, a, ":");
+          split(a[2], b, ",");
+          file_total++;
+          if (b[2] > 0) file_covered++;
+        }
+        /^end_of_record/ {
+          if (file_total > 0) {
+            percent = file_covered / file_total * 100;
+            if (percent < threshold) {
+              print "FAIL: " current_file " coverage " percent \
+                "% < " threshold "% (" file_covered "/" file_total ")";
+              failed = 1;
+            } else {
+              print "PASS: " current_file " coverage " percent \
+                "% (" file_covered "/" file_total ")";
+            }
+          }
+        }
+        END {
+          if (failed) {
+            print "Coverage check failed.";
+            exit 1;
+          } else {
+            print "All files passed coverage check.";
+            exit 0;
+          }
+        }' bazel-out/_coverage/_coverage_report.dat
+      args:
+        chdir: "{{ repo_dir }}"
+
+    - name: Generate HTML coverage report
+      shell: |
+        genhtml bazel-out/_coverage/_coverage_report.dat \
+          --output-directory coverage_report
+      args:
+        chdir: "{{ repo_dir }}"

@@ -1,0 +1,14 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Run pre-commit on all files
+      shell: |
+        git config --global http.sslVerify false
+        pre-commit run --all-files --color always --show-diff-on-failure
+      args:
+        chdir: "{{ repo_dir }}"

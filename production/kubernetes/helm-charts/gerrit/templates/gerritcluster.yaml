@@ -1,0 +1,88 @@
+---
+apiVersion: "gerritoperator.google.com/v1beta15"
+kind: GerritCluster
+metadata:
+  name: {{ .Values.gerrit.name }}
+  labels:
+    {{- include "gerrit.labels" . | nindent 4 }}
+spec:
+  containerImages:
+    imagePullPolicy: {{ .Values.containerImages.imagePullPolicy }}
+
+  storage:
+    storageClasses:
+      readWriteOnce: {{ .Values.storage.storageClasses.readWriteOnce }}
+      readWriteMany: {{ .Values.storage.storageClasses.readWriteMany }}
+    sharedStorage:
+      size: {{ .Values.storage.sharedStorage.size }}
+
+  ingress:
+    enabled: {{ .Values.ingress.enabled }}
+    {{- if .Values.ingress.enabled }}
+    host: {{ .Values.ingress.host }}
+    {{- if .Values.ingress.annotations }}
+    annotations:
+      {{- toYaml .Values.ingress.annotations | nindent 6 }}
+    {{- end }}
+    {{- end }}
+
+  serverId: {{ .Values.serverId | quote }}
+
+  gerrits:
+    - metadata:
+        name: {{ .Values.gerrit.name }}
+        labels:
+          {{- include "gerrit.selectorLabels" . | nindent 10 }}
+      spec:
+        mode: {{ .Values.gerrit.mode }}
+        replicas: {{ .Values.gerrit.replicas }}
+
+        resources:
+          requests:
+            cpu: {{ .Values.gerrit.resources.requests.cpu }}
+            memory: {{ .Values.gerrit.resources.requests.memory }}
+          limits:
+            cpu: {{ .Values.gerrit.resources.limits.cpu }}
+            memory: {{ .Values.gerrit.resources.limits.memory }}
+
+        service:
+          type: {{ .Values.gerrit.service.type }}
+          httpPort: {{ .Values.gerrit.service.httpPort }}
+          sshPort: {{ .Values.gerrit.service.sshPort }}
+
+        site:
+          size: {{ .Values.gerrit.site.size }}
+
+        startupProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 10
+
+        readinessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 10
+
+        livenessProbe:
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+
+        plugins:
+          {{- range .Values.gerrit.plugins }}
+          - name: {{ .name }}
+            url: {{ .url }}
+            sha1: {{ .sha1 }}
+          {{- end }}
+
+        configFiles:
+          gerrit.config: |-
+{{ .Values.gerrit.config | indent 12 }}
+
+        secretRef: gerrit-secure-config  # pragma: allowlist secret

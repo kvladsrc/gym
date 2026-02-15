@@ -14,7 +14,7 @@ in
   home.stateVersion = version;
 
   # Needed for GPU-enabled packages, like ghostty.
-  nixGL = {
+  targets.genericLinux.nixGL = {
     packages = nixgl;
     defaultWrapper = "mesa";
     offloadWrapper = "nvidiaPrime";
@@ -147,13 +147,13 @@ in
 
   programs.kitty = {
     enable = true;
-    package = config.lib.nixGL.wrap pkgs.kitty;
+    package = config.lib.nixGL.wrapOffload pkgs.kitty;
     font = {
       name = "Mononoki Nerd Font";
       size = 16;
     };
     shellIntegration.enableBashIntegration = true;
-    themeFile = "daintyDark";
+    themeFile = "Mathias";
     settings = {
       confirm_os_window_close = 0;
       term = "xterm-256color";
@@ -225,10 +225,12 @@ in
 
   programs.git = {
     enable = true;
-    userName = "Vladimir Kim";
-    userEmail = "myuser@gmail.com";
     lfs.enable = true;
-    extraConfig = {
+    settings = {
+      user = {
+        name = "Vladimir Kim";
+        email = "myuser@gmail.com";
+      };
       credential.helper = "cache";
       core.pager = "delta";
       interactive.diffFilter = "delta --color-only";

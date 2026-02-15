@@ -1,0 +1,24 @@
+---
+cert-manager:
+  namespace: cert-manager
+  global:
+    defaultStorageClass: "nfs-client"
+  installCRDs: true
+
+  controller:
+    image:
+      repository: bitnamilegacy/cert-manager
+
+    acmesolver:
+      image:
+        repository: bitnamilegacy/acmesolver
+
+  webhook:
+    image:
+      repository: bitnamilegacy/cert-manager-webhook
+
+  cainjector:
+    image:
+      repository: bitnamilegacy/cainjector
+
+createClusterIssuer: true

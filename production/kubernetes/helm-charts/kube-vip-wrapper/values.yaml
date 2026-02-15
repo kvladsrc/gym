@@ -1,0 +1,7 @@
+kube-vip:
+  config:
+    range: "192.168.1.220-192.168.1.230"
+  env:
+    lb_enable: "true"
+    cp_enable: "false"
+    vip_interface: "enp0s3"

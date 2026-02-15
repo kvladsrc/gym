@@ -11,7 +11,7 @@ namespace evo {
 
 class Renderer {
  public:
-  Renderer(int width, int height);
+  Renderer(int width, int height, bool use_blur = true);
 
   std::vector<uint8_t> render(const DNA& dna) const;
   void save_png(const std::vector<uint8_t>& rgba, const std::string& path) const;
@@ -19,6 +19,7 @@ class Renderer {
  private:
   int width_;
   int height_;
+  bool use_blur_;
 };
 
 }  // namespace evo

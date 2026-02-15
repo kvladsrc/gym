@@ -1,0 +1,11 @@
+---
+apiVersion: v2
+name: docker-registry-wrapper
+description: "Wrapper chart: docker-registry"
+type: application
+version: 3.0.0
+appVersion: "3.0.0"
+dependencies:
+  - name: docker-registry
+    version: 3.0.0
+    repository: "https://twuni.github.io/docker-registry.helm"

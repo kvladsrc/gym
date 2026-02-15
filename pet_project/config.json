@@ -1,17 +1,24 @@
 {
   "population_size": 100,
-  "mutation_rate": 0.05,
-  "dna_length": 50,
-  "imagenet_class": 393,
-  "random_ratio": 0.2,
-  "parent1_top_ratio": 0.1,
-  "parent2_top_ratio": 0.1,
+  "mutation_rate": 0.02,
+  "imagenet_class": 301,
+  "random_ratio": 0.1,
+  "parent1_top_ratio": 0.2,
+  "parent2_top_ratio": 0.2,
   "image_width": 224,
   "image_height": 224,
-  "max_triangle_radius": 0.3,
   "model_paths": [
-    "/home/zjgkkn/src/pet_project/mobilenetv2-12.onnx",
-    "/home/zjgkkn/src/pet_project/resnet50-v2-7.onnx"
+    "/home/myuser/src/pet_project/mobilenetv2-12.onnx"
   ],
-  "output_dir": "/home/zjgkkn/tmp/output"
+  "output_dir": "/home/myuser/tmp/output",
+  "print_interval": 5,
+  "save_interval": 5,
+  "use_gpu": true,
+  "use_blur": true,
+  "initial_grid_size": 4,
+  "max_grid_size": 256,
+  "stabilization_generations": 100,
+  "fitness_improvement_threshold": 0.01,
+  "divide_elite": false,
+  "divide_interpolate": true
 }

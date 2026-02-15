@@ -1,0 +1,16 @@
+---
+nfs-subdir-external-provisioner:
+  nfs:
+    server: 192.168.1.185
+    path: /srv/nfs
+    mountOptions:
+    volumeName: nfs-subdir-external-provisioner-root
+    reclaimPolicy: Retain
+
+  storageClass:
+    create: true
+    defaultClass: true
+    name: nfs-client
+    allowVolumeExpansion: true
+    reclaimPolicy: Retain
+    archiveOnDelete: false

@@ -1,0 +1,33 @@
+---
+authentik:
+  authentik:
+    enabled: true
+    log_level: info
+
+    postgresql:
+      host: "postgresql.postgres.svc.cluster.local"
+      name: "authentikdb"
+      user: "authentik"
+      port: 5432
+    redis:
+      host: "redis-master.redis.svc.cluster.local"
+
+  server:
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: ca-issuer
+        kubernetes.io/ingress.class: "nginx"
+      labels: {}
+      ingressClassName: "nginx"
+      hosts: ["sso.your.domain"]
+      tls:
+        - secretName: authentik-tls # pragma: allowlist secret
+          hosts:
+            - sso.your.domain
+
+  postgresql:
+    enabled: false
+
+  redis:
+    enabled: false
