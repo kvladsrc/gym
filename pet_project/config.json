@@ -11,7 +11,7 @@
     "/home/myuser/src/pet_project/mobilenetv2-12.onnx",
     "/home/myuser/src/pet_project/resnet50-v2-7.onnx"
   ],
-  "output_dir": "/home/zjgkkn/tmp/output",
+  "output_dir": "/home/myuser/tmp/output",
   "print_interval": 10,
   "save_interval": 10,
   "use_gpu": true,
