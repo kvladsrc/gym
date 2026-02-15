@@ -2,6 +2,7 @@
 #define PET_PROJECT_TYPES_H_
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <random>
 #include <vector>
@@ -83,10 +84,13 @@ inline DNA subdivide_dna_interpolate(const DNA& dna) {
   };
 
   auto lerp_color = [](const Color& a, const Color& b, float t) -> Color {
+    int r = static_cast<int>(a.r) + static_cast<int>(t * (static_cast<int>(b.r) - a.r) + 0.5f);
+    int g = static_cast<int>(a.g) + static_cast<int>(t * (static_cast<int>(b.g) - a.g) + 0.5f);
+    int bl = static_cast<int>(a.b) + static_cast<int>(t * (static_cast<int>(b.b) - a.b) + 0.5f);
     return {
-        static_cast<uint8_t>(a.r + t * (b.r - a.r) + 0.5f),
-        static_cast<uint8_t>(a.g + t * (b.g - a.g) + 0.5f),
-        static_cast<uint8_t>(a.b + t * (b.b - a.b) + 0.5f),
+        static_cast<uint8_t>(std::clamp(r, 0, 255)),
+        static_cast<uint8_t>(std::clamp(g, 0, 255)),
+        static_cast<uint8_t>(std::clamp(bl, 0, 255)),
     };
   };
 
@@ -97,8 +101,8 @@ inline DNA subdivide_dna_interpolate(const DNA& dna) {
           float sx = ox + (dx == 0 ? 0.25f : 0.75f);
           float sy = oy + (dy == 0 ? 0.25f : 0.75f);
 
-          int cx0 = static_cast<int>(sx - 0.5f);
-          int cy0 = static_cast<int>(sy - 0.5f);
+          int cx0 = static_cast<int>(std::floor(sx - 0.5f));
+          int cy0 = static_cast<int>(std::floor(sy - 0.5f));
           int cx1 = cx0 + 1;
           int cy1 = cy0 + 1;
           float fx = sx - 0.5f - cx0;

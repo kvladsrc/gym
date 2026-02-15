@@ -172,6 +172,21 @@ int EvolutionEngine::generation() const { return generation_; }
 
 int EvolutionEngine::current_grid_size() const { return current_grid_size_; }
 
+bool EvolutionEngine::finished() const {
+  if (current_grid_size_ < config_.max_grid_size) {
+    return false;
+  }
+  if (generations_at_current_grid_ < config_.stabilization_generations) {
+    return false;
+  }
+  if (fitness_history_.empty()) {
+    return false;
+  }
+  float improvement = fitness_history_.back().second -
+                      fitness_history_.front().second;
+  return improvement < config_.fitness_improvement_threshold;
+}
+
 bool EvolutionEngine::should_refine_grid() const {
   // Don't refine if we've reached max grid size
   if (current_grid_size_ >= config_.max_grid_size) {

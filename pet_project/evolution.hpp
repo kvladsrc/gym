@@ -23,6 +23,7 @@ class EvolutionEngine {
   const Individual& best() const;
   int generation() const;
   int current_grid_size() const;
+  bool finished() const;
 
  private:
   std::pair<Individual, Individual> crossover(const Individual& p1,

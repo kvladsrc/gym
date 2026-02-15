@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
               config.population_size, config.initial_grid_size, config.initial_grid_size,
               config.max_grid_size, config.max_grid_size, config.imagenet_class);
 
-  while (g_running) {
+  while (g_running && !engine.finished()) {
     int gen = engine.generation();
 
     auto step_start = high_resolution_clock::now();
