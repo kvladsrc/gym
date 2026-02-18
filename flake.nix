@@ -122,35 +122,39 @@
               ++ os;
 
             shellHook = ''
-              PS1='\[\e[01;32m\]\u@nix\[\e[01;34m\] \w \$\[\e[00m\] '
+                            PS1='\[\e[01;32m\]\u@nix\[\e[01;34m\] \w \$\[\e[00m\] '
 
-              alias bazel=${pkgs.bazelisk}/bin/bazelisk
-              alias k='kubectl'
-              alias kg='kubectl get'
-              alias kgp='kubectl get pods'
-              alias kgpa='kubectl get pods --all-namespaces'
+                            alias bazel=${pkgs.bazelisk}/bin/bazelisk
+                            alias k='kubectl'
+                            alias kg='kubectl get'
+                            alias kgp='kubectl get pods'
+                            alias kgpa='kubectl get pods --all-namespaces'
 
-              source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
+                            source ${pkgs.bash-completion}/etc/profile.d/bash_completion.sh
 
-              export CONTROL_PLANE_IP=192.168.1.128
-              export HELM_PLUGINS="${helm-plugins-dir}"
-              export SOPS_AGE_KEY_FILE=$HOME/plain/keys.txt
-              export TALOSCONFIG="/home/myuser/src/production/kubernetes/talos/_out/talosconfig"
-              export KUBECONFIG="/home/myuser/talos/kubeconfig"
-              export LD_LIBRARY_PATH="/nix/store/bzc78zhlja8kvpq2lxlh2f9y622bcpfd-libglvnd-1.7.0/lib:/nix/store/8lpy1bh5crqil9frzzl4pm4kj2jlvlbn-nvidia-x11-580.126.09-nixGL/lib:/nix/store/71lv2yyac9j4zcxk82yhb64qmqd3ry4m-nvidia-x11-580.126.09-nixGL-lib32/lib:/nix/store/vyv7m0vq34xvd4paqfd6r1j0v36pyzjf-libglvnd-1.7.0/lib:${pkgs.onnxruntime}/lib:${pkgs.zlib}/lib:$LD_LIBRARY_PATH"
+                            export CONTROL_PLANE_IP=192.168.1.128
+                            export HELM_PLUGINS="${helm-plugins-dir}"
+                            export SOPS_AGE_KEY_FILE=$HOME/plain/keys.txt
+                            export TALOSCONFIG="/home/myuser/src/production/kubernetes/talos/_out/talosconfig"
+                            export KUBECONFIG="/home/myuser/talos/kubeconfig"
+                            export LD_LIBRARY_PATH="/nix/store/bzc78zhlja8kvpq2lxlh2f9y622bcpfd-libglvnd-1.7.0/lib:/nix/store/8lpy1bh5crqil9frzzl4pm4kj2jlvlbn-nvidia-x11-580.126.09-nixGL/lib:/nix/store/71lv2yyac9j4zcxk82yhb64qmqd3ry4m-nvidia-x11-580.126.09-nixGL-lib32/lib:/nix/store/vyv7m0vq34xvd4paqfd6r1j0v36pyzjf-libglvnd-1.7.0/lib:${pkgs.onnxruntime}/lib:${pkgs.zlib}/lib:$LD_LIBRARY_PATH"
 
-              # Generate ONNX configuration for Bazel
-              # This avoids global flags which break standard library linking
-              echo "Generating pet_project/onnx_config.bzl..."
-              cat <<EOF > pet_project/onnx_config.bzl
-ONNX_COPTS = [
-    "-I${pkgs.onnxruntime.dev}/include",
-]
+                            # Generate ONNX configuration for Bazel
+                            # This avoids global flags which break standard library linking
+                            echo "Generating pet_project/onnx_config.bzl..."
+                            cat <<EOF > pet_project/onnx_config.bzl
+              """
+              This module contains build rules for my project.
+              """
 
-ONNX_LINKOPTS = [
-    "${pkgs.onnxruntime}/lib/libonnxruntime.so",
-]
-EOF
+              ONNX_COPTS = [
+                  "-I${pkgs.onnxruntime.dev}/include",
+              ]
+
+              ONNX_LINKOPTS = [
+                  "${pkgs.onnxruntime}/lib/libonnxruntime.so",
+              ]
+              EOF
             '';
           };
         };

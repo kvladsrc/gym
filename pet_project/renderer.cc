@@ -1,14 +1,16 @@
 #include "pet_project/renderer.hpp"
 
 #include <cmath>
+#include <string>
+#include <vector>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb/stb_image_write.h"
 
 namespace evo {
 
-Renderer::Renderer(int width, int height, bool use_blur)
-    : width_(width), height_(height), use_blur_(use_blur) {}
+Renderer::Renderer(int width, int height, float blur_strength)
+    : width_(width), height_(height), blur_strength_(blur_strength) {}
 
 std::vector<uint8_t> Renderer::render(const DNA& dna) const {
   std::vector<uint8_t> buf(width_ * height_ * 4, 255);
@@ -33,12 +35,14 @@ std::vector<uint8_t> Renderer::render(const DNA& dna) const {
     }
   }
 
-  if (!use_blur_) {
+  if (blur_strength_ <= 0.0f) {
     return buf;
   }
 
-  // Apply 3x3 box blur to reduce pixelation
-  std::vector<uint8_t> blurred(width_ * height_ * 4, 255);
+  float s = blur_strength_;
+
+  // 3x3 box blur blended with original: lerp(original, blurred, strength)
+  std::vector<uint8_t> result(width_ * height_ * 4, 255);
   for (int y = 0; y < height_; y++) {
     for (int x = 0; x < width_; x++) {
       for (int c = 0; c < 3; c++) {
@@ -53,13 +57,16 @@ std::vector<uint8_t> Renderer::render(const DNA& dna) const {
             }
           }
         }
-        blurred[(y * width_ + x) * 4 + c] = sum / count;
+        int orig = buf[(y * width_ + x) * 4 + c];
+        int blurred = sum / count;
+        result[(y * width_ + x) * 4 + c] =
+            static_cast<uint8_t>(orig + s * (blurred - orig) + 0.5f);
       }
-      blurred[(y * width_ + x) * 4 + 3] = 255;  // Alpha
+      result[(y * width_ + x) * 4 + 3] = 255;
     }
   }
 
-  return blurred;
+  return result;
 }
 
 void Renderer::save_png(const std::vector<uint8_t>& rgba,

@@ -1,3 +1,7 @@
+"""
+This module contains build rules for my project.
+"""
+
 ONNX_COPTS = [
     "-I/nix/store/qni9n57a4fl8agl1n06wj2f9g54r0r79-onnxruntime-1.22.2-dev/include",
 ]

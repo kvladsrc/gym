@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <memory>
 #include <numeric>
 #include <string>
 #include <vector>
@@ -12,8 +13,6 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-
-using namespace std::chrono;
 
 namespace evo {
 
@@ -42,7 +41,7 @@ Fitness::Fitness(const Config& config)
       cuda_options.gpu_mem_limit = SIZE_MAX;
       cuda_options.cudnn_conv_algo_search = OrtCudnnConvAlgoSearchExhaustive;
       cuda_options.do_copy_in_default_stream = 1;
-      
+
       opts.AppendExecutionProvider_CUDA(cuda_options);
       std::cout << "Using GPU (CUDA) for inference" << std::endl;
     } catch (const std::exception& e) {
@@ -122,7 +121,7 @@ float Fitness::run_model(Ort::Session& session,
   // This allows continuous improvement beyond softmax saturation.
   float best = std::numeric_limits<float>::max();
   for (int b = 0; b < 2; b++) {
-    float* row = logits + b * num_classes;
+    const float* row = logits + b * num_classes;
     best = std::min(best, row[config_.imagenet_class]);
   }
   return best;
@@ -158,10 +157,11 @@ float Fitness::evaluate(const std::vector<uint8_t>& rgba, int width,
 
 void Fitness::evaluate_population(std::vector<Individual>& population,
                                   const Renderer& renderer) {
-  #pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic)
   for (size_t i = 0; i < population.size(); i++) {
     auto image = renderer.render(population[i].dna);
-    population[i].fitness = evaluate(image, config_.image_width, config_.image_height);
+    population[i].fitness =
+        evaluate(image, config_.image_width, config_.image_height);
   }
 }
 

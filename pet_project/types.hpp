@@ -46,7 +46,7 @@ inline void mutate_gene(Gene& g, std::mt19937& rng) {
 
 inline DNA random_dna(int length, std::mt19937& rng) {
   DNA dna(length);
-  for (auto& gene : dna) gene = random_gene(rng);
+  std::generate(dna.begin(), dna.end(), [&rng]() { return random_gene(rng); });
   return dna;
 }
 
@@ -84,9 +84,12 @@ inline DNA subdivide_dna_interpolate(const DNA& dna) {
   };
 
   auto lerp_color = [](const Color& a, const Color& b, float t) -> Color {
-    int r = static_cast<int>(a.r) + static_cast<int>(t * (static_cast<int>(b.r) - a.r) + 0.5f);
-    int g = static_cast<int>(a.g) + static_cast<int>(t * (static_cast<int>(b.g) - a.g) + 0.5f);
-    int bl = static_cast<int>(a.b) + static_cast<int>(t * (static_cast<int>(b.b) - a.b) + 0.5f);
+    int r = static_cast<int>(a.r) +
+            static_cast<int>(t * (static_cast<int>(b.r) - a.r) + 0.5f);
+    int g = static_cast<int>(a.g) +
+            static_cast<int>(t * (static_cast<int>(b.g) - a.g) + 0.5f);
+    int bl = static_cast<int>(a.b) +
+             static_cast<int>(t * (static_cast<int>(b.b) - a.b) + 0.5f);
     return {
         static_cast<uint8_t>(std::clamp(r, 0, 255)),
         static_cast<uint8_t>(std::clamp(g, 0, 255)),

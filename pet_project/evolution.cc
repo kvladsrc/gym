@@ -5,18 +5,11 @@
 #include <deque>
 #include <iostream>
 #include <utility>
+#include <vector>
 
 #include "pet_project/types.hpp"
 
 namespace evo {
-
-EvolutionEngine::EvolutionEngine(const Config& config, Renderer& renderer,
-                                 Fitness& fitness)
-    : config_(config),
-      renderer_(renderer),
-      fitness_(fitness),
-      current_grid_size_(config.initial_grid_size),
-      rng_(std::random_device{}()) {}
 
 void EvolutionEngine::init_population() {
   int dna_len = current_grid_size_ * current_grid_size_;
@@ -182,8 +175,8 @@ bool EvolutionEngine::finished() const {
   if (fitness_history_.empty()) {
     return false;
   }
-  float improvement = fitness_history_.back().second -
-                      fitness_history_.front().second;
+  float improvement =
+      fitness_history_.back().second - fitness_history_.front().second;
   return improvement < config_.fitness_improvement_threshold;
 }
 
@@ -216,8 +209,8 @@ void EvolutionEngine::refine_grid() {
   generations_at_current_grid_ = 0;
   fitness_history_.clear();
 
-  auto subdivide = config_.divide_interpolate ? subdivide_dna_interpolate
-                                               : subdivide_dna;
+  auto subdivide =
+      config_.divide_interpolate ? subdivide_dna_interpolate : subdivide_dna;
 
   if (config_.divide_elite) {
     // Wipe out population with subdivided best individual

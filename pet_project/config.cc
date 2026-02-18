@@ -3,6 +3,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <stdexcept>
+#include <string>
 
 namespace evo {
 
@@ -29,11 +30,13 @@ Config Config::load(const std::string& path) {
   c.print_interval = j.value("print_interval", c.print_interval);
   c.save_interval = j.value("save_interval", c.save_interval);
   c.use_gpu = j.value("use_gpu", c.use_gpu);
-  c.use_blur = j.value("use_blur", c.use_blur);
+  c.blur_strength = j.value("blur_strength", c.blur_strength);
   c.initial_grid_size = j.value("initial_grid_size", c.initial_grid_size);
   c.max_grid_size = j.value("max_grid_size", c.max_grid_size);
-  c.stabilization_generations = j.value("stabilization_generations", c.stabilization_generations);
-  c.fitness_improvement_threshold = j.value("fitness_improvement_threshold", c.fitness_improvement_threshold);
+  c.stabilization_generations =
+      j.value("stabilization_generations", c.stabilization_generations);
+  c.fitness_improvement_threshold =
+      j.value("fitness_improvement_threshold", c.fitness_improvement_threshold);
   c.divide_elite = j.value("divide_elite", c.divide_elite);
   c.divide_interpolate = j.value("divide_interpolate", c.divide_interpolate);
 

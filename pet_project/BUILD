@@ -21,8 +21,8 @@ cc_library(
 cc_library(
     name = "stb",
     hdrs = ["third_party/stb_image_write.h"],
-    strip_include_prefix = "third_party",
     include_prefix = "stb",
+    strip_include_prefix = "third_party",
 )
 
 cc_library(
@@ -40,7 +40,10 @@ cc_library(
     name = "fitness_lib",
     srcs = ["fitness.cc"],
     hdrs = ["fitness.hpp"],
-    copts = ["-std=c++17", "-fopenmp"] + ONNX_COPTS,
+    copts = [
+        "-std=c++17",
+        "-fopenmp",
+    ] + ONNX_COPTS,
     linkopts = ["-fopenmp"],
     deps = [
         ":config_lib",
@@ -62,21 +65,19 @@ cc_library(
     ],
 )
 
-
-
 cc_binary(
     name = "pet_project",
     srcs = ["main.cc"],
     copts = ["-std=c++17"] + ONNX_COPTS,
+    data = [
+        "mobilenetv2-12.onnx",
+        "resnet50-v2-7.onnx",
+    ],
     linkopts = ONNX_LINKOPTS,
     deps = [
         ":config_lib",
         ":evolution_lib",
         ":fitness_lib",
         ":renderer_lib",
-    ],
-    data = [
-        "mobilenetv2-12.onnx",
-        "resnet50-v2-7.onnx"
     ],
 )

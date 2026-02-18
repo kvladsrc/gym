@@ -15,7 +15,12 @@ namespace evo {
 
 class EvolutionEngine {
  public:
-  EvolutionEngine(const Config& config, Renderer& renderer, Fitness& fitness);
+  EvolutionEngine(const Config& config, Renderer& renderer, Fitness& fitness)
+      : config_(config),
+        renderer_(renderer),
+        fitness_(fitness),
+        current_grid_size_(config.initial_grid_size),
+        rng_(std::random_device()()) {}
 
   void init_population();
   void step();
@@ -39,9 +44,10 @@ class EvolutionEngine {
   int generation_ = 0;
   int current_grid_size_;
   std::mt19937 rng_;
-  
+
   // Fitness tracking for plateau detection (monotonic deque)
-  // Stores pairs of (generation_at_current_grid, fitness) in non-decreasing fitness order
+  // Stores pairs of (generation_at_current_grid, fitness) in non-decreasing
+  // fitness order
   std::deque<std::pair<int, float>> fitness_history_;
   int generations_at_current_grid_ = 0;
 };

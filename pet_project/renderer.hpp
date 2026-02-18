@@ -11,15 +11,16 @@ namespace evo {
 
 class Renderer {
  public:
-  Renderer(int width, int height, bool use_blur = true);
+  Renderer(int width, int height, float blur_strength = 1.0f);
 
   std::vector<uint8_t> render(const DNA& dna) const;
-  void save_png(const std::vector<uint8_t>& rgba, const std::string& path) const;
+  void save_png(const std::vector<uint8_t>& rgba,
+                const std::string& path) const;
 
  private:
   int width_;
   int height_;
-  bool use_blur_;
+  float blur_strength_;
 };
 
 }  // namespace evo
