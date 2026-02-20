@@ -1,7 +1,7 @@
 image:
   repository: adminer
-  pullPolicy: IfNotPresent
-  tag: "5.4.1"
+  pullPolicy: Always
+  tag: "latest"
 
 service:
   type: ClusterIP

@@ -5,7 +5,7 @@
 (use-package gerrit
   :ensure t
   :custom
-  (gerrit-host "cl.your.domain")
+  (gerrit-host "review.your.domain")
   :config
   (progn
     (add-hook 'magit-status-sections-hook #'gerrit-magit-insert-status t)))

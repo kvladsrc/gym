@@ -1,8 +1,8 @@
 ---
 image:
   repository: quay.io/hedgedoc/hedgedoc
-  tag: "1.10.0"
-  pullPolicy: IfNotPresent
+  tag: "latest"
+  pullPolicy: Always
 
 replicaCount: 1
 
@@ -40,7 +40,7 @@ env:
   # OAuth2 / Authentik configuration
   # You need to create an OAuth2/OpenID provider in Authentik first
   CMD_OAUTH2_PROVIDERNAME: "Authentik"
-  CMD_OAUTH2_CLIENT_ID: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  CMD_OAUTH2_CLIENT_ID: "271wmrr5X5pPDMWB7WG4a3LUrRAaUUaM8ILHiPba"
   CMD_OAUTH2_AUTHORIZATION_URL: >-
     https://sso.your.domain/application/o/authorize/
   CMD_OAUTH2_TOKEN_URL: >-

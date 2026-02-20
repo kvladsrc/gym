@@ -1,0 +1,33 @@
+miniflux:
+  image:
+    repository: ghcr.io/miniflux/miniflux
+    tag: "latest"
+    pullPolicy: Always
+
+  controller:
+    strategy: RollingUpdate
+
+  env:
+    CREATE_ADMIN: "1"
+
+  service:
+    main:
+      ports:
+        http:
+          port: 8080
+
+  ingress:
+    main:
+      enabled: false
+
+  # Disable bundled postgresql — using existing cluster-wide instance
+  postgresql:
+    enabled: false
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi

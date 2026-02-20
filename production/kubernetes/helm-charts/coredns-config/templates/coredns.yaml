@@ -1,0 +1,54 @@
+apiVersion: v1
+data:
+   Corefile: |
+      .:53 {
+          errors
+          health {
+             lameduck 5s
+          }
+          ready
+          log . {
+             class error
+          }
+          prometheus :9153
+          hosts {
+             192.168.1.220 api.your.domain
+             192.168.1.220 b.your.domain
+             192.168.1.220 ci.your.domain
+             192.168.1.220 review.your.domain
+             192.168.1.220 search.your.domain
+             192.168.1.220 feed.your.domain
+             192.168.1.220 hedgedoc.your.domain
+             192.168.1.220 logs.your.domain
+             192.168.1.220 registry.your.domain
+             192.168.1.220 sql.your.domain
+             192.168.1.220 sso.your.domain
+             192.168.1.220 zz.your.domain
+             192.168.1.221 bb-grpc.your.domain
+             192.168.1.221 bb.your.domain
+             fallthrough
+          }
+          kubernetes cluster.local in-addr.arpa ip6.arpa {
+             pods insecure
+             fallthrough in-addr.arpa ip6.arpa
+             ttl 30
+          }
+          forward . /etc/resolv.conf {
+             max_concurrent 1000
+          }
+          cache 30 {
+             disable success cluster.local
+             disable denial cluster.local
+          }
+          loop
+          reload
+          loadbalance
+      }
+kind: ConfigMap
+metadata:
+   name: coredns
+   namespace: kube-system
+   labels:
+     {{- include "coredns-config.labels" . | nindent 4 }}
+   annotations:
+     "helm.sh/resource-policy": keep

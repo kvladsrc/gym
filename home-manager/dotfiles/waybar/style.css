@@ -50,6 +50,7 @@ window#waybar {
 #language,
 #custom-lock,
 #custom-power,
+#custom-theme-toggle,
 #custom-waybar-toggle {
   margin: 5px 0;
   padding: 0.5rem 1rem;

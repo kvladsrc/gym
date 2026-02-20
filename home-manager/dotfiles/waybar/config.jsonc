@@ -10,6 +10,7 @@
   ],
   "modules-right": [
     "tray",
+    "custom/theme-toggle",
     "pulseaudio",
     "backlight",
     "battery",
@@ -87,6 +88,12 @@
   "tray": {
     "icon-size": 21,
     "spacing": 10,
+  },
+  "custom/theme-toggle": {
+    "exec": "gsettings get org.gnome.desktop.interface color-scheme | grep -q dark && echo '󰖔' || echo '󰖙'",
+    "interval": 5,
+    "on-click": "~/.local/bin/toggle-theme.sh",
+    "tooltip": false
   },
   "custom/waybar-toggle": {
     "format": "",

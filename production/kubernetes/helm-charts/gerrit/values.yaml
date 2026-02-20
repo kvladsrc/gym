@@ -83,6 +83,9 @@ gerrit:
     - name: commit-message-length-validator
       url: http://gerrit-plugin-server/commit-message-length-validator.jar
       sha1: a3ddecbd675c6cac7f17d592bf7c118280cc4e81 # pragma: allowlist secret
+    - name: codemirror-editor
+      url: http://gerrit-plugin-server/codemirror-editor.jar
+      sha1: 127693fc6f3cf7d66ba5478525baf2ce5d0e4ea6 # pragma: allowlist secret
 
   config: |-
     [gerrit]

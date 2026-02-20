@@ -1,0 +1,6 @@
+dependencies:
+- name: miniflux
+  repository: https://charts.gabe565.com
+  version: 0.9.2
+digest: sha256:b27a044318607ce2fd5fcdeac44b6cdbc819aab05ae3267bea1de8958ed009e9
+generated: "2026-02-19T21:17:28.976655858+01:00"

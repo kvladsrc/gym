@@ -20,6 +20,7 @@ spec:
       containers:
       - name: nginx
         image: {{ .Values.pluginServer.image.repository }}:{{ .Values.pluginServer.image.tag }}
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
 ---

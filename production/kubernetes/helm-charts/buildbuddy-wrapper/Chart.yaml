@@ -7,5 +7,5 @@ version: 0.0.362
 appVersion: "2.217.0"
 dependencies:
   - name: buildbuddy
-    version: 0.0.380
+    version: 0.0.382
     repository: "https://buildbuddy-io.github.io/buildbuddy-helm/"

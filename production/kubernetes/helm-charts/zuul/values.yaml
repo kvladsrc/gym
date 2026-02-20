@@ -1,6 +1,6 @@
 ---
 gerrit:
-  server: cl.your.domain
+  server: review.your.domain
   user: zuul
 
 zuul:

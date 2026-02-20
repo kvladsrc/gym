@@ -123,6 +123,10 @@ in
       source = scripts/window.sh;
       executable = true;
     };
+    ".local/bin/toggle-theme.sh" = {
+      source = scripts/toggle-theme.sh;
+      executable = true;
+    };
   };
 
   home.sessionVariables = {
@@ -147,7 +151,7 @@ in
 
   programs.kitty = {
     enable = true;
-    package = config.lib.nixGL.wrapOffload pkgs.kitty;
+    package = config.lib.nixGL.wrap pkgs.kitty;
     font = {
       name = "Mononoki Nerd Font";
       size = 16;
@@ -195,7 +199,7 @@ in
   };
 
   programs.starship = {
-    enable = true;
+    enable = false;
     settings = {
       add_newline = false;
       line_break = {

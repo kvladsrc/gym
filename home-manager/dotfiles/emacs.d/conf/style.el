@@ -16,7 +16,7 @@
   (use-package almost-mono-themes
     :ensure t)
 
-  (load-theme 'almost-mono-cream t))
+  (load-theme 'almost-mono-gray t))
 
 (use-package guru-mode
   :ensure t
