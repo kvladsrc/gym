@@ -30,9 +30,25 @@ let gameLoopId = null;
 let scrollY = 0;
 let obstacles = [];
 
-// Load external sprite
+// Load external sprites
 const playerImg = new Image();
 playerImg.src = "player.png";
+
+const barrierImg = new Image();
+barrierImg.src = "barrier.png";
+
+// Terrain tiles (order determines which page maps to which biome)
+const terrainTiles = ["grass.png", "desert.png", "ice.png", "lava.png"].map(
+  (src) => {
+    const img = new Image();
+    img.src = src;
+    return img;
+  },
+);
+
+function getCurrentTile() {
+  return terrainTiles[(pageNum - 1) % terrainTiles.length];
+}
 
 // Game State
 const gameInfo = {
@@ -203,9 +219,9 @@ function generateObstacles() {
     if (obX < gameInfo.width - 50) {
       obstacles.push({
         x: obX,
-        y: gameInfo.groundY - 16,
-        width: 16,
-        height: 16,
+        y: gameInfo.groundY - 22,
+        width: 28,
+        height: 28,
       });
       lastX = obX;
     }
@@ -359,23 +375,47 @@ function draw() {
     bgCtx.fillRect(0, 0, gameInfo.width, gameInfo.bookHeight);
   }
 
-  // Draw Game Area
-  // The ground line is removed so the CSS fade seamlessly blends into the dot floor
-
-  // Floor dots/details (pixel style)
-  for (let i = 0; i < gameInfo.width; i += 40) {
-    gameCtx.fillRect(i, gameInfo.groundY + 6, 4, 4);
+  // Draw Game Area — tiled terrain floor
+  const tile = getCurrentTile();
+  if (tile.complete && tile.naturalHeight !== 0) {
+    // Render at a fixed display height so tiles are always the right size
+    // regardless of source image resolution.
+    const TILE_H = 64;
+    const TILE_W =
+      tile.naturalWidth > 0
+        ? Math.round((TILE_H * tile.naturalWidth) / tile.naturalHeight)
+        : 64;
+    // Start 25% of tile height ABOVE groundY so the transparent top quarter
+    // blends into the game area and the opaque part fills the visible floor strip.
+    const startY = gameInfo.groundY - TILE_H * 0.25;
+    const rows = Math.ceil((gameInfo.gameHeight - startY) / TILE_H) + 1;
+    for (let row = 0; row < rows; row++) {
+      const drawY = startY + row * TILE_H;
+      for (let x = 0; x < gameInfo.width; x += TILE_W) {
+        gameCtx.drawImage(tile, x, drawY, TILE_W, TILE_H);
+      }
+    }
+  } else {
+    // Fallback dots while tiles load
+    gameCtx.fillStyle = "#000";
+    for (let i = 0; i < gameInfo.width; i += 40) {
+      gameCtx.fillRect(i, gameInfo.groundY + 6, 4, 4);
+    }
   }
 
   // Draw obstacles
-  gameCtx.fillStyle = "#000";
   for (let ob of obstacles) {
-    // Draw a simple jagged spike block
-    gameCtx.beginPath();
-    gameCtx.moveTo(ob.x, ob.y + ob.height);
-    gameCtx.lineTo(ob.x + ob.width / 2, ob.y);
-    gameCtx.lineTo(ob.x + ob.width, ob.y + ob.height);
-    gameCtx.fill();
+    if (barrierImg.complete && barrierImg.naturalHeight !== 0) {
+      gameCtx.drawImage(barrierImg, ob.x, ob.y, ob.width, ob.height);
+    } else {
+      // Fallback triangle while image loads
+      gameCtx.fillStyle = "#000";
+      gameCtx.beginPath();
+      gameCtx.moveTo(ob.x, ob.y + ob.height);
+      gameCtx.lineTo(ob.x + ob.width / 2, ob.y);
+      gameCtx.lineTo(ob.x + ob.width, ob.y + ob.height);
+      gameCtx.fill();
+    }
   }
 
   // Draw Player (External Sprite)
@@ -391,7 +431,7 @@ function draw() {
   }
 
   const px = player.x + (player.width - pw) / 2;
-  const py = player.y + (player.height - ph);
+  const py = player.y + (player.height - ph) + 6; // slight nudge down to sit on tiles
 
   gameCtx.save();
   // Image naturally faces left, so flip it when moving right
