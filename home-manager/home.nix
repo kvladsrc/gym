@@ -79,10 +79,12 @@ in
     wlogout
 
     # GPU enabled.
-    (config.lib.nixGL.wrap zeal)
+    (config.lib.nixGL.wrap antigravity)
     (config.lib.nixGL.wrap celestia)
     (config.lib.nixGL.wrap easyeffects)
-    (config.lib.nixGL.wrap antigravity)
+    (config.lib.nixGL.wrap gthumb)
+    (config.lib.nixGL.wrap kooha)
+    (config.lib.nixGL.wrap zeal)
 
     # Development
     clang-tools

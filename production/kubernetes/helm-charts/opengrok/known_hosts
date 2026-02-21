@@ -1,9 +1,0 @@
-# review.your.domain:22 SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u5
-review.your.domain ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBB5epr2BHWc7qgKPJbsF5dXaFI0fVGq5dFtf4jQjAkHXBPQdd5kZQAWH1vgWApv06/f7cyF0idkWFrRJGfQ9CXs=
-# review.your.domain:22 SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u5
-review.your.domain ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCh2YZ9W7DF+s1XGhITR+H7ldoQm2Jq6KkexBbqmxFT/EmMxNB6A9ObMWrYdJBt4o0mDTjwf+lPGFZkCc8BNNw9+rP7inwSxsdN+0oopCf7Q33736eyo3nNHDyuPegpZhVt5sP8P9RaeN3WvbjhHXU5mSZxJCnjjwGorlufDTHGpjBdjtmfxMVyLjrCq4j3995TjDuZI1Bc/FEzMymsQUSInCSrENFoJdtAYLOMUEg3X6lxzOAoefI+JoJ/D+QUSt6kB84EEKWQbnf+mS8LUFdUnEI+/jsZ+PmeRN/64alXoVCUIl5V6bfpttQzy7U8L7Z5YAp1wZTsIEA1U4rruDcQJxeGdO3gVGY1xVEQZUlaJuoeg+ZO8v3mPo7NWxk7WT94DYNXAfHmuunxW3y8FgJ0o6q/moIEB1ajIWXknmYg/g+Ia88x0+5JTeNfCUuTGkQcQmAfR/FUzp+WU0UtZb0JbUvTPTHhqY7xa4sLfr728+z1AKGTiVVjkUHKZwDopBE=
-# review.your.domain:22 SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u5
-review.your.domain ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPWhhooj8cPIrjOHloJKDmH9Iwj8GdmHQZI6T8qglP7Q
-# review.your.domain:22 SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u5
-# review.your.domain:22 SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u5
-[review.your.domain]:29418 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFxhgIF+6qzvDB3qNzKQHHm+0HiQkm+WafIsprSUW78+KZJOeBOqlDfDKWqVcoqB+WjatkPcP5110TkKoSlJ3k0=

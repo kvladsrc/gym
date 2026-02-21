@@ -1,0 +1,234 @@
+:root {
+  --bg-color: #ffffff;
+  --text-main: #000000;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /* Use monospace/pixel font for the retro feel */
+  font-family: "Courier New", Courier, monospace;
+  font-weight: bold;
+  color: var(--text-main);
+  background-color: var(--bg-color);
+  overflow: hidden;
+  height: 100vh;
+}
+
+#game-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+#bg-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* Fade out the bottom 150px so the game elements are legible */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - 150px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    black calc(100% - 150px),
+    transparent 100%
+  );
+}
+
+#game-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background-color: transparent;
+  pointer-events: none;
+  /* Let clicks pass through if needed */
+}
+
+#ui-container {
+  position: absolute;
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border: 4px solid #000;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 8px 8px 0px #000;
+  transition: all 0.3s ease;
+}
+
+#ui-container.minimized {
+  top: 10px;
+  left: 10px;
+  transform: none;
+  padding: 5px;
+  border: none;
+  box-shadow: none;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  background: transparent;
+}
+
+#ui-container.minimized h1 {
+  display: none;
+}
+
+#ui-container.minimized > p {
+  display: none;
+}
+
+#ui-container.minimized #upload-wrapper {
+  display: none;
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+p {
+  margin-bottom: 20px;
+}
+
+.upload-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.upload-wrapper input[type="file"] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #fff;
+  color: #000;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 1.2rem;
+  border: 2px solid #000;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background 0.1s;
+}
+
+.btn:hover {
+  background: #000;
+  color: #fff;
+}
+
+.btn-small {
+  background: #fff;
+  color: #000;
+  border: 2px solid #000;
+  padding: 2px 8px;
+  font-family: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-small:hover {
+  background: #000;
+  color: #fff;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+#ui-container.minimized #controls {
+  flex-direction: row;
+}
+
+.page-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-display {
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+#page-num {
+  width: 40px;
+  text-align: right;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: inherit;
+  color: inherit;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-right: 2px;
+}
+
+#page-num:focus {
+  outline: none;
+  border-bottom: 2px solid #000;
+}
+
+/* Remove arrows */
+#page-num::-webkit-outer-spin-button,
+#page-num::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.help {
+  font-size: 0.8rem;
+  margin-bottom: 0px;
+}
+
+#ui-container.minimized .help {
+  display: none;
+}
+
+#loading {
+  font-size: 1.2rem;
+  margin-top: 10px;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}

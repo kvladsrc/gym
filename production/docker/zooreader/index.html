@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zooreader - Pixel Game</title>
+    <!-- Load pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div id="ui-container">
+      <h1>Zooreader</h1>
+      <p>A minimalist PDF reader game.</p>
+
+      <div class="upload-wrapper" id="upload-wrapper">
+        <input type="file" id="pdf-upload" accept="application/pdf" />
+        <label for="pdf-upload" class="btn">[ OPEN PDF ]</label>
+      </div>
+
+      <div id="controls" class="hidden">
+        <div class="page-controls">
+          <div class="page-display">
+            <input type="number" id="page-num" value="1" min="1" /> /
+            <span id="page-count">--</span>
+          </div>
+        </div>
+      </div>
+      <div id="loading" class="hidden">LOADING...</div>
+    </div>
+
+    <div id="game-container">
+      <!-- PDF rendering canvas -->
+      <canvas id="bg-canvas"></canvas>
+      <!-- Foregound game canvas -->
+      <canvas id="game-canvas"></canvas>
+    </div>
+
+    <!-- Hidden canvas to render full PDF pages -->
+    <canvas id="offscreen-pdf" class="hidden" style="display: none"></canvas>
+
+    <script src="script.js"></script>
+  </body>
+</html>

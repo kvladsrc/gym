@@ -1,0 +1,25 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "zooreader.fullname" . }}
+  labels:
+    {{- include "zooreader.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.zooreader.replicas | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "zooreader.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "zooreader.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: zooreader
+          image: {{ .Values.zooreader.image }}
+          imagePullPolicy: {{ .Values.zooreader.imagePullPolicy }}
+          ports:
+            - containerPort: 80
+          resources:
+            {{- toYaml .Values.zooreader.resources | nindent 12 }}

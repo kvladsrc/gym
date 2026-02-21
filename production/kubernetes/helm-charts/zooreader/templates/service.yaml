@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zooreader
+  labels:
+    {{- include "zooreader.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "zooreader.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: 80
+      targetPort: 80

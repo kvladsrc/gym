@@ -20,6 +20,7 @@ data:
              192.168.1.220 feed.your.domain
              192.168.1.220 hedgedoc.your.domain
              192.168.1.220 logs.your.domain
+             192.168.1.220 read.your.domain
              192.168.1.220 registry.your.domain
              192.168.1.220 sql.your.domain
              192.168.1.220 sso.your.domain
