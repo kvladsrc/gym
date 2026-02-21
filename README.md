@@ -28,7 +28,7 @@ the help of Gemini CLI.
 
 `/sicp` — My first experience in programming.
 
-![SICP](static/sicp.png)
+![SICP](static/sicp_book.png)
 
 ### PipeLLM
 
