@@ -7,7 +7,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/
 
 # Copy static game files
-COPY index.html style.css script.js player.png /usr/share/nginx/html/
+COPY index.html style.css script.js player.png barrier.png grass.png desert.png ice.png lava.png /usr/share/nginx/html/
 
 EXPOSE 80
 
