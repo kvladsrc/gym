@@ -47,6 +47,7 @@ in
     gocryptfs
     google-chrome
     graphviz
+    mg
     nautilus
     pandoc
     rclone
@@ -132,8 +133,8 @@ in
   };
 
   home.sessionVariables = {
-    EDITOR = "nano";
-    VISUAL = "nano";
+    EDITOR = "mg";
+    VISUAL = "mg";
   };
 
   programs.waybar.enable = true;

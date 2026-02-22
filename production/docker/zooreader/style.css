@@ -145,19 +145,10 @@ p {
   color: #fff;
 }
 
-.btn-small {
-  background: #fff;
-  color: #000;
-  border: 2px solid #000;
+/* Apply .btn .btn--small in HTML; only size overrides here */
+.btn--small {
   padding: 2px 8px;
-  font-family: inherit;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.btn-small:hover {
-  background: #000;
-  color: #fff;
+  font-size: inherit;
 }
 
 .hidden {
