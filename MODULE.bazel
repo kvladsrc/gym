@@ -15,7 +15,7 @@ git_override(
 )
 
 # Python
-bazel_dep(name = "rules_python", version = "1.8.4")
+bazel_dep(name = "rules_python", version = "1.8.5")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.defaults(python_version = "3.12")
@@ -37,7 +37,7 @@ bazel_dep(name = "aspect_rules_js", version = "2.9.2")
 bazel_dep(name = "rules_nodejs", version = "6.7.3")
 
 # Java
-bazel_dep(name = "rules_java", version = "9.5.0")
+bazel_dep(name = "rules_java", version = "9.6.1")
 
 # Go
 bazel_dep(name = "rules_go", version = "0.60.0")
