@@ -195,9 +195,10 @@ in
     '';
     shellAliases = {
       em = "emacs -nw";
+      ll = "ls -l --color";
+      ls = "ls --color";
       mv = "mv -i";
       rm = "rm -i";
-      ll = "ls -l";
     };
   };
 
