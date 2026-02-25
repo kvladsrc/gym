@@ -163,3 +163,65 @@ TEST(BwArrayTest, LazyFixLargeDataset) {
     EXPECT_TRUE(arr.search(i));
   }
 }
+
+#include <map>
+#include <random>
+
+static void run_stress(int value_range, int ops, unsigned seed) {
+  std::mt19937 rng(seed);
+  bwarray arr;
+  std::map<int, int> ref;
+
+  for (int step = 0; step < ops; ++step) {
+    int val = static_cast<int>(rng() % value_range);
+    int op = static_cast<int>(rng() % 3);
+
+    if (op == 0) {
+      arr.insert(val);
+      ref[val]++;
+    } else if (op == 1) {
+      arr.remove(val);
+      if (ref.count(val) && ref[val] > 0) {
+        if (--ref[val] == 0) {
+          ref.erase(val);
+        }
+      }
+    } else {
+      bool expected = ref.count(val) && ref.at(val) > 0;
+      ASSERT_EQ(arr.search(val), expected)
+          << "search(" << val << ") mismatch at step " << step
+          << " (seed=" << seed << ")";
+    }
+
+    if (op != 2) {
+      std::size_t ref_sz = 0;
+      for (auto& [k, cnt] : ref) {
+        ref_sz += static_cast<std::size_t>(cnt);
+      }
+      ASSERT_EQ(arr.size(), ref_sz)
+          << "size() mismatch at step " << step << " (seed=" << seed << ")";
+    }
+  }
+
+  for (int v = 0; v < value_range; ++v) {
+    bool expected = ref.count(v) && ref.at(v) > 0;
+    ASSERT_EQ(arr.search(v), expected)
+        << "final search(" << v << ") mismatch (seed=" << seed << ")";
+  }
+}
+
+TEST(BwArrayStressTest, SmallRangeWithDuplicates) {
+  for (unsigned seed = 0; seed < 20; ++seed) {
+    run_stress(/*value_range=*/8, /*ops=*/500, seed);
+  }
+}
+
+TEST(BwArrayStressTest, MediumRange) {
+  for (unsigned seed = 0; seed < 10; ++seed) {
+    run_stress(/*value_range=*/256, /*ops=*/1000, seed);
+  }
+}
+
+TEST(BwArrayStressTest, LargeDataset) {
+  run_stress(/*value_range=*/512, /*ops=*/5000, /*seed=*/42);
+}
