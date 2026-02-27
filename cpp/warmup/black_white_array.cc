@@ -99,6 +99,11 @@ void bwarray::remove(int el) {
     if (segment_used(seg)) {
       auto first = white.begin() + start_idx(seg);
       auto last = white.begin() + end_idx(seg) + 1;
+
+      if (el < (*first).val || el > (*(white.begin() + end_idx(seg))).val) {
+        continue;
+      }
+
       auto it = std::lower_bound(first, last, elem{el});
 
       while (it != last && (*it).val == el) {
