@@ -24,6 +24,10 @@ production, and may contain errors.
 structures and techniques. Tests for this section were written with
 the help of Gemini CLI.
 
+Notable: `black_white_array` -- a cache-friendly sorted dynamic array
+supporting insert / search / remove, based on [Bille et al.,
+2020](https://arxiv.org/abs/2004.09051).
+
 ### SICP solutions
 
 `/sicp` — My first experience in programming.
