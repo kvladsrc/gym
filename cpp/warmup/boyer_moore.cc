@@ -29,6 +29,8 @@ namespace warmup {
  * the character s[last] in the pattern. We use the rightmost index of
  * the character to ensure that no possible occurrences are
  * missed. All earlier occurrences are left for later consideration.
+ *
+ * Current implementation is simplest and non-optimal.
  */
 
 void fill_last_seen(const string& pattern, map<char, std::size_t>& last_seen) {
@@ -54,9 +56,10 @@ bool boyer_moore(const string& s, const string& pattern) {
   auto last = pattern.size() - 1;
 
   while (last < s.size()) {
-    // If the last char of pattern is equal to char on last position
-    // then last_seen[c] will be equal to pattern.size.
-    last += pattern.size() - last_seen[s[last]];
+    if (pattern.back() != s[last]) {
+      last += pattern.size() - last_seen[s[last]];
+      continue;
+    }
 
     bool found = true;
 
@@ -71,6 +74,9 @@ bool boyer_moore(const string& s, const string& pattern) {
       return true;
     }
 
+    // Can be optimized by shifting window by second right occurance
+    // of last characted. But still can be degraded to O(n^2) on
+    // special input like abbbbbb pattern.
     last++;
   }
 
