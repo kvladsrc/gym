@@ -94,3 +94,9 @@ TEST(BoyerMooreTest, MultipleOccurrences) {
   std::string pattern = "ab";
   EXPECT_TRUE(warmup::boyer_moore(s, pattern));
 }
+
+TEST(BoyerMooreTest, RightMatch) {
+  std::string s = "aaaabc";
+  std::string pattern = "caabc";
+  EXPECT_FALSE(warmup::boyer_moore(s, pattern));
+}
