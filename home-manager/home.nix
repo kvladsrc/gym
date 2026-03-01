@@ -51,7 +51,6 @@ in
     nautilus
     pandoc
     rclone
-    ryubing
     texliveTeTeX
     tor-browser
     totem
@@ -86,6 +85,8 @@ in
     (config.lib.nixGL.wrap gthumb)
     (config.lib.nixGL.wrap kooha)
     (config.lib.nixGL.wrap zeal)
+    (config.lib.nixGL.wrap zeal)
+    (config.lib.nixGL.wrapOffload ryubing)
 
     # Development
     clang-tools
