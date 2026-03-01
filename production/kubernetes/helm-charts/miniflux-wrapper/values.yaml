@@ -9,6 +9,9 @@ miniflux:
 
   env:
     CREATE_ADMIN: "1"
+    AUTH_PROXY_HEADER: "X-Authentik-Username"
+    TRUSTED_REVERSE_PROXY_NETWORKS: "10.0.0.0/8"
+    AUTH_PROXY_USER_CREATION: "1"
 
   service:
     main:

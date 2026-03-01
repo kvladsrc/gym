@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <map>
+#include <regex>
 #include <string>
 
 using std::map;
@@ -64,7 +65,7 @@ bool boyer_moore(const string& s, const string& pattern) {
     bool found = true;
 
     for (std::size_t i = 0; i < pattern.size(); ++i) {
-      if (pattern[i] != s[i + (last + 1) - pattern.size()]) {
+      if (pattern[pattern.size() - 1 - i] != s[last - i]) {
         found = false;
         break;
       }

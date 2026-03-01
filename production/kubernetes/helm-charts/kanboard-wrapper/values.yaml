@@ -6,6 +6,17 @@ kanboard:
 
   application:
     port: 80
+    env:
+      # Enable reverse proxy authentication (authentik forward auth)
+      - name: REVERSE_PROXY_AUTH
+        value: "true"
+      # Header sent by authentik containing the authenticated username
+      # X-authentik-username → PHP $_SERVER → HTTP_X_AUTHENTIK_USERNAME
+      - name: REVERSE_PROXY_USER_HEADER
+        value: "HTTP_X_AUTHENTIK_USERNAME"
+      # Mandatory since Kanboard 1.2.49: trusted proxy CIDR(s)
+      - name: TRUSTED_PROXY_NETWORKS
+        value: "10.0.0.0/8"
     persistence:
       enabled: true
       persistentVolumeClaim:
