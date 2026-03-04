@@ -1,6 +1,6 @@
 dependencies:
 - name: buildbuddy
   repository: https://buildbuddy-io.github.io/buildbuddy-helm/
-  version: 0.0.384
-digest: sha256:63ef01ffd103a866d048da52ccdcd88d86ded1054695744a0465879d17ba81fc
-generated: "2026-02-27T06:01:06.438531474Z"
+  version: 0.0.385
+digest: sha256:0e36381ca005188b07a2a29d3b4055cdc85071bb2d4ef9412715222b5847ac3b
+generated: "2026-03-04T06:02:09.90598669Z"
