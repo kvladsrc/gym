@@ -90,6 +90,7 @@ in
 
     # Development
     clang-tools
+    claude-code
     cloc
     delta
     emacs-pgtk
