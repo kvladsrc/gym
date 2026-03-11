@@ -67,6 +67,7 @@ in
     hyprpaper
     hyprsunset
     kanshi
+    mission-center
     nerd-fonts.fira-code
     nerd-fonts.mononoki
     nerd-fonts.noto
