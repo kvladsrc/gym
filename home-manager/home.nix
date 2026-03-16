@@ -37,8 +37,10 @@ in
 
   home.packages = with pkgs; [
     # Apps
+    aider-chat
     amberol
     baobab
+    dig
     dropbox
     eog
     evince
@@ -88,6 +90,10 @@ in
     (config.lib.nixGL.wrap zeal)
     (config.lib.nixGL.wrap zeal)
     (config.lib.nixGL.wrapOffload ryubing)
+
+    # Password management
+    gnupg
+    pass
 
     # Development
     clang-tools
