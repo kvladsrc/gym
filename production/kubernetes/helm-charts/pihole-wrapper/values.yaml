@@ -53,6 +53,10 @@ pihole:
   serviceWeb:
     type: ClusterIP
 
+  # Allow DNS queries from all interfaces (including Tailscale 100.x.x.x)
+  extraEnvVars:
+    DNSMASQ_LISTENING: "all"
+
   resources:
     requests:
       cpu: 100m

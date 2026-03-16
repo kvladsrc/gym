@@ -98,7 +98,7 @@
           kubectx
           podman
           talosctl
-          yq
+          yq-go
 
           # Development
           just
