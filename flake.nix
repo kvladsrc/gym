@@ -90,6 +90,7 @@
           age
           kubectl
           sops
+          terraform
         ];
 
         workstation = with pkgs; [
