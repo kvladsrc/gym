@@ -34,7 +34,10 @@ COPY flake.nix ./
 RUN nix profile install .#buildNodeTools
 
 # Install Helm plugins
-RUN ln -s "$(nix build .#helmPlugins --print-out-paths --no-link)" /usr/local/share/helm-plugins
+RUN mkdir -p /usr/local/share/helm-plugins && \
+    for plugin in "$(nix build .#helmPlugins --print-out-paths --no-link)"/*; do \
+      ln -s "$plugin" "/usr/local/share/helm-plugins/$(basename "$plugin")"; \
+    done
 ENV HELM_PLUGINS=/usr/local/share/helm-plugins
 
 RUN nix-collect-garbage -d
