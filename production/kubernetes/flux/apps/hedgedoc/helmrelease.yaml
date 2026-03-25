@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: hedgedoc
+  namespace: flux-system
+spec:
+  releaseName: hedgedoc
+  targetNamespace: hedgedoc
+  storageNamespace: hedgedoc
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/hedgedoc
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: hedgedoc-secrets
+      valuesKey: values.yaml

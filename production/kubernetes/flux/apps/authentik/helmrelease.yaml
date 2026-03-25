@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authentik
+  namespace: flux-system
+spec:
+  releaseName: authentik
+  targetNamespace: authentik
+  storageNamespace: authentik
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/authentik-wrapper
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: authentik-secrets
+      valuesKey: values.yaml

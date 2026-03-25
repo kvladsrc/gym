@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: docker-registry
+  namespace: flux-system
+spec:
+  releaseName: docker-registry
+  targetNamespace: docker-registry
+  storageNamespace: docker-registry
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/docker-registry-wrapper
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: docker-registry-secrets
+      valuesKey: values.yaml

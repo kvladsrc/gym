@@ -253,10 +253,16 @@ in
       interactive.diffFilter = "delta --color-only";
       delta.navigate = true;
       merge.conflictStyle = "zdiff3";
+      http.cookiefile = "~/.gitcookies";
     };
   };
 
   programs.home-manager.enable = true;
+
+  programs.yazi = {
+    enable = true;
+    enableBashIntegration = true;
+  };
 
   programs.zed-editor = {
     enable = true;

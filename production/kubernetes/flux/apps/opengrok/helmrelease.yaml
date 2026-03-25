@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: opengrok
+  namespace: flux-system
+spec:
+  releaseName: opengrok
+  targetNamespace: opengrok
+  storageNamespace: opengrok
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/opengrok
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: opengrok-secrets
+      valuesKey: values.yaml

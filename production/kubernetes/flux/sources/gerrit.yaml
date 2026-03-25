@@ -1,0 +1,14 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: gerrit
+  namespace: flux-system
+spec:
+  url: http://gerrit-service.gerrit-cluster.svc.cluster.local/src
+  ref:
+    branch: master
+  interval: 5m
+  timeout: 60s
+  secretRef:
+    name: gerrit-credentials

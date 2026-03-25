@@ -1,0 +1,18 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: zuul-operator
+  namespace: flux-system
+spec:
+  releaseName: zuul-operator
+  targetNamespace: zuul-operator
+  storageNamespace: zuul-operator
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/zuul-operator
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system

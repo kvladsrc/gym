@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: zuul
+  namespace: flux-system
+spec:
+  releaseName: zuul
+  targetNamespace: zuul
+  storageNamespace: zuul
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/zuul
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: zuul-secrets
+      valuesKey: values.yaml

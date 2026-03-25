@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: postgresql
+  namespace: flux-system
+spec:
+  releaseName: postgresql
+  targetNamespace: postgres
+  storageNamespace: postgres
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/postgresql-wrapper
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: postgresql-secrets
+      valuesKey: values.yaml

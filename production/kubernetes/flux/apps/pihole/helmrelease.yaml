@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: pihole
+  namespace: flux-system
+spec:
+  releaseName: pihole
+  targetNamespace: pihole
+  storageNamespace: pihole
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/pihole-wrapper
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: pihole-secrets
+      valuesKey: values.yaml

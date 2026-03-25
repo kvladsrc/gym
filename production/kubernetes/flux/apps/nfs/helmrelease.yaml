@@ -1,0 +1,19 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: nfs
+  namespace: flux-system
+spec:
+  releaseName: nfs
+  targetNamespace: nfs
+  storageNamespace: nfs
+  interval: 10m
+  chart:
+    spec:
+      # yamllint disable-line rule:line-length
+      chart: ./production/kubernetes/helm-charts/nfs-subdir-external-provisioner-wrapper
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system

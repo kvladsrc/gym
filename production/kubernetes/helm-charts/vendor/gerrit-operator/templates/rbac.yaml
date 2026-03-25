@@ -60,13 +60,9 @@ rules:
   - customresourcedefinitions
   verbs:
   - '*'
-  verbs:
-  - '*'
 - apiGroups:
   - "gerritoperator.google.com"
   resources:
-  - '*'
-  verbs:
   - '*'
   verbs:
   - '*'
