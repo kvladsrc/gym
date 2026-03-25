@@ -20,14 +20,6 @@
           config.allowUnfree = true;
         };
 
-        helm-plugins-dir = pkgs.symlinkJoin {
-          name = "helm-plugins";
-          paths = with pkgs.kubernetes-helmPlugins; [
-            helm-diff
-            helm-secrets
-          ];
-        };
-
         os = with pkgs; [
           bash
           coreutils-full
@@ -76,22 +68,14 @@
           perl
           pre-commit
           renovate
-        ];
-
-        cd = with pkgs; [
-          age
-          kubectl
-          sops
           terraform
         ];
       in
       rec {
         packages.buildNodeTools = pkgs.symlinkJoin {
           name = "build-node-tools";
-          paths = ci ++ cd ++ os;
+          paths = ci ++ os;
         };
-
-        packages.helmPlugins = helm-plugins-dir;
       }
     );
 }

@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cert-manager
+  namespace: flux-system
+spec:
+  releaseName: cert-manager
+  targetNamespace: cert-manager
+  storageNamespace: cert-manager
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/cert-manager-wrapper
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: cert-manager-secrets
+      valuesKey: values.yaml

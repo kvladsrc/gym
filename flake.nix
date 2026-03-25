@@ -88,6 +88,7 @@
 
         cd = with pkgs; [
           age
+          fluxcd
           kubectl
           sops
           terraform

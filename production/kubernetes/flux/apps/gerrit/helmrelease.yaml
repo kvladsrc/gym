@@ -1,0 +1,22 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: gerrit
+  namespace: flux-system
+spec:
+  releaseName: gerrit
+  targetNamespace: gerrit-cluster
+  storageNamespace: gerrit-cluster
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/gerrit
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: gerrit-secrets
+      valuesKey: values.yaml
