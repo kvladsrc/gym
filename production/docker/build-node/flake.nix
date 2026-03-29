@@ -58,9 +58,7 @@
           golangci-lint
           golint
           gotools
-          grpc-health-probe
           haskell.compiler.ghc984Binary
-          helmfile
           kubernetes-helm
           lcov
           nodejs
@@ -69,6 +67,7 @@
           pre-commit
           renovate
           terraform
+          tflint
         ];
       in
       rec {

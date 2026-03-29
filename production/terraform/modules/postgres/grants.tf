@@ -1,6 +1,3 @@
-# Grant each role full privileges on all objects in their own database.
-# "database" object privilege lets the role connect and operate.
-
 resource "postgresql_grant" "authentik_database" {
   database    = postgresql_database.authentik.name
   role        = postgresql_role.authentik.name
@@ -19,8 +16,6 @@ resource "postgresql_grant" "authentik_schema" {
 
   depends_on = [postgresql_database.authentik]
 }
-
-# ──────────────────────────────────────────────────────────────────────────────
 
 resource "postgresql_grant" "hedgedoc_database" {
   database    = postgresql_database.hedgedoc.name
@@ -41,8 +36,6 @@ resource "postgresql_grant" "hedgedoc_schema" {
   depends_on = [postgresql_database.hedgedoc]
 }
 
-# ──────────────────────────────────────────────────────────────────────────────
-
 resource "postgresql_grant" "miniflux_database" {
   database    = postgresql_database.miniflux.name
   role        = postgresql_role.miniflux.name
@@ -61,8 +54,6 @@ resource "postgresql_grant" "miniflux_schema" {
 
   depends_on = [postgresql_database.miniflux]
 }
-
-# ──────────────────────────────────────────────────────────────────────────────
 
 resource "postgresql_grant" "zuul_database" {
   database    = postgresql_database.zuul.name

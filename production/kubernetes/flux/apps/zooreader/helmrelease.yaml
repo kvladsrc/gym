@@ -5,6 +5,8 @@ metadata:
   name: zooreader
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: zooreader
   targetNamespace: zooreader
   storageNamespace: zooreader

@@ -5,6 +5,8 @@ metadata:
   name: kanboard
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: kanboard
   targetNamespace: kanboard
   storageNamespace: kanboard

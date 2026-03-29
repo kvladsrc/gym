@@ -84,6 +84,7 @@
           perl
           pre-commit
           renovate
+          tflint
         ];
 
         cd = with pkgs; [

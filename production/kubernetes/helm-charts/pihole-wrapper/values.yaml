@@ -22,28 +22,6 @@ pihole:
   ingress:
     enabled: false
 
-  # Local DNS records (migrated from CoreDNS hosts block)
-  dnsmasq:
-    customDnsEntries:
-      # ingress-nginx (.220)
-      - address=/api.your.domain/192.168.1.220
-      - address=/b.your.domain/192.168.1.220
-      - address=/ci.your.domain/192.168.1.220
-      - address=/review.your.domain/192.168.1.220
-      - address=/search.your.domain/192.168.1.220
-      - address=/dns.your.domain/192.168.1.220
-      - address=/feed.your.domain/192.168.1.220
-      - address=/hedgedoc.your.domain/192.168.1.220
-      - address=/logs.your.domain/192.168.1.220
-      - address=/read.your.domain/192.168.1.220
-      - address=/registry.your.domain/192.168.1.220
-      - address=/sql.your.domain/192.168.1.220
-      - address=/sso.your.domain/192.168.1.220
-      - address=/zz.your.domain/192.168.1.220
-      # buildbuddy (.221)
-      - address=/bb-grpc.your.domain/192.168.1.221
-      - address=/bb.your.domain/192.168.1.221
-
   # DNS service — static IP via kube-vip LoadBalancer
   serviceDns:
     type: LoadBalancer
@@ -56,6 +34,7 @@ pihole:
   # Allow DNS queries from all interfaces (including Tailscale 100.x.x.x)
   extraEnvVars:
     DNSMASQ_LISTENING: "all"
+    FTLCONF_webserver_api_max_sessions: 64
 
   resources:
     requests:

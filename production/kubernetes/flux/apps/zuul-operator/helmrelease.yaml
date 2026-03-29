@@ -5,6 +5,8 @@ metadata:
   name: zuul-operator
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: zuul-operator
   targetNamespace: zuul-operator
   storageNamespace: zuul-operator

@@ -7,6 +7,8 @@ metadata:
 spec:
   releaseName: buildbuddy
   targetNamespace: buildbuddy
+  install:
+    createNamespace: true
   storageNamespace: buildbuddy
   interval: 10m
   chart:

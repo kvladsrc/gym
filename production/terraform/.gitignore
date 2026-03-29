@@ -1,10 +1,11 @@
 # Real secrets — never commit
 terraform.tfvars
+*.tfvars
 
 # Terraform internals
 .terraform/
 .terraform.lock.hcl
 
-# State files — store remotely or keep locally, never commit
+# State files — these should be in S3 backend, never commit
 *.tfstate
 *.tfstate.backup

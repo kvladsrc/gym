@@ -5,6 +5,8 @@ metadata:
   name: ingress-nginx
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: ingress-nginx
   targetNamespace: ingress-nginx
   storageNamespace: ingress-nginx

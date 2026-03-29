@@ -2,7 +2,7 @@ apiVersion: v2
 name: pihole-wrapper
 description: "Wrapper chart: pihole"
 type: application
-version: 0.1.0
+version: 0.2.0
 appVersion: "2024.07.0"
 dependencies:
   - name: pihole

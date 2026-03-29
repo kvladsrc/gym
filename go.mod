@@ -1,6 +1,6 @@
 module src
 
-go 1.24.6
+go 1.25.7
 
 require (
 	github.com/awalterschulze/gographviz v2.0.3+incompatible
