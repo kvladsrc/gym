@@ -5,6 +5,8 @@ metadata:
   name: pihole
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: pihole
   targetNamespace: pihole
   storageNamespace: pihole

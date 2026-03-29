@@ -5,6 +5,8 @@ metadata:
   name: postgres-ui
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: postgres-ui
   targetNamespace: postgres
   storageNamespace: postgres

@@ -5,6 +5,8 @@ metadata:
   name: coredns-config
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: coredns-config
   targetNamespace: kube-system
   storageNamespace: kube-system

@@ -16,6 +16,7 @@ resources:
   - kyverno
   - kyverno-policies
   - miniflux
+  - minio
   - nfs
   - opengrok
   - pihole

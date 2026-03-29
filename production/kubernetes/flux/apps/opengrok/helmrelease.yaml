@@ -5,6 +5,8 @@ metadata:
   name: opengrok
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: opengrok
   targetNamespace: opengrok
   storageNamespace: opengrok

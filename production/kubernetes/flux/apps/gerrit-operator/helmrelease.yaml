@@ -5,6 +5,8 @@ metadata:
   name: gerrit-operator
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: gerrit-operator
   targetNamespace: gerrit-operator
   storageNamespace: gerrit-operator

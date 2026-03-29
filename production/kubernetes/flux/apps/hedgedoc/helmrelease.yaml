@@ -5,6 +5,8 @@ metadata:
   name: hedgedoc
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: hedgedoc
   targetNamespace: hedgedoc
   storageNamespace: hedgedoc

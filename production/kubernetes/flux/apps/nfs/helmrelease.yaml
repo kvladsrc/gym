@@ -5,6 +5,8 @@ metadata:
   name: nfs
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: nfs
   targetNamespace: nfs
   storageNamespace: nfs

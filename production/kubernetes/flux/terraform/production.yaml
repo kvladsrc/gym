@@ -1,0 +1,25 @@
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: production
+  namespace: flux-system
+spec:
+  interval: 1h
+  parallelism: 1
+  path: ./production/terraform
+  sourceRef:
+    kind: GitRepository
+    name: gerrit
+    namespace: flux-system
+
+  # AWS credentials
+  runnerPodTemplate:
+    spec:
+      envFrom:
+        - secretRef:
+            name: terraform-env-secrets
+
+  varsFrom:
+    - kind: Secret
+      name: terraform-secrets

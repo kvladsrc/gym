@@ -5,6 +5,8 @@ metadata:
   name: kube-vip
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: kube-vip
   targetNamespace: kube-system
   storageNamespace: kube-system

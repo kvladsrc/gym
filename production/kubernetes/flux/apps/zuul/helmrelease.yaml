@@ -5,6 +5,8 @@ metadata:
   name: zuul
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: zuul
   targetNamespace: zuul
   storageNamespace: zuul

@@ -1,26 +1,3 @@
-# ── Connection ────────────────────────────────────────────────────────────────
-
-variable "authentik_url" {
-  description = "Authentik instance URL (e.g., https://sso.your.domain)"
-  type        = string
-  default     = "https://sso.your.domain"
-}
-
-variable "authentik_token" {
-  description = "Authentik API token (from authentik admin UI)"
-  type        = string
-  sensitive   = true
-  default     = "mocktoken"
-}
-
-variable "authentik_insecure" {
-  description = "Allow insecure TLS connections (self-signed certificates)"
-  type        = bool
-  default     = true
-}
-
-# ── OAuth2 Applications ───────────────────────────────────────────────────────
-
 variable "hedgedoc_oauth2_client_secret" {
   description = "OAuth2 client secret for HedgeDoc"
   type        = string
@@ -28,7 +5,12 @@ variable "hedgedoc_oauth2_client_secret" {
   default     = ""
 }
 
-# ── Applications ──────────────────────────────────────────────────────────────
+variable "minio_oauth2_client_secret" {
+  description = "OAuth2 client secret for MinIO"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
 
 variable "applications" {
   description = "Map of applications to manage with authentik proxy."
@@ -60,11 +42,12 @@ variable "applications" {
       internal_port = 8080
     }
     "dns" = {
-      name          = "dns"
-      slug          = "dns"
-      external_host = "https://dns.your.domain"
-      internal_host = "pihole-web.pihole.svc.cluster.local"
-      internal_port = 80
+      name            = "dns"
+      slug            = "dns"
+      external_host   = "https://dns.your.domain"
+      internal_host   = "pihole-web.pihole.svc.cluster.local"
+      internal_port   = 80
+      skip_path_regex = "^/api/.*"
     }
     "gerrit" = {
       name            = "gerrit"

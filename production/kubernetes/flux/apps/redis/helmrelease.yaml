@@ -5,6 +5,8 @@ metadata:
   name: redis
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: redis
   targetNamespace: redis
   storageNamespace: redis

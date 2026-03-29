@@ -5,6 +5,8 @@ metadata:
   name: docker-registry
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: docker-registry
   targetNamespace: docker-registry
   storageNamespace: docker-registry

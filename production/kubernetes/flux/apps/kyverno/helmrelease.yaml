@@ -5,6 +5,8 @@ metadata:
   name: kyverno
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: kyverno
   targetNamespace: kyverno
   storageNamespace: kyverno

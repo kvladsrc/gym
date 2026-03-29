@@ -5,6 +5,8 @@ metadata:
   name: cert-manager
   namespace: flux-system
 spec:
+  install:
+    createNamespace: true
   releaseName: cert-manager
   targetNamespace: cert-manager
   storageNamespace: cert-manager

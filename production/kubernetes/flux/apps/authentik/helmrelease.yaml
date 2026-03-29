@@ -9,6 +9,8 @@ spec:
   targetNamespace: authentik
   storageNamespace: authentik
   interval: 10m
+  install:
+    createNamespace: true
   chart:
     spec:
       chart: ./production/kubernetes/helm-charts/authentik-wrapper
