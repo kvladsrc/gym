@@ -1,0 +1,10 @@
+---
+apiVersion: v2
+name: zookeeper-wrapper
+description: "Wrapper chart: zookeeper"
+type: application
+version: 0.7.0
+dependencies:
+  - name: zookeeper
+    version: 13.8.7
+    repository: "oci://registry-1.docker.io/bitnamicharts"

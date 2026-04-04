@@ -22,3 +22,13 @@ spec:
     - kind: Secret
       name: docker-registry-secrets
       valuesKey: values.yaml
+    - kind: Secret
+      name: production-output
+      valuesKey: registry_access_key
+      targetPath: docker-registry.secrets.s3.accessKey
+      optional: false
+    - kind: Secret
+      name: production-output
+      valuesKey: registry_secret_key
+      targetPath: docker-registry.secrets.s3.secretKey
+      optional: false

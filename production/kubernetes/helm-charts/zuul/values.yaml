@@ -4,6 +4,9 @@ gerrit:
   user: zuul
 
 zuul:
+  zookeeperSecretName: "zookeeper-tls" # pragma: allowlist secret
+  zookeeperConnectionString: >-
+    zookeeper.zookeeper.svc.cluster.local:3181
   zuulImageVersion: latest
   web:
     statusUrl: https://ci.your.domain
@@ -40,14 +43,20 @@ zuul:
                     nfs:
                       server: 192.168.1.185
                       path: /srv/nfs/pre-commit-cache
+                  - name: nix-store
+                    nfs:
+                      server: 192.168.1.185
+                      path: /srv/nfs/nix
                 volume-mounts:
                   - name: pre-commit-cache
                     mountPath: /root/.cache/pre-commit
+                  - name: nix-store
+                    mountPath: /nix
 
 logs:
   image: registry.your.domain/logs:1.0
   # yamllint disable-line rule:line-length
-  sshPublicKey: c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUdrRHVIVW9NaHZ5bTlPUGFRNHhaZ2NSckFFK0dkU1BibDhKWG9TTGZJYUcgenV1bC1sb2ctdXBsb2FkCg== # pragma: allowlist secret
+  sshPublicKey: c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUdrRHVIVW9NaHZ5bTlPUGFRNHhaZ2NSckFFK0dkU1BibDhKWG9TTGZJYUcgenV1bC1sb2ctdXBsb2FkCg==  # pragma: allowlist secret
   storage:
     logs: 10Gi
     sshConfig: 1Gi

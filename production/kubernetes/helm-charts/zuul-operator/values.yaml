@@ -2,7 +2,7 @@
 replicaCount: 1
 
 image:
-  repository: quay.io/zuul-ci/zuul-operator
+  repository: registry.your.domain/zuul-operator
   tag: "latest"
 
 serviceAccount:

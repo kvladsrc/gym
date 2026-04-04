@@ -23,6 +23,7 @@ resources:
   - postgres-ui
   - postgresql
   - redis
+  - zookeeper
   - zooreader
   - zuul
   - zuul-operator

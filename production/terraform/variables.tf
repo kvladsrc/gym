@@ -8,7 +8,7 @@ variable "pihole_password" {
 variable "pihole_endpoint" {
   description = "Pi-hole API endpoint"
   type        = string
-  default     = "https://dns.your.domain"
+  default     = "http://pihole-web.pihole.svc.cluster.local"
 }
 
 # Postgresql
@@ -60,9 +60,9 @@ variable "postgres_zuul_password" {
 
 # Authentik
 variable "authentik_url" {
-  description = "Authentik instance URL (e.g., https://sso.your.domain)"
+  description = "Authentik instance URL"
   type        = string
-  default     = "https://sso.your.domain"
+  default     = "http://authentik-server.authentik.svc.cluster.local"
 }
 
 variable "authentik_token" {
@@ -85,6 +85,24 @@ variable "hedgedoc_oauth2_client_secret" {
 
 variable "minio_oauth2_client_secret" {
   description = "OAuth2 client secret for MinIO"
+  type        = string
+  sensitive   = true
+}
+
+# MinIO
+variable "minio_endpoint" {
+  description = "MinIO endpoint"
+  type        = string
+}
+
+variable "minio_access_key" {
+  description = "MinIO access key"
+  type        = string
+  sensitive   = true
+}
+
+variable "minio_secret_key" {
+  description = "MinIO secret key"
   type        = string
   sensitive   = true
 }

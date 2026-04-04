@@ -6,6 +6,9 @@ metadata:
     {{- include "zuul.labels" . | nindent 4 }}
 spec:
   zuulImageVersion: {{ .Values.zuul.zuulImageVersion }}
+  zookeeper:
+    hosts: {{ .Values.zuul.zookeeperConnectionString }}
+    secretName: {{ .Values.zuul.zookeeperSecretName }} # pragma: allowlist secret
   database:
     secretName: creds # pragma: allowlist secret
   executor:

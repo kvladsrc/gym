@@ -2,7 +2,7 @@ terraform {
   required_providers {
     authentik = {
       source  = "goauthentik/authentik"
-      version = "~> 2024.2"
+      version = "~> 2025.0"
     }
     pihole = {
       source  = "iolave/pihole"
@@ -11,6 +11,10 @@ terraform {
     postgresql = {
       source  = "cyrilgdn/postgresql"
       version = "~> 1.25"
+    }
+    minio = {
+      source  = "aminueza/minio"
+      version = "3.28.1"
     }
   }
 
@@ -37,4 +41,8 @@ module "postgres" {
   postgres_hedgedoc_password  = var.postgres_hedgedoc_password
   postgres_miniflux_password  = var.postgres_miniflux_password
   postgres_zuul_password      = var.postgres_zuul_password
+}
+
+module "minio" {
+  source = "./modules/minio"
 }

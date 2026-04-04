@@ -2,10 +2,7 @@
 buildbuddy:
   disk:
     data:
-      enabled: true
-      size: 10Gi
-      storageClass: "nfs-client"
-      accessMode: ReadWriteOnce
+      enabled: false
 
   service:
     type: LoadBalancer
@@ -20,6 +17,16 @@ buildbuddy:
       build_buddy_url: "http://bb.your.domain"
       events_api_url: "grpc://bb-grpc.your.domain"
       cache_api_url: "grpc://bb-grpc.your.domain"
+    storage:
+      ttl_seconds: 2592000
+      chunk_file_size_bytes: 3000000
+      aws_s3:
+        endpoint: "http://minio.minio.svc.cluster.local:9000"
+        s3_force_path_style: true
+        region: "us-east-1"
+        bucket: "buildbuddy"
+        static_credentials_id: ""
+        static_credentials_secret: ""
 
   ingress:
     enabled: false
