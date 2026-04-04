@@ -1,0 +1,18 @@
+FROM docker.io/debian:bookworm-slim
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl xz-utils sudo \
+    && rm -rf /var/lib/apt/lists/*
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# Устанавливаем Nix.
+# ВАЖНО: При сборке монтируем /nix целиком: --volume /srv/nfs/nix:/nix
+RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install linux \
+    --no-confirm \
+    --init none \
+    --extra-conf "filter-syscalls = false" \
+    --extra-conf "experimental-features = nix-command flakes"
+
+RUN /nix/var/nix/profiles/default/bin/nix --version

@@ -1,12 +1,28 @@
 ---
 - hosts: all
   gather_facts: false
-
   vars:
     repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
     coverage_threshold: 90
+    coverage_relevant_patterns:
+      - '^cpp/warmup/'
+    has_coverage_changes: >-
+      {{
+        zuul['change']['files'] | default([])
+        | select('search', coverage_relevant_patterns | join('|'))
+        | list | length > 0
+      }}
 
   tasks:
+    - name: Check for relevant changes
+      debug:
+        msg: >-
+          {% if has_coverage_changes %}
+          Relevant changes found, running coverage tasks.
+          {% else %}
+          No relevant changes, skipping coverage tasks.
+          {% endif %}
+
     - name: Run bazel coverage
       shell: >
         bazelisk coverage //cpp/warmup/...
@@ -15,6 +31,7 @@
         --sandbox_debug
       args:
         chdir: "{{ repo_dir }}"
+      when: has_coverage_changes
 
     - name: Check coverage threshold
       shell: |
@@ -55,6 +72,7 @@
         }' bazel-out/_coverage/_coverage_report.dat
       args:
         chdir: "{{ repo_dir }}"
+      when: has_coverage_changes
 
     - name: Generate HTML coverage report
       shell: |
@@ -62,3 +80,4 @@
           --output-directory coverage_report
       args:
         chdir: "{{ repo_dir }}"
+      when: has_coverage_changes

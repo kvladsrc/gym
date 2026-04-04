@@ -63,11 +63,12 @@
           lcov
           nodejs
           openjdk21_headless
+          opentofu
           perl
           pre-commit
           renovate
-          terraform
           tflint
+          shfmt
         ];
       in
       rec {

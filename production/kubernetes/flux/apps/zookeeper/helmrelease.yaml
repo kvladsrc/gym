@@ -2,26 +2,22 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: zuul
+  name: zookeeper
   namespace: flux-system
 spec:
   install:
     createNamespace: true
-  releaseName: zuul
-  targetNamespace: zuul
-  storageNamespace: zuul
+  releaseName: zookeeper
+  targetNamespace: zookeeper
+  storageNamespace: zookeeper
   interval: 10m
   chart:
     spec:
-      chart: ./production/kubernetes/helm-charts/zuul
+      chart: ./production/kubernetes/helm-charts/zookeeper-wrapper
       sourceRef:
         kind: GitRepository
         name: gerrit
         namespace: flux-system
   valuesFrom:
     - kind: Secret
-      name: zuul-secrets
-      valuesKey: values.yaml
-    - kind: Secret
       name: zookeeper-tls
-      valuesKey: values.yaml

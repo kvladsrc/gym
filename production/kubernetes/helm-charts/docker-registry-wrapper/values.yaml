@@ -17,8 +17,29 @@ docker-registry:
     deleteUntagged: true
     schedule: "0 * * * *"
 
+  # Disable filesystem persistence, using S3 instead
   persistence:
-    accessMode: "ReadWriteOnce"
-    enabled: true
-    size: 10Gi
-    storageClass: "nfs-client"
+    enabled: false
+
+  # Use S3 storage (MinIO) instead of filesystem
+  storage: s3
+
+  # S3 configuration for MinIO
+  s3:
+    region: us-east-1
+    regionEndpoint: http://minio.minio.svc.cluster.local:9000
+    bucket: registry
+    encrypt: false
+    secure: false
+    skipverify: true
+    forcepathstyle: true
+
+  secrets:
+    s3:
+      accessKey: ""
+      secretKey: ""
+
+  configData:
+    storage:
+      redirect:
+        disable: true

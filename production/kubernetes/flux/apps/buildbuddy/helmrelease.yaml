@@ -18,3 +18,14 @@ spec:
         kind: GitRepository
         name: gerrit
         namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: production-output
+      valuesKey: bb_access_key
+      targetPath: buildbuddy.config.storage.aws_s3.static_credentials_id
+      optional: false
+    - kind: Secret
+      name: production-output
+      valuesKey: bb_secret_key
+      targetPath: buildbuddy.config.storage.aws_s3.static_credentials_secret
+      optional: false

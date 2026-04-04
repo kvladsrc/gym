@@ -8,17 +8,34 @@ spec:
   interval: 1h
   parallelism: 1
   path: ./production/terraform
+  approvePlan: auto
+  writeOutputsToSecret:
+    name: production-output
+
   sourceRef:
     kind: GitRepository
     name: gerrit
     namespace: flux-system
 
-  # AWS credentials
+  backendConfig:
+    customConfiguration: "# Override"
+
   runnerPodTemplate:
     spec:
+      # AWS credentials
       envFrom:
         - secretRef:
             name: terraform-env-secrets
+
+      # Cluster Issuer CA
+      volumes:
+        - name: ca-bundle
+          configMap:
+            name: ca-bundle
+      volumeMounts:
+        - name: ca-bundle
+          mountPath: /etc/ssl/certs/ca.crt
+          subPath: ca.crt
 
   varsFrom:
     - kind: Secret

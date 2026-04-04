@@ -1,11 +1,29 @@
 ---
 - hosts: all
   gather_facts: false
-
   vars:
     repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
-
+    bazel_relevant_patterns:
+      - '^cpp/'
+      - '^BUILD\.bazel$'
+      - '^MODULE\.bazel'
+      - '^\.bazelrc'
+    has_bazel_changes: >-
+      {{
+        zuul['change']['files'] | default([])
+        | select('search', bazel_relevant_patterns | join('|'))
+        | list | length > 0
+      }}
   tasks:
+    - name: Check for relevant changes
+      debug:
+        msg: >-
+          {% if has_bazel_changes %}
+          Relevant changes found, running bazel tasks.
+          {% else %}
+          No relevant changes, skipping bazel tasks.
+          {% endif %}
+
     - name: Run bazel build
       shell: >
         bazelisk build //...
@@ -13,6 +31,7 @@
         --sandbox_debug
       args:
         chdir: "{{ repo_dir }}"
+      when: has_bazel_changes
 
     - name: Run bazel test
       shell: >
@@ -21,6 +40,7 @@
         --sandbox_debug
       args:
         chdir: "{{ repo_dir }}"
+      when: has_bazel_changes
 
     - name: Run bazel test (ASan)
       shell: >
@@ -31,6 +51,7 @@
         --test_output=errors
       args:
         chdir: "{{ repo_dir }}"
+      when: has_bazel_changes
 
     - name: Run bazel test (UBSan)
       shell: >
@@ -41,6 +62,7 @@
         --test_output=errors
       args:
         chdir: "{{ repo_dir }}"
+      when: has_bazel_changes
 
     - name: Run bazel test (TSan)
       shell: >
@@ -51,3 +73,4 @@
         --test_output=errors
       args:
         chdir: "{{ repo_dir }}"
+      when: has_bazel_changes

@@ -9,6 +9,9 @@ spec:
   ref:
     branch: master
   interval: 5m
+  ignore: |
+    /*
+    !/production/
   timeout: 60s
   secretRef:
     name: gerrit-credentials
