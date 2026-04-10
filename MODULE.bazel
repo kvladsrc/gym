@@ -50,7 +50,7 @@ use_repo(go_sdk, "go_toolchains")
 register_toolchains("@go_toolchains//:all")
 
 # Gazelle
-bazel_dep(name = "gazelle", version = "0.48.0")
+bazel_dep(name = "gazelle", version = "0.50.0")
 
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")

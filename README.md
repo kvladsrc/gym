@@ -4,6 +4,8 @@
 >
 > &mdash; Donald Knuth
 
+...What i program, i do not understand either.
+
 This repository is a curated collection of my programming solutions,
 algorithm experiments, and learning notes on my computer science
 journey. You'll find both educational implementations and competitive
