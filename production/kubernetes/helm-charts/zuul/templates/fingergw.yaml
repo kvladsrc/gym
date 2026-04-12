@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zuul-fingergw
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+    app.kubernetes.io/component: zuul-fingergw
+    app.kubernetes.io/part-of: zuul
+spec:
+  replicas: {{ .Values.zuul.fingergw.count }}
+  selector:
+    matchLabels:
+      {{- include "zuul.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: zuul-fingergw
+      app.kubernetes.io/part-of: zuul
+  template:
+    metadata:
+      labels:
+        {{- include "zuul.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: zuul-fingergw
+        app.kubernetes.io/part-of: zuul
+    spec:
+      containers:
+        - name: fingergw
+          image: {{ .Values.zuul.imagePrefix }}/zuul-fingergw:{{ .Values.zuul.zuulImageVersion }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9079
+              name: zuul-fingergw
+              protocol: TCP
+          volumeMounts:
+            - name: zuul-config
+              mountPath: /etc/zuul
+            - name: zookeeper-client-tls
+              mountPath: /tls/client
+              readOnly: true
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: zuul-config
+          secret:
+            secretName: zuul-config # pragma: allowlist secret
+        - name: zookeeper-client-tls
+          secret:
+            secretName: {{ .Values.zuul.zookeeper.secretName }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zuul-fingergw
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+    app.kubernetes.io/component: zuul-fingergw
+    app.kubernetes.io/part-of: zuul
+spec:
+  type: NodePort
+  selector:
+    {{- include "zuul.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: zuul-fingergw
+    app.kubernetes.io/part-of: zuul
+  ports:
+    - name: zuul-fingergw
+      port: 9079
+      protocol: TCP
+      targetPort: zuul-fingergw

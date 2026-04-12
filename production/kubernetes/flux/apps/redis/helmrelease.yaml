@@ -22,3 +22,5 @@ spec:
     - kind: Secret
       name: redis-secrets
       valuesKey: values.yaml
+  dependsOn:
+    - name: nfs

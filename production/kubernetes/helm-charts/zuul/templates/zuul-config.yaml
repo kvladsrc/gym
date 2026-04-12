@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: zuul-config
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  zuul.conf: |
+    [keystore]
+    password={{ .Values.keystore.password }}
+
+    [zookeeper]
+    hosts={{ .Values.zuul.zookeeper.hosts }}
+    tls_ca={{ .Values.zuul.zookeeper.tls.ca }}
+    tls_cert={{ .Values.zuul.zookeeper.tls.cert }}
+    tls_key={{ .Values.zuul.zookeeper.tls.key }}
+
+    [scheduler]
+    count={{ .Values.zuul.scheduler.count }}
+    tenant_config=/etc/zuul/tenant/main.yaml
+
+    [database]
+    allowUnsafeConfig=False
+    dburi={{ .Values.database.uri }}
+
+    [web]
+    listen_address=0.0.0.0
+    port=9000
+
+    [fingergw]
+    port=9079
+
+    [executor]
+    private_key_file=/etc/zuul/sshkey/sshkey
+    count={{ .Values.zuul.executor.count }}
+    terminationGracePeriodSeconds={{ .Values.zuul.executor.terminationGracePeriodSeconds }}
+    {{- range .Values.zuul.executor.jobVolumes }}
+    trusted_rw_paths={{ .mountPath }}
+    {{- end }}
+
+    {{- range $name, $conn := .Values.zuul.connections }}
+    [connection "{{ $name }}"]
+    {{- range $key, $val := $conn }}
+    {{- if ne $key "secretName" }}
+    {{ $key }}={{ $val }}
+    {{- end }}
+    {{- end }}
+    sshkey=/etc/zuul/connections/{{ $name }}/sshkey
+    {{- end }}

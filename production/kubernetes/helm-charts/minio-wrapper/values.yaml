@@ -12,8 +12,17 @@ minio:
 
   # Enable ingress for API and console
   ingress:
-    enabled: false
-
+    enabled: true
+    ingressClassName: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: ca-issuer
+      kubernetes.io/ingress.class: "nginx"
+    hosts:
+      - store.your.domain
+    tls:
+      - hosts:
+          - store.your.domain
+        secretName: minio-api-ingress-tls # pragma: allowlist secret
   # Console ingress (UI)
   consoleIngress:
     enabled: true

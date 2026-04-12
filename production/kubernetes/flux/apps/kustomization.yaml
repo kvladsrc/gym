@@ -26,4 +26,3 @@ resources:
   - zookeeper
   - zooreader
   - zuul
-  - zuul-operator

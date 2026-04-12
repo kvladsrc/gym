@@ -22,3 +22,5 @@ spec:
     - kind: Secret
       name: cert-manager-secrets
       valuesKey: values.yaml
+  dependsOn:
+    - name: nfs

@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zuul-scheduler
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+    app.kubernetes.io/component: zuul-scheduler
+    app.kubernetes.io/part-of: zuul
+spec:
+  replicas: {{ .Values.zuul.scheduler.count }}
+  serviceName: zuul-scheduler
+  podManagementPolicy: OrderedReady
+  selector:
+    matchLabels:
+      {{- include "zuul.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: zuul-scheduler
+      app.kubernetes.io/part-of: zuul
+  template:
+    metadata:
+      labels:
+        {{- include "zuul.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: zuul-scheduler
+        app.kubernetes.io/part-of: zuul
+    spec:
+      containers:
+        - name: scheduler
+          image: {{ .Values.zuul.imagePrefix }}/zuul-scheduler:{{ .Values.zuul.zuulImageVersion }}
+          imagePullPolicy: Always
+          args:
+            - /usr/local/bin/zuul-scheduler
+            - -f
+            - -d
+          env:
+            - name: KUBECONFIG
+              value: /etc/kubernetes/kube.config
+          volumeMounts:
+            - name: zuul-config
+              mountPath: /etc/zuul
+              readOnly: true
+            - name: zuul-tenant-config
+              mountPath: /etc/zuul/tenant
+              readOnly: true
+            - name: zuul-scheduler
+              mountPath: /var/lib/zuul
+            - name: zookeeper-client-tls
+              mountPath: /tls/client
+              readOnly: true
+            {{- range $name, $conn := .Values.zuul.connections }}
+            - name: connection-{{ $name }}
+              mountPath: /etc/zuul/connections/{{ $name }}
+              readOnly: true
+            {{- end }}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: zuul-config
+          secret:
+            secretName: zuul-config # pragma: allowlist secret
+        - name: zuul-tenant-config
+          secret:
+            secretName: {{ .Values.zuul.scheduler.config.secretName }}
+        - name: zookeeper-client-tls
+          secret:
+            secretName: {{ .Values.zuul.zookeeper.secretName }}
+        {{- range $name, $conn := .Values.zuul.connections }}
+        - name: connection-{{ $name }}
+          secret:
+            secretName: {{ $conn.secretName }}
+        {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: zuul-scheduler
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        {{- if .Values.zuul.scheduler.storageClassName }}
+        storageClassName: {{ .Values.zuul.scheduler.storageClassName }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.zuul.scheduler.storageSize }}

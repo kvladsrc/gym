@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: zuul-executor
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+    app.kubernetes.io/component: zuul-executor
+    app.kubernetes.io/part-of: zuul
+spec:
+  replicas: {{ .Values.zuul.executor.count }}
+  serviceName: zuul-executor
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      {{- include "zuul.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: zuul-executor
+      app.kubernetes.io/part-of: zuul
+  template:
+    metadata:
+      labels:
+        {{- include "zuul.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: zuul-executor
+        app.kubernetes.io/part-of: zuul
+    spec:
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+      containers:
+        - name: executor
+          image: {{ .Values.zuul.imagePrefix }}/zuul-executor:{{ .Values.zuul.zuulImageVersion }}
+          imagePullPolicy: Always
+          args:
+            - /usr/local/bin/zuul-executor
+            - -f
+            - -d
+          env:
+            - name: ZUUL_EXECUTOR_SIGTERM_GRACEFUL
+              value: "1"
+          ports:
+            - containerPort: 7900
+              name: logs
+              protocol: TCP
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: zuul-config
+              mountPath: /etc/zuul
+            - name: zuul-var
+              mountPath: /var/lib/zuul
+            - name: nodepool-private-key
+              mountPath: /etc/zuul/sshkey
+            - name: zookeeper-client-tls
+              mountPath: /tls/client
+              readOnly: true
+            {{- range .Values.zuul.executor.jobVolumes }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+            {{- end }}
+            {{- range $name, $conn := .Values.zuul.connections }}
+            - name: connection-{{ $name }}
+              mountPath: /etc/zuul/connections/{{ $name }}
+              readOnly: true
+            {{- end }}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: zuul-var
+          emptyDir: {}
+        - name: zuul-config
+          secret:
+            secretName: zuul-config # pragma: allowlist secret
+        - name: zookeeper-client-tls
+          secret:
+            secretName: {{ .Values.zuul.zookeeper.secretName }}
+        - name: nodepool-private-key
+          secret:
+            secretName: {{ .Values.zuul.executor.sshkey.secretName }}
+        {{- range .Values.zuul.executor.jobVolumes }}
+        - name: {{ .name }}
+          {{- if .claimName }}
+          persistentVolumeClaim:
+            claimName: {{ .claimName }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
+        {{- range $name, $conn := .Values.zuul.connections }}
+        - name: connection-{{ $name }}
+          secret:
+            secretName: {{ $conn.secretName }}
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zuul-executor
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+    app.kubernetes.io/component: zuul-executor
+    app.kubernetes.io/part-of: zuul
+spec:
+  clusterIP: None
+  selector:
+    {{- include "zuul.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: zuul-executor
+    app.kubernetes.io/part-of: zuul
+  ports:
+    - name: logs
+      port: 7900
+      protocol: TCP
+      targetPort: logs

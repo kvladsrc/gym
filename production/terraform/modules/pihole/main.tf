@@ -60,6 +60,11 @@ resource "pihole_dns_record" "s3_bonfire" {
   ip     = "192.168.1.220"
 }
 
+resource "pihole_dns_record" "store_bonfire" {
+  domain = "store.your.domain"
+  ip     = "192.168.1.220"
+}
+
 resource "pihole_dns_record" "sql_bonfire" {
   domain = "sql.your.domain"
   ip     = "192.168.1.220"

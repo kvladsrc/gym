@@ -22,3 +22,5 @@ spec:
     - kind: Secret
       name: postgresql-secrets
       valuesKey: values.yaml
+  dependsOn:
+    - name: nfs

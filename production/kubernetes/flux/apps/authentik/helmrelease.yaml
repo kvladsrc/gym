@@ -22,3 +22,7 @@ spec:
     - kind: Secret
       name: authentik-secrets
       valuesKey: values.yaml
+  dependsOn:
+    - name: ingress-nginx
+    - name: postgresql
+    - name: redis

@@ -22,6 +22,9 @@ spec:
     - kind: Secret
       name: zuul-secrets
       valuesKey: values.yaml
-    - kind: Secret
-      name: zookeeper-tls
-      valuesKey: values.yaml
+  dependsOn:
+    - name: gerrit
+    - name: minio
+    - name: nfs
+    - name: postgresql
+    - name: zookeeper

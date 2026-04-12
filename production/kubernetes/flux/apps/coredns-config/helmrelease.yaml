@@ -18,3 +18,5 @@ spec:
         kind: GitRepository
         name: gerrit
         namespace: flux-system
+  dependsOn:
+    - name: pihole

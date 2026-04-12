@@ -22,3 +22,5 @@ spec:
     - kind: Secret
       name: gerrit-secrets
       valuesKey: values.yaml
+  dependsOn:
+    - name: gerrit-operator
