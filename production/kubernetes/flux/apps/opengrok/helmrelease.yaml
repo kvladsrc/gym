@@ -22,3 +22,5 @@ spec:
     - kind: Secret
       name: opengrok-secrets
       valuesKey: values.yaml
+  dependsOn:
+    - name: nfs

@@ -1,0 +1,37 @@
+{{- if .Values.certManager.enabled }}
+{{- include "zookeeper.validateCertManager" . }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ default (printf "%s-tls" .Release.Name) .Values.certManager.certificateName }}
+  labels:
+    {{- include "zookeeper.labels" . | nindent 4 }}
+spec:
+  secretName: {{ default (printf "%s-tls" .Release.Name) .Values.certManager.secretName }}
+  duration: {{ .Values.certManager.duration | default "2160h0m0s" }}
+  renewBefore: {{ .Values.certManager.renewBefore | default "360h0m0s" }}
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: {{ .Values.certManager.keySize | default 2048 }}
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - "localhost"
+    - "{{ .Release.Name }}"
+    - "{{ .Release.Name }}.{{ .Release.Namespace }}"
+    - "{{ .Release.Name }}.{{ .Release.Namespace }}.svc"
+    - "{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local"
+    - "*.{{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local"
+  keystores:
+    pkcs12:
+      create: true
+      passwordSecretRef:
+        name: {{ .Release.Name }}-tls-keystore-password
+        key: password
+  issuerRef:
+    name: {{ .Values.certManager.issuerName }}
+    kind: {{ .Values.certManager.issuerKind | default "ClusterIssuer" }}
+{{- end }}

@@ -22,3 +22,6 @@ spec:
     - kind: Secret
       name: minio-secrets
       valuesKey: values.yaml
+  dependsOn:
+    - name: ingress-nginx
+    - name: nfs

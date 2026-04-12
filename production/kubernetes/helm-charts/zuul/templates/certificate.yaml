@@ -1,0 +1,48 @@
+{{- if .Values.zuul.zookeeper.certManager.enabled }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-zk-tls-keystore-password
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+type: Opaque
+data:
+  password: {{ .Values.zuul.zookeeper.certManager.keystorePassword | required "zuul.zookeeper.certManager.keystorePassword is required" | b64enc | quote }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.zuul.zookeeper.secretName }}
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+spec:
+  secretName: {{ .Values.zuul.zookeeper.secretName }}
+  duration: {{ .Values.zuul.zookeeper.certManager.duration | default "2160h0m0s" }}
+  renewBefore: {{ .Values.zuul.zookeeper.certManager.renewBefore | default "360h0m0s" }}
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: {{ .Values.zuul.zookeeper.certManager.keySize | default 2048 }}
+  usages:
+    - client auth
+  dnsNames:
+    - "localhost"
+    - "zookeeper"
+    - "zookeeper.zookeeper"
+    - "zookeeper.zookeeper.svc"
+    - "zookeeper.zookeeper.svc.cluster.local"
+    - "*.zookeeper.zookeeper.svc.cluster.local"
+    {{- with .Values.zuul.zookeeper.certManager.additionalDnsNames }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  keystores:
+    pkcs12:
+      create: true
+      passwordSecretRef:
+        name: {{ .Release.Name }}-zk-tls-keystore-password
+        key: password
+  issuerRef:
+    name: {{ .Values.zuul.zookeeper.certManager.issuerName }}
+    kind: {{ .Values.zuul.zookeeper.certManager.issuerKind | default "ClusterIssuer" }}
+{{- end }}

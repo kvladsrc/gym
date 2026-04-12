@@ -29,3 +29,5 @@ spec:
       valuesKey: bb_secret_key
       targetPath: buildbuddy.config.storage.aws_s3.static_credentials_secret
       optional: false
+  dependsOn:
+    - name: minio

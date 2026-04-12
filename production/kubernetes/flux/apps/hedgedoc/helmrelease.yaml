@@ -22,3 +22,8 @@ spec:
     - kind: Secret
       name: hedgedoc-secrets
       valuesKey: values.yaml
+  dependsOn:
+    - name: authentik
+    - name: ingress-nginx
+    - name: nfs
+    - name: postgresql

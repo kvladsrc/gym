@@ -21,3 +21,7 @@ spec:
   valuesFrom:
     - kind: Secret
       name: zookeeper-tls
+      valuesKey: values.yaml
+  dependsOn:
+    - name: cert-manager
+    - name: nfs

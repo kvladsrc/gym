@@ -1,0 +1,70 @@
+{{- range .Values.zuul.nodepool.providers }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodepool-launcher-{{ .name }}
+  labels:
+    {{- include "zuul.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: nodepool-launcher
+    app.kubernetes.io/part-of: zuul
+    operator.zuul-ci.org/nodepool-provider: {{ .name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "zuul.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: nodepool-launcher
+      app.kubernetes.io/part-of: zuul
+      operator.zuul-ci.org/nodepool-provider: {{ .name }}
+  template:
+    metadata:
+      labels:
+        {{- include "zuul.selectorLabels" $ | nindent 8 }}
+        app.kubernetes.io/component: nodepool-launcher
+        app.kubernetes.io/part-of: zuul
+        operator.zuul-ci.org/nodepool-provider: {{ .name }}
+    spec:
+      containers:
+        - name: launcher
+          image: {{ $.Values.zuul.imagePrefix }}/nodepool-launcher:{{ $.Values.zuul.nodepoolImageVersion }}
+          imagePullPolicy: Always
+          env:
+            - name: KUBECONFIG
+              value: /etc/kubernetes/kube.config
+          volumeMounts:
+            - name: nodepool-config
+              mountPath: /etc/nodepool
+              readOnly: true
+            - name: zookeeper-client-tls
+              mountPath: /tls/client
+              readOnly: true
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: nodepool-config
+          secret:
+            secretName: nodepool-config-{{ $.Release.Name }}-{{ .name }} # pragma: allowlist secret
+        - name: zookeeper-client-tls
+          secret:
+            secretName: {{ $.Values.zuul.zookeeper.secretName }}
+{{- end }}
+{{- range .Values.zuul.nodepool.providers }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nodepool-config-{{ $.Release.Name }}-{{ .name }}
+  labels:
+    {{- include "zuul.labels" $ | nindent 4 }}
+type: Opaque
+stringData:
+  nodepool.yaml: |
+{{ $.Values.zuul.nodepoolConfig | indent 4 }}
+    zookeeper-servers:
+    - host: {{ (split ":" $.Values.zuul.zookeeper.hosts)._0 }}
+      port: '{{ (split ":" $.Values.zuul.zookeeper.hosts)._1 }}'
+    zookeeper-tls:
+      ca: {{ $.Values.zuul.zookeeper.tls.ca }}
+      cert: {{ $.Values.zuul.zookeeper.tls.cert }}
+      key: {{ $.Values.zuul.zookeeper.tls.key }}
+{{- end }}

@@ -22,3 +22,5 @@ spec:
     - kind: Secret
       name: miniflux-secrets
       valuesKey: values.yaml
+  dependsOn:
+    - name: postgresql
