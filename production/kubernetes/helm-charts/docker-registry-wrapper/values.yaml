@@ -11,7 +11,12 @@ docker-registry:
     annotations:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/proxy-body-size: "0"
-
+      cert-manager.io/cluster-issuer: ca-issuer
+      nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    tls:
+      - secretName: docker-registry-tls # pragma: allowlist secret
+        hosts:
+          - registry.your.domain
   garbageCollect:
     enabled: true
     deleteUntagged: true

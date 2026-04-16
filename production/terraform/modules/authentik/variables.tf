@@ -26,14 +26,6 @@ variable "applications" {
     internal_host_ssl_validation = optional(bool, false)
   }))
   default = {
-    "zuul-web" = {
-      name                  = "zuul-web"
-      slug                  = "zuul-web"
-      external_host         = "https://zz.your.domain"
-      internal_host         = "zuul-web-minimal.zuul.svc.cluster.local"
-      internal_port         = 80
-      access_token_validity = "hours=24"
-    }
     "miniflux" = {
       name          = "miniflux"
       slug          = "miniflux"
@@ -63,14 +55,6 @@ variable "applications" {
       external_host = "https://b.your.domain"
       internal_host = "kanboard.kanboard.svc.cluster.local"
       internal_port = 80
-    }
-    "zuul-logs" = {
-      name            = "zuul-logs"
-      slug            = "zuul-logs"
-      external_host   = "https://logs.your.domain"
-      internal_host   = "zuul-logs-svc.zuul.svc.cluster.local"
-      internal_port   = 80
-      skip_path_regex = "^/.*$"
     }
     "opengrok" = {
       name          = "opengrok"

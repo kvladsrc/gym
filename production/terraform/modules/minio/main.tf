@@ -2,12 +2,19 @@ locals {
   minio_buckets = {
     registry = {
       actions = ["s3:*"]
+      public  = false
     }
     buildbuddy = {
       actions = ["s3:*"]
+      public  = false
     }
     zuul = {
       actions = ["s3:*"]
+      public  = true
+    }
+    plugins = {
+      actions = ["s3:*"]
+      public  = true
     }
   }
 }
@@ -15,7 +22,7 @@ locals {
 resource "minio_s3_bucket" "this" {
   for_each = local.minio_buckets
   bucket   = each.key
-  acl      = "private"
+  acl      = each.value.public ? "public" : "private"
 }
 
 resource "minio_iam_user" "this" {
@@ -37,6 +44,23 @@ resource "minio_iam_policy" "this" {
           "arn:aws:s3:::${each.key}",
           "arn:aws:s3:::${each.key}/*",
         ]
+      }
+    ]
+  })
+}
+
+resource "minio_s3_bucket_policy" "public" {
+  for_each = { for k, v in local.minio_buckets : k => v if v.public }
+  bucket   = minio_s3_bucket.this[each.key].bucket
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = ["s3:GetObject"]
+        Resource  = ["arn:aws:s3:::${each.key}/*"]
       }
     ]
   })
