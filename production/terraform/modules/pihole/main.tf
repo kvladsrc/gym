@@ -40,11 +40,6 @@ resource "pihole_dns_record" "hedgedoc_bonfire" {
   ip     = "192.168.1.220"
 }
 
-resource "pihole_dns_record" "logs_bonfire" {
-  domain = "logs.your.domain"
-  ip     = "192.168.1.220"
-}
-
 resource "pihole_dns_record" "read_bonfire" {
   domain = "read.your.domain"
   ip     = "192.168.1.220"
@@ -72,11 +67,6 @@ resource "pihole_dns_record" "sql_bonfire" {
 
 resource "pihole_dns_record" "sso_bonfire" {
   domain = "sso.your.domain"
-  ip     = "192.168.1.220"
-}
-
-resource "pihole_dns_record" "zz_bonfire" {
-  domain = "zz.your.domain"
   ip     = "192.168.1.220"
 }
 

@@ -6,11 +6,6 @@ namespace: gerrit-cluster
 containerImages:
   imagePullPolicy: IfNotPresent
 
-pluginServer:
-  image:
-    repository: registry.your.domain/gerrit-plugins
-    tag: "1.0"
-
 # Storage configuration
 storage:
   storageClasses:
@@ -71,20 +66,21 @@ gerrit:
     successThreshold: 1
     failureThreshold: 3
 
+  # yamllint disable rule:line-length
   plugins:
     - name: download-commands
     - name: delete-project
     - name: avatars-gravatar
-      url: http://gerrit-plugin-server/avatars-gravatar.jar
+      url: http://minio.minio.svc.cluster.local:9000/plugins/avatars-gravatar.jar
       sha1: 0acf8222cda5839e99c38aaa541d5c186c7e4699 # pragma: allowlist secret
     - name: checks-zuul
-      url: http://gerrit-plugin-server/checks-zuul.jar
+      url: http://minio.minio.svc.cluster.local:9000/plugins/checks-zuul.jar
       sha1: b9af222dde3b6b9146bc4373580ec6cb444ba330 # pragma: allowlist secret
     - name: commit-message-length-validator
-      url: http://gerrit-plugin-server/commit-message-length-validator.jar
+      url: http://minio.minio.svc.cluster.local:9000/plugins/commit-message-length-validator.jar
       sha1: a3ddecbd675c6cac7f17d592bf7c118280cc4e81 # pragma: allowlist secret
     - name: codemirror-editor
-      url: http://gerrit-plugin-server/codemirror-editor.jar
+      url: http://minio.minio.svc.cluster.local:9000/plugins/codemirror-editor.jar
       sha1: 127693fc6f3cf7d66ba5478525baf2ce5d0e4ea6 # pragma: allowlist secret
 
   config: |-

@@ -57,11 +57,6 @@ zuul:
       secretName: gerrit-secrets  # pragma: allowlist secret
       baseurl: http://review.your.domain
 
-  webMinimal:
-    image: registry.your.domain/zuul-web-minimal:1.0
-    imagePullPolicy: Always
-    replicas: 1
-
   tenantConfig: |
     - tenant:
         name: your.domain
