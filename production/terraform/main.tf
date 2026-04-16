@@ -4,9 +4,9 @@ terraform {
       source  = "goauthentik/authentik"
       version = "~> 2025.0"
     }
-    pihole = {
-      source  = "iolave/pihole"
-      version = "0.2.2"
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0"
     }
     postgresql = {
       source  = "cyrilgdn/postgresql"
@@ -29,10 +29,6 @@ module "authentik" {
   minio_oauth2_client_secret    = var.minio_oauth2_client_secret
 }
 
-module "pihole" {
-  source = "./modules/pihole"
-}
-
 module "postgres" {
   source = "./modules/postgres"
 
@@ -45,4 +41,10 @@ module "postgres" {
 
 module "minio" {
   source = "./modules/minio"
+}
+
+module "cloudflare" {
+  source = "./modules/cloudflare"
+
+  cloudflare_zone_id = var.cloudflare_zone_id
 }

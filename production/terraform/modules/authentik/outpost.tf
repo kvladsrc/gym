@@ -28,7 +28,7 @@ resource "authentik_outpost" "proxy_outpost" {
     kubernetes_ingress_class_name  = "nginx"
     kubernetes_disabled_components = []
     kubernetes_ingress_annotations = {
-      "cert-manager.io/cluster-issuer" = "ca-issuer"
+      "cert-manager.io/cluster-issuer" = "letsencrypt-production"
     }
     kubernetes_ingress_secret_name   = "terraform-outpost-tls" # pragma: allowlist secret
     kubernetes_httproute_annotations = {}

@@ -22,3 +22,9 @@ cert-manager:
       repository: bitnamilegacy/cainjector
 
 createClusterIssuer: true
+
+letsencrypt:
+  enabled: true
+  email: "myuser@gmail.com"
+  # This value should be overridden in the SOPS encrypted values
+  cloudflareApiToken: "" # pragma: allowlist secret

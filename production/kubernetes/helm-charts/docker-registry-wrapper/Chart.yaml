@@ -3,7 +3,7 @@ apiVersion: v2
 name: docker-registry-wrapper
 description: "Wrapper chart: docker-registry"
 type: application
-version: 0.2.0
+version: 0.5.0
 dependencies:
   - name: docker-registry
     version: 3.0.0

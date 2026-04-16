@@ -3,7 +3,7 @@ apiVersion: v2
 name: buildbuddy-wrapper
 description: "Wrapper chart: buildbuddy"
 type: application
-version: 0.3.0
+version: 0.4.0
 dependencies:
   - name: buildbuddy
     version: 0.0.398

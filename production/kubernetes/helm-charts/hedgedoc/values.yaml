@@ -14,7 +14,7 @@ ingress:
   enabled: true
   className: "nginx"
   annotations:
-    cert-manager.io/cluster-issuer: ca-issuer
+    cert-manager.io/cluster-issuer: letsencrypt-production
     kubernetes.io/ingress.class: "nginx"
   hosts:
     - host: hedgedoc.your.domain

@@ -1,16 +1,3 @@
-# Pihole
-variable "pihole_password" {
-  description = "Admin password for Pi-hole web interface"
-  type        = string
-  sensitive   = true
-}
-
-variable "pihole_endpoint" {
-  description = "Pi-hole API endpoint"
-  type        = string
-  default     = "http://pihole-web.pihole.svc.cluster.local"
-}
-
 # Postgresql
 variable "postgres_host" {
   description = "PostgreSQL host (use kubectl port-forward or cluster DNS)"
@@ -105,4 +92,16 @@ variable "minio_secret_key" {
   description = "MinIO secret key"
   type        = string
   sensitive   = true
+}
+
+# Cloudflare
+variable "cloudflare_api_token" {
+  description = "Cloudflare API Token"
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_zone_id" {
+  description = "Cloudflare Zone ID for your.domain"
+  type        = string
 }

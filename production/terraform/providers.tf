@@ -4,11 +4,6 @@ provider "authentik" {
   insecure = var.authentik_insecure
 }
 
-provider "pihole" {
-  url      = var.pihole_endpoint
-  password = var.pihole_password
-}
-
 provider "postgresql" {
   host     = var.postgres_host
   port     = var.postgres_port
@@ -25,4 +20,8 @@ provider "minio" {
   minio_access_key = var.minio_access_key
   minio_secret_key = var.minio_secret_key
   minio_insecure   = true
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
 }
