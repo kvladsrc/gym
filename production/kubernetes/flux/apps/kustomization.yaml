@@ -5,7 +5,6 @@ resources:
   - authentik
   - buildbuddy
   - cert-manager
-  - coredns-config
   - docker-registry
   - gerrit
   - gerrit-operator
