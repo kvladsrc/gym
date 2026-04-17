@@ -3,8 +3,8 @@ apiVersion: v2
 name: postgresql-wrapper
 description: "Wrapper chart: postgresql"
 type: application
-version: 0.5.0
+version: 0.7.0
 dependencies:
   - name: postgresql
-    version: 18.5.20
+    version: 18.5.23
     repository: "oci://registry-1.docker.io/bitnamicharts"
