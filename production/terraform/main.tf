@@ -2,7 +2,7 @@ terraform {
   required_providers {
     authentik = {
       source  = "goauthentik/authentik"
-      version = "~> 2025.0"
+      version = "~> 2026.0"
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"
@@ -14,7 +14,7 @@ terraform {
     }
     minio = {
       source  = "aminueza/minio"
-      version = "3.32.1"
+      version = "3.33.1"
     }
   }
 
