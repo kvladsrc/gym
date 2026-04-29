@@ -17,10 +17,10 @@ in
   targets.genericLinux.nixGL = {
     packages = nixgl;
     defaultWrapper = "mesa";
-    offloadWrapper = "nvidiaPrime";
+    offloadWrapper = "mesaPrime";
     installScripts = [
       "mesa"
-      "nvidiaPrime"
+      "mesaPrime"
     ];
   };
 
@@ -83,13 +83,14 @@ in
 
     # GPU enabled.
     (config.lib.nixGL.wrap antigravity)
+    (config.lib.nixGL.wrap blockbench)
     (config.lib.nixGL.wrap celestia)
     (config.lib.nixGL.wrap easyeffects)
+    (config.lib.nixGL.wrap godotPackages_4_6.godot)
     (config.lib.nixGL.wrap gthumb)
     (config.lib.nixGL.wrap kooha)
+    (config.lib.nixGL.wrap ryubing)
     (config.lib.nixGL.wrap zeal)
-    (config.lib.nixGL.wrap zeal)
-    (config.lib.nixGL.wrapOffload ryubing)
 
     # Password management
     gnupg
@@ -191,6 +192,11 @@ in
       if ! [[ "$PATH" =~ "$HOME/.local/bin" ]]
       then
           PATH="$HOME/.local/bin:$PATH"
+      fi
+
+      if ! [[ "$PATH" =~ "$HOME/.npm-global/bin" ]]
+      then
+          PATH="$HOME/.npm-global/bin:$PATH"
       fi
 
       if [ -d ~/.bashrc.d ]; then

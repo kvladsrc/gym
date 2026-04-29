@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: miniflux-wrapper
 description: "Wrapper chart: miniflux"

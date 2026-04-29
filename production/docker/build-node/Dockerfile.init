@@ -1,6 +1,7 @@
 FROM docker.io/debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
+# checkov:skip=CKV2_DOCKER_1: sudo is required for init functionality
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl xz-utils sudo \
     && rm -rf /var/lib/apt/lists/*
@@ -15,4 +16,11 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/
     --extra-conf "filter-syscalls = false" \
     --extra-conf "experimental-features = nix-command flakes"
 
-RUN /nix/var/nix/profiles/default/bin/nix --version
+RUN /nix/var/nix/profiles/default/bin/nix --version \
+    && useradd -m -s /bin/bash nixuser
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD /nix/var/nix/profiles/default/bin/nix --version > /dev/null 2>&1 || exit 1
+
+USER nixuser

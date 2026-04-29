@@ -1,3 +1,4 @@
+---
 gotify:
   image:
     repository: gotify/server

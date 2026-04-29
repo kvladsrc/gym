@@ -1,3 +1,4 @@
+---
 image:
   repository: adminer
   pullPolicy: Always

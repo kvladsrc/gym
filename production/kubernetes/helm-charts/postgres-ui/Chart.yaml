@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: postgres-ui
 description: A Helm chart for Adminer, a PostgreSQL Web UI
