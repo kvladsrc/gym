@@ -1,3 +1,4 @@
+---
 zooreader:
   replicas: 1
   image: "registry.your.domain/zooreader:latest"

@@ -52,6 +52,7 @@
           emacs
           gcc14
           gcov
+          gdtoolkit_4
           go
           go-critic
           gocyclo

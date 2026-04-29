@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 name: pihole-wrapper
 description: "Wrapper chart: pihole"

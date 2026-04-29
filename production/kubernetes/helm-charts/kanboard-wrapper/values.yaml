@@ -1,3 +1,4 @@
+---
 kanboard:
   image:
     registry: docker.io

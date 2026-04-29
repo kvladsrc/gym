@@ -1,3 +1,4 @@
+---
 miniflux:
   image:
     repository: ghcr.io/miniflux/miniflux

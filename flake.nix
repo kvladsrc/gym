@@ -34,6 +34,7 @@
           bash
           coreutils-full
           curl
+          diffutils
           file
           gdb
           git
@@ -41,6 +42,7 @@
           gnused
           openssh
           python314
+          ripgrep
           shadow
           which
           zip
@@ -64,6 +66,7 @@
           emacs
           gcc14
           gcov
+          gdtoolkit_4
           go
           go-critic
           gocyclo
@@ -79,13 +82,15 @@
           perl
           pre-commit
           renovate
-          tflint
           shfmt
+          tflint
         ];
 
         workstation = with pkgs; [
           age
           fluxcd
+          godotPackages_4_6.godot
+          jujutsu
           just
           kubectl
           kubectx

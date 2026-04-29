@@ -1,0 +1,411 @@
+[gd_scene load_steps=20 format=3 uid="uid://baea4l4n5ndfk"]
+
+[ext_resource type="PackedScene" uid="uid://druwv7nmcrd57" path="res://scenes/player.tscn" id="1_o5qli"]
+[ext_resource type="Script" path="res://scripts/world/area_generator.gd" id="2_h1ols"]
+[ext_resource type="Script" path="res://scripts/ui/interaction_prompt.gd" id="3_gj7q0"]
+[ext_resource type="Script" path="res://scripts/repository/workspace.gd" id="4_gj7q0"]
+[ext_resource type="Script" path="res://scripts/ui/file_reader.gd" id="5_1m6mi"]
+[ext_resource type="Script" path="res://scripts/ui/map_panel.gd" id="6_o5qli"]
+[ext_resource type="Script" path="res://scripts/tools/tool_state.gd" id="7_o5qli"]
+[ext_resource type="Script" path="res://scripts/ui/tool_hud.gd" id="8_1m6mi"]
+[ext_resource type="Script" path="res://scripts/tasks/task_queue.gd" id="9_qd4bi"]
+[ext_resource type="Script" path="res://scripts/ui/task_panel.gd" id="10_druwv"]
+[ext_resource type="Script" path="res://scripts/llm/openrouter_adapter.gd" id="11_openr"]
+[ext_resource type="Script" path="res://scripts/llm/llm_task_runner.gd" id="12_llmtr"]
+[ext_resource type="Script" path="res://scripts/ui/draft_preview.gd" id="13_draft"]
+[ext_resource type="Script" path="res://scripts/ui/start_menu.gd" id="14_start"]
+[ext_resource type="Script" path="res://scripts/ui/diff_preview.gd" id="15_diff"]
+[ext_resource type="Script" path="res://scripts/tasks/draft_applier.gd" id="16_apply"]
+[ext_resource type="Script" path="res://scripts/ui/game_cursor.gd" id="17_cursor"]
+[ext_resource type="Texture2D" path="res://assets/ui/pixel/panel.png" id="18_panel"]
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 1
+background_color = Color(0.55, 0.62, 0.66, 1)
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_energy = 1.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxFlat_file_reader"]
+texture = ExtResource("18_panel")
+texture_margin_left = 6.0
+texture_margin_top = 6.0
+texture_margin_right = 6.0
+texture_margin_bottom = 6.0
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[node name="Main" type="Node3D" unique_id=1054695190]
+
+[node name="Workspace" type="Node" parent="." unique_id=344995571]
+script = ExtResource("4_gj7q0")
+
+[node name="ToolState" type="Node" parent="." unique_id=2065569564]
+script = ExtResource("7_o5qli")
+
+[node name="TaskQueue" type="Node" parent="." unique_id=1817156419]
+script = ExtResource("9_qd4bi")
+
+[node name="DraftApplier" type="Node" parent="." unique_id=1268748841]
+script = ExtResource("16_apply")
+
+[node name="OpenRouterAdapter" type="HTTPRequest" parent="." unique_id=171338861]
+script = ExtResource("11_openr")
+
+[node name="LlmTaskRunner" type="Node" parent="." unique_id=506339854]
+script = ExtResource("12_llmtr")
+
+[node name="World" type="Node3D" parent="." unique_id=137682285]
+
+[node name="GeneratedArea" type="Node3D" parent="World" unique_id=1796574366]
+script = ExtResource("2_h1ols")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1241761520]
+environment = SubResource("Environment_world")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1309830721]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 0, 0)
+light_energy = 0.35
+
+[node name="Player" parent="." unique_id=817019351 instance=ExtResource("1_o5qli")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.85, 0)
+spawn_position = Vector3(0, 2.85, 0)
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=750130489]
+
+[node name="GameCursor" type="Control" parent="UI" unique_id=271828182]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("17_cursor")
+
+[node name="InteractionPrompt" type="Label" parent="UI" unique_id=187033570]
+offset_left = 24.0
+offset_top = 56.0
+offset_right = 520.0
+offset_bottom = 96.0
+theme_override_font_sizes/font_size = 26
+text = "Open: target/"
+script = ExtResource("3_gj7q0")
+
+[node name="ToolHud" type="Label" parent="UI" unique_id=332143584]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 820.0
+offset_bottom = 48.0
+theme_override_font_sizes/font_size = 20
+text = "Tool: Inspect  [1 Inspect] [2 Refactor] [3 Investigate]  LMB Use"
+script = ExtResource("8_1m6mi")
+
+[node name="FileReader" type="PanelContainer" parent="UI" unique_id=2123393079]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -560.0
+offset_top = -340.0
+offset_right = 560.0
+offset_bottom = 340.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_file_reader")
+script = ExtResource("5_1m6mi")
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/FileReader" unique_id=473778363]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/FileReader/MarginContainer" unique_id=1452362148]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="UI/FileReader/MarginContainer/VBoxContainer" unique_id=481424193]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "README.md"
+text_overrun_behavior = 3
+
+[node name="MetaLabel" type="Label" parent="UI/FileReader/MarginContainer/VBoxContainer" unique_id=1254363276]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "0 bytes"
+
+[node name="ContentEdit" type="CodeEdit" parent="UI/FileReader/MarginContainer/VBoxContainer" unique_id=775370257]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+text = "File content"
+editable = false
+wrap_mode = 0
+
+[node name="MapPanel" type="PanelContainer" parent="UI" unique_id=568022191]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -240.0
+offset_right = 320.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_file_reader")
+script = ExtResource("6_o5qli")
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/MapPanel" unique_id=1914720432]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/MapPanel/MarginContainer" unique_id=1751709606]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="UI/MapPanel/MarginContainer/VBoxContainer" unique_id=1419789722]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Repository directories"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UI/MapPanel/MarginContainer/VBoxContainer" unique_id=1123242635]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PathList" type="VBoxContainer" parent="UI/MapPanel/MarginContainer/VBoxContainer/ScrollContainer" unique_id=1693916058]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="TaskPanel" type="PanelContainer" parent="UI" unique_id=1197486284]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -390.0
+offset_top = -250.0
+offset_right = 390.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_file_reader")
+script = ExtResource("10_druwv")
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/TaskPanel" unique_id=277288554]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/TaskPanel/MarginContainer" unique_id=282527495]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="UI/TaskPanel/MarginContainer/VBoxContainer" unique_id=1522608079]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Task manager"
+
+[node name="HintLabel" type="Label" parent="UI/TaskPanel/MarginContainer/VBoxContainer" unique_id=1433180958]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Run Queue sends queued tasks to OpenRouter and saves drafts. Project files are not changed."
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UI/TaskPanel/MarginContainer/VBoxContainer" unique_id=806574660]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TaskList" type="VBoxContainer" parent="UI/TaskPanel/MarginContainer/VBoxContainer/ScrollContainer" unique_id=158816763]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="DraftPreview" type="PanelContainer" parent="UI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -580.0
+offset_top = -350.0
+offset_right = 580.0
+offset_bottom = 350.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_file_reader")
+script = ExtResource("13_draft")
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/DraftPreview"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/DraftPreview/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DraftTitleLabel" type="Label" parent="UI/DraftPreview/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Draft"
+text_overrun_behavior = 3
+
+[node name="DraftMetaLabel" type="Label" parent="UI/DraftPreview/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Draft metadata"
+text_overrun_behavior = 3
+
+[node name="DraftContentEdit" type="CodeEdit" parent="UI/DraftPreview/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+text = "Draft content"
+editable = false
+wrap_mode = 0
+
+[node name="DiffPreview" type="PanelContainer" parent="UI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -600.0
+offset_top = -360.0
+offset_right = 600.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_file_reader")
+script = ExtResource("15_diff")
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/DiffPreview"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/DiffPreview/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DiffTitleLabel" type="Label" parent="UI/DiffPreview/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Diff"
+text_overrun_behavior = 3
+
+[node name="DiffMetaLabel" type="Label" parent="UI/DiffPreview/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Read-only preview"
+text_overrun_behavior = 3
+
+[node name="DiffContentEdit" type="CodeEdit" parent="UI/DiffPreview/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+text = "Diff content"
+editable = false
+wrap_mode = 0
+
+[node name="StartMenu" type="PanelContainer" parent="UI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -150.0
+offset_right = 360.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_file_reader")
+script = ExtResource("14_start")
+
+[node name="MarginContainer" type="MarginContainer" parent="UI/StartMenu"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/StartMenu/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="UI/StartMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Choose repository"
+
+[node name="LastProjectButton" type="Button" parent="UI/StartMenu/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Open last project"
+
+[node name="PathRow" type="HBoxContainer" parent="UI/StartMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RootPathEdit" type="LineEdit" parent="UI/StartMenu/MarginContainer/VBoxContainer/PathRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "/path/to/repository"
+
+[node name="BrowseButton" type="Button" parent="UI/StartMenu/MarginContainer/VBoxContainer/PathRow"]
+layout_mode = 2
+text = "Browse"
+
+[node name="OpenButton" type="Button" parent="UI/StartMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Open"
+
+[node name="RootErrorLabel" type="Label" parent="UI/StartMenu/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = ""
+autowrap_mode = 3
+
+[node name="RootFileDialog" type="FileDialog" parent="UI/StartMenu"]
+unique_name_in_owner = true
+title = "Choose repository"
+size = Vector2i(900, 620)
+file_mode = 2
+access = 2
+
+[connection signal="pressed" from="UI/StartMenu/MarginContainer/VBoxContainer/PathRow/BrowseButton" to="UI/StartMenu" method="_on_browse_button_pressed"]
+[connection signal="pressed" from="UI/StartMenu/MarginContainer/VBoxContainer/LastProjectButton" to="UI/StartMenu" method="_on_last_project_button_pressed"]
+[connection signal="pressed" from="UI/StartMenu/MarginContainer/VBoxContainer/OpenButton" to="UI/StartMenu" method="_on_open_button_pressed"]

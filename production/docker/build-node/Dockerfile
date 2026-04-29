@@ -2,6 +2,7 @@ FROM docker.io/debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Base system packages.
+# checkov:skip=CKV2_DOCKER_1: sudo is required for build functionality
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl git gnupg openssh-server sudo xz-utils libatomic1 \
     && rm -rf /var/lib/apt/lists/*
@@ -27,6 +28,14 @@ COPY flake.nix ./
 RUN nix profile install .#buildNodeTools \
     && nix-collect-garbage -d
 
+# Switch to non-root user
+USER zuul
+
+# Add healthcheck for SSH
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD ssh-keyscan -p 22 localhost > /dev/null 2>&1 || exit 1
+
+# checkov:skip=CKV_DOCKER_1: SSH server requires port 22
 EXPOSE 22
 
 CMD ["/usr/sbin/sshd", "-D"]
