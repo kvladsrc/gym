@@ -75,9 +75,11 @@ project. Files can be opened in-game, directories can be traversed
 through portals or fast travel, and prompt tools can queue inspect,
 refactor, and investigation tasks for review.
 
-![Cothic generated repository location](static/cothic/cothic01.png)
-![Cothic in-game file reader](static/cothic/cothic02.png)
-![Cothic generated rivers and buildings](static/cothic/cothic04.png)
+<p>
+  <a href="static/cothic/cothic01.png"><img src="static/cothic/cothic01.png" width="240" alt="Cothic generated repository location"></a>
+  <a href="static/cothic/cothic02.png"><img src="static/cothic/cothic02.png" width="240" alt="Cothic in-game file reader"></a>
+  <a href="static/cothic/cothic04.png"><img src="static/cothic/cothic04.png" width="240" alt="Cothic generated rivers and buildings"></a>
+</p>
 
 ### Pet Project (Evolutionary Art)
 
