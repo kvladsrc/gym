@@ -63,6 +63,22 @@ graph and a dynamic event journal.
 - **Living Context**: Key player actions are recorded and serves as
   context for future generations.
 
+### Cothic
+
+`/cothic` is a Godot 4.6 prototype that turns a real codebase into an
+explorable isometric world.
+
+Each repository directory becomes a procedurally generated location:
+connected islands, beaches, rivers, terrain dressing, file buildings,
+and directory portals are built from the structure of the selected
+project. Files can be opened in-game, directories can be traversed
+through portals or fast travel, and prompt tools can queue inspect,
+refactor, and investigation tasks for review.
+
+![Cothic generated repository location](static/cothic/cothic01.png)
+![Cothic in-game file reader](static/cothic/cothic02.png)
+![Cothic generated rivers and buildings](static/cothic/cothic04.png)
+
 ### Pet Project (Evolutionary Art)
 
 `pet_project` — An experimental evolutionary algorithm that draws
@@ -100,6 +116,7 @@ by LLMs. Notably:
   GoogleTest.
 - `pipellm` heavily generated based on the project's design specs.
 - `ripples_cli` generated based on the project's design specs.
+- `cothic` is being developed with substantial LLM assistance.
 
 ## Purpose
 
