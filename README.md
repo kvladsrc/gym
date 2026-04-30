@@ -99,7 +99,9 @@ allows you to upload and read a PDF file formatted as the Google
 Chrome "No Internet" dinosaur game, featuring Duke Nukem running
 through the pages.
 
-![Zooreader Gameplay](static/zooreader.gif)
+<p>
+  <a href="static/zooreader.gif"><img src="static/zooreader.gif" width="240" alt="Zooreader gameplay"></a>
+</p>
 
 ### Production Infrastructure
 
