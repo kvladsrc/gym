@@ -29,6 +29,9 @@
 (use-package gdscript-mode
   :ensure t)
 
+(use-package kdl-mode
+  :ensure t)
+
 (use-package just-mode
   :ensure t)
 

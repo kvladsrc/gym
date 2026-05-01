@@ -1,0 +1,13 @@
+@define-color frame #eda66c;
+@define-color frame_dark #8b5f42;
+@define-color panel #c8b8ae;
+@define-color panel_dark #9b897f;
+@define-color highlight #ffe0bf;
+@define-color shadow #5c4f4a;
+@define-color content #70798e;
+@define-color text #111111;
+@define-color text_on_dark #f5f6f8;
+@define-color muted #303030;
+@define-color selected #4d98a6;
+@define-color selected_text #ffffff;
+@define-color warning #8b0000;

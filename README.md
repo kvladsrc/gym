@@ -75,11 +75,13 @@ project. Files can be opened in-game, directories can be traversed
 through portals or fast travel, and prompt tools can queue inspect,
 refactor, and investigation tasks for review.
 
+<!-- markdownlint-disable MD013 MD033 -->
 <p>
   <a href="static/cothic/cothic01.png"><img src="static/cothic/cothic01.png" width="240" alt="Cothic generated repository location"></a>
   <a href="static/cothic/cothic02.png"><img src="static/cothic/cothic02.png" width="240" alt="Cothic in-game file reader"></a>
   <a href="static/cothic/cothic04.png"><img src="static/cothic/cothic04.png" width="240" alt="Cothic generated rivers and buildings"></a>
 </p>
+<!-- markdownlint-enable MD013 MD033 -->
 
 ### Pet Project (Evolutionary Art)
 
@@ -99,9 +101,11 @@ allows you to upload and read a PDF file formatted as the Google
 Chrome "No Internet" dinosaur game, featuring Duke Nukem running
 through the pages.
 
+<!-- markdownlint-disable MD013 MD033 -->
 <p>
   <a href="static/zooreader.gif"><img src="static/zooreader.gif" width="240" alt="Zooreader gameplay"></a>
 </p>
+<!-- markdownlint-enable MD013 MD033 -->
 
 ### Production Infrastructure
 
