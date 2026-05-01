@@ -1,76 +1,106 @@
-@import url("./mocha.css");
+@import url("./motif.css");
 
 * {
   font-family: "Mononoki Nerd Font";
   font-weight: bold;
-  font-size: 16px;
+  font-size: 15px;
   min-height: 0;
 }
 
 window#waybar {
   color: @text;
-  background: black;
+  background: @frame;
+  border-top: 2px solid @highlight;
+  border-left: 2px solid @highlight;
+  border-right: 2px solid @frame_dark;
+  border-bottom: 2px solid @frame_dark;
 }
 
 #workspaces,
 #workspaces button,
 #workspaces button.active,
 #workspaces button:hover {
-  border-radius: 1.5rem;
+  border-radius: 0;
 }
 
 #workspaces {
-  margin: 5px 0 5px 1rem;
-  background-color: black;
+  margin: 4px 0 4px 8px;
+  padding: 2px;
+  background-color: @panel;
+  border-top: 2px solid @highlight;
+  border-left: 2px solid @highlight;
+  border-right: 2px solid @shadow;
+  border-bottom: 2px solid @shadow;
 }
 
 #workspaces button {
-  padding: 0.5rem;
+  margin: 0 1px;
+  padding: 4px 9px;
   color: @text;
+  background-color: @panel;
+  border-top: 2px solid @highlight;
+  border-left: 2px solid @highlight;
+  border-right: 2px solid @shadow;
+  border-bottom: 2px solid @shadow;
 }
 
 #workspaces button.active {
-  color: white;
+  color: @selected_text;
+  background-color: @selected;
+  border-top: 2px solid @shadow;
+  border-left: 2px solid @shadow;
+  border-right: 2px solid @highlight;
+  border-bottom: 2px solid @highlight;
 }
 
 #workspaces button:hover {
-  color: white;
-  background: @surface1;
-  border-color: @surface0;
+  color: @selected_text;
+  background: @selected;
 }
 
 #workspaces button.urgent {
-  color: @red;
+  color: @warning;
 }
 
 #clock,
+#tray,
 #pulseaudio,
 #backlight,
 #battery,
 #language,
 #custom-lock,
 #custom-power,
-#custom-theme-toggle,
 #custom-waybar-toggle {
-  margin: 5px 0;
-  padding: 0.5rem 1rem;
-  background-color: black;
+  margin: 4px 0;
+  padding: 4px 10px;
+  color: @text;
+  background-color: @panel;
+  border-top: 2px solid @highlight;
+  border-left: 2px solid @highlight;
+  border-right: 2px solid @shadow;
+  border-bottom: 2px solid @shadow;
 }
 
 #window {
-  margin: 5px 0;
-  padding: 0.5rem 1rem;
-  color: @text;
+  margin: 4px 0 4px 8px;
+  padding: 4px 12px;
+  color: @text_on_dark;
+  background-color: @selected;
+  border-top: 2px solid @shadow;
+  border-left: 2px solid @shadow;
+  border-right: 2px solid @highlight;
+  border-bottom: 2px solid @highlight;
 }
 
 /* make window module transparent when no windows present */
 window#waybar.empty #window {
-  background-color: transparent;
+  background-color: @frame;
+  border-color: @frame;
 }
 
 #clock {
   color: @text;
-  border-radius: 1.5rem;
+  border-radius: 0;
 }
 
 #battery,
@@ -79,13 +109,13 @@ window#waybar.empty #window {
 }
 
 #battery.warning:not(.charging) {
-  color: @red;
+  color: @warning;
 }
 
 #pulseaudio {
-  margin-left: 1rem;
+  margin-left: 8px;
   color: @text;
-  border-radius: 1.5rem 0 0 1.5rem;
+  border-radius: 0;
 }
 
 #backlight {
@@ -94,17 +124,17 @@ window#waybar.empty #window {
 
 #language {
   color: @text;
-  border-radius: 0 1.5rem 1.5rem 0;
+  border-radius: 0;
 }
 
 #custom-power {
-  margin-right: 1rem;
+  margin-right: 8px;
   color: @text;
-  border-radius: 0 1.5rem 1.5rem 0;
+  border-radius: 0;
 }
 
 #custom-waybar-toggle {
-  margin-right: 1rem;
+  margin-right: 8px;
   color: @text;
-  border-radius: 0 1.5rem 1.5rem 0;
+  border-radius: 0;
 }

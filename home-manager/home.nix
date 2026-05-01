@@ -27,6 +27,31 @@ in
   # Adding font packages is not enought to use the fonts.
   fonts.fontconfig.enable = true;
 
+  # GTK Theme
+  gtk = {
+    enable = true;
+
+    theme = {
+      name = "adw-gtk3-dark";
+      package = pkgs.adw-gtk3;
+    };
+
+    gtk3.extraConfig = {
+      gtk-application-prefer-dark-theme = 1;
+    };
+
+    gtk4.extraConfig = {
+      gtk-application-prefer-dark-theme = 1;
+    };
+  };
+
+  dconf.settings = {
+    "org/gnome/desktop/interface" = {
+      gtk-theme = "adw-gtk3-dark";
+      color-scheme = "prefer-dark";
+    };
+  };
+
   home.pointerCursor = {
     gtk.enable = true;
     x11.enable = true;
@@ -60,14 +85,13 @@ in
     xorg.xlsclients
     xournalpp
 
-    # Hyprland & DE
+    # Wayland & DE
+    adw-gtk3
     blueman
     brightnessctl
     cliphist
+    dunst
     grim
-    hypridle
-    hyprpaper
-    hyprsunset
     kanshi
     mission-center
     nerd-fonts.fira-code
@@ -80,15 +104,18 @@ in
     slurp
     wl-clipboard
     wlogout
+    xwayland-satellite
 
     # GPU enabled.
     (config.lib.nixGL.wrap antigravity)
     (config.lib.nixGL.wrap blockbench)
     (config.lib.nixGL.wrap celestia)
     (config.lib.nixGL.wrap easyeffects)
+    (config.lib.nixGL.wrap f3d)
     (config.lib.nixGL.wrap godotPackages_4_6.godot)
     (config.lib.nixGL.wrap gthumb)
     (config.lib.nixGL.wrap kooha)
+    (config.lib.nixGL.wrap niri)
     (config.lib.nixGL.wrap ryubing)
     (config.lib.nixGL.wrap zeal)
 
@@ -116,6 +143,10 @@ in
       source = dotfiles/hypr;
       recursive = true;
     };
+    ".config/niri" = {
+      source = dotfiles/niri;
+      recursive = true;
+    };
     ".config/kanshi" = {
       source = dotfiles/kanshi;
       recursive = true;
@@ -134,10 +165,6 @@ in
     };
     ".local/bin/window.sh" = {
       source = scripts/window.sh;
-      executable = true;
-    };
-    ".local/bin/toggle-theme.sh" = {
-      source = scripts/toggle-theme.sh;
       executable = true;
     };
   };

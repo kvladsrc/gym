@@ -2,29 +2,27 @@
   "layer": "top",
   "position": "top",
   "modules-left": [
-    "hyprland/workspaces",
-    "hyprland/window"
+    "niri/workspaces",
+    "niri/window"
   ],
   "modules-center": [
     "clock"
   ],
   "modules-right": [
     "tray",
-    "custom/theme-toggle",
     "pulseaudio",
     "backlight",
     "battery",
-    "hyprland/language",
+    "niri/language",
     "custom/waybar-toggle"
   ],
-  "hyprland/workspaces": {
-    "on-click": "activate",
-    "on-scroll-up": "hyprctl dispatch workspace e-1",
-    "on-scroll-down": "hyprctl dispatch workspace e+1",
-    "format": "{icon}",
+  "niri/workspaces": {
+    "on-scroll-up": "niri msg action focus-workspace-up",
+    "on-scroll-down": "niri msg action focus-workspace-down",
+    "format": "{value}",
     "all-outputs": true
   },
-  "hyprland/window": {
+  "niri/window": {
     "separate-outputs": true,
     "max-length": 150
   },
@@ -82,18 +80,12 @@
       ""
     ]
   },
-  "hyprland/language": {
+  "niri/language": {
     "format": "  {short}"
   },
   "tray": {
     "icon-size": 21,
     "spacing": 10,
-  },
-  "custom/theme-toggle": {
-    "exec": "gsettings get org.gnome.desktop.interface color-scheme | grep -q dark && echo '󰖔' || echo '󰖙'",
-    "interval": 5,
-    "on-click": "~/.local/bin/toggle-theme.sh",
-    "tooltip": false
   },
   "custom/waybar-toggle": {
     "format": "",

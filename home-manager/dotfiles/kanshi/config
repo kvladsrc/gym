@@ -1,5 +1,6 @@
 profile undocked {
   output eDP-1 enable
+  exec hyprctl dispatch dpms on eDP-1
 }
 
 profile docked {
@@ -24,4 +25,5 @@ output "eDP-1" {
 profile dual {
   output $HOME_1 enable
   output $INTERNAL enable
+  exec hyprctl dispatch dpms on eDP-1
 }
