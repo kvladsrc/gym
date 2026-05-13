@@ -1,0 +1,125 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: edge-http-redirect
+  namespace: {{ .Values.gateway.namespace }}
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+      sectionName: http
+  hostnames:
+{{- range concat .Values.hosts.direct .Values.hosts.authentikProxy }}
+    - {{ . | quote }}
+{{- end }}
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: authentik-server
+  namespace: authentik
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+      sectionName: https
+  hostnames:
+    - "sso.your.domain"
+  rules:
+    - backendRefs:
+        - name: authentik-server
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: authentik-proxy-apps
+  namespace: authentik
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+      sectionName: https
+  hostnames:
+{{- range .Values.hosts.authentikProxy }}
+    - {{ . | quote }}
+{{- end }}
+  rules:
+    - backendRefs:
+        - name: ak-outpost-terraform-managed-outpost
+          port: 9000
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: docker-registry
+  namespace: docker-registry
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+      sectionName: https
+  hostnames:
+    - "registry.your.domain"
+  rules:
+    - backendRefs:
+        - name: docker-registry
+          port: 5000
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: minio-api
+  namespace: minio
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+      sectionName: https
+  hostnames:
+    - "store.your.domain"
+  rules:
+    - backendRefs:
+        - name: minio
+          port: 9000
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: minio-console
+  namespace: minio
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+      sectionName: https
+  hostnames:
+    - "s3.your.domain"
+  rules:
+    - backendRefs:
+        - name: minio-console
+          port: 9001
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: hedgedoc
+  namespace: hedgedoc
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+      sectionName: https
+  hostnames:
+    - "hedgedoc.your.domain"
+  rules:
+    - backendRefs:
+        - name: hedgedoc
+          port: 3000

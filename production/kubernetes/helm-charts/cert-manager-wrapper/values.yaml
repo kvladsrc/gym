@@ -8,6 +8,8 @@ cert-manager:
   controller:
     image:
       repository: bitnamilegacy/cert-manager
+    extraArgs:
+      - --enable-gateway-api
 
     acmesolver:
       image:

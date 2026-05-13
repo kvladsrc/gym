@@ -1,0 +1,24 @@
+---
+gateway:
+  name: bonfirelit
+  namespace: envoy-gateway-system
+  className: bonfirelit-envoy
+  address: "192.168.1.220"
+  tlsSecretName: your.domain-gateway-tls # pragma: allowlist secret
+
+hosts:
+  direct:
+    - sso.your.domain
+    - registry.your.domain
+    - store.your.domain
+    - s3.your.domain
+    - hedgedoc.your.domain
+  authentikProxy:
+    - feed.your.domain
+    - dns.your.domain
+    - review.your.domain
+    - b.your.domain
+    - search.your.domain
+    - sql.your.domain
+    - read.your.domain
+    - ci.your.domain

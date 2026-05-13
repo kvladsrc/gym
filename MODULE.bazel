@@ -15,7 +15,7 @@ git_override(
 )
 
 # Python
-bazel_dep(name = "rules_python", version = "2.0.0")
+bazel_dep(name = "rules_python", version = "2.0.1")
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.defaults(python_version = "3.12")
@@ -24,7 +24,7 @@ python.toolchain(
     python_version = "3.12",
 )
 
-bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "platforms", version = "1.1.0")
 
 # C++
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
@@ -34,7 +34,7 @@ bazel_dep(name = "boost.algorithm", version = "1.90.0.bcr.1")
 bazel_dep(name = "nlohmann_json", version = "3.12.0.bcr.1")
 
 # JavaScript/Node.js
-bazel_dep(name = "aspect_rules_js", version = "3.0.3")
+bazel_dep(name = "aspect_rules_js", version = "3.1.1")
 bazel_dep(name = "rules_nodejs", version = "6.7.4")
 
 # Java
@@ -50,7 +50,7 @@ use_repo(go_sdk, "go_toolchains")
 register_toolchains("@go_toolchains//:all")
 
 # Gazelle
-bazel_dep(name = "gazelle", version = "0.50.0")
+bazel_dep(name = "gazelle", version = "0.51.0")
 
 go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
 go_deps.from_file(go_mod = "//:go.mod")

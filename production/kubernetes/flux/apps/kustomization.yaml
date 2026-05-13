@@ -6,10 +6,10 @@ resources:
   - buildbuddy
   - cert-manager
   - docker-registry
+  - envoy-gateway
   - gerrit
   - gerrit-operator
   - hedgedoc
-  - ingress-nginx
   - kanboard
   - kube-vip
   - kyverno
