@@ -1,0 +1,15 @@
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TCPRoute
+metadata:
+  name: gerrit-ssh
+  namespace: gerrit-cluster
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+      sectionName: gerrit-ssh
+  rules:
+    - backendRefs:
+        - name: gerrit-service
+          port: 29418

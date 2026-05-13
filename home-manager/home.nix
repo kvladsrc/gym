@@ -90,9 +90,10 @@ in
     blueman
     brightnessctl
     cliphist
-    dunst
     grim
     kanshi
+    libnotify
+    mako
     mission-center
     nerd-fonts.fira-code
     nerd-fonts.mononoki
@@ -139,16 +140,16 @@ in
   ];
 
   home.file = {
-    ".config/hypr" = {
-      source = dotfiles/hypr;
-      recursive = true;
-    };
     ".config/niri" = {
       source = dotfiles/niri;
       recursive = true;
     };
     ".config/kanshi" = {
       source = dotfiles/kanshi;
+      recursive = true;
+    };
+    ".config/mako" = {
+      source = dotfiles/mako;
       recursive = true;
     };
     ".config/wofi" = {

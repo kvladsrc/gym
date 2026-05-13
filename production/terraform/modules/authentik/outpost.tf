@@ -25,8 +25,8 @@ resource "authentik_outpost" "proxy_outpost" {
     kubernetes_json_patches        = null
     kubernetes_service_type        = "ClusterIP"
     kubernetes_image_pull_secrets  = []
-    kubernetes_ingress_class_name  = "nginx"
-    kubernetes_disabled_components = []
+    kubernetes_ingress_class_name  = null
+    kubernetes_disabled_components = ["ingress"]
     kubernetes_ingress_annotations = {
       "cert-manager.io/cluster-issuer" = "letsencrypt-production"
     }

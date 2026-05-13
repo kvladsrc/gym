@@ -33,5 +33,4 @@ spec:
       targetPath: docker-registry.secrets.s3.secretKey
       optional: false
   dependsOn:
-    - name: ingress-nginx
     - name: minio

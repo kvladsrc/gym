@@ -32,9 +32,8 @@ service:
 
 ingress:
   enabled: false
-  className: "nginx"
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  className: ""
+  annotations: {}
   hosts:
     - host: search.your.domain
       paths:

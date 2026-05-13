@@ -1,0 +1,15 @@
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: {{ .Values.gateway.name }}
+  namespace: {{ .Values.gateway.namespace }}
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        type: LoadBalancer
+        loadBalancerIP: {{ .Values.gateway.address | quote }}
+        annotations:
+          kube-vip.io/loadbalancerIPs: {{ .Values.gateway.address | quote }}

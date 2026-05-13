@@ -27,10 +27,9 @@
     "max-length": 150
   },
   "clock": {
-    "timezone": "Europe/Zurich",
+    "timezone": "Europe/Warsaw",
     "tooltip-format": "<tt><small>{calendar}</small></tt>",
-    "format-alt": " {:%d.%m.%Y}",
-    "format": " {:%H:%M}"
+    "format": " {:%H:%M   %d.%m.%Y  %A}"
   },
   "pulseaudio": {
     // "scroll-step": 1, // %, can be a float

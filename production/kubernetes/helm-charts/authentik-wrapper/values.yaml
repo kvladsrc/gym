@@ -14,12 +14,10 @@ authentik:
 
   server:
     ingress:
-      enabled: true
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-production
-        kubernetes.io/ingress.class: "nginx"
+      enabled: false
+      annotations: {}
       labels: {}
-      ingressClassName: "nginx"
+      ingressClassName: ""
       hosts: ["sso.your.domain"]
       tls:
         - secretName: authentik-tls # pragma: allowlist secret

@@ -24,6 +24,5 @@ spec:
       valuesKey: values.yaml
   dependsOn:
     - name: authentik
-    - name: ingress-nginx
     - name: nfs
     - name: postgresql
