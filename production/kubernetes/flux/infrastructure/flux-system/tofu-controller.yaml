@@ -1,13 +1,3 @@
----
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
-metadata:
-  name: tofu-controller
-  namespace: flux-system
-spec:
-  interval: 1h0s
-  url: https://flux-iac.github.io/tofu-controller
----
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -16,11 +6,11 @@ metadata:
 spec:
   chart:
     spec:
-      chart: tofu-controller
+      chart: ./production/kubernetes/helm-charts/tofu-controller-wrapper
       sourceRef:
-        kind: HelmRepository
-        name: tofu-controller
-      version: 0.16.3
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
   interval: 1h0s
   releaseName: tofu-controller
   targetNamespace: flux-system
@@ -32,22 +22,3 @@ spec:
     crds: CreateReplace
     remediation:
       retries: -1
-  values:
-    replicaCount: 1
-    concurrency: 24
-    resources:
-      limits:
-        cpu: 1000m
-        memory: 2Gi
-      requests:
-        cpu: 400m
-        memory: 64Mi
-    caCertValidityDuration: 24h
-    certRotationCheckFrequency: 30m
-    image:
-      tag: v0.16.3
-    runner:
-      image:
-        tag: v0.16.3
-      grpc:
-        maxMessageSize: 30

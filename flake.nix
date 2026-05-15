@@ -84,6 +84,7 @@
           renovate
           shfmt
           tflint
+          typst
         ];
 
         workstation = with pkgs; [

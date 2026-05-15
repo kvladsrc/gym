@@ -1,0 +1,6 @@
+dependencies:
+- name: tofu-controller
+  repository: https://flux-iac.github.io/tofu-controller
+  version: 0.16.3
+digest: sha256:10134df9a4e2a47bffe5bb0b675a8126741aa5def252cdc6d00d447d7ed7a05c
+generated: "2026-05-14T16:24:25.542384181+02:00"

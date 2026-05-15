@@ -32,6 +32,26 @@ spec:
           env:
             - name: KUBECONFIG
               value: /etc/kubernetes/kube.config
+          ports:
+            - name: webapp
+              containerPort: {{ $.Values.zuul.nodepool.webapp.port }}
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: webapp
+            initialDelaySeconds: {{ $.Values.zuul.nodepool.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ $.Values.zuul.nodepool.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ $.Values.zuul.nodepool.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ $.Values.zuul.nodepool.probes.readiness.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: webapp
+            initialDelaySeconds: {{ $.Values.zuul.nodepool.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ $.Values.zuul.nodepool.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ $.Values.zuul.nodepool.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ $.Values.zuul.nodepool.probes.liveness.failureThreshold }}
           volumeMounts:
             - name: nodepool-config
               mountPath: /etc/nodepool
