@@ -3,8 +3,8 @@ apiVersion: v2
 name: envoy-gateway-wrapper
 description: "Wrapper chart: Envoy Gateway"
 type: application
-version: 0.1.0
+version: 0.2.0
 dependencies:
   - name: gateway-helm
-    version: v1.7.3
+    version: 1.8.0
     repository: "oci://docker.io/envoyproxy"

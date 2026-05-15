@@ -15,9 +15,7 @@ pihole:
 
   # Persistence for /etc/pihole and /etc/dnsmasq.d
   persistentVolumeClaim:
-    enabled: true
-    storageClass: "nfs-client"
-    size: 1Gi
+    enabled: false
 
   # Disable ingress — access via Authentik proxy
   ingress:
@@ -27,6 +25,24 @@ pihole:
   serviceDns:
     type: LoadBalancer
     loadBalancerIP: "192.168.1.222"
+
+  probes:
+    liveness:
+      command:
+        - /bin/sh
+        - -c
+        - "dig @127.0.0.1 pi.hole A +short +time=2 +tries=1 | grep -q ."
+      failureThreshold: 3
+      initialDelaySeconds: 60
+      timeoutSeconds: 5
+    readiness:
+      command:
+        - /bin/sh
+        - -c
+        - "dig @127.0.0.1 pi.hole A +short +time=2 +tries=1 | grep -q ."
+      failureThreshold: 2
+      initialDelaySeconds: 60
+      timeoutSeconds: 5
 
   # Web UI
   serviceWeb:

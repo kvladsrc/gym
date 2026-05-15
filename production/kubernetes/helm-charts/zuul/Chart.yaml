@@ -3,4 +3,4 @@ apiVersion: v2
 name: zuul
 description: A Helm chart for Zuul CI/CD
 type: application
-version: 0.7.0
+version: 0.8.0

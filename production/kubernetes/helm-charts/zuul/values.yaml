@@ -46,6 +46,19 @@ zuul:
     count: 1
 
   nodepool:
+    webapp:
+      port: 8005
+    probes:
+      readiness:
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        timeoutSeconds: 3
+        failureThreshold: 3
+      liveness:
+        initialDelaySeconds: 60
+        periodSeconds: 30
+        timeoutSeconds: 3
+        failureThreshold: 3
     providers:
       - name: dev-k8s
 
