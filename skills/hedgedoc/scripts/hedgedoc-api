@@ -1,0 +1,212 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    cat >&2 <<'EOF'
+usage:
+  hedgedoc-api status
+  hedgedoc-api config
+  hedgedoc-api login
+  hedgedoc-api me
+  hedgedoc-api history
+  hedgedoc-api info NOTE
+  hedgedoc-api download NOTE
+  hedgedoc-api revisions NOTE
+  hedgedoc-api revision NOTE REVISION_ID
+  hedgedoc-api create FILE|-
+  hedgedoc-api create-alias ALIAS FILE|-
+  hedgedoc-api raw METHOD PATH [BODY_FILE|-] [CONTENT_TYPE]
+
+environment:
+  HEDGEDOC_URL            default: https://hedgedoc.your.domain
+  HEDGEDOC_COOKIE_FILE    cookie jar for authenticated sessions
+  HEDGEDOC_API_EMAIL      email for login command
+  HEDGEDOC_API_USERNAME   username or email for login command
+  HEDGEDOC_API_PASSWORD   password for login command
+EOF
+}
+
+if [[ $# -lt 1 ]]; then
+    usage
+    exit 2
+fi
+
+base_url=${HEDGEDOC_URL:-https://hedgedoc.your.domain}
+base_url=${base_url%/}
+cookie_file=${HEDGEDOC_COOKIE_FILE:-}
+
+curl_args=(-sS)
+if [[ -n $cookie_file ]]; then
+    curl_args+=(-b "$cookie_file" -c "$cookie_file")
+fi
+
+redact_headers() {
+    sed -E \
+        -e 's/(set-cookie:[[:space:]]*connect\.sid=)[^;[:space:]]+/\1<redacted>/Ig' \
+        -e 's/(cookie:[[:space:]]*connect\.sid=)[^;[:space:]]+/\1<redacted>/Ig'
+}
+
+normalize_path() {
+    local path=$1
+    if [[ $path != /* ]]; then
+        path="/$path"
+    fi
+    printf '%s' "$path"
+}
+
+request() {
+    local method=$1
+    local path
+    path=$(normalize_path "$2")
+    shift 2
+
+    curl "${curl_args[@]}" -X "$method" -H "Accept: application/json" "$@" \
+        "${base_url}${path}"
+}
+
+request_with_location() {
+    local method=$1
+    local path
+    path=$(normalize_path "$2")
+    shift 2
+
+    local headers
+    local body
+    headers=$(mktemp /tmp/hedgedoc-headers.XXXXXX)
+    body=$(mktemp /tmp/hedgedoc-body.XXXXXX)
+
+    curl "${curl_args[@]}" -D "$headers" -o "$body" -X "$method" "$@" \
+        "${base_url}${path}"
+    awk 'BEGIN { IGNORECASE = 1 } /^HTTP\// || /^location:/ { print }' "$headers" |
+        redact_headers
+    if ! awk 'BEGIN { IGNORECASE = 1; found = 0 } /^location:/ { found = 1 } END { exit found ? 0 : 1 }' "$headers"; then
+        cat "$body"
+    fi
+    rm -f "$headers" "$body"
+}
+
+command=$1
+shift
+
+case "$command" in
+status)
+    [[ $# -eq 0 ]] || {
+        usage
+        exit 2
+    }
+    request GET /status
+    ;;
+config)
+    [[ $# -eq 0 ]] || {
+        usage
+        exit 2
+    }
+    request GET /config
+    ;;
+login)
+    [[ $# -eq 0 ]] || {
+        usage
+        exit 2
+    }
+    if [[ -z $cookie_file ]]; then
+        echo "HEDGEDOC_COOKIE_FILE is required for login" >&2
+        exit 1
+    fi
+    if [[ -z ${HEDGEDOC_API_EMAIL:-} && -z ${HEDGEDOC_API_USERNAME:-} ]]; then
+        echo "HEDGEDOC_API_EMAIL or HEDGEDOC_API_USERNAME is required" >&2
+        exit 1
+    fi
+    if [[ -z ${HEDGEDOC_API_PASSWORD:-} ]]; then
+        echo "HEDGEDOC_API_PASSWORD is required" >&2
+        exit 1
+    fi
+    login_email=${HEDGEDOC_API_EMAIL:-$HEDGEDOC_API_USERNAME}
+    if [[ $login_email != *@* ]]; then
+        login_email="${login_email}@your.domain"
+    fi
+    request_with_location POST /login \
+        --data-urlencode "email=${login_email}" \
+        --data-urlencode "password=${HEDGEDOC_API_PASSWORD}"
+    ;;
+me)
+    [[ $# -eq 0 ]] || {
+        usage
+        exit 2
+    }
+    request GET /me
+    ;;
+history)
+    [[ $# -eq 0 ]] || {
+        usage
+        exit 2
+    }
+    request GET /history
+    ;;
+info)
+    [[ $# -eq 1 ]] || {
+        usage
+        exit 2
+    }
+    request GET "/$1/info"
+    ;;
+download)
+    [[ $# -eq 1 ]] || {
+        usage
+        exit 2
+    }
+    request GET "/$1/download"
+    ;;
+revisions)
+    [[ $# -eq 1 ]] || {
+        usage
+        exit 2
+    }
+    request GET "/$1/revision"
+    ;;
+revision)
+    [[ $# -eq 2 ]] || {
+        usage
+        exit 2
+    }
+    request GET "/$1/revision/$2"
+    ;;
+create)
+    [[ $# -eq 1 ]] || {
+        usage
+        exit 2
+    }
+    request_with_location POST /new \
+        -H "Content-Type: text/markdown" \
+        --data-binary "@$1"
+    ;;
+create-alias)
+    [[ $# -eq 2 ]] || {
+        usage
+        exit 2
+    }
+    request_with_location POST "/new/$1" \
+        -H "Content-Type: text/markdown" \
+        --data-binary "@$2"
+    ;;
+raw)
+    if [[ $# -lt 2 || $# -gt 4 ]]; then
+        usage
+        exit 2
+    fi
+    method=$1
+    path=$2
+    body_file=${3:-}
+    content_type=${4:-application/json}
+    if [[ -n $body_file ]]; then
+        request_with_location "$method" "$path" \
+            -H "Content-Type: $content_type" \
+            --data-binary "@$body_file"
+    else
+        request "$method" "$path"
+    fi
+    ;;
+*)
+    usage
+    exit 2
+    ;;
+esac

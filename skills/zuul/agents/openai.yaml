@@ -1,0 +1,8 @@
+---
+interface:
+  display_name: "Zuul"
+  short_description: "Inspect the production Zuul CI REST API"
+  default_prompt: >-
+    Use $zuul to query the production Zuul API, inspect tenants, jobs,
+    projects, builds, buildsets, or pipeline status, and validate public API
+    access through Authentik.

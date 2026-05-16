@@ -112,13 +112,7 @@
         "Developed backend services using Python web and asynchronous frameworks.",
         "Implemented embedded Linux integrations on Raspberry Pi with peripheral devices."
       ],
-      "technologies": [
-        "Twisted",
-        "asyncio",
-        "C",
-        "Raspberry Pi",
-        "Linux"
-      ]
+      "technologies": ["Twisted", "asyncio", "C", "Raspberry Pi", "Linux"]
     }
   ]
 }

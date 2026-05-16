@@ -50,11 +50,12 @@ variable "applications" {
       skip_path_regex = "^/a/plugins/checks/.*"
     }
     "kanboard" = {
-      name          = "kanboard"
-      slug          = "kanboard"
-      external_host = "https://b.your.domain"
-      internal_host = "kanboard.kanboard.svc.cluster.local"
-      internal_port = 80
+      name            = "kanboard"
+      slug            = "kanboard"
+      external_host   = "https://b.your.domain"
+      internal_host   = "kanboard.kanboard.svc.cluster.local"
+      internal_port   = 80
+      skip_path_regex = "^/jsonrpc\\.php$"
     }
     "opengrok" = {
       name          = "opengrok"
@@ -83,7 +84,7 @@ variable "applications" {
       external_host         = "https://ci.your.domain"
       internal_host         = "zuul-web.zuul.svc.cluster.local"
       internal_port         = 9000
-      skip_path_regex       = "^/api/.*"
+      skip_path_regex       = "^/api(/.*)?$"
       access_token_validity = "hours=24"
     }
   }
