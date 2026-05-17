@@ -1,0 +1,7 @@
+---
+interface:
+  display_name: "Kanboard"
+  short_description: "Work with the production Kanboard JSON-RPC API"
+  default_prompt: >-
+    Use $kanboard to list projects and tasks, create tasks, move tasks between
+    columns, assign work, or open and close tasks in the production Kanboard.

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+    echo "usage: $0 METHOD [PARAMS_JSON]" >&2
+    exit 2
+fi
+
+method=$1
+params=${2:-}
+api_url=${KANBOARD_API_URL:-https://b.your.domain/jsonrpc.php}
+api_username=${KANBOARD_API_USERNAME:-jsonrpc}
+api_token=${KANBOARD_API_TOKEN:-}
+
+if [[ -z $api_token ]]; then
+    echo "KANBOARD_API_TOKEN is required" >&2
+    exit 1
+fi
+
+if [[ $method == *['"\']* ]]; then
+    echo "invalid METHOD" >&2
+    exit 2
+fi
+
+if [[ -n $params ]]; then
+    payload='{"jsonrpc":"2.0","method":"'"$method"'","id":1,"params":'"$params"'}'
+else
+    payload='{"jsonrpc":"2.0","method":"'"$method"'","id":1}'
+fi
+
+response=$(curl -sS \
+    -u "$api_username:$api_token" \
+    -H "Content-Type: application/json" \
+    -d "$payload" \
+    "$api_url")
+
+printf '%s\n' "$response" |
+    sed -E 's/("(api_access_token|password|token)"[[:space:]]*:[[:space:]]*)"[^"]*"/\1"<redacted>"/g'

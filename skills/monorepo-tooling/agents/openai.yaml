@@ -1,0 +1,7 @@
+---
+interface:
+  display_name: "Monorepo Tooling"
+  short_description: "Use this repo’s Nix, just, and sync scripts"
+  default_prompt: >-
+    Use $monorepo-tooling to run the right Nix/just workflow for this
+    repository.

@@ -1,0 +1,7 @@
+---
+interface:
+  display_name: "Gerrit Jujutsu"
+  short_description: "Gerrit review workflows with Jujutsu"
+  default_prompt: >-
+    Use $gerrit-jujutsu to prepare, rebase, describe, and upload my Gerrit
+    review with jj gerrit upload.

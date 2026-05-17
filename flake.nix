@@ -35,15 +35,19 @@
           coreutils-full
           curl
           diffutils
+          fd
           file
           gdb
           git
           gnugrep
           gnused
+          jq
           openssh
           python314
           ripgrep
           shadow
+          shellcheck
+          tree
           which
           zip
           zlib
@@ -77,6 +81,7 @@
           kubernetes-helm
           lcov
           nodejs
+          nodePackages.prettier
           openjdk21_headless
           opentofu
           perl
