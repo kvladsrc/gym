@@ -1,0 +1,8 @@
+---
+interface:
+  display_name: "Monorepo Map"
+  short_description: "Navigate this repo structure before editing"
+  default_prompt: >-
+    Use $monorepo-map to understand the src monorepo layout, important
+    directories, generated paths to avoid, and which local workflow skill to use
+    before changing files.
