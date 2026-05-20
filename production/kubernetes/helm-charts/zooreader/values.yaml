@@ -1,12 +1,34 @@
 ---
-zooreader:
-  replicas: 1
-  image: "registry.your.domain/zooreader:latest"
-  imagePullPolicy: "Always"
-  resources:
-    requests:
-      cpu: "10m"
-      memory: "32Mi"
-    limits:
-      cpu: "100m"
-      memory: "64Mi"
+nxs:
+  releasePrefix: "-"
+
+  generic:
+    usePredefinedAffinity: false
+
+  deployments:
+    zooreader:
+      replicas: 1
+      extraSelectorLabels:
+        app.kubernetes.io/component: zooreader
+      containers:
+        zooreader:
+          image: registry.your.domain/zooreader
+          imageTag: latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+
+  services:
+    zooreader:
+      extraSelectorLabels:
+        app.kubernetes.io/component: zooreader
+      ports:
+        - port: 80
+          targetPort: 80

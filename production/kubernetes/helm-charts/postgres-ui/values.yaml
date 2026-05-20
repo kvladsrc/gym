@@ -1,11 +1,29 @@
 ---
-image:
-  repository: adminer
-  pullPolicy: Always
-  tag: "latest"
+nxs:
+  releasePrefix: "-"
 
-service:
-  type: ClusterIP
-  port: 8080
+  generic:
+    usePredefinedAffinity: false
 
-resources: {}
+  deployments:
+    postgres-ui:
+      replicas: 1
+      containers:
+        postgres-ui:
+          image: adminer
+          imageTag: latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources: {}
+
+  services:
+    postgres-ui:
+      type: ClusterIP
+      ports:
+        - name: http
+          port: 8080
+          targetPort: http
+          protocol: TCP

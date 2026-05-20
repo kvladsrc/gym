@@ -1,80 +1,90 @@
 ---
-# Default values for opengrok.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+nxs:
+  releasePrefix: "-"
 
-replicaCount: 1
+  generic:
+    podSecurityContext:
+      fsGroup: 1111
+    usePredefinedAffinity: false
 
-image:
-  repository: opengrok/docker
-  pullPolicy: Always
-  tag: "latest"
+  serviceAccount:
+    opengrok:
+      automountServiceAccountToken: true
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+  pvcs:
+    opengrok-data-pvc:
+      accessModes:
+        - ReadWriteMany
+      size: 10Gi
+      storageClassName: nfs-client
+    opengrok-src-pvc:
+      accessModes:
+        - ReadWriteMany
+      size: 10Gi
+      storageClassName: nfs-client
 
-serviceAccount:
-  create: true
-  automount: true
-  annotations: {}
-  name: ""
+  deployments:
+    opengrok:
+      replicas: 1
+      serviceAccountName: opengrok
+      automountServiceAccountToken: true
+      containers:
+        opengrok:
+          image: opengrok/docker
+          imageTag: latest
+          imagePullPolicy: Always
+          env:
+            - name: SYNC_PERIOD_MINUTES
+              value: "30"
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          resources: {}
+          volumeMounts:
+            - name: data
+              mountPath: /opengrok/data
+            - name: src
+              mountPath: /opengrok/src
+            - name: ssh
+              mountPath: /home/appuser/.ssh
+              readOnly: true
+      volumes:
+        - name: data
+          type: pvc
+          originalName: opengrok-data-pvc
+        - name: src
+          type: pvc
+          originalName: opengrok-src-pvc
+      extraVolumes:
+        - name: ssh
+          secret:
+            secretName: opengrok-ssh  # pragma: allowlist secret
+            defaultMode: 0400
 
-podAnnotations: {}
-podLabels: {}
-podSecurityContext:
-  fsGroup: 1111
-securityContext: {}
-
-service:
-  type: ClusterIP
-  port: 8080
-
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-  hosts:
-    - host: search.your.domain
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-
-resources: {}
-
-livenessProbe:
-  httpGet:
-    path: /
-    port: http
-  initialDelaySeconds: 60
-  periodSeconds: 10
-  timeoutSeconds: 5
-  successThreshold: 1
-  failureThreshold: 5
-
-readinessProbe:
-  httpGet:
-    path: /
-    port: http
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  timeoutSeconds: 5
-  successThreshold: 1
-  failureThreshold: 3
-
-persistence:
-  storageClass: nfs-client
-  volumes:
-    data: 10Gi
-    src: 10Gi
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
-env:
-  - name: SYNC_PERIOD_MINUTES
-    value: "30"
+  services:
+    opengrok:
+      type: ClusterIP
+      ports:
+        - name: http
+          port: 8080
+          targetPort: http
+          protocol: TCP
