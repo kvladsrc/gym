@@ -1,0 +1,96 @@
+logLevel: warn
+logFormat: json
+metricsNamePrefix: event_exporter_
+route:
+  routes:
+    - drop:
+        - type: Normal
+        - reason: "Pulled|Pulling|Created|Started|Scheduled"
+      match:
+        - receiver: ntfy
+          type: Warning
+          reason: FailedScheduling
+        - receiver: ntfy
+          type: Warning
+          reason: FailedMount
+        - receiver: ntfy
+          type: Warning
+          reason: FailedAttachVolume
+        - receiver: ntfy
+          type: Warning
+          reason: Failed
+        - receiver: ntfy
+          type: Warning
+          reason: BackOff
+        - receiver: ntfy
+          type: Warning
+          reason: Unhealthy
+        - receiver: ntfy
+          type: Warning
+          reason: ImagePullBackOff
+        - receiver: ntfy
+          type: Warning
+          reason: ErrImagePull
+        - receiver: ntfy
+          type: Warning
+          reason: CrashLoopBackOff
+        - receiver: ntfy
+          type: Warning
+          kind: Terraform
+          namespace: flux-system
+          reason: "ArtifactFailed|DependencyNotReady|DriftDetected"
+        - receiver: ntfy
+          type: Warning
+          kind: Terraform
+          namespace: flux-system
+          reason: "DriftDetectionFailed|HealthChecksFailed"
+        - receiver: ntfy
+          type: Warning
+          kind: Terraform
+          namespace: flux-system
+          reason: "OutputsWritingFailed|PostPlanningWebhookFailed"
+        - receiver: ntfy
+          type: Warning
+          kind: Terraform
+          namespace: flux-system
+          reason: "TFExecApplyFailed|TFExecInitFailed|TFExecNewFailed"
+        - receiver: ntfy
+          type: Warning
+          kind: Terraform
+          namespace: flux-system
+          reason: "TFExecOutputFailed|TFExecPlanFailed|ForceUnlock|LockHeld"
+        - receiver: ntfy
+          type: Warning
+          kind: Terraform
+          namespace: flux-system
+          reason: "TemplateGenerationFailed|VarsGenerationFailed"
+        - receiver: ntfy
+          type: Warning
+          kind: Terraform
+          namespace: flux-system
+          reason: "SelectWorkspaceFailed|DeletionBlockedByDependantsReason"
+receivers:
+  - name: ntfy
+    webhook:
+      endpoint: http://ntfy.ntfy.svc.cluster.local/prod-k8s-warnings
+      headers:
+        Title: >-
+          Kubernetes {{ .Reason }}:
+          {{ .InvolvedObject.Kind }}/{{ .InvolvedObject.Name }}
+        Priority: high
+        Tags: warning
+      layout:
+        message: |-
+          warning: Kubernetes {{ .Reason }}
+
+          Namespace: {{ .InvolvedObject.Namespace }}
+          Kind: {{ .InvolvedObject.Kind }}
+          Name: {{ .InvolvedObject.Name }}
+          Source: {{ .Source.Component }} {{ .Source.Host }}
+          Count: {{ .Count }}
+          Message: {{ .Message }}
+        reason: "{{ .Reason }}"
+        namespace: "{{ .InvolvedObject.Namespace }}"
+        kind: "{{ .InvolvedObject.Kind }}"
+        name: "{{ .InvolvedObject.Name }}"
+        count: "{{ .Count }}"

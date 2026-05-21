@@ -1,0 +1,74 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  vars:
+    ntfy_url: "http://ntfy.ntfy.svc.cluster.local"
+    ntfy_topic: "prod-ci"
+    zuul_build_url: >-
+      https://ci.your.domain/t/your.domain/build/{{ zuul.build }}
+    zuul_change_url: >-
+      {{
+        (
+          zuul.build_refs
+          | default([])
+          | selectattr('change_url', 'defined')
+          | map(attribute='change_url')
+          | first
+        )
+        | default('n/a', true)
+      }}
+    zuul_project_name: >-
+      {{
+        (
+          zuul.build_refs
+          | default([])
+          | selectattr('project.name', 'defined')
+          | map(attribute='project.name')
+          | first
+        )
+        | default(zuul.project.name | default('unknown'), true)
+      }}
+    ntfy_message: |
+      error: Zuul {{ zuul.pipeline | default('unknown') }} job failed
+
+      Project: {{ zuul_project_name }}
+      Job: {{ zuul.job | default('unknown') }}
+      Pipeline: {{ zuul.pipeline | default('unknown') }}
+      Change: {{ zuul_change_url }}
+      Build: {{ zuul_build_url }}
+
+  tasks:
+    - name: Send Zuul failure notification to ntfy
+      # checkov:skip=CKV2_ANSIBLE_1: cluster-local ntfy service uses HTTP
+      uri:
+        url: "{{ ntfy_url }}/{{ ntfy_topic }}"
+        method: POST
+        body: "{{ ntfy_message }}"
+        status_code:
+          - 200
+          - 201
+          - 202
+        timeout: 5
+        headers:
+          Title: "Zuul {{ zuul.pipeline | default('pipeline') }} failure"
+          Priority: "high"
+          Tags: "x"
+      register: ntfy_result
+      failed_when: false
+      when:
+        - not (zuul_success | default(false) | bool)
+        - not (zuul_will_retry | default(false) | bool)
+
+    - name: Report ntfy delivery failure
+      debug:
+        msg: >-
+          Failed to deliver Zuul failure notification to ntfy:
+          {{
+            ntfy_result.msg
+            | default(ntfy_result.status | default('unknown'))
+          }}
+      when:
+        - ntfy_result is defined
+        - not (ntfy_result.skipped | default(false))
+        - (ntfy_result.status | default(0) | int) not in [200, 201, 202]

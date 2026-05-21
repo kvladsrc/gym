@@ -1,0 +1,18 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Check Helm chart version bumps
+      shell: |
+        git config --global http.sslVerify false
+        base="{{ zuul.branch | default('master') }}"
+        git fetch origin "${base}"
+        CHART_VERSION_BASE="origin/${base}" \
+          CHART_VERSION_TARGET="HEAD" \
+          bash scripts/check_helm_chart_versions.sh
+      args:
+        chdir: "{{ repo_dir }}"

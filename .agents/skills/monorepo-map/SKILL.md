@@ -1,15 +1,16 @@
 ---
 name: monorepo-map
-description: "Use when working in the user's src monorepo and needing repository orientation: top-level directory purpose, where to look for code, infra, generated files, service charts, agent skills, Cothic, CV, Go tools, C++ algorithms, or which existing skill/tooling workflow to use before editing."
+description: "Use when working in the user's src monorepo and needing repository orientation, task workflow, repo skill routing, top-level directory purpose, where to look for code, infra, generated files, service charts, Cothic, CV, Go tools, C++ algorithms, or which local workflow to use before editing."
 ---
 
 # Monorepo Map
 
 Use this skill to get oriented before reading large parts of the `src`
 monorepo. It is a lightweight repository map, not a replacement for exact file
-search. Use `$monorepo-tooling` for commands, `$gerrit-jujutsu` for review
-workflow, and service-specific skills such as `$kanboard`, `$hedgedoc`, or
-`$zuul` for production APIs.
+search. Treat this skill as the entry point for the repository: it points to
+the other local skills, the task tracker, the documentation system, and the
+Gerrit/Jujutsu review workflow so the user does not need to mention each skill
+explicitly.
 
 ## First Moves
 
@@ -19,12 +20,74 @@ workflow, and service-specific skills such as `$kanboard`, `$hedgedoc`, or
    specifically about them.
 4. Use repository tooling through Nix and `just`; do not invent ad hoc
    validation commands when a recipe exists.
+5. For production work, check Kanboard `Ready` tasks first when the user asks
+   to continue autonomously.
+6. Treat production as GitOps-managed: make production state changes through
+   repository edits, Gerrit CLs, CI/review, submit, and Flux reconciliation.
+   Use `kubectl`, service APIs, SSH admin commands, and similar direct
+   production tools for read-only inspection unless the user explicitly asks
+   for a manual emergency operation.
+
+## Repository Skills
+
+All repository-local skills live under `.agents/skills/`. Use this map to
+choose the right workflow without requiring the user to reference each skill:
+
+- `$monorepo-tooling` - use for Nix, `just`, lint, format, tests, scripts,
+  Cothic checks, CV builds, and monorepo tooling commands.
+- `$gerrit-jujutsu` - use for `jj` status/log/show, Gerrit change
+  descriptions, review upload, fetch/rebase, and merged-change cleanup.
+- `$kanboard` - use for the production Kanboard task tracker at
+  `https://b.your.domain/`: list projects/tasks, move cards, assign work,
+  and close completed tasks.
+- `$hedgedoc` - use for the production HedgeDoc documentation/wiki at
+  `https://hedgedoc.your.domain/`: status/config checks, note metadata,
+  markdown exports, and note creation/import.
+- `$zuul` - use for the production Zuul CI API at
+  `https://ci.your.domain/api`: inspect pipeline status, jobs, projects,
+  builds, and buildsets related to Gerrit changes.
+- `$monorepo-map` - use first for repository orientation, skill routing,
+  directory layout, production component locations, and the working process.
+
+## Working Process
+
+For task-driven infrastructure work, use Kanboard as the source of truth and
+Gerrit/Jujutsu as the change workflow:
+
+1. Pick a task from the Kanboard `Infrastructure` project `Ready` column.
+2. Move that task to `Work in progress` before editing.
+3. Create a focused `jj` change for the task. If another CL is open, create a
+   separate sibling change from `master@origin` unless a stack is intended.
+4. Implement the smallest reviewable change and run the narrowest relevant
+   validation through `/nix/var/nix/profiles/default/bin/nix develop -c just`.
+5. Describe the change non-interactively with `jj desc`, including the
+   Kanboard task id and validation.
+6. Upload to Gerrit with `jj gerrit upload -r @`.
+7. Watch Zuul check/gate status through `$zuul`; fix failures in a new
+   patchset on the same change.
+8. Wait for review and submit. Do not mark the task done before submit.
+9. After submit, move the Kanboard task to `Done`.
+
+If a task is blocked by a missing prerequisite, move it back to `Ready` or
+`Backlog`, leave a Kanboard comment with the reason, and take the prerequisite
+task instead.
+
+Production mutations must flow through GitOps. Do not create Kubernetes
+Secrets, patch live resources, create service accounts, edit Gerrit ACLs, or
+call write APIs directly as part of normal implementation. Use direct tools
+only to observe current state and verify reconciled changes after merge. If a
+manual write is unavoidable, get explicit user approval and document the
+follow-up GitOps change that makes the live state reproducible.
+
+Use HedgeDoc for durable documentation and runbooks. Use repository markdown
+when the documentation must be versioned with infrastructure changes or
+reviewed through Gerrit.
 
 ## Top-Level Map
 
 - `production/` - production infrastructure, Docker images, Terraform, Talos,
   Flux, Helm charts, and Kubernetes service deployment.
-- `skills/` - local Codex skills and helper scripts. Each skill has
+- `.agents/skills/` - local Codex skills and helper scripts. Each skill has
   `SKILL.md`; most also have `agents/openai.yaml`.
 - `cothic/` - Godot 4.6 prototype that turns a repository into an explorable
   isometric world. Main code is under `cothic/scripts/`; checks are in

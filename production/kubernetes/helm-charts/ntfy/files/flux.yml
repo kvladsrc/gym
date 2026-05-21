@@ -1,0 +1,14 @@
+---
+title: |
+  Flux {{ .reason }}: {{ .involvedObject.kind }}/{{ .involvedObject.name }}
+message: |
+  {{ .message }}
+
+  Object: {{ .involvedObject.kind }}/{{ .involvedObject.name }}
+  Namespace: {{ .involvedObject.namespace }}
+  Severity: {{ .severity }}
+  Reason: {{ .reason }}
+  Controller: {{ .reportingController }}
+  Revision: {{ .metadata.revision }}
+priority: |
+  {{- if eq .severity "error" -}}4{{- else -}}3{{- end -}}

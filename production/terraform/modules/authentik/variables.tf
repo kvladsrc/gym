@@ -64,6 +64,13 @@ variable "applications" {
       internal_host = "opengrok.opengrok.svc.cluster.local"
       internal_port = 8080
     }
+    "ntfy" = {
+      name          = "ntfy"
+      slug          = "ntfy"
+      external_host = "https://notify.your.domain"
+      internal_host = "ntfy.ntfy.svc.cluster.local"
+      internal_port = 80
+    }
     "sql" = {
       name          = "sql"
       slug          = "sql"

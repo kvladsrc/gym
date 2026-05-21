@@ -1,0 +1,98 @@
+---
+nxs:
+  releasePrefix: "-"
+
+  generic:
+    podSecurityContext:
+      fsGroup: 1000
+      fsGroupChangePolicy: OnRootMismatch
+    usePredefinedAffinity: false
+
+  pvcs:
+    ntfy-data:
+      accessModes:
+        - ReadWriteOnce
+      size: 1Gi
+      storageClassName: nfs-client
+
+  deployments:
+    ntfy:
+      replicas: 1
+      automountServiceAccountToken: false
+      strategy:
+        type: Recreate
+      containers:
+        ntfy:
+          image: binwiederhier/ntfy
+          imageTag: v2.22.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - serve
+          env:
+            - name: NTFY_LISTEN_HTTP
+              value: ":80"
+            - name: NTFY_BASE_URL
+              value: "https://notify.your.domain"
+            - name: NTFY_CACHE_FILE
+              value: "/var/lib/ntfy/cache.db"
+            - name: NTFY_ATTACHMENT_CACHE_DIR
+              value: "/var/lib/ntfy/attachments"
+            - name: NTFY_AUTH_DEFAULT_ACCESS
+              value: "read-write"
+            - name: NTFY_BEHIND_PROXY
+              value: "true"
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+            runAsGroup: 1000
+            runAsNonRoot: true
+            runAsUser: 1000
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/ntfy
+            - name: flux-template
+              mountPath: /etc/ntfy/templates/flux.yml
+              subPath: flux.yml
+              readOnly: true
+      volumes:
+        - name: data
+          type: pvc
+          originalName: ntfy-data
+        - name: flux-template
+          type: configMap
+          originalName: ntfy-flux-template
+
+  services:
+    ntfy:
+      type: ClusterIP
+      ports:
+        - name: http
+          port: 80
+          targetPort: http
+          protocol: TCP
