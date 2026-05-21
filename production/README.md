@@ -45,3 +45,23 @@ professional tools:
   16 GiB RAM limit without sacrificing functionality.
 - **Reproducibility:** The entire lab is defined as code, allowing for
   quick teardown and reconstruction.
+
+## Operations
+
+- [Lightweight notifications](notifications.md) define the low-RAM `ntfy`
+  operating model, topic naming, severity conventions, and task workflow.
+
+## Resource Tuning
+
+The cluster is sized for hobby use and usually runs on a single node with
+limited RAM. Production memory changes should keep enough headroom for CI
+bursts and node-level services while avoiding excessive Kubernetes limit
+overcommit.
+
+Flux controllers are Go processes with `GOMEMLIMIT` wired to their Kubernetes
+memory limit. On 2026-05-21 their observed steady-state RSS was much lower than
+the historical 1-2 GiB limits: source-controller ~29 MiB,
+kustomize-controller ~27 MiB, helm-controller ~78 MiB,
+notification-controller ~21 MiB, and tofu-controller ~25 MiB. Their limits are
+therefore intentionally conservative rather than minimal: 512 MiB for source,
+kustomize, helm, and tofu-controller, and 256 MiB for notification-controller.

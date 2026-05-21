@@ -19,6 +19,7 @@ hosts:
     - review.your.domain
     - b.your.domain
     - search.your.domain
+    - notify.your.domain
     - sql.your.domain
     - read.your.domain
     - ci.your.domain

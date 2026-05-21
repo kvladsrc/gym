@@ -1,0 +1,33 @@
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Provider
+metadata:
+  name: ntfy-gitops
+  namespace: flux-system
+spec:
+  type: generic
+  address: http://ntfy.ntfy.svc.cluster.local/prod-gitops?template=flux
+  timeout: 5s
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: flux-errors-to-ntfy
+  namespace: flux-system
+spec:
+  providerRef:
+    name: ntfy-gitops
+  eventSeverity: error
+  eventMetadata:
+    cluster: production
+    topic: prod-gitops
+  eventSources:
+    - kind: GitRepository
+      name: "*"
+      namespace: flux-system
+    - kind: HelmRelease
+      name: "*"
+      namespace: flux-system
+    - kind: Kustomization
+      name: "*"
+      namespace: flux-system

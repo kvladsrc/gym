@@ -1,0 +1,80 @@
+---
+nxs:
+  releasePrefix: "-"
+
+  generic:
+    usePredefinedAffinity: false
+
+  serviceAccount:
+    event-exporter:
+      clusterRole:
+        name: event-exporter
+        rules:
+          - apiGroups:
+              - ""
+            resources:
+              - events
+            verbs:
+              - get
+              - list
+              - watch
+          - apiGroups:
+              - events.k8s.io
+            resources:
+              - events
+            verbs:
+              - get
+              - list
+              - watch
+
+  deployments:
+    event-exporter:
+      replicas: 1
+      automountServiceAccountToken: true
+      serviceAccountName: event-exporter
+      containers:
+        event-exporter:
+          image: docker.io/bitnamilegacy/kubernetes-event-exporter
+          imageTag: 1.7.0-debian-12-r46
+          imagePullPolicy: IfNotPresent
+          args:
+            - -conf=/data/config.yaml
+          ports:
+            - name: http
+              containerPort: 2112
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: config
+              mountPath: /data
+              readOnly: true
+      volumes:
+        - name: config
+          type: configMap
+          originalName: event-exporter-config
+
+  services:
+    event-exporter:
+      type: ClusterIP
+      ports:
+        - name: http
+          port: 2112
+          targetPort: http
+          protocol: TCP

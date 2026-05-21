@@ -1,0 +1,12 @@
+---
+apiVersion: v2
+name: kubernetes-event-exporter
+description: "Wrapper chart: Kubernetes Event Exporter"
+type: application
+version: 0.1.2
+appVersion: "1.7.0"
+dependencies:
+  - name: nxs-universal-chart
+    alias: nxs
+    version: 3.0.19
+    repository: "oci://registry.nixys.ru/nuc"

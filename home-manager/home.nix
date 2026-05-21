@@ -108,7 +108,6 @@ in
     xwayland-satellite
 
     # GPU enabled.
-    (config.lib.nixGL.wrap antigravity)
     (config.lib.nixGL.wrap blockbench)
     (config.lib.nixGL.wrap celestia)
     (config.lib.nixGL.wrap easyeffects)

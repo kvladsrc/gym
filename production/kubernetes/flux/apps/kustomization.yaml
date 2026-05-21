@@ -14,10 +14,12 @@ resources:
   - kube-vip
   - kyverno
   - kyverno-policies
+  - kubernetes-event-exporter
   - metrics-server
   - miniflux
   - minio
   - nfs
+  - ntfy
   - opengrok
   - pihole
   - postgres-ui
