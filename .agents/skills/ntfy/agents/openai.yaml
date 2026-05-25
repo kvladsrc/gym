@@ -1,0 +1,7 @@
+---
+interface:
+  display_name: "ntfy"
+  short_description: "Inspect production ntfy notifications"
+  default_prompt: >-
+    Use $ntfy to read recent production notifications from ntfy topics and
+    summarize likely causes.

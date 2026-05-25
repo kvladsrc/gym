@@ -35,6 +35,13 @@ zuul:
   executor:
     count: 1
     terminationGracePeriodSeconds: 21600
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: "2"
+        memory: 2Gi
     sshkey:
       secretName: gerrit-secrets  # pragma: allowlist secret
 
@@ -46,6 +53,13 @@ zuul:
     count: 1
 
   nodepool:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 192Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
     webapp:
       port: 8005
     probes:
@@ -112,3 +126,257 @@ zuul:
 
 database:
   secretName: creds  # pragma: allowlist secret
+
+nxs:
+  releasePrefix: "-"
+
+  generic:
+    usePredefinedAffinity: false
+
+  statefulSets:
+    zuul-scheduler:
+      replicas: 1
+      serviceName: zuul-scheduler
+      extraSelectorLabels:
+        app.kubernetes.io/component: zuul-scheduler
+        app.kubernetes.io/part-of: zuul
+      labels:
+        app.kubernetes.io/component: zuul-scheduler
+        app.kubernetes.io/part-of: zuul
+      containers:
+        scheduler:
+          image: quay.io/zuul-ci/zuul-scheduler
+          imageTag: latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 25m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          args:
+            - /usr/local/bin/zuul-scheduler
+            - -f
+            - -d
+          env:
+            - name: KUBECONFIG
+              value: /etc/kubernetes/kube.config
+          volumeMounts:
+            - name: zuul-config
+              mountPath: /etc/zuul
+              readOnly: true
+            - name: zuul-tenant-config
+              mountPath: /etc/zuul/tenant
+              readOnly: true
+            - name: zuul-scheduler
+              mountPath: /var/lib/zuul
+            - name: zookeeper-client-tls
+              mountPath: /tls/client
+              readOnly: true
+            - name: connection-gerrit
+              mountPath: /etc/zuul/connections/gerrit
+              readOnly: true
+      volumes:
+        - name: zuul-config
+          type: secret
+          originalName: zuul-config
+        - name: zuul-tenant-config
+          type: secret
+          originalName: zuul-tenant-config
+        - name: zookeeper-client-tls
+          type: secret
+          originalName: zookeeper-tls
+        - name: connection-gerrit
+          type: secret
+          originalName: gerrit-secrets
+      volumeClaimTemplates:
+        - metadata:
+            name: zuul-scheduler
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 80Gi
+    zuul-executor:
+      replicas: 1
+      serviceName: zuul-executor
+      extraSelectorLabels:
+        app.kubernetes.io/component: zuul-executor
+        app.kubernetes.io/part-of: zuul
+      labels:
+        app.kubernetes.io/component: zuul-executor
+        app.kubernetes.io/part-of: zuul
+      securityContext:
+        runAsUser: 10001
+        runAsGroup: 10001
+      terminationGracePeriodSeconds: 30
+      containers:
+        executor:
+          image: quay.io/zuul-ci/zuul-executor
+          imageTag: latest
+          imagePullPolicy: Always
+          args:
+            - /usr/local/bin/zuul-executor
+            - -f
+            - -d
+          env:
+            - name: ZUUL_EXECUTOR_SIGTERM_GRACEFUL
+              value: "1"
+          ports:
+            - containerPort: 7900
+              name: logs
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: zuul-config
+              mountPath: /etc/zuul
+            - name: zuul-var
+              mountPath: /var/lib/zuul
+            - name: nodepool-private-key
+              mountPath: /etc/zuul/sshkey
+            - name: zookeeper-client-tls
+              mountPath: /tls/client
+              readOnly: true
+            - name: connection-gerrit
+              mountPath: /etc/zuul/connections/gerrit
+              readOnly: true
+      volumes:
+        - name: zuul-var
+          type: emptyDir
+        - name: zuul-config
+          type: secret
+          originalName: zuul-config
+        - name: zookeeper-client-tls
+          type: secret
+          originalName: zookeeper-tls
+        - name: nodepool-private-key
+          type: secret
+          originalName: gerrit-secrets
+        - name: connection-gerrit
+          type: secret
+          originalName: gerrit-secrets
+
+  deployments:
+    zuul-fingergw:
+      replicas: 1
+      extraSelectorLabels:
+        app.kubernetes.io/component: zuul-fingergw
+        app.kubernetes.io/part-of: zuul
+      labels:
+        app.kubernetes.io/component: zuul-fingergw
+        app.kubernetes.io/part-of: zuul
+      terminationGracePeriodSeconds: 30
+      containers:
+        fingergw:
+          image: quay.io/zuul-ci/zuul-fingergw
+          imageTag: latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 25m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          ports:
+            - containerPort: 9079
+              name: zuul-fingergw
+              protocol: TCP
+          volumeMounts:
+            - name: zuul-config
+              mountPath: /etc/zuul
+            - name: zookeeper-client-tls
+              mountPath: /tls/client
+              readOnly: true
+      volumes:
+        - name: zuul-config
+          type: secret
+          originalName: zuul-config
+        - name: zookeeper-client-tls
+          type: secret
+          originalName: zookeeper-tls
+    zuul-web:
+      replicas: 1
+      extraSelectorLabels:
+        app.kubernetes.io/component: zuul-web
+        app.kubernetes.io/part-of: zuul
+      labels:
+        app.kubernetes.io/component: zuul-web
+        app.kubernetes.io/part-of: zuul
+      terminationGracePeriodSeconds: 30
+      containers:
+        web:
+          image: quay.io/zuul-ci/zuul-web
+          imageTag: latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 25m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          env:
+            - name: KUBECONFIG
+              value: /etc/kubernetes/kube.config
+          ports:
+            - containerPort: 9000
+              name: zuul-web
+              protocol: TCP
+          volumeMounts:
+            - name: zuul-config
+              mountPath: /etc/zuul
+            - name: zookeeper-client-tls
+              mountPath: /tls/client
+              readOnly: true
+      volumes:
+        - name: zuul-config
+          type: secret
+          originalName: zuul-config
+        - name: zookeeper-client-tls
+          type: secret
+          originalName: zookeeper-tls
+
+  services:
+    zuul-executor:
+      clusterIP: None
+      extraSelectorLabels:
+        app.kubernetes.io/component: zuul-executor
+        app.kubernetes.io/part-of: zuul
+      ports:
+        - name: logs
+          port: 7900
+          protocol: TCP
+          targetPort: logs
+    zuul-scheduler:
+      disabled: true
+    zuul-fingergw:
+      type: NodePort
+      extraSelectorLabels:
+        app.kubernetes.io/component: zuul-fingergw
+        app.kubernetes.io/part-of: zuul
+      ports:
+        - name: zuul-fingergw
+          port: 9079
+          protocol: TCP
+          targetPort: zuul-fingergw
+    zuul-web:
+      type: NodePort
+      extraSelectorLabels:
+        app.kubernetes.io/component: zuul-web
+        app.kubernetes.io/part-of: zuul
+      ports:
+        - name: zuul-web
+          port: 9000
+          protocol: TCP
+          targetPort: zuul-web

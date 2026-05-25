@@ -69,6 +69,24 @@ route:
           kind: Terraform
           namespace: flux-system
           reason: "SelectWorkspaceFailed|DeletionBlockedByDependantsReason"
+        - receiver: ntfy
+          type: Warning
+          kind: Certificate
+        - receiver: ntfy
+          type: Warning
+          kind: CertificateRequest
+        - receiver: ntfy
+          type: Warning
+          kind: Order
+        - receiver: ntfy
+          type: Warning
+          kind: Challenge
+        - receiver: ntfy
+          type: Warning
+          kind: Issuer
+        - receiver: ntfy
+          type: Warning
+          kind: ClusterIssuer
 receivers:
   - name: ntfy
     webhook:

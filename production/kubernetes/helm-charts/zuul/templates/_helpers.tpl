@@ -1,4 +1,9 @@
 {{/*
+Remaining bespoke Zuul templates use these helpers for stable labels while
+Certificate, Nodepool provider resources, and RBAC stay outside nxs values.
+*/}}
+
+{{/*
 Expand the name of the chart.
 */}}
 {{- define "zuul.name" -}}

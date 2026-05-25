@@ -1,5 +1,5 @@
 ---
-env:
+env: &hedgedocEnv
   # Basic configuration
   CMD_DOMAIN: "hedgedoc.your.domain"
   CMD_URL_ADDPORT: "false"
@@ -29,6 +29,7 @@ nxs:
   releasePrefix: "-"
 
   generic:
+    hookAnnotations: null
     usePredefinedAffinity: false
 
   pvcs:
@@ -37,6 +38,10 @@ nxs:
         - ReadWriteOnce
       size: 2Gi
       storageClassName: nfs-client
+
+  secrets:
+    hedgedoc-env:
+      data: *hedgedocEnv
 
   deployments:
     hedgedoc:

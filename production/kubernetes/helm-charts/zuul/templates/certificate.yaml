@@ -1,5 +1,7 @@
 {{- if .Values.zuul.zookeeper.certManager.enabled }}
 ---
+# nxs values cannot safely express this pair yet: the cert-manager Certificate
+# and keystore password Secret must keep the same passwordSecretRef contract.
 apiVersion: v1
 kind: Secret
 metadata:

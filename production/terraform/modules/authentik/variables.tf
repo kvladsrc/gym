@@ -65,11 +65,12 @@ variable "applications" {
       internal_port = 8080
     }
     "ntfy" = {
-      name          = "ntfy"
-      slug          = "ntfy"
-      external_host = "https://notify.your.domain"
-      internal_host = "ntfy.ntfy.svc.cluster.local"
-      internal_port = 80
+      name            = "ntfy"
+      slug            = "ntfy"
+      external_host   = "https://notify.your.domain"
+      internal_host   = "ntfy.ntfy.svc.cluster.local"
+      internal_port   = 80
+      skip_path_regex = "^/(prod-gitops|prod-ci|prod-k8s-warnings|prod-infra|prod-certs|prod-backups)/(json|sse|raw|ws)$"
     }
     "sql" = {
       name          = "sql"

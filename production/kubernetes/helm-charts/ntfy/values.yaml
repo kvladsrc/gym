@@ -1,8 +1,10 @@
+# yamllint disable rule:line-length
 ---
 nxs:
   releasePrefix: "-"
 
   generic:
+    hookAnnotations: null
     podSecurityContext:
       fsGroup: 1000
       fsGroupChangePolicy: OnRootMismatch
@@ -14,6 +16,13 @@ nxs:
         - ReadWriteOnce
       size: 1Gi
       storageClassName: nfs-client
+
+  configMaps:
+    ntfy-flux-template:
+      labels:
+        app.kubernetes.io/component: templates
+      data:
+        flux.yml: b64:LS0tCnRpdGxlOiB8CiAgRmx1eCB7eyAucmVhc29uIH19OiB7eyAuaW52b2x2ZWRPYmplY3Qua2luZCB9fS97eyAuaW52b2x2ZWRPYmplY3QubmFtZSB9fQptZXNzYWdlOiB8CiAge3sgLm1lc3NhZ2UgfX0KCiAgT2JqZWN0OiB7eyAuaW52b2x2ZWRPYmplY3Qua2luZCB9fS97eyAuaW52b2x2ZWRPYmplY3QubmFtZSB9fQogIE5hbWVzcGFjZToge3sgLmludm9sdmVkT2JqZWN0Lm5hbWVzcGFjZSB9fQogIFNldmVyaXR5OiB7eyAuc2V2ZXJpdHkgfX0KICBSZWFzb246IHt7IC5yZWFzb24gfX0KICBDb250cm9sbGVyOiB7eyAucmVwb3J0aW5nQ29udHJvbGxlciB9fQogIFJldmlzaW9uOiB7eyAubWV0YWRhdGEucmV2aXNpb24gfX0KcHJpb3JpdHk6IHwKICB7ey0gaWYgZXEgLnNldmVyaXR5ICJlcnJvciIgLX19NHt7LSBlbHNlIC19fTN7ey0gZW5kIC19fQo=
 
   deployments:
     ntfy:

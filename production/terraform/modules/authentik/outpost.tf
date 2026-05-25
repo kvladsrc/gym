@@ -10,19 +10,36 @@ resource "authentik_outpost" "proxy_outpost" {
   ]
 
   config = jsonencode({
-    log_level                      = "info"
-    docker_labels                  = null
-    authentik_host                 = "http://authentik-server:80"
-    docker_network                 = null
-    container_image                = null
-    docker_map_ports               = true
-    refresh_interval               = "minutes=5"
-    kubernetes_replicas            = 1
-    kubernetes_namespace           = "authentik"
-    authentik_host_browser         = "https://sso.your.domain"
-    object_naming_template         = "ak-outpost-%(name)s"
-    authentik_host_insecure        = true
-    kubernetes_json_patches        = null
+    log_level               = "info"
+    docker_labels           = null
+    authentik_host          = "http://authentik-server:80"
+    docker_network          = null
+    container_image         = null
+    docker_map_ports        = true
+    refresh_interval        = "minutes=5"
+    kubernetes_replicas     = 1
+    kubernetes_namespace    = "authentik"
+    authentik_host_browser  = "https://sso.your.domain"
+    object_naming_template  = "ak-outpost-%(name)s"
+    authentik_host_insecure = true
+    kubernetes_json_patches = {
+      deployment = [
+        {
+          op   = "add"
+          path = "/spec/template/spec/containers/0/resources"
+          value = {
+            requests = {
+              cpu    = "50m"
+              memory = "128Mi"
+            }
+            limits = {
+              cpu    = "250m"
+              memory = "256Mi"
+            }
+          }
+        }
+      ]
+    }
     kubernetes_service_type        = "ClusterIP"
     kubernetes_image_pull_secrets  = []
     kubernetes_ingress_class_name  = null

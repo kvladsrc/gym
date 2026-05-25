@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+base_url="${NTFY_URL:-https://notify.your.domain}"
+base_url="${base_url%/}"
+
+topics=(
+    prod-gitops
+    prod-ci
+    prod-k8s-warnings
+    prod-infra
+    prod-certs
+    prod-backups
+)
+
+usage() {
+    cat >&2 <<'EOF'
+usage:
+  ntfy-api topics
+  ntfy-api poll TOPIC [SINCE]
+  ntfy-api latest TOPIC
+  ntfy-api summary TOPIC [SINCE]
+  ntfy-api self-test
+  ntfy-api raw PATH
+
+environment:
+  NTFY_URL        default: https://notify.your.domain
+  NTFY_TOKEN      optional bearer token
+  NTFY_USERNAME   optional basic auth username
+  NTFY_PASSWORD   optional basic auth password
+EOF
+}
+
+curl_args=(-fsS -H "Accept: application/json")
+if [[ -n ${NTFY_TOKEN:-} ]]; then
+    curl_args+=(-H "Authorization: Bearer ${NTFY_TOKEN}")
+elif [[ -n ${NTFY_USERNAME:-} || -n ${NTFY_PASSWORD:-} ]]; then
+    curl_args+=(-u "${NTFY_USERNAME:-}:${NTFY_PASSWORD:-}")
+fi
+
+check_topic() {
+    local topic=$1
+    local known
+    for known in "${topics[@]}"; do
+        if [[ $topic == "$known" ]]; then
+            return 0
+        fi
+    done
+    echo "unknown topic: ${topic}" >&2
+    echo "known topics:" >&2
+    printf '  %s\n' "${topics[@]}" >&2
+    exit 2
+}
+
+poll_topic() {
+    local topic=$1
+    local since=${2:-1h}
+    check_topic "$topic"
+    curl "${curl_args[@]}" \
+        "${base_url}/${topic}/json?poll=1&since=${since}"
+}
+
+summary_jsonl() {
+    python3 -c '
+import datetime
+import json
+import sys
+
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    try:
+        item = json.loads(line)
+    except json.JSONDecodeError:
+        print(line)
+        continue
+    if item.get("event") != "message":
+        continue
+    ts = item.get("time")
+    if isinstance(ts, (int, float)):
+        when = datetime.datetime.fromtimestamp(
+            ts, datetime.timezone.utc
+        ).isoformat()
+    else:
+        when = "unknown-time"
+    title = item.get("title") or "<no title>"
+    topic = item.get("topic", "")
+    priority = item.get("priority", "")
+    tags = ",".join(item.get("tags") or [])
+    message = item.get("message") or ""
+    print(
+        f"{when} topic={topic} "
+        f"priority={priority} tags={tags}"
+    )
+    print(f"  title: {title}")
+    for body_line in message.splitlines()[:12]:
+        print(f"  {body_line}")
+    print()
+'
+}
+
+if [[ $# -lt 1 ]]; then
+    usage
+    exit 2
+fi
+
+command=$1
+shift
+
+case "$command" in
+topics)
+    [[ $# -eq 0 ]] || {
+        usage
+        exit 2
+    }
+    printf '%s\n' "${topics[@]}"
+    ;;
+poll)
+    [[ $# -ge 1 && $# -le 2 ]] || {
+        usage
+        exit 2
+    }
+    poll_topic "$1" "${2:-1h}"
+    ;;
+latest)
+    [[ $# -eq 1 ]] || {
+        usage
+        exit 2
+    }
+    poll_topic "$1" latest
+    ;;
+summary)
+    [[ $# -ge 1 && $# -le 2 ]] || {
+        usage
+        exit 2
+    }
+    poll_topic "$1" "${2:-1h}" | summary_jsonl
+    ;;
+self-test)
+    [[ $# -eq 0 ]] || {
+        usage
+        exit 2
+    }
+    printf '%s\n' \
+        '{"event":"message","time":1779381092,"topic":"prod-ci","title":"Zuul check failure","priority":4,"tags":["x"],"message":"line 1\nline 2"}' \
+        'not-json' |
+        summary_jsonl
+    ;;
+raw)
+    [[ $# -eq 1 ]] || {
+        usage
+        exit 2
+    }
+    path=$1
+    if [[ $path != /* ]]; then
+        path="/$path"
+    fi
+    curl "${curl_args[@]}" "${base_url}${path}"
+    ;;
+*)
+    usage
+    exit 2
+    ;;
+esac

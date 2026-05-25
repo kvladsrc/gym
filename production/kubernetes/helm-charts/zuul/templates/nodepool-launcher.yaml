@@ -1,5 +1,7 @@
 {{- range .Values.zuul.nodepool.providers }}
 ---
+# nxs values cannot model this as a static workload because each provider needs
+# a provider-specific Deployment plus a matching generated Nodepool config Secret.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -36,6 +38,8 @@ spec:
             - name: webapp
               containerPort: {{ $.Values.zuul.nodepool.webapp.port }}
               protocol: TCP
+          resources:
+            {{- toYaml $.Values.zuul.nodepool.resources | nindent 12 }}
           readinessProbe:
             httpGet:
               path: /ready
@@ -70,6 +74,8 @@ spec:
 {{- end }}
 {{- range .Values.zuul.nodepool.providers }}
 ---
+# nxs values cannot model this Secret because its name and contents are generated
+# per Nodepool provider and include derived ZooKeeper TLS settings.
 apiVersion: v1
 kind: Secret
 metadata:

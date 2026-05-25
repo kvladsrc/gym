@@ -35,7 +35,13 @@ nxs:
           imagePullPolicy: Always
           env:
             - name: SYNC_PERIOD_MINUTES
-              value: "30"
+              value: "240"
+            - name: WORKERS
+              value: "1"
+            - name: CATALINA_OPTS
+              value: "-Xms128m -Xmx512m"
+            - name: INDEXER_JAVA_OPTS
+              value: "-Xms128m -Xmx768m"
           ports:
             - name: http
               containerPort: 8080
@@ -58,7 +64,13 @@ nxs:
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
-          resources: {}
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
           volumeMounts:
             - name: data
               mountPath: /opengrok/data
