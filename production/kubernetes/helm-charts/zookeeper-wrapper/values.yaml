@@ -10,6 +10,9 @@ zookeeper:
   replicaCount: 1
   auth:
     enabled: false
+  # Keep ZooKeeper bounded for the small single-node Zuul/Gerrit cluster.
+  # The default chart heap is 1024 MB and was observed around 1.1-1.2Gi RSS.
+  heapSize: 384
   tls:
     client:
       enabled: true
@@ -28,6 +31,13 @@ zookeeper:
       keystorePassword: "changeme"    # pragma: allowlist secret
       truststorePassword: "changeme"  # pragma: allowlist secret
   resourcesPreset: "none"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 768Mi
   persistence:
     enabled: true
     size: 10Gi

@@ -13,6 +13,13 @@ authentik:
       host: "redis-master.redis.svc.cluster.local"
 
   server:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 384Mi
+      limits:
+        cpu: 500m
+        memory: 768Mi
     ingress:
       enabled: false
       annotations: {}
@@ -23,6 +30,15 @@ authentik:
         - secretName: authentik-tls # pragma: allowlist secret
           hosts:
             - sso.your.domain
+
+  worker:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 768Mi
 
   postgresql:
     enabled: false

@@ -85,7 +85,7 @@ spawn-at-startup "wl-paste" "--type" "image" "--watch" "cliphist" "store"
 spawn-at-startup "wl-paste" "--type" "text" "--watch" "cliphist" "store"
 spawn-sh-at-startup "nm-applet --indicator"
 spawn-sh-at-startup "blueman-applet"
-spawn-sh-at-startup "rclone mount dropbox:/music/ ~/music/ --vfs-cache-mode writes"
+spawn-sh-at-startup "rclone mount dropbox:/remote/ ~/remote/ --vfs-cache-mode writes"
 spawn-at-startup "gsettings" "set" "org.gnome.desktop.interface" "gtk-theme" "adw-gtk3-dark"
 spawn-at-startup "gsettings" "set" "org.gnome.desktop.interface" "color-scheme" "prefer-dark"
 

@@ -1,0 +1,74 @@
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-container-resources
+  annotations:
+    policies.kyverno.io/title: Require Container Resources
+    policies.kyverno.io/category: Resource Management
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Audit production pods and workload controllers which do not set CPU and
+      memory requests and limits. The first rollout is audit-only so Flux
+      reconciliation is not blocked while remaining BestEffort workloads are
+      inventoried and fixed.
+spec:
+  background: true
+  emitWarning: true
+  rules:
+    - name: require-cpu-memory-requests-limits
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kube-public
+                - kube-node-lease
+                - flux-system
+                - kyverno
+          # Zuul build nodes are transient CI pods. Their resource model is
+          # tracked separately by the Nodepool-to-Zuul-launcher migration.
+          - resources:
+              namespaces:
+                - zuul
+              names:
+                - build-*
+      validate:
+        failureAction: Audit
+        message: >-
+          Containers must set CPU and memory requests and limits. Add an
+          explicit exception only for documented transient or system workloads.
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"
+                  limits:
+                    cpu: "?*"
+                    memory: "?*"
+            =(initContainers):
+              - name: "*"
+                resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"
+                  limits:
+                    cpu: "?*"
+                    memory: "?*"
+            =(ephemeralContainers):
+              - name: "*"
+                resources:
+                  requests:
+                    cpu: "?*"
+                    memory: "?*"
+                  limits:
+                    cpu: "?*"
+                    memory: "?*"

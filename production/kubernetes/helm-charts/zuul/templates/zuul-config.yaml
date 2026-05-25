@@ -1,4 +1,6 @@
 ---
+# nxs values cannot render this Secret because zuul.conf combines top-level
+# SOPS values with dynamic connection ranges outside the nxs subchart context.
 apiVersion: v1
 kind: Secret
 metadata:

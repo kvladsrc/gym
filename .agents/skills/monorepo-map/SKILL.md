@@ -46,6 +46,10 @@ choose the right workflow without requiring the user to reference each skill:
 - `$zuul` - use for the production Zuul CI API at
   `https://ci.your.domain/api`: inspect pipeline status, jobs, projects,
   builds, and buildsets related to Gerrit changes.
+- `$ntfy` - use for the production ntfy notification service at
+  `https://notify.your.domain`: read recent topic notifications, summarize
+  incident signals, and correlate alerts with Flux, Zuul, Kubernetes,
+  Terraform, or cert-manager state.
 - `$monorepo-map` - use first for repository orientation, skill routing,
   directory layout, production component locations, and the working process.
 

@@ -112,6 +112,7 @@ in
     (config.lib.nixGL.wrap celestia)
     (config.lib.nixGL.wrap easyeffects)
     (config.lib.nixGL.wrap f3d)
+    (config.lib.nixGL.wrap gamescope)
     (config.lib.nixGL.wrap godotPackages_4_6.godot)
     (config.lib.nixGL.wrap gthumb)
     (config.lib.nixGL.wrap kooha)
