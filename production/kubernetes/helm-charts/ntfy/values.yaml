@@ -22,7 +22,21 @@ nxs:
       labels:
         app.kubernetes.io/component: templates
       data:
-        flux.yml: b64:LS0tCnRpdGxlOiB8CiAgRmx1eCB7eyAucmVhc29uIH19OiB7eyAuaW52b2x2ZWRPYmplY3Qua2luZCB9fS97eyAuaW52b2x2ZWRPYmplY3QubmFtZSB9fQptZXNzYWdlOiB8CiAge3sgLm1lc3NhZ2UgfX0KCiAgT2JqZWN0OiB7eyAuaW52b2x2ZWRPYmplY3Qua2luZCB9fS97eyAuaW52b2x2ZWRPYmplY3QubmFtZSB9fQogIE5hbWVzcGFjZToge3sgLmludm9sdmVkT2JqZWN0Lm5hbWVzcGFjZSB9fQogIFNldmVyaXR5OiB7eyAuc2V2ZXJpdHkgfX0KICBSZWFzb246IHt7IC5yZWFzb24gfX0KICBDb250cm9sbGVyOiB7eyAucmVwb3J0aW5nQ29udHJvbGxlciB9fQogIFJldmlzaW9uOiB7eyAubWV0YWRhdGEucmV2aXNpb24gfX0KcHJpb3JpdHk6IHwKICB7ey0gaWYgZXEgLnNldmVyaXR5ICJlcnJvciIgLX19NHt7LSBlbHNlIC19fTN7ey0gZW5kIC19fQo=
+        flux.yml: |-
+          ---
+          title: |
+            Flux {{`{{ "{{ .reason }}" }}`}}: {{`{{ "{{ .involvedObject.kind }}" }}`}}/{{`{{ "{{ .involvedObject.name }}" }}`}}
+          message: |
+            {{`{{ "{{ .message }}" }}`}}
+
+            Object: {{`{{ "{{ .involvedObject.kind }}" }}`}}/{{`{{ "{{ .involvedObject.name }}" }}`}}
+            Namespace: {{`{{ "{{ .involvedObject.namespace }}" }}`}}
+            Severity: {{`{{ "{{ .severity }}" }}`}}
+            Reason: {{`{{ "{{ .reason }}" }}`}}
+            Controller: {{`{{ "{{ .reportingController }}" }}`}}
+            Revision: {{`{{ "{{ .metadata.revision }}" }}`}}
+          priority: |
+            {{`{{ "{{- if eq .severity \"error\" -}}" }}`}}4{{`{{ "{{- else -}}" }}`}}3{{`{{ "{{- end -}}" }}`}}
 
   deployments:
     ntfy:

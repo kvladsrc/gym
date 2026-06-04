@@ -80,6 +80,15 @@ resource "cloudflare_dns_record" "notify_bonfire" {
   ttl     = 1
 }
 
+resource "cloudflare_dns_record" "notebook_bonfire" {
+  zone_id = var.cloudflare_zone_id
+  name    = "notebook"
+  content = "192.168.1.220"
+  type    = "A"
+  proxied = false
+  ttl     = 1
+}
+
 resource "cloudflare_dns_record" "read_bonfire" {
   zone_id = var.cloudflare_zone_id
   name    = "read"

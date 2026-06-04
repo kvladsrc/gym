@@ -1,8 +1,0 @@
----
-interface:
-  display_name: "HedgeDoc"
-  short_description: "Use the production HedgeDoc wiki HTTP API"
-  default_prompt: >-
-    Use $hedgedoc to check the production HedgeDoc server, read note metadata
-    or markdown exports, create/import notes, inspect user history, and work
-    with HedgeDoc API endpoints.
