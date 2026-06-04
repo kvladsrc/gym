@@ -69,7 +69,10 @@ spec:
   hostnames:
     - "registry.your.domain"
   rules:
-    - backendRefs:
+    - timeouts:
+        request: "0s"
+        backendRequest: "0s"
+      backendRefs:
         - name: docker-registry
           port: 5000
 ---

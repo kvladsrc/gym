@@ -198,7 +198,7 @@ in
       size = 16;
     };
     shellIntegration.enableBashIntegration = true;
-    themeFile = "Tango_Dark";
+    themeFile = "Harper";
     settings = {
       confirm_os_window_close = 0;
       term = "xterm-256color";

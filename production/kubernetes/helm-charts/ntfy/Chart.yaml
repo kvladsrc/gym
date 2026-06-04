@@ -3,10 +3,10 @@ apiVersion: v2
 name: ntfy
 description: "Wrapper chart: ntfy"
 type: application
-version: 0.3.0
+version: 0.6.0
 appVersion: "2.22.0"
 dependencies:
   - name: nxs-universal-chart
     alias: nxs
-    version: 3.0.21
+    version: 3.1.0
     repository: "oci://registry.nixys.ru/nuc"

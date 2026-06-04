@@ -1,0 +1,23 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: jupyter-cpp
+  namespace: flux-system
+spec:
+  install:
+    createNamespace: true
+  timeout: 15m
+  releaseName: jupyter-cpp
+  targetNamespace: jupyter-cpp
+  storageNamespace: jupyter-cpp
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/jupyter-cpp
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  dependsOn:
+    - name: nfs

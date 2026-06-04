@@ -40,9 +40,6 @@ choose the right workflow without requiring the user to reference each skill:
 - `$kanboard` - use for the production Kanboard task tracker at
   `https://b.your.domain/`: list projects/tasks, move cards, assign work,
   and close completed tasks.
-- `$hedgedoc` - use for the production HedgeDoc documentation/wiki at
-  `https://hedgedoc.your.domain/`: status/config checks, note metadata,
-  markdown exports, and note creation/import.
 - `$zuul` - use for the production Zuul CI API at
   `https://ci.your.domain/api`: inspect pipeline status, jobs, projects,
   builds, and buildsets related to Gerrit changes.
@@ -83,7 +80,7 @@ only to observe current state and verify reconciled changes after merge. If a
 manual write is unavoidable, get explicit user approval and document the
 follow-up GitOps change that makes the live state reproducible.
 
-Use HedgeDoc for durable documentation and runbooks. Use repository markdown
+Use repository markdown for durable documentation and runbooks, especially
 when the documentation must be versioned with infrastructure changes or
 reviewed through Gerrit.
 
@@ -118,7 +115,7 @@ reviewed through Gerrit.
 - `production/kubernetes/flux/` - Flux Kustomizations, sources, secrets, app
   wiring, and Terraform controller objects.
 - `production/kubernetes/helm-charts/` - local Helm charts and wrappers for
-  services such as Gerrit, Zuul, Kanboard, HedgeDoc, Authentik, MinIO,
+  services such as Gerrit, Zuul, Kanboard, Authentik, MinIO,
   PostgreSQL, Redis, Envoy Gateway, and Zooreader.
 - `production/kubernetes/talos/` - Talos cluster config and generated `_out`
   artifacts.

@@ -72,6 +72,14 @@ variable "applications" {
       internal_port   = 80
       skip_path_regex = "^/(prod-gitops|prod-ci|prod-k8s-warnings|prod-infra|prod-certs|prod-backups)/(json|sse|raw|ws)$"
     }
+    "jupyter-cpp" = {
+      name                  = "jupyter-cpp"
+      slug                  = "jupyter-cpp"
+      external_host         = "https://notebook.your.domain"
+      internal_host         = "jupyter-cpp.jupyter-cpp.svc.cluster.local"
+      internal_port         = 8888
+      access_token_validity = "hours=8"
+    }
     "sql" = {
       name          = "sql"
       slug          = "sql"

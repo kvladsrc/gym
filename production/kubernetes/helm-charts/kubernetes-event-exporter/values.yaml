@@ -34,7 +34,121 @@ nxs:
       labels:
         app.kubernetes.io/component: event-exporter
       data:
-        config.yaml: b64:bG9nTGV2ZWw6IHdhcm4KbG9nRm9ybWF0OiBqc29uCm1ldHJpY3NOYW1lUHJlZml4OiBldmVudF9leHBvcnRlcl8Kcm91dGU6CiAgcm91dGVzOgogICAgLSBkcm9wOgogICAgICAgIC0gdHlwZTogTm9ybWFsCiAgICAgICAgLSByZWFzb246ICJQdWxsZWR8UHVsbGluZ3xDcmVhdGVkfFN0YXJ0ZWR8U2NoZWR1bGVkIgogICAgICBtYXRjaDoKICAgICAgICAtIHJlY2VpdmVyOiBudGZ5CiAgICAgICAgICB0eXBlOiBXYXJuaW5nCiAgICAgICAgICByZWFzb246IEZhaWxlZFNjaGVkdWxpbmcKICAgICAgICAtIHJlY2VpdmVyOiBudGZ5CiAgICAgICAgICB0eXBlOiBXYXJuaW5nCiAgICAgICAgICByZWFzb246IEZhaWxlZE1vdW50CiAgICAgICAgLSByZWNlaXZlcjogbnRmeQogICAgICAgICAgdHlwZTogV2FybmluZwogICAgICAgICAgcmVhc29uOiBGYWlsZWRBdHRhY2hWb2x1bWUKICAgICAgICAtIHJlY2VpdmVyOiBudGZ5CiAgICAgICAgICB0eXBlOiBXYXJuaW5nCiAgICAgICAgICByZWFzb246IEZhaWxlZAogICAgICAgIC0gcmVjZWl2ZXI6IG50ZnkKICAgICAgICAgIHR5cGU6IFdhcm5pbmcKICAgICAgICAgIHJlYXNvbjogQmFja09mZgogICAgICAgIC0gcmVjZWl2ZXI6IG50ZnkKICAgICAgICAgIHR5cGU6IFdhcm5pbmcKICAgICAgICAgIHJlYXNvbjogVW5oZWFsdGh5CiAgICAgICAgLSByZWNlaXZlcjogbnRmeQogICAgICAgICAgdHlwZTogV2FybmluZwogICAgICAgICAgcmVhc29uOiBJbWFnZVB1bGxCYWNrT2ZmCiAgICAgICAgLSByZWNlaXZlcjogbnRmeQogICAgICAgICAgdHlwZTogV2FybmluZwogICAgICAgICAgcmVhc29uOiBFcnJJbWFnZVB1bGwKICAgICAgICAtIHJlY2VpdmVyOiBudGZ5CiAgICAgICAgICB0eXBlOiBXYXJuaW5nCiAgICAgICAgICByZWFzb246IENyYXNoTG9vcEJhY2tPZmYKICAgICAgICAtIHJlY2VpdmVyOiBudGZ5CiAgICAgICAgICB0eXBlOiBXYXJuaW5nCiAgICAgICAgICBraW5kOiBUZXJyYWZvcm0KICAgICAgICAgIG5hbWVzcGFjZTogZmx1eC1zeXN0ZW0KICAgICAgICAgIHJlYXNvbjogIkFydGlmYWN0RmFpbGVkfERlcGVuZGVuY3lOb3RSZWFkeXxEcmlmdERldGVjdGVkIgogICAgICAgIC0gcmVjZWl2ZXI6IG50ZnkKICAgICAgICAgIHR5cGU6IFdhcm5pbmcKICAgICAgICAgIGtpbmQ6IFRlcnJhZm9ybQogICAgICAgICAgbmFtZXNwYWNlOiBmbHV4LXN5c3RlbQogICAgICAgICAgcmVhc29uOiAiRHJpZnREZXRlY3Rpb25GYWlsZWR8SGVhbHRoQ2hlY2tzRmFpbGVkIgogICAgICAgIC0gcmVjZWl2ZXI6IG50ZnkKICAgICAgICAgIHR5cGU6IFdhcm5pbmcKICAgICAgICAgIGtpbmQ6IFRlcnJhZm9ybQogICAgICAgICAgbmFtZXNwYWNlOiBmbHV4LXN5c3RlbQogICAgICAgICAgcmVhc29uOiAiT3V0cHV0c1dyaXRpbmdGYWlsZWR8UG9zdFBsYW5uaW5nV2ViaG9va0ZhaWxlZCIKICAgICAgICAtIHJlY2VpdmVyOiBudGZ5CiAgICAgICAgICB0eXBlOiBXYXJuaW5nCiAgICAgICAgICBraW5kOiBUZXJyYWZvcm0KICAgICAgICAgIG5hbWVzcGFjZTogZmx1eC1zeXN0ZW0KICAgICAgICAgIHJlYXNvbjogIlRGRXhlY0FwcGx5RmFpbGVkfFRGRXhlY0luaXRGYWlsZWR8VEZFeGVjTmV3RmFpbGVkIgogICAgICAgIC0gcmVjZWl2ZXI6IG50ZnkKICAgICAgICAgIHR5cGU6IFdhcm5pbmcKICAgICAgICAgIGtpbmQ6IFRlcnJhZm9ybQogICAgICAgICAgbmFtZXNwYWNlOiBmbHV4LXN5c3RlbQogICAgICAgICAgcmVhc29uOiAiVEZFeGVjT3V0cHV0RmFpbGVkfFRGRXhlY1BsYW5GYWlsZWR8Rm9yY2VVbmxvY2t8TG9ja0hlbGQiCiAgICAgICAgLSByZWNlaXZlcjogbnRmeQogICAgICAgICAgdHlwZTogV2FybmluZwogICAgICAgICAga2luZDogVGVycmFmb3JtCiAgICAgICAgICBuYW1lc3BhY2U6IGZsdXgtc3lzdGVtCiAgICAgICAgICByZWFzb246ICJUZW1wbGF0ZUdlbmVyYXRpb25GYWlsZWR8VmFyc0dlbmVyYXRpb25GYWlsZWQiCiAgICAgICAgLSByZWNlaXZlcjogbnRmeQogICAgICAgICAgdHlwZTogV2FybmluZwogICAgICAgICAga2luZDogVGVycmFmb3JtCiAgICAgICAgICBuYW1lc3BhY2U6IGZsdXgtc3lzdGVtCiAgICAgICAgICByZWFzb246ICJTZWxlY3RXb3Jrc3BhY2VGYWlsZWR8RGVsZXRpb25CbG9ja2VkQnlEZXBlbmRhbnRzUmVhc29uIgogICAgICAgIC0gcmVjZWl2ZXI6IG50ZnkKICAgICAgICAgIHR5cGU6IFdhcm5pbmcKICAgICAgICAgIGtpbmQ6IENlcnRpZmljYXRlCiAgICAgICAgLSByZWNlaXZlcjogbnRmeQogICAgICAgICAgdHlwZTogV2FybmluZwogICAgICAgICAga2luZDogQ2VydGlmaWNhdGVSZXF1ZXN0CiAgICAgICAgLSByZWNlaXZlcjogbnRmeQogICAgICAgICAgdHlwZTogV2FybmluZwogICAgICAgICAga2luZDogT3JkZXIKICAgICAgICAtIHJlY2VpdmVyOiBudGZ5CiAgICAgICAgICB0eXBlOiBXYXJuaW5nCiAgICAgICAgICBraW5kOiBDaGFsbGVuZ2UKICAgICAgICAtIHJlY2VpdmVyOiBudGZ5CiAgICAgICAgICB0eXBlOiBXYXJuaW5nCiAgICAgICAgICBraW5kOiBJc3N1ZXIKICAgICAgICAtIHJlY2VpdmVyOiBudGZ5CiAgICAgICAgICB0eXBlOiBXYXJuaW5nCiAgICAgICAgICBraW5kOiBDbHVzdGVySXNzdWVyCnJlY2VpdmVyczoKICAtIG5hbWU6IG50ZnkKICAgIHdlYmhvb2s6CiAgICAgIGVuZHBvaW50OiBodHRwOi8vbnRmeS5udGZ5LnN2Yy5jbHVzdGVyLmxvY2FsL3Byb2QtazhzLXdhcm5pbmdzCiAgICAgIGhlYWRlcnM6CiAgICAgICAgVGl0bGU6ID4tCiAgICAgICAgICBLdWJlcm5ldGVzIHt7IC5SZWFzb24gfX06CiAgICAgICAgICB7eyAuSW52b2x2ZWRPYmplY3QuS2luZCB9fS97eyAuSW52b2x2ZWRPYmplY3QuTmFtZSB9fQogICAgICAgIFByaW9yaXR5OiBoaWdoCiAgICAgICAgVGFnczogd2FybmluZwogICAgICBsYXlvdXQ6CiAgICAgICAgbWVzc2FnZTogfC0KICAgICAgICAgIHdhcm5pbmc6IEt1YmVybmV0ZXMge3sgLlJlYXNvbiB9fQoKICAgICAgICAgIE5hbWVzcGFjZToge3sgLkludm9sdmVkT2JqZWN0Lk5hbWVzcGFjZSB9fQogICAgICAgICAgS2luZDoge3sgLkludm9sdmVkT2JqZWN0LktpbmQgfX0KICAgICAgICAgIE5hbWU6IHt7IC5JbnZvbHZlZE9iamVjdC5OYW1lIH19CiAgICAgICAgICBTb3VyY2U6IHt7IC5Tb3VyY2UuQ29tcG9uZW50IH19IHt7IC5Tb3VyY2UuSG9zdCB9fQogICAgICAgICAgQ291bnQ6IHt7IC5Db3VudCB9fQogICAgICAgICAgTWVzc2FnZToge3sgLk1lc3NhZ2UgfX0KICAgICAgICByZWFzb246ICJ7eyAuUmVhc29uIH19IgogICAgICAgIG5hbWVzcGFjZTogInt7IC5JbnZvbHZlZE9iamVjdC5OYW1lc3BhY2UgfX0iCiAgICAgICAga2luZDogInt7IC5JbnZvbHZlZE9iamVjdC5LaW5kIH19IgogICAgICAgIG5hbWU6ICJ7eyAuSW52b2x2ZWRPYmplY3QuTmFtZSB9fSIKICAgICAgICBjb3VudDogInt7IC5Db3VudCB9fSIK
+        config.yaml: |-
+          logLevel: warn
+          logFormat: json
+          metricsNamePrefix: event_exporter_
+          route:
+            routes:
+              - drop:
+                  - type: Normal
+                  - reason: "Pulled|Pulling|Created|Started|Scheduled"
+                match:
+                  - receiver: ntfy
+                    type: Warning
+                    reason: FailedScheduling
+                  - receiver: ntfy
+                    type: Warning
+                    reason: FailedMount
+                  - receiver: ntfy
+                    type: Warning
+                    reason: FailedAttachVolume
+                  - receiver: ntfy
+                    type: Warning
+                    reason: Failed
+                  - receiver: ntfy
+                    type: Warning
+                    reason: BackOff
+                  - receiver: ntfy
+                    type: Warning
+                    reason: Unhealthy
+                  - receiver: ntfy
+                    type: Warning
+                    reason: ImagePullBackOff
+                  - receiver: ntfy
+                    type: Warning
+                    reason: ErrImagePull
+                  - receiver: ntfy
+                    type: Warning
+                    reason: CrashLoopBackOff
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Terraform
+                    namespace: flux-system
+                    reason: "ArtifactFailed|DependencyNotReady|DriftDetected"
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Terraform
+                    namespace: flux-system
+                    reason: "DriftDetectionFailed|HealthChecksFailed"
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Terraform
+                    namespace: flux-system
+                    reason: "OutputsWritingFailed|PostPlanningWebhookFailed"
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Terraform
+                    namespace: flux-system
+                    reason: "TFExecApplyFailed|TFExecInitFailed|TFExecNewFailed"
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Terraform
+                    namespace: flux-system
+                    reason: "TFExecOutputFailed|TFExecPlanFailed|ForceUnlock|LockHeld"
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Terraform
+                    namespace: flux-system
+                    reason: "TemplateGenerationFailed|VarsGenerationFailed"
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Terraform
+                    namespace: flux-system
+                    reason: "SelectWorkspaceFailed|DeletionBlockedByDependantsReason"
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Certificate
+                  - receiver: ntfy
+                    type: Warning
+                    kind: CertificateRequest
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Order
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Challenge
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Issuer
+                  - receiver: ntfy
+                    type: Warning
+                    kind: ClusterIssuer
+          receivers:
+            - name: ntfy
+              webhook:
+                endpoint: http://ntfy.ntfy.svc.cluster.local/prod-k8s-warnings
+                headers:
+                  Title: >-
+                    Kubernetes {{`{{ "{{ .Reason }}" }}`}}:
+                    {{`{{ "{{ .InvolvedObject.Kind }}" }}`}}/{{`{{ "{{ .InvolvedObject.Name }}" }}`}}
+                  Priority: high
+                  Tags: warning
+                layout:
+                  message: |-
+                    warning: Kubernetes {{`{{ "{{ .Reason }}" }}`}}
+
+                    Namespace: {{`{{ "{{ .InvolvedObject.Namespace }}" }}`}}
+                    Kind: {{`{{ "{{ .InvolvedObject.Kind }}" }}`}}
+                    Name: {{`{{ "{{ .InvolvedObject.Name }}" }}`}}
+                    Source: {{`{{ "{{ .Source.Component }}" }}`}} {{`{{ "{{ .Source.Host }}" }}`}}
+                    Count: {{`{{ "{{ .Count }}" }}`}}
+                    Message: {{`{{ "{{ .Message }}" }}`}}
+                  reason: "{{`{{ "{{ .Reason }}" }}`}}"
+                  namespace: "{{`{{ "{{ .InvolvedObject.Namespace }}" }}`}}"
+                  kind: "{{`{{ "{{ .InvolvedObject.Kind }}" }}`}}"
+                  name: "{{`{{ "{{ .InvolvedObject.Name }}" }}`}}"
+                  count: "{{`{{ "{{ .Count }}" }}`}}"
 
   deployments:
     event-exporter:

@@ -10,6 +10,7 @@ resources:
   - gerrit
   - gerrit-operator
   - hedgedoc
+  - jupyter-cpp
   - kanboard
   - kube-vip
   - kyverno
