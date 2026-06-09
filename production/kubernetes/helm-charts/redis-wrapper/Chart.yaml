@@ -3,8 +3,8 @@ apiVersion: v2
 name: redis-wrapper
 description: "Wrapper chart: redis"
 type: application
-version: 0.8.0
+version: 0.9.0
 dependencies:
   - name: redis
-    version: 27.0.0
+    version: 27.0.4
     repository: "oci://registry-1.docker.io/bitnamicharts"

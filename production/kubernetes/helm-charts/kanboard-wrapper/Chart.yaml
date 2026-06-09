@@ -3,8 +3,8 @@ apiVersion: v2
 name: kanboard-wrapper
 description: "Wrapper chart: kanboard"
 type: application
-version: 0.2.0
+version: 0.3.0
 dependencies:
   - name: kanboard
-    version: 1.2.3
+    version: 1.2.4
     repository: "https://kube-the-home.github.io/kanboard-helm/"

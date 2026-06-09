@@ -6,7 +6,7 @@
 }:
 let
   user = "myuser";
-  version = "25.11";
+  version = "26.05";
 in
 {
   home.username = user;
