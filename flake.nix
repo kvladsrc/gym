@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
+    yaac-another-awesome-cv = {
+      url = "github:darwiin/yaac-another-awesome-cv/31dcdba2e0ead49edd665a7c601d60f555d20341";
+      flake = false;
+    };
   };
 
   outputs =
@@ -11,6 +15,7 @@
       self,
       nixpkgs,
       flake-utils,
+      yaac-another-awesome-cv,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -60,6 +65,42 @@
           ln -s ${pkgs.gcc14.cc}/bin/gcov-tool $out/bin/gcov-tool
         '';
 
+        cv-texlive = pkgs.texlive.combine {
+          inherit (pkgs.texlive)
+            scheme-small
+            babel-french
+            biblatex
+            enumitem
+            fontawesome5
+            fontspec
+            latexmk
+            luainputenc
+            parskip
+            preprint
+            tcolorbox
+            tikzfill
+            titlesec
+            ;
+        };
+
+        yaac-cv = pkgs.stdenvNoCC.mkDerivation {
+          pname = "yaac-another-awesome-cv";
+          version = "2.3.1";
+          src = yaac-another-awesome-cv;
+          dontBuild = true;
+          installPhase = ''
+            runHook preInstall
+            install -d "$out/share/yaac-another-awesome-cv"
+            cp -r fonts "$out/share/yaac-another-awesome-cv/fonts"
+            install -m444 yaac-another-awesome-cv.cls \
+              "$out/share/yaac-another-awesome-cv/yaac-another-awesome-cv.cls"
+            substituteInPlace "$out/share/yaac-another-awesome-cv/yaac-another-awesome-cv.cls" \
+              --replace-fail "Path = fonts/," \
+                "Path = $out/share/yaac-another-awesome-cv/fonts/, Extension = .otf,"
+            runHook postInstall
+          '';
+        };
+
         ci = with pkgs; [
           bazelisk
           buildifier
@@ -89,7 +130,8 @@
           renovate
           shfmt
           tflint
-          typst
+          cv-texlive
+          yaac-cv
         ];
 
         workstation = with pkgs; [
@@ -132,6 +174,7 @@
 
               export CONTROL_PLANE_IP=192.168.1.128
               export HELM_PLUGINS="${helm-plugins-dir}"
+              export TEXINPUTS="${yaac-cv}/share/yaac-another-awesome-cv//:"
               export SOPS_AGE_KEY_FILE=$HOME/plain/keys.txt
               export TALOSCONFIG="/home/myuser/src/production/kubernetes/talos/_out/talosconfig"
               export KUBECONFIG="/home/myuser/talos/kubeconfig"
