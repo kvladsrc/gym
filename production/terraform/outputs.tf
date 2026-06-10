@@ -25,3 +25,8 @@ output "zuul_secret_key" {
   value     = module.minio.minio_secret_keys["zuul"]
   sensitive = true
 }
+
+output "headlamp_oauth2_client_secret" {
+  value     = module.authentik.headlamp_oauth2_client_secret
+  sensitive = true
+}

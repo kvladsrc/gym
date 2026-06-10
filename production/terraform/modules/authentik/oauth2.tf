@@ -36,6 +36,47 @@ resource "authentik_application" "hedgedoc" {
   meta_launch_url   = "https://hedgedoc.your.domain"
 }
 
+# Headlamp
+resource "authentik_provider_oauth2" "headlamp" {
+  name               = "Headlamp OIDC"
+  client_id          = "headlamp"
+  authorization_flow = data.authentik_flow.default_authorization_flow.id
+  invalidation_flow  = data.authentik_flow.default_invalidation_flow.id
+  signing_key        = data.authentik_certificate_key_pair.default.id
+
+  access_token_validity = "hours=8"
+  sub_mode              = "user_username"
+
+  property_mappings = data.authentik_property_mapping_provider_scope.oauth2_scopes.ids
+
+  allowed_redirect_uris = [
+    {
+      matching_mode = "strict"
+      url           = "https://k8s.your.domain/oidc-callback"
+    }
+  ]
+}
+
+resource "authentik_application" "headlamp" {
+  name              = "headlamp"
+  slug              = "headlamp"
+  protocol_provider = authentik_provider_oauth2.headlamp.id
+  meta_launch_url   = "https://k8s.your.domain"
+}
+
+data "authentik_user" "headlamp_admin" {
+  username = "myuser"
+}
+
+resource "authentik_group" "headlamp_admins" {
+  name  = "headlamp-admins"
+  users = [data.authentik_user.headlamp_admin.pk]
+}
+
+resource "authentik_group" "headlamp_viewers" {
+  name = "headlamp-viewers"
+}
+
 # Minio
 resource "authentik_provider_oauth2" "minio" {
   name               = "MinIO OAuth2"

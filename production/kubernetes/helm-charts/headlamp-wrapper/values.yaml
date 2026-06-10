@@ -1,0 +1,61 @@
+---
+headlamp:
+  config:
+    inCluster: true
+    watchPlugins: true
+    oidc:
+      clientID: headlamp
+      issuerURL: "https://sso.your.domain/application/o/headlamp/"
+      scopes: "openid,profile,email"
+      callbackURL: "https://k8s.your.domain/oidc-callback"
+      usePKCE: true
+      secret:
+        create: true
+        name: headlamp-oidc
+
+  clusterRoleBinding:
+    create: false
+
+  ingress:
+    enabled: false
+
+  httpRoute:
+    enabled: false
+
+  pluginsManager:
+    enabled: true
+    version: 0.1.1
+    configContent: |
+      plugins:
+        - name: headlamp_flux
+          source: >-
+            https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_flux
+          version: 0.6.0
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    privileged: false
+    readOnlyRootFilesystem: true
+    runAsGroup: 101
+    runAsNonRoot: true
+    runAsUser: 100
+    seccompProfile:
+      type: RuntimeDefault

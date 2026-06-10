@@ -1,23 +1,28 @@
+---
 - job:
     name: pre-submit-check
-    run: playbooks/check.yaml
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/check.yaml
 
 - job:
     name: pre-submit-check-go
-    run: playbooks/check-go.yaml
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/check-go.yaml
 
 - job:
     name: pre-submit-check-coverage
-    run: playbooks/check-coverage.yaml
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/check-coverage.yaml
+
+- job:
+    name: helm-chart-version-check
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/check-helm-chart-versions.yaml
 
 - job:
     name: bazel-test-gate
-    run: playbooks/gate.yaml
-
-- job:
-    name: deploy-production
-    parent: deploy-base
-    run: playbooks/deploy.yaml
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/gate.yaml
 
 - job:
     name: renovate-bot
@@ -28,15 +33,11 @@
       jobs:
         - pre-submit-check
         - pre-submit-check-go
+        - helm-chart-version-check
     gate:
       jobs:
-        - pre-submit-check
-        - pre-submit-check-go
         - pre-submit-check-coverage
         - bazel-test-gate
-    post:
-      jobs:
-        - deploy-production
     daily:
       jobs:
         - renovate-bot

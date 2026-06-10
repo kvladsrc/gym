@@ -1,0 +1,14 @@
+# Checkov configuration
+# https://www.checkov.io/2.Basics/CLI%20Command%20Reference.html
+
+# Skip specific files or patterns
+skip-path:
+  - archive
+  - production/kubernetes
+
+# Only scan specific directories if needed (already configured in
+# pre-commit)
+directory:
+  - production/terraform
+  - production/docker
+  - production/playbooks
