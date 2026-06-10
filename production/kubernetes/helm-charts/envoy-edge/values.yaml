@@ -9,10 +9,13 @@ gateway:
 hosts:
   direct:
     - sso.your.domain
+    - bb.your.domain
+    - bb-grpc.your.domain
     - registry.your.domain
     - store.your.domain
     - s3.your.domain
     - hedgedoc.your.domain
+    - k8s.your.domain
   authentikProxy:
     - feed.your.domain
     - dns.your.domain

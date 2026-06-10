@@ -5,8 +5,7 @@ buildbuddy:
       enabled: false
 
   service:
-    type: LoadBalancer
-    loadBalancerIP: "192.168.1.221"
+    type: ClusterIP
     externalHTTPPort: 80
     externalGRPCPort: 1985
     externalHTTPSPort: ""
@@ -14,9 +13,9 @@ buildbuddy:
 
   config:
     app:
-      build_buddy_url: "http://bb.your.domain"
-      events_api_url: "grpc://bb-grpc.your.domain"
-      cache_api_url: "grpc://bb-grpc.your.domain"
+      build_buddy_url: "https://bb.your.domain"
+      events_api_url: "grpcs://bb-grpc.your.domain"
+      cache_api_url: "grpcs://bb-grpc.your.domain"
     storage:
       ttl_seconds: 2592000
       chunk_file_size_bytes: 3000000

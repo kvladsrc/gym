@@ -9,55 +9,58 @@ default_language_version:
 exclude: |
   (?x)
   (^\.git/)|
+  (^\.codex/)|
   (^archive/)|
   (^production/kubernetes/talos/)|
   (?:^|/)vendor/|
   (?:^|/)third_party/|
   (.*_gtest\.cc$)|
+  (^third_party/)|
   (^node_modules/)
 
 repos:
   - repo: https://github.com/NixOS/nixfmt
-    rev: v1.2.0
+    rev: v1.3.1
     hooks:
       - id: nixfmt
 
   # ---------- Elisp files ----------
   - repo: https://github.com/jamescherti/pre-commit-elisp
-    rev: v1.0.5
+    rev: v1.0.9
     hooks:
       - id: elisp-check-parens
       - id: elisp-indent
 
   # ---------- Bazel files ----------
   - repo: https://github.com/keith/pre-commit-buildifier
-    rev: 8.2.1.1
+    rev: 8.5.1
     hooks:
       - id: buildifier
-        args: &args
+        args:
           - --warnings=all
       - id: buildifier-lint
-        args: *args
+        args:
+          - --warnings=all
 
   # ---------- Generic sanity checks ----------
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: mixed-line-ending
       - id: check-added-large-files
-      - id: check-merge-conflict
+        exclude: |
+          (?x)
+          (^static/)|
+          (assets/)
       - id: check-json
+      - id: check-merge-conflict
       - id: check-toml
+      - id: check-vcs-permalinks
       - id: check-xml
       - id: debug-statements
-
-  # ---------- Renovate ----------
-  - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 42.84.0
-    hooks:
-      - id: renovate-config-validator
+      - id: end-of-file-fixer
+      - id: forbid-new-submodules
+      - id: mixed-line-ending
+      - id: trailing-whitespace
 
   # ---------- C++ checks ----------
   - repo: https://github.com/pocc/pre-commit-hooks
@@ -71,14 +74,15 @@ repos:
           - --suppress=missingIncludeSystem
           - --suppress=unusedStructMember
           - --suppress=unusedFunction
+          - --suppress=constParameterCallback
           - --enable=style
       - id: cpplint
         args:
-          - --filter=-legal/copyright,-build/header_guard,-build/include_order
+          - --filter=-legal/copyright,-build/header_guard,-build/include_order,-build/c++17
 
   # ---------- Documentation & markup ----------
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.47.0
+    rev: v0.48.0
     hooks:
       - id: markdownlint
         args: ["--fix"]
@@ -93,16 +97,31 @@ repos:
     rev: v1.38.0
     hooks:
       - id: yamllint
-        exclude: ^production/kubernetes/helm-charts/.+/templates/
+        exclude: |
+          (?x)
+          (^production/kubernetes/helm-charts/.+/templates/)|
+          (^production/kubernetes/flux/infrastructure/flux-system/gotk-components.yaml)
 
   # ---------- Helm charts ------------
   - repo: local
     hooks:
-      - id: helmfile-lint
-        name: Helmfile Lint
-        entry: helmfile lint -e lint --skip-deps -f production/kubernetes/helm-charts/helmfile.yaml.gotmpl
+      - id: helm-lint
+        name: Helm Lint
+        entry: >-
+          bash -c '
+          failed=0;
+          for chart in production/kubernetes/helm-charts/*/Chart.yaml; do
+            dir="$(dirname "$chart")";
+            if [ -f "$dir/secrets.mock.yaml" ]; then
+              helm lint "$dir" -f "$dir/secrets.mock.yaml" || failed=1;
+            else
+              helm lint "$dir" || failed=1;
+            fi;
+          done;
+          exit $failed'
         language: system
         pass_filenames: false
+        files: ^production/kubernetes/helm-charts/
 
   # ---------- Shell scripts ----------
   - repo: https://github.com/scop/pre-commit-shfmt
@@ -123,7 +142,12 @@ repos:
     rev: v1.5.0
     hooks:
       - id: detect-secrets
-        exclude: ^production/kubernetes/helm-charts/.+/(secrets.yaml|secrets.mock.yaml)
+        exclude: |
+          (?x)
+          (^cothic/assets/)|
+          (^production/kubernetes/helm-charts/.+/(secrets\.yaml|secrets\.mock\.yaml))|
+          (^production/kubernetes/flux/secrets/.+\.yaml)|
+          (^production/terraform/.+/secrets\.yaml)
 
   # ---------- Go ----------
   - repo: https://github.com/dnephin/pre-commit-golang
@@ -134,6 +158,33 @@ repos:
       - id: go-imports
       - id: go-cyclo
         args: [-over=15]
-      - id: validate-toml
       - id: go-critic
       - id: go-mod-tidy
+
+  # ---------- OpenTofu ----------
+  - repo: https://github.com/tofuutils/pre-commit-opentofu
+    rev: v2.4.1
+    hooks:
+      - id: tofu_fmt
+        files: ^production/terraform/
+      - id: tofu_validate
+        files: ^production/terraform/
+      - id: tofu_tflint
+        files: ^production/terraform/
+
+  # ---------- Checkov ----------
+  - repo: https://github.com/bridgecrewio/checkov.git
+    rev: '3.3.0'
+    hooks:
+      - id: checkov
+
+  # ---------- GDScript lint ----------
+  - repo: local
+    hooks:
+      - id: gdlint
+        name: GDScript lint
+        description: Run gdlint on GDScript files in cothic/
+        entry: bash -c 'if command -v gdlint >/dev/null 2>&1 && [ -d "cothic" ]; then gdlint cothic/scripts/; else exit 0; fi'
+        language: system
+        pass_filenames: false
+        files: ^cothic/.*\.gd$

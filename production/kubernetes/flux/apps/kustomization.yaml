@@ -9,6 +9,7 @@ resources:
   - envoy-gateway
   - gerrit
   - gerrit-operator
+  - headlamp
   - hedgedoc
   - jupyter-cpp
   - kanboard

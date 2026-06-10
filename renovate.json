@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":enablePreCommit"],
+  "ignorePaths": ["third_party/**", "archive/**"],
+  "enabledManagers": [
+    "helmv3",
+    "bazel-module",
+    "pre-commit",
+    "nix",
+    "terraform"
+  ],
+  "helmv3": {
+    "managerFilePatterns": [
+      "/production/kubernetes/helm-charts/.*/Chart\\.yaml$/"
+    ]
+  },
+  "terraform": {
+    "managerFilePatterns": ["/production/terraform/.*\\.tf$/"]
+  },
+  "nix": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "description": "Bump Helm wrapper chart version when Helm dependency changes",
+      "matchManagers": ["helmv3"],
+      "matchFileNames": ["production/kubernetes/helm-charts/**/Chart.yaml"],
+      "bumpVersion": "minor"
+    }
+  ]
+}

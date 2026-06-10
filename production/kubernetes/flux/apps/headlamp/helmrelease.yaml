@@ -1,0 +1,27 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: headlamp
+  namespace: flux-system
+spec:
+  install:
+    createNamespace: true
+  releaseName: headlamp
+  targetNamespace: headlamp
+  storageNamespace: headlamp
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/headlamp-wrapper
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  valuesFrom:
+    - kind: Secret
+      name: production-output
+      valuesKey: headlamp_oauth2_client_secret
+      targetPath: headlamp.config.oidc.clientSecret
+  dependsOn:
+    - name: authentik

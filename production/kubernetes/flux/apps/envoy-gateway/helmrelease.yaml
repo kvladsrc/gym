@@ -67,5 +67,6 @@ spec:
     - name: authentik
     - name: docker-registry
     - name: gerrit
+    - name: headlamp
     - name: hedgedoc
     - name: minio
