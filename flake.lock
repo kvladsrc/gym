@@ -37,7 +37,8 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "yaac-another-awesome-cv": "yaac-another-awesome-cv"
       }
     },
     "systems": {
@@ -52,6 +53,23 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "yaac-another-awesome-cv": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1662426860,
+        "narHash": "sha256-ljxtafj1pYS9fgBaUCTCYM3uWUDvSUoWDosEDK1svas=",
+        "owner": "darwiin",
+        "repo": "yaac-another-awesome-cv",
+        "rev": "31dcdba2e0ead49edd665a7c601d60f555d20341",
+        "type": "github"
+      },
+      "original": {
+        "owner": "darwiin",
+        "repo": "yaac-another-awesome-cv",
+        "rev": "31dcdba2e0ead49edd665a7c601d60f555d20341",
         "type": "github"
       }
     }

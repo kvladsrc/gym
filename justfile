@@ -42,11 +42,12 @@ cothic-smoke:
 test *args="":
     bazelisk test //... --verbose_failures {{ args }}
 
-# Build resume HTML, Typst source, Markdown, and PDF
+# Build the resume PDF with YAAC: Another Awesome CV
 cv-build:
-    node scripts/render_cv.mjs
-    prettier --write cv/index.html cv/styles.css
-    typst compile cv/cv.typ cv/cv.pdf
+    latexmk -C -cd cv/cv.tex
+    latexmk -lualatex -cd -interaction=nonstopmode -halt-on-error cv/cv.tex
+    latexmk -c -cd cv/cv.tex
+    rm -f cv/cv-blx.bib cv/cv.bbl
 
 # Sync selected directories/files to the public gym repo
 
