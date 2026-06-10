@@ -164,10 +164,6 @@ in
       source = dotfiles/emacs.d;
       recursive = true;
     };
-    ".local/bin/window.sh" = {
-      source = scripts/window.sh;
-      executable = true;
-    };
   };
 
   home.sessionVariables = {
@@ -242,22 +238,6 @@ in
       ls = "ls --color";
       mv = "mv -i";
       rm = "rm -i";
-    };
-  };
-
-  programs.starship = {
-    enable = false;
-    settings = {
-      add_newline = false;
-      line_break = {
-        disabled = true;
-      };
-      character = {
-        success_symbol = "[➜](bold green)";
-        error_symbol = "[➜](bold red)";
-      };
-
-      package.disabled = true;
     };
   };
 
