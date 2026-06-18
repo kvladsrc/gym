@@ -23,7 +23,7 @@ variable "applications" {
     mode                         = optional(string, "proxy")
     skip_path_regex              = optional(string, "")
     access_token_validity        = optional(string, "hours=16")
-    internal_host_ssl_validation = optional(bool, false)
+    internal_host_ssl_validation = optional(bool, true)
   }))
   default = {
     "miniflux" = {

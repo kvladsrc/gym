@@ -3,7 +3,7 @@ apiVersion: v2
 name: postgres-ui
 description: "Wrapper chart: postgres-ui"
 type: application
-version: 0.7.0
+version: 0.8.0
 appVersion: "4.8.1"
 dependencies:
   - name: nxs-universal-chart

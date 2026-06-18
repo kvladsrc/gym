@@ -1,5 +1,13 @@
 ---
 nfs-subdir-external-provisioner:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+
   nfs:
     server: 192.168.1.185
     path: /srv/nfs

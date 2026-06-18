@@ -13,3 +13,31 @@ spec:
         loadBalancerIP: {{ .Values.gateway.address | quote }}
         annotations:
           kube-vip.io/loadbalancerIPs: {{ .Values.gateway.address | quote }}
+      envoyDeployment:
+        container:
+          # The data-plane proxy carries all ingress traffic, so the CPU
+          # limit is kept generous.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+        # The shutdown-manager sidecar has no first-class resources field in
+        # the EnvoyProxy API, so it is patched into the generated Deployment.
+        patch:
+          type: StrategicMerge
+          value:
+            spec:
+              template:
+                spec:
+                  containers:
+                    - name: shutdown-manager
+                      resources:
+                        requests:
+                          cpu: 10m
+                          memory: 32Mi
+                        limits:
+                          cpu: 100m
+                          memory: 128Mi

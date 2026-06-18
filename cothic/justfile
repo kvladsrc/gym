@@ -1,0 +1,16 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Run all checks needed while working on Cothic
+check: fmt lint smoke
+
+# Auto-fix Cothic formatting
+fmt:
+    find scripts -name '*.gd' -exec gdformat {} +
+
+# Run Cothic linters
+lint:
+    gdlint scripts/
+
+# Run Cothic Godot smoke checks
+smoke:
+    bash tools/check-godot.sh

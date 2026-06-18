@@ -23,8 +23,9 @@ resource "authentik_provider_oauth2" "hedgedoc" {
 
   allowed_redirect_uris = [
     {
-      matching_mode = "strict"
-      url           = "https://hedgedoc.your.domain/auth/oauth2/callback"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://hedgedoc.your.domain/auth/oauth2/callback"
     }
   ]
 }
@@ -51,8 +52,9 @@ resource "authentik_provider_oauth2" "headlamp" {
 
   allowed_redirect_uris = [
     {
-      matching_mode = "strict"
-      url           = "https://k8s.your.domain/oidc-callback"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://k8s.your.domain/oidc-callback"
     }
   ]
 }
@@ -94,8 +96,9 @@ resource "authentik_provider_oauth2" "minio" {
 
   allowed_redirect_uris = [
     {
-      matching_mode = "strict"
-      url           = "https://s3.your.domain/oauth_callback"
+      matching_mode     = "strict"
+      redirect_uri_type = "authorization"
+      url               = "https://s3.your.domain/oauth_callback"
     }
   ]
 }

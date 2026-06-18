@@ -1,0 +1,29 @@
+---
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: docker-registry-garbage-collector-resources
+  annotations:
+    policies.kyverno.io/title: Docker Registry Garbage Collector Exception
+    policies.kyverno.io/category: Resource Management
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      The upstream twuni docker-registry chart has no resources support for
+      the garbage-collector CronJob template, and the hourly GC pods run for
+      seconds. Kanboard task 166 documented them as an accepted transient
+      batch exception to require-container-resources.
+spec:
+  exceptions:
+    - policyName: require-container-resources
+      ruleNames:
+        - require-cpu-memory-requests-limits
+  match:
+    any:
+      - resources:
+          kinds:
+            - Pod
+            - Job
+          namespaces:
+            - docker-registry
+          names:
+            - docker-registry-garbage-collector-*

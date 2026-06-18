@@ -30,10 +30,10 @@ proxy outpost. The REST API is under `/api` and is intentionally public.
 Prefer the bundled helper for simple API reads:
 
 ```sh
-skills/zuul/scripts/zuul-api /info
-skills/zuul/scripts/zuul-api /tenants
-skills/zuul/scripts/zuul-api /tenant/your.domain/status
-skills/zuul/scripts/zuul-api /tenant/your.domain/jobs
+.agents/skills/zuul/scripts/zuul-api /info
+.agents/skills/zuul/scripts/zuul-api /tenants
+.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/status
+.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/jobs
 ```
 
 Manual calls are just HTTPS GET requests:
@@ -46,7 +46,7 @@ curl -fsS https://ci.your.domain/api/tenant/your.domain/status
 Use `ZUUL_API_URL` only when intentionally targeting another deployment:
 
 ```sh
-ZUUL_API_URL=https://ci.example.test/api skills/zuul/scripts/zuul-api /info
+ZUUL_API_URL=https://ci.example.test/api .agents/skills/zuul/scripts/zuul-api /info
 ```
 
 ## Common Reads
@@ -54,27 +54,27 @@ ZUUL_API_URL=https://ci.example.test/api skills/zuul/scripts/zuul-api /info
 List tenants:
 
 ```sh
-skills/zuul/scripts/zuul-api /tenants
+.agents/skills/zuul/scripts/zuul-api /tenants
 ```
 
 Inspect pipeline status:
 
 ```sh
-skills/zuul/scripts/zuul-api /tenant/your.domain/status
+.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/status
 ```
 
 List jobs and projects:
 
 ```sh
-skills/zuul/scripts/zuul-api /tenant/your.domain/jobs
-skills/zuul/scripts/zuul-api /tenant/your.domain/projects
+.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/jobs
+.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/projects
 ```
 
 Inspect recent builds or buildsets:
 
 ```sh
-skills/zuul/scripts/zuul-api '/tenant/your.domain/builds?limit=20'
-skills/zuul/scripts/zuul-api '/tenant/your.domain/buildsets?limit=20'
+.agents/skills/zuul/scripts/zuul-api '/tenant/your.domain/builds?limit=20'
+.agents/skills/zuul/scripts/zuul-api '/tenant/your.domain/buildsets?limit=20'
 ```
 
 ## Authentik Validation
@@ -97,5 +97,5 @@ from Zuul are acceptable; Authentik redirects are not.
   intended path.
 - Treat production Zuul and Authentik Terraform changes as deployment-affecting
   infra changes. Keep regex changes narrow and verify with `curl -i`.
-- Use Gerrit/Jujutsu workflows from `$gerrit-jujutsu` when uploading related
-  changes.
+- Use Gerrit/Jujutsu workflows from the `gerrit-jujutsu` skill when uploading
+  related changes.

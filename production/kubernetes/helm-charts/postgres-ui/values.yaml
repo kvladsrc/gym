@@ -17,7 +17,13 @@ nxs:
             - name: http
               containerPort: 8080
               protocol: TCP
-          resources: {}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
 
   services:
     postgres-ui:

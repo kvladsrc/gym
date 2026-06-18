@@ -57,10 +57,12 @@ resource "minio_s3_bucket_policy" "public" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = ["s3:GetObject"]
-        Resource  = ["arn:aws:s3:::${each.key}/*"]
+        Effect = "Allow"
+        Principal = {
+          AWS = ["*"]
+        }
+        Action   = ["s3:GetObject"]
+        Resource = ["arn:aws:s3:::${each.key}/*"]
       }
     ]
   })

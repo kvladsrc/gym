@@ -13,6 +13,14 @@ authentik:
       host: "redis-master.redis.svc.cluster.local"
 
   server:
+    livenessProbe:
+      timeoutSeconds: 10
+      failureThreshold: 6
+    readinessProbe:
+      timeoutSeconds: 10
+      failureThreshold: 6
+    startupProbe:
+      timeoutSeconds: 10
     resources:
       requests:
         cpu: 100m
@@ -32,6 +40,14 @@ authentik:
             - sso.your.domain
 
   worker:
+    livenessProbe:
+      timeoutSeconds: 10
+      failureThreshold: 6
+    readinessProbe:
+      timeoutSeconds: 10
+      failureThreshold: 6
+    startupProbe:
+      timeoutSeconds: 10
     resources:
       requests:
         cpu: 100m

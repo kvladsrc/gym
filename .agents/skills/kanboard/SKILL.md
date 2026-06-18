@@ -48,9 +48,9 @@ export KANBOARD_API_TOKEN='<from password manager or shell secret>'
 The helper calls `https://b.your.domain/jsonrpc.php` by default:
 
 ```sh
-skills/kanboard/scripts/kanboard-rpc getVersion
-skills/kanboard/scripts/kanboard-rpc getAllProjects
-skills/kanboard/scripts/kanboard-rpc getAllTasks '{"project_id":1,"status_id":1}'
+.agents/skills/kanboard/scripts/kanboard-rpc getVersion
+.agents/skills/kanboard/scripts/kanboard-rpc getAllProjects
+.agents/skills/kanboard/scripts/kanboard-rpc getAllTasks '{"project_id":1,"status_id":1}'
 ```
 
 The helper redacts token and password fields from JSON responses before
@@ -60,8 +60,8 @@ When using a personal user API credential instead of the global `jsonrpc`
 application token, start with user-scoped discovery:
 
 ```sh
-skills/kanboard/scripts/kanboard-rpc getMe
-skills/kanboard/scripts/kanboard-rpc getMyProjects
+.agents/skills/kanboard/scripts/kanboard-rpc getMe
+.agents/skills/kanboard/scripts/kanboard-rpc getMyProjects
 ```
 
 Manual external call:
@@ -78,26 +78,26 @@ curl -sS -u "$KANBOARD_API_USERNAME:$KANBOARD_API_TOKEN" \
 List projects:
 
 ```sh
-skills/kanboard/scripts/kanboard-rpc getAllProjects
+.agents/skills/kanboard/scripts/kanboard-rpc getAllProjects
 ```
 
 List active tasks for a project:
 
 ```sh
-skills/kanboard/scripts/kanboard-rpc getAllTasks '{"project_id":1,"status_id":1}'
+.agents/skills/kanboard/scripts/kanboard-rpc getAllTasks '{"project_id":1,"status_id":1}'
 ```
 
 List closed tasks for a project:
 
 ```sh
-skills/kanboard/scripts/kanboard-rpc getAllTasks '{"project_id":1,"status_id":0}'
+.agents/skills/kanboard/scripts/kanboard-rpc getAllTasks '{"project_id":1,"status_id":0}'
 ```
 
 Get board columns before moving tasks. Production projects use the same column
 names, but IDs are project-specific:
 
 ```sh
-skills/kanboard/scripts/kanboard-rpc getColumns '{"project_id":1}'
+.agents/skills/kanboard/scripts/kanboard-rpc getColumns '{"project_id":1}'
 ```
 
 Current production column IDs:
@@ -112,7 +112,7 @@ Current production column IDs:
 List users before assigning work:
 
 ```sh
-skills/kanboard/scripts/kanboard-rpc getAllUsers
+.agents/skills/kanboard/scripts/kanboard-rpc getAllUsers
 ```
 
 ## Create And Edit Tasks
@@ -126,14 +126,15 @@ params='{
   "column_id": 1,
   "owner_id": 2
 }'
-skills/kanboard/scripts/kanboard-rpc createTask "$params"
+.agents/skills/kanboard/scripts/kanboard-rpc createTask "$params"
 ```
 
 Update task fields such as title, description, owner, priority, due date, or
 color:
 
 ```sh
-skills/kanboard/scripts/kanboard-rpc updateTask '{"id":123,"title":"New title","owner_id":2}'
+params='{"id":123,"title":"New title","owner_id":2}'
+.agents/skills/kanboard/scripts/kanboard-rpc updateTask "$params"
 ```
 
 Take a task into work: assign it and move it to the project-specific
@@ -141,8 +142,8 @@ Take a task into work: assign it and move it to the project-specific
 `position` and `swimlane_id`, then call `updateTask` and `moveTaskPosition`:
 
 ```sh
-skills/kanboard/scripts/kanboard-rpc getTask '{"task_id":123}'
-skills/kanboard/scripts/kanboard-rpc updateTask '{"id":123,"owner_id":2}'
+.agents/skills/kanboard/scripts/kanboard-rpc getTask '{"task_id":123}'
+.agents/skills/kanboard/scripts/kanboard-rpc updateTask '{"id":123,"owner_id":2}'
 params='{
   "project_id": 1,
   "task_id": 123,
@@ -150,7 +151,7 @@ params='{
   "position": 1,
   "swimlane_id": 1
 }'
-skills/kanboard/scripts/kanboard-rpc moveTaskPosition "$params"
+.agents/skills/kanboard/scripts/kanboard-rpc moveTaskPosition "$params"
 ```
 
 Move a task to Done without closing it:
@@ -163,14 +164,14 @@ params='{
   "position": 1,
   "swimlane_id": 1
 }'
-skills/kanboard/scripts/kanboard-rpc moveTaskPosition "$params"
+.agents/skills/kanboard/scripts/kanboard-rpc moveTaskPosition "$params"
 ```
 
 Close or reopen a task:
 
 ```sh
-skills/kanboard/scripts/kanboard-rpc closeTask '{"task_id":123}'
-skills/kanboard/scripts/kanboard-rpc openTask '{"task_id":123}'
+.agents/skills/kanboard/scripts/kanboard-rpc closeTask '{"task_id":123}'
+.agents/skills/kanboard/scripts/kanboard-rpc openTask '{"task_id":123}'
 ```
 
 ## Safety
@@ -178,7 +179,7 @@ skills/kanboard/scripts/kanboard-rpc openTask '{"task_id":123}'
 - Treat create, update, move, close, open, and remove calls as production
   mutations. Confirm intent when the requested project/task is ambiguous.
 - Store the API token outside the repository. Use `KANBOARD_API_TOKEN` from the
-  shell, direnv, a password manager, or the Codex runtime environment.
+  shell, direnv, a password manager, or the agent runtime environment.
 - If using a dedicated Kanboard web user, set `KANBOARD_API_USERNAME` to that
   username and `KANBOARD_API_TOKEN` to its Kanboard API token or password.
 - Before moving a task, call `getTask` and `getColumns` so the `project_id`,

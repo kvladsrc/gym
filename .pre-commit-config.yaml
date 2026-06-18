@@ -19,10 +19,11 @@ exclude: |
   (^node_modules/)
 
 repos:
-  - repo: https://github.com/NixOS/nixfmt
-    rev: v1.3.1
-    hooks:
-      - id: nixfmt
+  # TODO(myuser): Uncommend ASAP
+  # - repo: https://github.com/NixOS/nixfmt
+  #   rev: v1.3.1
+  #   hooks:
+  #     - id: nixfmt
 
   # ---------- Elisp files ----------
   - repo: https://github.com/jamescherti/pre-commit-elisp
@@ -82,7 +83,7 @@ repos:
 
   # ---------- Documentation & markup ----------
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.48.0
+    rev: v0.49.0
     hooks:
       - id: markdownlint
         args: ["--fix"]
@@ -163,7 +164,7 @@ repos:
 
   # ---------- OpenTofu ----------
   - repo: https://github.com/tofuutils/pre-commit-opentofu
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: tofu_fmt
         files: ^production/terraform/
@@ -174,7 +175,7 @@ repos:
 
   # ---------- Checkov ----------
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.3.0'
+    rev: '3.3.1'
     hooks:
       - id: checkov
 

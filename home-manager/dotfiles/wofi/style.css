@@ -1,24 +1,37 @@
+@define-color frame #6f7f73;
+@define-color frame_dark #3f5145;
+@define-color panel #aeb8a7;
+@define-color highlight #d2dccb;
+@define-color shadow #4f5f4b;
+@define-color text #141414;
+@define-color selected #3f7f72;
+@define-color selected_text #ffffff;
+
+* {
+  font-family: "Mononoki Nerd Font";
+  font-weight: 700;
+  font-size: 14px;
+}
+
 window {
-  padding: 12px;
-  background-color: #eda66c;
-  border-top: 2px solid #ffe0bf;
-  border-left: 2px solid #ffe0bf;
-  border-right: 2px solid #8b5f42;
-  border-bottom: 2px solid #8b5f42;
-  font-family: "Mononoki Nerd Font", sans-serif;
-  font-weight: bold;
-  font-size: 16px;
+  padding: 7px;
+  color: @text;
+  background-color: @frame;
+  border-top: 1px solid @highlight;
+  border-left: 1px solid @highlight;
+  border-right: 1px solid @frame_dark;
+  border-bottom: 1px solid @frame_dark;
 }
 
 #input {
-  margin: 6px 6px 10px;
-  padding: 8px 12px;
-  color: #111111;
-  background-color: #c8b8ae;
-  border-top: 2px solid #5c4f4a;
-  border-left: 2px solid #5c4f4a;
-  border-right: 2px solid #ffe0bf;
-  border-bottom: 2px solid #ffe0bf;
+  margin: 0 0 7px;
+  padding: 5px 9px;
+  color: @text;
+  background-color: @panel;
+  border-top: 1px solid @shadow;
+  border-left: 1px solid @shadow;
+  border-right: 1px solid @highlight;
+  border-bottom: 1px solid @highlight;
 }
 
 #input:focus {
@@ -26,31 +39,43 @@ window {
 }
 
 #inner-box {
-  margin: 0 6px 6px;
-  padding: 8px;
-  background-color: #70798e;
-  border-top: 2px solid #5c4f4a;
-  border-left: 2px solid #5c4f4a;
-  border-right: 2px solid #ffe0bf;
-  border-bottom: 2px solid #ffe0bf;
+  margin: 0;
+  padding: 1px;
+  background-color: @panel;
+  border-top: 1px solid @highlight;
+  border-left: 1px solid @highlight;
+  border-right: 1px solid @shadow;
+  border-bottom: 1px solid @shadow;
 }
 
 #img {
-  margin: 8px;
+  margin: 5px 8px 5px 7px;
 }
 
 #entry {
-  padding: 5px 8px;
+  margin: 0 1px;
+  padding: 5px 9px;
+  color: @text;
+  background-color: @panel;
+  border-top: 1px solid @highlight;
+  border-left: 1px solid @highlight;
+  border-right: 1px solid @shadow;
+  border-bottom: 1px solid @shadow;
 }
 
 #entry:selected {
-  background-color: #4d98a6;
+  color: @selected_text;
+  background-color: @selected;
+  border-top: 1px solid @shadow;
+  border-left: 1px solid @shadow;
+  border-right: 1px solid @highlight;
+  border-bottom: 1px solid @highlight;
 }
 
 #text {
-  color: #f5f6f8;
+  color: @text;
 }
 
 #text:selected {
-  color: #ffffff;
+  color: @selected_text;
 }

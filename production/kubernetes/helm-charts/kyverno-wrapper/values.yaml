@@ -1,5 +1,11 @@
 ---
 kyverno:
+  features:
+    policyExceptions:
+      enabled: true
+      # Only honor PolicyException resources from the namespace where the
+      # kyverno-policies release deploys them.
+      namespace: kyverno
   admissionController:
     replicas: 1
   backgroundController:

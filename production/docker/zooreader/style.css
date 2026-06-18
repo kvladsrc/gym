@@ -197,6 +197,22 @@ p {
   border-bottom: 2px solid #000;
 }
 
+#zoom-value {
+  min-width: 44px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.openai-key {
+  width: 160px;
+  border: 2px solid #000;
+  background: #fff;
+  color: #000;
+  font-family: inherit;
+  font-weight: bold;
+  padding: 3px 6px;
+}
+
 /* Remove arrows */
 #page-num::-webkit-outer-spin-button,
 #page-num::-webkit-inner-spin-button {

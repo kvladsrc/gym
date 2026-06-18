@@ -6,9 +6,13 @@
     repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
 
   tasks:
-    - name: Run pre-commit on all files
+    - name: Run pre-commit on changed files
       shell: |
         git config --global http.sslVerify false
-        pre-commit run --all-files --color always --show-diff-on-failure
+        pre-commit run \
+          --from-ref HEAD^1 \
+          --to-ref HEAD \
+          --color always \
+          --show-diff-on-failure
       args:
         chdir: "{{ repo_dir }}"

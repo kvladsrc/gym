@@ -3,7 +3,7 @@ apiVersion: v2
 name: zooreader
 description: "Wrapper chart: zooreader"
 type: application
-version: 0.8.0
+version: 0.8.1
 appVersion: "1.0.0"
 dependencies:
   - name: nxs-universal-chart

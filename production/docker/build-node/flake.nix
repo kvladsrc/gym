@@ -35,6 +35,13 @@
           which
         ];
 
+        container = with pkgs; [
+          buildah
+          fuse3
+          fuse-overlayfs
+          skopeo
+        ];
+
         gcov = pkgs.runCommand "gcov" { } ''
           mkdir -p $out/bin
           ln -s ${pkgs.gcc14.cc}/bin/gcov $out/bin/gcov
@@ -75,7 +82,7 @@
       rec {
         packages.buildNodeTools = pkgs.symlinkJoin {
           name = "build-node-tools";
-          paths = ci ++ os;
+          paths = ci ++ os ++ container;
         };
       }
     );

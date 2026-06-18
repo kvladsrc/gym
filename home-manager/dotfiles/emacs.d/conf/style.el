@@ -16,7 +16,7 @@
   (use-package almost-mono-themes
     :ensure t)
 
-  (load-theme 'almost-mono-black t))
+  (load-theme 'ef-elea-light t))
 
 (use-package guru-mode
   :ensure t

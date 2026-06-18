@@ -32,8 +32,8 @@ layout {
     border {
         on
         width 2
-        active-color "#eda66c"
-        inactive-color "#c6b2a7dd"
+        active-color "#778a74"
+        inactive-color "#778a7488"
     }
 
     shadow {

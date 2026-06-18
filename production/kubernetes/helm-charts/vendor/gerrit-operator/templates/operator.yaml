@@ -59,6 +59,10 @@ spec:
       - name: operator
         image: {{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}
         imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+        {{- with .Values.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
         env:
         - name: NAMESPACE
           valueFrom:

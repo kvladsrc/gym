@@ -30,24 +30,25 @@ explicitly.
 
 ## Repository Skills
 
-All repository-local skills live under `.agents/skills/`. Use this map to
-choose the right workflow without requiring the user to reference each skill:
+All repository-local skills live under `.agents/skills/` (exposed to Claude
+Code through the `.claude/skills` symlink). Use this map to choose the right
+workflow without requiring the user to reference each skill:
 
-- `$monorepo-tooling` - use for Nix, `just`, lint, format, tests, scripts,
+- `monorepo-tooling` - use for Nix, `just`, lint, format, tests, scripts,
   Cothic checks, CV builds, and monorepo tooling commands.
-- `$gerrit-jujutsu` - use for `jj` status/log/show, Gerrit change
+- `gerrit-jujutsu` - use for `jj` status/log/show, Gerrit change
   descriptions, review upload, fetch/rebase, and merged-change cleanup.
-- `$kanboard` - use for the production Kanboard task tracker at
+- `kanboard` - use for the production Kanboard task tracker at
   `https://b.your.domain/`: list projects/tasks, move cards, assign work,
   and close completed tasks.
-- `$zuul` - use for the production Zuul CI API at
+- `zuul` - use for the production Zuul CI API at
   `https://ci.your.domain/api`: inspect pipeline status, jobs, projects,
   builds, and buildsets related to Gerrit changes.
-- `$ntfy` - use for the production ntfy notification service at
+- `ntfy` - use for the production ntfy notification service at
   `https://notify.your.domain`: read recent topic notifications, summarize
   incident signals, and correlate alerts with Flux, Zuul, Kubernetes,
   Terraform, or cert-manager state.
-- `$monorepo-map` - use first for repository orientation, skill routing,
+- `monorepo-map` - use first for repository orientation, skill routing,
   directory layout, production component locations, and the working process.
 
 ## Working Process
@@ -64,8 +65,8 @@ Gerrit/Jujutsu as the change workflow:
 5. Describe the change non-interactively with `jj desc`, including the
    Kanboard task id and validation.
 6. Upload to Gerrit with `jj gerrit upload -r @`.
-7. Watch Zuul check/gate status through `$zuul`; fix failures in a new
-   patchset on the same change.
+7. Watch Zuul check/gate status through the `zuul` skill; fix failures in a
+   new patchset on the same change.
 8. Wait for review and submit. Do not mark the task done before submit.
 9. After submit, move the Kanboard task to `Done`.
 
@@ -88,8 +89,10 @@ reviewed through Gerrit.
 
 - `production/` - production infrastructure, Docker images, Terraform, Talos,
   Flux, Helm charts, and Kubernetes service deployment.
-- `.agents/skills/` - local Codex skills and helper scripts. Each skill has
-  `SKILL.md`; most also have `agents/openai.yaml`.
+- `.agents/skills/` - local agent skills and helper scripts shared across
+  CLIs. Each skill has `SKILL.md`; most also have `agents/openai.yaml`
+  (Codex-only metadata). Claude Code loads them via the `.claude/skills`
+  symlink.
 - `cothic/` - Godot 4.6 prototype that turns a repository into an explorable
   isometric world. Main code is under `cothic/scripts/`; checks are in
   `cothic/tools/`.
@@ -100,7 +103,7 @@ reviewed through Gerrit.
 - `ripples_cli/` - Go text RPG engine with Gemini-powered dialogue over a
   static world graph and dynamic event journal.
 - `cv/` - resume/CV sources and generated web/PDF output; build with
-  `just cv-build`.
+  `just cv build`.
 - `scripts/` - repository automation, including CV rendering, public repo sync,
   and Talos certificate renewal. Prefer `just` recipes over direct calls.
 - `home-manager/` and `gentoo/` - local desktop/Linux configuration.
@@ -144,11 +147,11 @@ Primary entry points:
 
 Targeted recipes:
 
-- Cothic: `just cothic-check`, `just cothic-fmt`, `just cothic-lint`,
-  `just cothic-smoke`.
-- CV: `just cv-build`.
+- Cothic: `just cothic check`, `just cothic fmt`, `just cothic lint`,
+  `just cothic smoke`.
+- CV: `just cv build`.
 - Public repo sync: `just sync-gym`.
-- Talos certificate renewal: `just talos-renew-certs`.
+- Talos certificate renewal: `just talos renew-certs`.
 
 ## Paths To Avoid By Default
 
@@ -167,7 +170,7 @@ Targeted recipes:
   local README/config files.
 - Kubernetes service behavior: inspect Flux app, Helm chart values/templates,
   and any service-specific skill before editing.
-- Build/test behavior: inspect `justfile`, `flake.nix`, Bazel files, and
-  `$monorepo-tooling`.
-- Gerrit/JJ state or upload: use `$gerrit-jujutsu`; do not use raw destructive
-  Git cleanup commands.
+- Build/test behavior: inspect `justfile`, `flake.nix`, Bazel files, and the
+  `monorepo-tooling` skill.
+- Gerrit/JJ state or upload: use the `gerrit-jujutsu` skill; do not use raw
+  destructive Git cleanup commands.

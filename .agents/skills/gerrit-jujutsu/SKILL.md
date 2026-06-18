@@ -49,10 +49,10 @@ For this user's `src` monorepo, run those checks through Nix if needed:
 /nix/var/nix/profiles/default/bin/nix develop -c jj <command>
 ```
 
-Network operations such as fetch and upload may require escalation in sandboxed
-Codex sessions. If a required `jj git fetch` or `jj gerrit upload` fails with a
-likely network/sandbox error, rerun the same command with escalation instead of
-switching tools.
+Network operations such as fetch and upload may be blocked in sandboxed agent
+sessions. If a required `jj git fetch` or `jj gerrit upload` fails with a
+likely network/sandbox error, rerun the same command outside the sandbox
+(accepting the permission prompt if one appears) instead of switching tools.
 
 ## Fetch and Rebase
 
