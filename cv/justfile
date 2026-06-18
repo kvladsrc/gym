@@ -1,0 +1,8 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Build the resume PDF with YAAC: Another Awesome CV
+build:
+    latexmk -C -cd cv.tex
+    latexmk -lualatex -cd -interaction=nonstopmode -halt-on-error cv.tex
+    latexmk -c -cd cv.tex
+    rm -f cv-blx.bib cv.bbl

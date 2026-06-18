@@ -1,10 +1,10 @@
-FROM docker.io/debian:bookworm-slim
+FROM docker.io/debian:bookworm-slim@sha256:96e378d7e6531ac9a15ad505478fcc2e69f371b10f5cdf87857c4b8188404716
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Base system packages.
 # checkov:skip=CKV2_DOCKER_1: sudo is required for build functionality
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl git gnupg openssh-server sudo xz-utils libatomic1 \
+    ca-certificates git openssh-client python3 sudo \
     && rm -rf /var/lib/apt/lists/*
 
 # Nix users. Users created by nix install, but we run install during
@@ -16,26 +16,24 @@ RUN groupadd -g 30000 nixbld && \
 RUN groupadd --gid 9999 zuul \
     && useradd -l --uid 9999 --gid zuul --create-home --shell /bin/bash zuul \
     && echo "zuul ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/zuul \
-    && mkdir -p /var/run/sshd \
-    && printf "Port 22\nPermitRootLogin yes\nPasswordAuthentication yes\nPubkeyAuthentication yes\n" >> /etc/ssh/sshd_config \
     && printf "export PATH=\$PATH:/nix/var/nix/profiles/default/bin:/root/.nix-profile/bin\n" >> /etc/profile.d/zuul_env.sh
 
-# Nix store update.
-ENV PATH="/nix/var/nix/profiles/default/bin:${PATH}"
+# The mounted Nix store provides the bootstrap Nix binary. Each Zuul job
+# builds its patchset-local toolchain into /opt/build-node-tools.
+ENV PATH="/opt/build-node-tools/bin:/nix/var/nix/profiles/default/bin:${PATH}"
 
-WORKDIR /tmp/flake
-COPY flake.nix ./
-RUN nix profile install .#buildNodeTools \
-    && nix-collect-garbage -d
+COPY nix.conf /etc/nix/nix.conf
+COPY policy.json /etc/containers/policy.json
 
-# Switch to non-root user
-USER zuul
+# checkov:skip=CKV_DOCKER_8: Zuul kubectl-exec runs jobs as the image user and NFS caches are mounted for root
+# checkov:skip=CKV_DOCKER_3: jobs must run as root to reach the root-mounted NFS caches
+# The container stays root on purpose: Zuul kubectl-exec runs job commands
+# as the image user, and the NFS caches (pre-commit, go) are mounted for
+# root. Image 1.1 switched to USER zuul and every CI job lost its caches.
 
-# Add healthcheck for SSH
+# Zuul overrides the pod command with its own loop; this default matches
+# it so the image also idles harmlessly when run standalone.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD ssh-keyscan -p 22 localhost > /dev/null 2>&1 || exit 1
+    CMD /nix/var/nix/profiles/default/bin/nix --version > /dev/null 2>&1 || exit 1
 
-# checkov:skip=CKV_DOCKER_1: SSH server requires port 22
-EXPOSE 22
-
-CMD ["/usr/sbin/sshd", "-D"]
+CMD ["/bin/sh", "-c", "while true; do sleep 30; done;"]

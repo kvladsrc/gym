@@ -15,7 +15,7 @@ default workflow is:
 
 ## Nix Entry Point
 
-Run repository tooling through the monorepo Nix shell. In Codex sessions, call
+Run repository tooling through the monorepo Nix shell. In agent sessions, call
 Nix by its absolute path because `nix` may be missing from sandbox `PATH`:
 
 ```sh
@@ -23,7 +23,8 @@ Nix by its absolute path because `nix` may be missing from sandbox `PATH`:
 ```
 
 If a Nix command fails with cache, daemon, or sandbox access errors, rerun the
-same command with escalated permissions rather than bypassing the toolchain.
+same command outside the sandbox (accepting the permission prompt if one
+appears) rather than bypassing the toolchain.
 
 ## Just Recipes
 
@@ -45,15 +46,15 @@ Common top-level recipes:
 Use project-specific recipes when the task targets a project or component:
 
 ```sh
-/nix/var/nix/profiles/default/bin/nix develop -c just cothic-check
-/nix/var/nix/profiles/default/bin/nix develop -c just cothic-fmt
-/nix/var/nix/profiles/default/bin/nix develop -c just cothic-lint
-/nix/var/nix/profiles/default/bin/nix develop -c just cothic-smoke
-/nix/var/nix/profiles/default/bin/nix develop -c just cv-build
+/nix/var/nix/profiles/default/bin/nix develop -c just cothic check
+/nix/var/nix/profiles/default/bin/nix develop -c just cothic fmt
+/nix/var/nix/profiles/default/bin/nix develop -c just cothic lint
+/nix/var/nix/profiles/default/bin/nix develop -c just cothic smoke
+/nix/var/nix/profiles/default/bin/nix develop -c just cv build
 /nix/var/nix/profiles/default/bin/nix develop -c just sync-gym
 ```
 
-For CV/resume work, prefer `just cv-build`; for syncing public output, use
+For CV/resume work, prefer `just cv build`; for syncing public output, use
 `just sync-gym` and report that it can update many files in `~/repos/gym`.
 
 ## Scripts
@@ -68,7 +69,7 @@ Choose the narrowest relevant validation first, then broaden when the change
 touches shared tooling or cross-project behavior:
 
 1. Run the narrow build/check first, for example `just test`, `just lint`,
-   `just cv-build`, or `just cothic-check`.
+   `just cv build`, or `just cothic check`.
 2. Run full lint with `just lint`.
 3. Run full tests with `just test` when the change can affect runtime behavior.
 

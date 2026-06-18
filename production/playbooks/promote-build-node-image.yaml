@@ -1,0 +1,40 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    image_repo: registry.your.domain/build
+    image_tag: "rc-{{ zuul.commit_id }}"
+
+  tasks:
+    - name: List available build-node image revisions
+      ansible.builtin.command:
+        argv:
+          - skopeo
+          - list-tags
+          - "docker://{{ image_repo }}"
+      register: build_node_tags
+      changed_when: false
+
+    - name: Promote the reviewed image to current
+      ansible.builtin.command:
+        argv:
+          - skopeo
+          - copy
+          - "docker://{{ image_repo }}:{{ image_tag }}"
+          - "docker://{{ image_repo }}:current"
+      register: build_node_promotion
+      changed_when: true
+      when:
+        - >-
+          image_tag
+          in ((build_node_tags.stdout | from_json).Tags | default([]))
+
+    - name: Notify about the build-node image promotion
+      ansible.builtin.include_tasks:
+        file: tasks/notify-image-promotion.yaml
+      vars:
+        promotion_source_image: "{{ image_repo }}:{{ image_tag }}"
+        promotion_target_image: "{{ image_repo }}:current"
+      when:
+        - not (build_node_promotion.skipped | default(false))

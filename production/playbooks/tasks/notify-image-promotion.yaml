@@ -1,0 +1,50 @@
+---
+- name: Send image promotion notification to ntfy
+  # checkov:skip=CKV2_ANSIBLE_1: cluster-local ntfy service uses HTTP
+  ansible.builtin.uri:
+    url: "http://ntfy.ntfy.svc.cluster.local/prod-infra"
+    method: POST
+    body: |
+      Image promotion completed
+
+      Source: {{ promotion_source_image }}
+      Target: {{ promotion_target_image }}
+      Revision: {{ zuul.commit_id | default('unknown') }}
+      Change: {{ promotion_change_url }}
+      Build: {{ promotion_build_url }}
+    status_code:
+      - 200
+      - 201
+      - 202
+    timeout: 5
+    headers:
+      Title: "Image promoted: {{ promotion_target_image }}"
+      Priority: "default"
+      Tags: "package"
+  register: promotion_ntfy_result
+  failed_when: false
+  vars:
+    promotion_build_url: >-
+      https://ci.your.domain/t/your.domain/build/{{ zuul.build }}
+    promotion_change_url: >-
+      {{
+        (
+          zuul.build_refs
+          | default([])
+          | selectattr('change_url', 'defined')
+          | map(attribute='change_url')
+          | first
+        )
+        | default('n/a', true)
+      }}
+
+- name: Report image promotion notification failure
+  ansible.builtin.debug:
+    msg: >-
+      Failed to deliver image promotion notification to ntfy:
+      {{
+        promotion_ntfy_result.msg
+        | default(promotion_ntfy_result.status | default('unknown'))
+      }}
+  when:
+    - (promotion_ntfy_result.status | default(0) | int) not in [200, 201, 202]

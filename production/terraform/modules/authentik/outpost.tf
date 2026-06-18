@@ -37,6 +37,29 @@ resource "authentik_outpost" "proxy_outpost" {
               memory = "256Mi"
             }
           }
+        },
+        {
+          op   = "add"
+          path = "/spec/template/spec/containers/0/volumeMounts"
+          value = [
+            {
+              name      = "session-shm"
+              mountPath = "/dev/shm"
+            }
+          ]
+        },
+        {
+          op   = "add"
+          path = "/spec/template/spec/volumes"
+          value = [
+            {
+              name = "session-shm"
+              emptyDir = {
+                medium    = "Memory"
+                sizeLimit = "256Mi"
+              }
+            }
+          ]
         }
       ]
     }

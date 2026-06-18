@@ -3,7 +3,7 @@ apiVersion: v2
 name: kyverno-wrapper
 description: A Helm chart for Kyverno
 type: application
-version: 0.3.0
+version: 0.3.1
 dependencies:
   - name: kyverno
     version: "3.8.1"

@@ -1,17 +1,53 @@
 ---
-# nxs serviceAccount values cannot safely express this fixed ClusterRoleBinding:
-# it binds the namespace default ServiceAccount to the cluster-admin ClusterRole.
+# nxs serviceAccount values cannot express this RBAC: the launcher needs a
+# ClusterRole because it manages per-build namespaces, and nxs only renders
+# namespaced Roles for generated ServiceAccounts.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: zuul-launcher
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+---
+# Minimal permissions for the zuul-launcher Kubernetes driver: it creates a
+# namespace per build node, then a ServiceAccount, token Secret, restricted
+# Role/RoleBinding (pods get/list, pods/exec|log|portforward), and the build
+# pod inside it. escalate/bind let it grant the per-node Role without holding
+# every verb itself, which namespace-kind labels would otherwise require.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: zuul-launcher
+  labels:
+    {{- include "zuul.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["create", "delete", "get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "delete", "get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/exec", "pods/log", "pods/portforward"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets", "serviceaccounts"]
+    verbs: ["create", "get", "list"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["create", "get", "list", "bind", "escalate"]
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: zuul-default-cluster-admin
+  name: zuul-launcher
   labels:
     {{- include "zuul.labels" . | nindent 4 }}
 subjects:
   - kind: ServiceAccount
-    name: default
+    name: zuul-launcher
     namespace: zuul
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: cluster-admin
+  name: zuul-launcher

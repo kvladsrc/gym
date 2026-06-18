@@ -10,11 +10,11 @@ redis:
     enabled: false
 
   master:
-    resourcesPreset: "none"
+    resourcesPreset: "nano"
     persistence:
       enabled: true
 
   replica:
-    resourcesPreset: "none"
+    resourcesPreset: "nano"
     persistence:
       enabled: true

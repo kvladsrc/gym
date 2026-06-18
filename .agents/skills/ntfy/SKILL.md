@@ -63,9 +63,9 @@ This intentionally does not bypass the publish path `/<topic>`.
    `kind`, `name`, `count`, `involvedObject`, `reportingController`, and
    `metadata.revision`.
 5. Correlate with the source system using the matching skill:
-   - `$zuul` for CI build/buildset failures.
-   - `$gerrit-jujutsu` for Gerrit changes.
-   - `$monorepo-map` for GitOps paths and repository ownership.
+   - `zuul` for CI build/buildset failures.
+   - `gerrit-jujutsu` for Gerrit changes.
+   - `monorepo-map` for GitOps paths and repository ownership.
 
 ## Safety
 

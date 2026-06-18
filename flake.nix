@@ -142,6 +142,7 @@
           just
           kubectl
           kubectx
+          skopeo
           sops
           talosctl
           yq-go

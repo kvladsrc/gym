@@ -1,5 +1,16 @@
 ---
 gerrit-operator:
-  installCRDs: true
+  # Pin the operator to a versioned build matching the vendored v1beta17
+  # CRDs; bump the tag and the CRDs chart together (INF#216, INF#146).
+  image:
+    tag: v0.1-826-gc0405728
+    imagePullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 25m
+      memory: 384Mi
+    limits:
+      cpu: 500m
+      memory: 1536Mi
   ingress:
     type: INGRESS

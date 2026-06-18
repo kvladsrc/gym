@@ -45,3 +45,16 @@ professional tools:
   16 GiB RAM limit without sacrificing functionality.
 - **Reproducibility:** The entire lab is defined as code, allowing for
   quick teardown and reconstruction.
+
+## Upgrading Flux
+
+Update the Flux package in the Nix flake and regenerate the install
+manifest from the repository development shell:
+
+```sh
+nix develop -c just flux-upgrade
+```
+
+The manifest is generated entirely by the Flux CLI. Review the generated
+diff and submit it through Gerrit; do not edit `gotk-components.yaml`
+manually.

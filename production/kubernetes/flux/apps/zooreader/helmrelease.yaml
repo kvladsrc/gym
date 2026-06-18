@@ -1,4 +1,3 @@
----
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -18,3 +17,11 @@ spec:
         kind: GitRepository
         name: gerrit
         namespace: flux-system
+  values:
+    nxs:
+      deployments:
+        zooreader:
+          containers:
+            zooreader:
+              # yamllint disable-line rule:line-length
+              imageTag: prod-1781779600-ab62d943388a888528fdbf6e8bff3668b1e963e1 # {"$imagepolicy": "flux-system:zooreader:tag"}

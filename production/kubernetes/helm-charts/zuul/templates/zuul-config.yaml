@@ -37,6 +37,7 @@ stringData:
     [executor]
     private_key_file=/etc/zuul/sshkey/sshkey
     count={{ .Values.zuul.executor.count }}
+    disk_limit_per_job={{ .Values.zuul.executor.diskLimitPerJob }}
     terminationGracePeriodSeconds={{ .Values.zuul.executor.terminationGracePeriodSeconds }}
     {{- range .Values.zuul.executor.jobVolumes }}
     trusted_rw_paths={{ .mountPath }}
@@ -49,5 +50,7 @@ stringData:
     {{ $key }}={{ $val }}
     {{- end }}
     {{- end }}
+    {{- if $conn.secretName }}
     sshkey=/etc/zuul/connections/{{ $name }}/sshkey
+    {{- end }}
     {{- end }}

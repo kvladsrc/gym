@@ -1,8 +1,13 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
+mod cothic
+mod cv
+mod talos "production/kubernetes/talos"
+mod zooreader "production/docker/zooreader"
+
 # Show all available commands
 default:
-    @just --list
+    @just --list --list-submodules
 
 # Run pre-commit on all files
 lint:
@@ -23,39 +28,18 @@ flake-update:
     nix flake update
     cd home-manager && nix flake update
 
-# Run all checks needed while working on Cothic
-cothic-check: cothic-fmt cothic-lint cothic-smoke
-
-# Auto-fix Cothic formatting
-cothic-fmt:
-    find cothic/scripts -name '*.gd' -exec gdformat {} +
-
-# Run Cothic linters
-cothic-lint:
-    gdlint cothic/scripts/
-
-# Run Cothic Godot smoke checks
-cothic-smoke:
-    bash cothic/tools/check-godot.sh
+# Upgrade Flux and regenerate the install manifest
+flux-upgrade:
+    flux install --export --components-extra=image-reflector-controller,image-automation-controller > production/kubernetes/flux/infrastructure/flux-system/gotk-components.yaml
 
 # Run all bazel tests
 test *args="":
     bazelisk test //... --verbose_failures {{ args }}
 
-# Build the resume PDF with YAAC: Another Awesome CV
-cv-build:
-    latexmk -C -cd cv/cv.tex
-    latexmk -lualatex -cd -interaction=nonstopmode -halt-on-error cv/cv.tex
-    latexmk -c -cd cv/cv.tex
-    rm -f cv/cv-blx.bib cv/cv.bbl
-
 # Sync selected directories/files to the public gym repo
 
 gym_dir := env("HOME") / "repos" / "gym"
 
-sync-gym dest=gym_dir: cv-build
+sync-gym dest=gym_dir:
+    @just cv build
     bash scripts/sync_gym.sh {{ dest }}
-
-# Renew Talos admin client certificates and update talosconfig
-talos-renew-certs out_dir="production/kubernetes/talos/_out":
-    bash scripts/renew_talos_certs.sh {{ out_dir }}

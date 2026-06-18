@@ -25,6 +25,16 @@
             <input type="number" id="page-num" value="1" min="1" /> /
             <span id="page-count">--</span>
           </div>
+          <button type="button" id="zoom-out" class="btn btn--small">-</button>
+          <span id="zoom-value">100%</span>
+          <button type="button" id="zoom-in" class="btn btn--small">+</button>
+          <input
+            type="password"
+            id="openai-key"
+            class="openai-key"
+            placeholder="OpenAI API key"
+            autocomplete="off"
+          />
         </div>
       </div>
       <div id="loading" class="hidden">LOADING...</div>
@@ -40,6 +50,6 @@
     <!-- Hidden canvas to render full PDF pages -->
     <canvas id="offscreen-pdf" class="hidden" style="display: none"></canvas>
 
-    <script src="script.js"></script>
+    <script type="module" src="main.js"></script>
   </body>
 </html>

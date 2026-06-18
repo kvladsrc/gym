@@ -6,7 +6,6 @@ gerrit:
 zuul:
   imagePrefix: quay.io/zuul-ci
   zuulImageVersion: latest
-  nodepoolImageVersion: latest
 
   zookeeper:
     hosts: zookeeper.zookeeper.svc.cluster.local:3181
@@ -34,6 +33,7 @@ zuul:
 
   executor:
     count: 1
+    diskLimitPerJob: 1024
     terminationGracePeriodSeconds: 21600
     resources:
       requests:
@@ -52,30 +52,6 @@ zuul:
   fingergw:
     count: 1
 
-  nodepool:
-    resources:
-      requests:
-        cpu: 25m
-        memory: 192Mi
-      limits:
-        cpu: 500m
-        memory: 512Mi
-    webapp:
-      port: 8005
-    probes:
-      readiness:
-        initialDelaySeconds: 15
-        periodSeconds: 10
-        timeoutSeconds: 3
-        failureThreshold: 3
-      liveness:
-        initialDelaySeconds: 60
-        periodSeconds: 30
-        timeoutSeconds: 3
-        failureThreshold: 3
-    providers:
-      - name: dev-k8s
-
   connections:
     gerrit:
       driver: gerrit
@@ -83,10 +59,15 @@ zuul:
       user: zuul
       secretName: gerrit-secrets  # pragma: allowlist secret
       baseurl: http://review.your.domain
+    # In-cluster credentials: no kubeconfig is mounted, so the Kubernetes
+    # client falls back to the pod ServiceAccount.
+    kubernetes:
+      driver: kubernetes
 
   tenantConfig: |
     - tenant:
         name: your.domain
+        use-nodepool: false
         web-root: https://ci.your.domain/t/your.domain/
         source:
           gerrit:
@@ -94,35 +75,6 @@ zuul:
               - zuul-config
             untrusted-projects:
               - src
-
-  nodepoolConfig: |
-    labels:
-      - name: build-node
-    providers:
-      - name: dev-k8s
-        driver: kubernetes
-        context: admin-cluster.local
-        pools:
-          - name: main
-            labels:
-              - name: build-node
-                type: pod
-                image: registry.your.domain/build:1.0
-                image-pull: Always
-                volumes:
-                  - name: pre-commit-cache
-                    nfs:
-                      server: 192.168.1.185
-                      path: /srv/nfs/pre-commit-cache
-                  - name: nix-store
-                    nfs:
-                      server: 192.168.1.185
-                      path: /srv/nfs/nix
-                volume-mounts:
-                  - name: pre-commit-cache
-                    mountPath: /root/.cache/pre-commit
-                  - name: nix-store
-                    mountPath: /nix
 
 database:
   secretName: creds  # pragma: allowlist secret
@@ -132,6 +84,11 @@ nxs:
 
   generic:
     usePredefinedAffinity: false
+    # The zuul-config Secret is rendered by a parent-chart template, so nxs
+    # auto-rollout checksums cannot see it. Bump this revision in the same
+    # change as any zuul.conf edit to restart all Zuul components.
+    podAnnotations:
+      your.domain/zuul-conf-revision: "3"
 
   statefulSets:
     zuul-scheduler:
@@ -159,9 +116,6 @@ nxs:
             - /usr/local/bin/zuul-scheduler
             - -f
             - -d
-          env:
-            - name: KUBECONFIG
-              value: /etc/kubernetes/kube.config
           volumeMounts:
             - name: zuul-config
               mountPath: /etc/zuul
@@ -242,7 +196,7 @@ nxs:
               mountPath: /etc/zuul
             - name: zuul-var
               mountPath: /var/lib/zuul
-            - name: nodepool-private-key
+            - name: executor-sshkey
               mountPath: /etc/zuul/sshkey
             - name: zookeeper-client-tls
               mountPath: /tls/client
@@ -259,7 +213,7 @@ nxs:
         - name: zookeeper-client-tls
           type: secret
           originalName: zookeeper-tls
-        - name: nodepool-private-key
+        - name: executor-sshkey
           type: secret
           originalName: gerrit-secrets
         - name: connection-gerrit
@@ -305,6 +259,52 @@ nxs:
         - name: zookeeper-client-tls
           type: secret
           originalName: zookeeper-tls
+    zuul-launcher:
+      replicas: 1
+      serviceAccountName: zuul-launcher
+      extraSelectorLabels:
+        app.kubernetes.io/component: zuul-launcher
+        app.kubernetes.io/part-of: zuul
+      labels:
+        app.kubernetes.io/component: zuul-launcher
+        app.kubernetes.io/part-of: zuul
+      terminationGracePeriodSeconds: 30
+      containers:
+        launcher:
+          image: quay.io/zuul-ci/zuul-launcher
+          imageTag: latest
+          imagePullPolicy: Always
+          args:
+            - /usr/local/bin/zuul-launcher
+            - -f
+            - -d
+          resources:
+            requests:
+              cpu: 25m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: zuul-config
+              mountPath: /etc/zuul
+              readOnly: true
+            - name: zookeeper-client-tls
+              mountPath: /tls/client
+              readOnly: true
+            - name: connection-gerrit
+              mountPath: /etc/zuul/connections/gerrit
+              readOnly: true
+      volumes:
+        - name: zuul-config
+          type: secret
+          originalName: zuul-config
+        - name: zookeeper-client-tls
+          type: secret
+          originalName: zookeeper-tls
+        - name: connection-gerrit
+          type: secret
+          originalName: gerrit-secrets
     zuul-web:
       replicas: 1
       extraSelectorLabels:
@@ -326,9 +326,6 @@ nxs:
             limits:
               cpu: 500m
               memory: 512Mi
-          env:
-            - name: KUBECONFIG
-              value: /etc/kubernetes/kube.config
           ports:
             - containerPort: 9000
               name: zuul-web
