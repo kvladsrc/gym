@@ -17,6 +17,20 @@ output "bb_secret_key" {
   sensitive = true
 }
 
+output "blog_engine_access_key" {
+  value = module.minio.minio_access_keys["blog-engine"]
+}
+
+output "blog_engine_secret_key" {
+  value     = module.minio.minio_secret_keys["blog-engine"]
+  sensitive = true
+}
+
+output "blog_engine_postgres_password" {
+  value     = var.postgres_blog_engine_password
+  sensitive = true
+}
+
 output "zuul_access_key" {
   value = module.minio.minio_access_keys["zuul"]
 }

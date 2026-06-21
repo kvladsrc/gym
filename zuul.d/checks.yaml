@@ -1,0 +1,73 @@
+---
+- job:
+    name: pre-submit-check
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/pre-submit-check.yaml
+
+- job:
+    name: bazel-test-blog-engine
+    files:
+      - ^go\.(mod|sum)$
+      - ^production/docker/blog-engine/
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/bazel-test-blog-engine.yaml
+
+- job:
+    name: go-check
+    files:
+      - ^go\.(mod|sum)$
+      - \.go$
+      - BUILD\.bazel$
+      - \.bzl$
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/go-check.yaml
+
+- job:
+    name: bazel-test-pipellm
+    files:
+      - ^go\.(mod|sum)$
+      - ^pipellm/
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/bazel-test-pipellm.yaml
+
+- job:
+    name: bazel-test-cpp-warmup
+    files:
+      - ^cpp/warmup/
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/bazel-test-cpp-warmup.yaml
+
+- job:
+    name: bazel-test-cpp-rbtree
+    files:
+      - ^cpp/rbtree/
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/bazel-test-cpp-rbtree.yaml
+
+- job:
+    name: pre-submit-check-coverage
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/pre-submit-check-coverage.yaml
+    files:
+      - ^cpp/warmup/
+
+- job:
+    name: helm-chart-version-check
+    files:
+      - ^production/kubernetes/helm-charts/
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/helm-chart-version-check.yaml
+
+- job:
+    name: helm-lint
+    files:
+      - ^production/kubernetes/helm-charts/
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/helm-lint.yaml
+
+- job:
+    name: gdlint
+    files:
+      - ^cothic/.*\.gd$
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/gdlint.yaml

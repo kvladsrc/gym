@@ -1,0 +1,67 @@
+body {
+  color: #202124;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  margin: 2rem auto;
+  max-width: 72rem;
+  padding: 0 1rem;
+}
+
+a {
+  color: #0b57d0;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td,
+th {
+  border-bottom: 1px solid #dadce0;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+form {
+  display: grid;
+  gap: 1rem;
+}
+
+label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+input,
+textarea {
+  font: inherit;
+}
+
+pre {
+  background: #f8f9fa;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.error {
+  color: #b3261e;
+}
+
+.diff-line {
+  display: block;
+}
+
+.diff-line.add {
+  background: #e6f4ea;
+}
+
+.diff-line.del {
+  background: #fce8e6;
+}

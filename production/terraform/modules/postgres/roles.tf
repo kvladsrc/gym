@@ -8,6 +8,16 @@ resource "postgresql_role" "authentik" {
   }
 }
 
+resource "postgresql_role" "blog_engine" {
+  name     = "blog_engine"
+  login    = true
+  password = var.postgres_blog_engine_password
+
+  lifecycle {
+    ignore_changes = [roles]
+  }
+}
+
 resource "postgresql_role" "hedgedoc" {
   name     = "hedgedoc"
   login    = true

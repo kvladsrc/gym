@@ -17,6 +17,15 @@ resource "cloudflare_dns_record" "b_bonfire" {
   ttl     = 1
 }
 
+resource "cloudflare_dns_record" "blog_bonfire" {
+  zone_id = var.cloudflare_zone_id
+  name    = "blog"
+  content = "192.168.1.220"
+  type    = "A"
+  proxied = false
+  ttl     = 1
+}
+
 resource "cloudflare_dns_record" "ci_bonfire" {
   zone_id = var.cloudflare_zone_id
   name    = "ci"
@@ -146,6 +155,15 @@ resource "cloudflare_dns_record" "sql_bonfire" {
 resource "cloudflare_dns_record" "sso_bonfire" {
   zone_id = var.cloudflare_zone_id
   name    = "sso"
+  content = "192.168.1.220"
+  type    = "A"
+  proxied = false
+  ttl     = 1
+}
+
+resource "cloudflare_dns_record" "write_bonfire" {
+  zone_id = var.cloudflare_zone_id
+  name    = "write"
   content = "192.168.1.220"
   type    = "A"
   proxied = false

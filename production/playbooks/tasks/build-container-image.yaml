@@ -1,0 +1,103 @@
+---
+- name: Require image build parameters
+  ansible.builtin.assert:
+    that:
+      - image_repo | default('') | length > 0
+      - image_tag | default('') | length > 0
+      - image_build_context | default('') | length > 0
+    fail_msg: >-
+      image_repo, image_tag, and image_build_context must be set by the
+      playbook
+
+- name: Locate fuse-overlayfs
+  ansible.builtin.command:
+    argv:
+      - which
+      - fuse-overlayfs
+  register: fuse_overlayfs
+  changed_when: false
+
+- name: Set image build volume arguments
+  ansible.builtin.set_fact:
+    image_build_volume_argv: >-
+      {{
+        image_build_volumes
+        | default([])
+        | map('regex_replace', '^', '--volume=')
+        | list
+      }}
+
+- name: Build the revision image with an explicit Dockerfile
+  ansible.builtin.command:
+    argv: >-
+      {{
+        [
+          'buildah',
+          '--storage-driver',
+          'overlay',
+          '--storage-opt',
+          'overlay.mount_program=' ~ fuse_overlayfs.stdout,
+          '--cgroup-manager',
+          'cgroupfs',
+          'bud',
+          '--format',
+          'docker',
+          '--isolation',
+          'chroot',
+          '--label',
+          'org.opencontainers.image.revision=' ~ zuul.commit_id,
+          '--tag',
+          image_repo ~ ':' ~ image_tag,
+        ]
+        + image_build_volume_argv
+        + [
+          '--file',
+          image_dockerfile,
+          image_build_context,
+        ]
+      }}
+  changed_when: true
+  when:
+    - image_dockerfile | default('') | length > 0
+
+- name: Build the revision image with the context Dockerfile
+  ansible.builtin.command:
+    argv: >-
+      {{
+        [
+          'buildah',
+          '--storage-driver',
+          'overlay',
+          '--storage-opt',
+          'overlay.mount_program=' ~ fuse_overlayfs.stdout,
+          '--cgroup-manager',
+          'cgroupfs',
+          'bud',
+          '--format',
+          'docker',
+          '--isolation',
+          'chroot',
+          '--label',
+          'org.opencontainers.image.revision=' ~ zuul.commit_id,
+          '--tag',
+          image_repo ~ ':' ~ image_tag,
+        ]
+        + image_build_volume_argv
+        + [image_build_context]
+      }}
+  changed_when: true
+  when:
+    - image_dockerfile | default('') | length == 0
+
+- name: Push the revision image
+  ansible.builtin.command:
+    argv:
+      - buildah
+      - --storage-driver
+      - overlay
+      - --storage-opt
+      - "overlay.mount_program={{ fuse_overlayfs.stdout }}"
+      - push
+      - "{{ image_repo }}:{{ image_tag }}"
+      - "docker://{{ image_repo }}:{{ image_tag }}"
+  changed_when: true

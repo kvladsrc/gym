@@ -60,6 +60,7 @@ use_repo(
     "com_github_charmbracelet_bubbletea",
     "com_github_charmbracelet_lipgloss",
     "com_github_google_generative_ai_go",
+    "com_github_jackc_pgx_v5",
     "in_gopkg_yaml_v3",
     "org_golang_google_api",
 )

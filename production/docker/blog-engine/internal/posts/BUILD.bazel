@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "posts",
+    srcs = ["posts.go"],
+    importpath = "src/production/docker/blog-engine/internal/posts",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_jackc_pgx_v5//stdlib"],
+)
+
+go_test(
+    name = "posts_test",
+    srcs = ["posts_test.go"],
+    embed = [":posts"],
+)

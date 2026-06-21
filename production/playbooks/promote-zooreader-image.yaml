@@ -7,49 +7,6 @@
     image_tag: "rc-{{ zuul.commit_id }}"
 
   tasks:
-    - name: Generate the production image tag
-      ansible.builtin.command:
-        argv:
-          - date
-          - +%s
-      register: promotion_timestamp
-      changed_when: false
-
-    - name: Set the production image tag
-      ansible.builtin.set_fact:
-        production_image_tag: >-
-          prod-{{ promotion_timestamp.stdout }}-{{ zuul.commit_id }}
-
-    - name: List available Zooreader image revisions
-      ansible.builtin.command:
-        argv:
-          - skopeo
-          - list-tags
-          - "docker://{{ image_repo }}"
-      register: zooreader_tags
-      changed_when: false
-
-    - name: Require the reviewed Zooreader image
-      ansible.builtin.assert:
-        that:
-          - >-
-            image_tag
-            in ((zooreader_tags.stdout | from_json).Tags | default([]))
-        fail_msg: "Missing reviewed image {{ image_repo }}:{{ image_tag }}"
-
-    - name: Promote the reviewed image to production
-      ansible.builtin.command:
-        argv:
-          - skopeo
-          - copy
-          - "docker://{{ image_repo }}:{{ image_tag }}"
-          - "docker://{{ image_repo }}:{{ production_image_tag }}"
-      register: zooreader_promotion
-      changed_when: true
-
-    - name: Notify about the Zooreader image promotion
+    - name: Promote the Zooreader image
       ansible.builtin.include_tasks:
-        file: tasks/notify-image-promotion.yaml
-      vars:
-        promotion_source_image: "{{ image_repo }}:{{ image_tag }}"
-        promotion_target_image: "{{ image_repo }}:{{ production_image_tag }}"
+        file: tasks/promote-container-image.yaml

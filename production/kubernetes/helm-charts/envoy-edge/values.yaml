@@ -14,6 +14,7 @@ hosts:
     - registry.your.domain
     - store.your.domain
     - s3.your.domain
+    - blog.your.domain
     - hedgedoc.your.domain
     - k8s.your.domain
   authentikProxy:
@@ -26,4 +27,5 @@ hosts:
     - notebook.your.domain
     - sql.your.domain
     - read.your.domain
+    - write.your.domain
     - ci.your.domain

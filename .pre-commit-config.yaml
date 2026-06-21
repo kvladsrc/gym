@@ -103,27 +103,6 @@ repos:
           (^production/kubernetes/helm-charts/.+/templates/)|
           (^production/kubernetes/flux/infrastructure/flux-system/gotk-components.yaml)
 
-  # ---------- Helm charts ------------
-  - repo: local
-    hooks:
-      - id: helm-lint
-        name: Helm Lint
-        entry: >-
-          bash -c '
-          failed=0;
-          for chart in production/kubernetes/helm-charts/*/Chart.yaml; do
-            dir="$(dirname "$chart")";
-            if [ -f "$dir/secrets.mock.yaml" ]; then
-              helm lint "$dir" -f "$dir/secrets.mock.yaml" || failed=1;
-            else
-              helm lint "$dir" || failed=1;
-            fi;
-          done;
-          exit $failed'
-        language: system
-        pass_filenames: false
-        files: ^production/kubernetes/helm-charts/
-
   # ---------- Shell scripts ----------
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.12.0-2
@@ -178,14 +157,3 @@ repos:
     rev: '3.3.1'
     hooks:
       - id: checkov
-
-  # ---------- GDScript lint ----------
-  - repo: local
-    hooks:
-      - id: gdlint
-        name: GDScript lint
-        description: Run gdlint on GDScript files in cothic/
-        entry: bash -c 'if command -v gdlint >/dev/null 2>&1 && [ -d "cothic" ]; then gdlint cothic/scripts/; else exit 0; fi'
-        language: system
-        pass_filenames: false
-        files: ^cothic/.*\.gd$

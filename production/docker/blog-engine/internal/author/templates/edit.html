@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>{{.Heading}}</title>
+    <link rel="stylesheet" href="/static/admin.css" />
+  </head>
+  <body>
+    <nav><a href="/posts">Posts</a> <a href="/create">Create</a></nav>
+    <h1>{{.Heading}}</h1>
+    {{if .Error}}
+    <p class="error">{{.Error}}</p>
+    {{end}}
+    <form method="post" action="{{.Action}}">
+      <label>Title <input name="title" value="{{.Title}}" /></label>
+      <label>Tags <input name="tags" value="{{.Tags}}" /></label>
+      <label
+        >Source
+        <textarea name="source" rows="24" cols="100">{{.Source}}</textarea>
+      </label>
+      <label
+        ><input
+          type="checkbox"
+          name="auto_publish"
+          {{if
+          .AutoPublish}}
+          checked{{end}}
+        />
+        Publish after checks pass</label
+      >
+      <button type="submit">Post</button>
+    </form>
+  </body>
+</html>

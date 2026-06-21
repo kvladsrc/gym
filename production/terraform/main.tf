@@ -33,10 +33,11 @@ module "postgres" {
   source = "./modules/postgres"
 
   # Per-service passwords
-  postgres_authentik_password = var.postgres_authentik_password
-  postgres_hedgedoc_password  = var.postgres_hedgedoc_password
-  postgres_miniflux_password  = var.postgres_miniflux_password
-  postgres_zuul_password      = var.postgres_zuul_password
+  postgres_authentik_password   = var.postgres_authentik_password
+  postgres_blog_engine_password = var.postgres_blog_engine_password
+  postgres_hedgedoc_password    = var.postgres_hedgedoc_password
+  postgres_miniflux_password    = var.postgres_miniflux_password
+  postgres_zuul_password        = var.postgres_zuul_password
 }
 
 module "minio" {

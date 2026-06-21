@@ -1,0 +1,15 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+    image_repo: registry.your.domain/blog-engine
+    image_tag: "rc-{{ zuul.commit_id }}"
+    image_build_context: "{{ repo_dir }}"
+    image_dockerfile: "{{ repo_dir }}/production/docker/blog-engine/Dockerfile"
+
+  tasks:
+    - name: Build and push the blog-engine image
+      ansible.builtin.include_tasks:
+        file: tasks/build-container-image.yaml

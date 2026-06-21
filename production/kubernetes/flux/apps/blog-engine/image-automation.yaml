@@ -1,0 +1,49 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: blog-engine
+  namespace: flux-system
+spec:
+  image: registry.your.domain/blog-engine
+  interval: 1m
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImagePolicy
+metadata:
+  name: blog-engine
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: blog-engine
+  filterTags:
+    pattern: '^prod-(?P<ts>[0-9]+)-'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+---
+apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageUpdateAutomation
+metadata:
+  name: blog-engine
+  namespace: flux-system
+spec:
+  interval: 1m
+  sourceRef:
+    kind: GitRepository
+    name: gerrit
+  git:
+    checkout:
+      ref:
+        branch: master
+    commit:
+      author:
+        name: Flux
+        email: flux@your.domain
+      messageTemplate: "blog-engine: Deploy promoted image"
+    push:
+      branch: master
+  update:
+    path: ./production/kubernetes/flux/apps/blog-engine
+    strategy: Setters

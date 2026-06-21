@@ -1,0 +1,12 @@
+---
+- name: Run golangci-lint
+  ansible.builtin.command:
+    argv:
+      - golangci-lint
+      - run
+      - --timeout
+      - 5m
+      - ./...
+  args:
+    chdir: "{{ repo_dir }}"
+  changed_when: false

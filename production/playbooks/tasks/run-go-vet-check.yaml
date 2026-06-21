@@ -1,0 +1,10 @@
+---
+- name: Run go vet
+  ansible.builtin.command:
+    argv:
+      - go
+      - vet
+      - ./...
+  args:
+    chdir: "{{ repo_dir }}"
+  changed_when: false

@@ -1,0 +1,16 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Run GDScript lint
+      ansible.builtin.command:
+        argv:
+          - gdlint
+          - cothic/scripts/
+      args:
+        chdir: "{{ repo_dir }}"
+      changed_when: false

@@ -24,6 +24,13 @@ variable "postgres_authentik_password" {
   default     = "mockpassword"
 }
 
+variable "postgres_blog_engine_password" {
+  description = "Password for blog_engine PostgreSQL role"
+  type        = string
+  sensitive   = true
+  default     = "mockpassword"
+}
+
 variable "postgres_hedgedoc_password" {
   description = "Password for hedgedoc PostgreSQL role"
   type        = string

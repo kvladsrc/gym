@@ -18,12 +18,20 @@ RUN groupadd --gid 9999 zuul \
     && echo "zuul ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/zuul \
     && printf "export PATH=\$PATH:/nix/var/nix/profiles/default/bin:/root/.nix-profile/bin\n" >> /etc/profile.d/zuul_env.sh
 
-# The mounted Nix store provides the bootstrap Nix binary. Each Zuul job
-# builds its patchset-local toolchain into /opt/build-node-tools.
+# The mounted Nix store provides the bootstrap Nix binary. The build-node
+# image build creates /opt/build-node-tools once, so individual Zuul jobs can
+# start without rebuilding the toolchain from the patchset flake.
 ENV PATH="/opt/build-node-tools/bin:/nix/var/nix/profiles/default/bin:${PATH}"
 
 COPY nix.conf /etc/nix/nix.conf
 COPY policy.json /etc/containers/policy.json
+COPY flake.nix flake.lock /tmp/build-node-tools/
+
+RUN /nix/var/nix/profiles/default/bin/nix build \
+    /tmp/build-node-tools#buildNodeTools \
+    --out-link /opt/build-node-tools \
+    --max-jobs auto \
+    --print-build-logs
 
 # checkov:skip=CKV_DOCKER_8: Zuul kubectl-exec runs jobs as the image user and NFS caches are mounted for root
 # checkov:skip=CKV_DOCKER_3: jobs must run as root to reach the root-mounted NFS caches

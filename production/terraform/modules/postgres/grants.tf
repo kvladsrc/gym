@@ -17,6 +17,25 @@ resource "postgresql_grant" "authentik_schema" {
   depends_on = [postgresql_database.authentik]
 }
 
+resource "postgresql_grant" "blog_engine_database" {
+  database    = postgresql_database.blog_engine.name
+  role        = postgresql_role.blog_engine.name
+  object_type = "database"
+  privileges  = ["CONNECT", "CREATE", "TEMPORARY"]
+
+  depends_on = [postgresql_database.blog_engine]
+}
+
+resource "postgresql_grant" "blog_engine_schema" {
+  database    = postgresql_database.blog_engine.name
+  role        = postgresql_role.blog_engine.name
+  schema      = "public"
+  object_type = "schema"
+  privileges  = ["CREATE", "USAGE"]
+
+  depends_on = [postgresql_database.blog_engine]
+}
+
 resource "postgresql_grant" "hedgedoc_database" {
   database    = postgresql_database.hedgedoc.name
   role        = postgresql_role.hedgedoc.name

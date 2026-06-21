@@ -1,0 +1,68 @@
+# yamllint disable rule:line-length
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: blog-engine
+  namespace: flux-system
+spec:
+  install:
+    createNamespace: true
+  releaseName: blog-engine
+  targetNamespace: blog-engine
+  storageNamespace: blog-engine
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/blog-engine
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  values:
+    nxs:
+      deployments:
+        author:
+          initContainers:
+            migrate:
+              imageTag: prod-1782079618-595ce89562a72b5a9d31419409b321dbd7c8508c # {"$imagepolicy": "flux-system:blog-engine:tag"}
+          containers:
+            author:
+              imageTag: prod-1782079618-595ce89562a72b5a9d31419409b321dbd7c8508c # {"$imagepolicy": "flux-system:blog-engine:tag"}
+        web:
+          initContainers:
+            migrate:
+              imageTag: prod-1782079618-595ce89562a72b5a9d31419409b321dbd7c8508c # {"$imagepolicy": "flux-system:blog-engine:tag"}
+          containers:
+            web:
+              imageTag: prod-1782079618-595ce89562a72b5a9d31419409b321dbd7c8508c # {"$imagepolicy": "flux-system:blog-engine:tag"}
+        worker:
+          initContainers:
+            migrate:
+              imageTag: prod-1782079618-595ce89562a72b5a9d31419409b321dbd7c8508c # {"$imagepolicy": "flux-system:blog-engine:tag"}
+          containers:
+            worker:
+              imageTag: prod-1782079618-595ce89562a72b5a9d31419409b321dbd7c8508c # {"$imagepolicy": "flux-system:blog-engine:tag"}
+  valuesFrom:
+    - kind: Secret
+      name: openai-api
+      valuesKey: token
+      targetPath: global.blogEngine.config.openai.apiKey
+      optional: false
+    - kind: Secret
+      name: production-output
+      valuesKey: blog_engine_postgres_password
+      targetPath: global.blogEngine.config.database.password
+      optional: false
+    - kind: Secret
+      name: production-output
+      valuesKey: blog_engine_access_key
+      targetPath: global.blogEngine.config.s3.accessKey
+      optional: false
+    - kind: Secret
+      name: production-output
+      valuesKey: blog_engine_secret_key
+      targetPath: global.blogEngine.config.s3.secretKey
+      optional: false
+  dependsOn:
+    - name: minio
+    - name: postgresql

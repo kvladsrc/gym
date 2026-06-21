@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "web",
+    srcs = ["web.go"],
+    embedsrcs = [
+        "static/web.css",
+        "templates/home.html",
+        "templates/search.html",
+    ],
+    importpath = "src/production/docker/blog-engine/internal/web",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//production/docker/blog-engine/internal/config",
+        "//production/docker/blog-engine/internal/httpx",
+    ],
+)
+
+go_test(
+    name = "web_test",
+    srcs = ["web_test.go"],
+    embed = [":web"],
+)

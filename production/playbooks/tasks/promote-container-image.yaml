@@ -1,0 +1,72 @@
+---
+- name: Require image promotion parameters
+  ansible.builtin.assert:
+    that:
+      - image_repo | default('') | length > 0
+      - image_tag | default('') | length > 0
+    fail_msg: "image_repo and image_tag must be set by the playbook"
+
+- name: Generate the production image tag
+  ansible.builtin.command:
+    argv:
+      - date
+      - +%s
+  register: promotion_timestamp
+  changed_when: false
+  when:
+    - image_promote_target_tag is not defined
+
+- name: Set the promotion target tag
+  ansible.builtin.set_fact:
+    image_promote_resolved_target_tag: >-
+      {{
+        image_promote_target_tag
+        if image_promote_target_tag is defined
+        else 'prod-' ~ promotion_timestamp.stdout ~ '-' ~ zuul.commit_id
+      }}
+
+- name: List available image revisions
+  ansible.builtin.command:
+    argv:
+      - skopeo
+      - list-tags
+      - "docker://{{ image_repo }}"
+  register: image_registry_tags
+  changed_when: false
+
+- name: Set source image availability
+  ansible.builtin.set_fact:
+    image_promote_source_exists: >-
+      {{
+        image_tag in
+        ((image_registry_tags.stdout | from_json).Tags | default([]))
+      }}
+
+- name: Require the reviewed image
+  ansible.builtin.assert:
+    that:
+      - image_promote_source_exists | bool
+    fail_msg: "Missing reviewed image {{ image_repo }}:{{ image_tag }}"
+  when:
+    - image_promote_require_source | default(true)
+
+- name: Promote the reviewed image
+  ansible.builtin.command:
+    argv:
+      - skopeo
+      - copy
+      - "docker://{{ image_repo }}:{{ image_tag }}"
+      - "docker://{{ image_repo }}:{{ image_promote_resolved_target_tag }}"
+  changed_when: true
+  when:
+    - image_promote_source_exists | bool
+
+- name: Notify about the image promotion
+  ansible.builtin.include_tasks:
+    file: notify-image-promotion.yaml
+  vars:
+    promotion_source_image: "{{ image_repo }}:{{ image_tag }}"
+    promotion_target_image: >-
+      {{ image_repo }}:{{ image_promote_resolved_target_tag }}
+  when:
+    - image_promote_source_exists | bool
