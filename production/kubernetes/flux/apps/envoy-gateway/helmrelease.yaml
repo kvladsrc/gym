@@ -65,6 +65,7 @@ spec:
     - name: envoy-gateway
     - name: cert-manager
     - name: authentik
+    - name: blog-engine
     - name: docker-registry
     - name: gerrit
     - name: headlamp

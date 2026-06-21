@@ -1,0 +1,31 @@
+---
+- name: Require a Bazel target
+  ansible.builtin.assert:
+    that:
+      - bazel_target | length > 0
+    fail_msg: "bazel_target must be set by the playbook"
+
+- name: Run Bazel tests
+  ansible.builtin.command:
+    argv:
+      - bazelisk
+      - test
+      - "{{ bazel_target }}"
+      - --verbose_failures
+  args:
+    chdir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+  changed_when: false
+
+- name: Run Bazel tests with selected configs
+  ansible.builtin.command:
+    argv:
+      - bazelisk
+      - test
+      - "{{ bazel_target }}"
+      - "--config={{ item }}"
+      - --verbose_failures
+      - --test_output=errors
+  loop: "{{ bazel_configs | default([]) }}"
+  args:
+    chdir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+  changed_when: false

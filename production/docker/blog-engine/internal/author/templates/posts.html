@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Posts</title>
+    <link rel="stylesheet" href="/static/admin.css" />
+  </head>
+  <body>
+    <nav><a href="/posts">Posts</a> <a href="/create">Create</a></nav>
+    <h1>Posts</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Tags</th>
+          <th>Status</th>
+          <th>Latest check</th>
+          <th>Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .}}
+        <tr>
+          <td><a href="/posts/{{.ID}}">{{.Title}}</a></td>
+          <td>{{join .Tags ", "}}</td>
+          <td>{{.Status}}</td>
+          <td>{{.CheckStatus}}</td>
+          <td>{{.UpdatedAt.Format "2006-01-02 15:04"}}</td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="5">No posts yet.</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </body>
+</html>

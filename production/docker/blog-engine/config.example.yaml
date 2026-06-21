@@ -1,0 +1,29 @@
+---
+service:
+  name: blog-engine
+
+http:
+  author_addr: "127.0.0.1:8081"
+  web_addr: "127.0.0.1:8080"
+
+database:
+  dsn: >-
+    postgres://blog_engine@postgresql.postgres.svc.cluster.local:5432/blog_engine?sslmode=disable
+
+s3:
+  endpoint: "http://minio.minio.svc.cluster.local:9000"
+  region: "us-east-1"
+  access_key: "change-me"
+  secret_key: "change-me"  # pragma: allowlist secret
+  author_bucket: "blog-engine"
+  public_bucket: "blog-engine"
+  force_path_style: true
+
+openai:
+  api_key: "change-me"  # pragma: allowlist secret
+  model: "gpt-5.4-nano"
+
+publishing:
+  base_url: "https://blog.your.domain"
+  release_prefix: "releases/"
+  current_pointer_key: "current.json"

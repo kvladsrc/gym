@@ -1,0 +1,15 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    bazel_target: //cpp/warmup/...
+    bazel_configs:
+      - asan
+      - ubsan
+      - tsan
+
+  tasks:
+    - name: Run cpp/warmup Bazel tests
+      ansible.builtin.include_tasks:
+        file: tasks/run-bazel-test-target.yaml

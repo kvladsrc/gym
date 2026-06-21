@@ -1,0 +1,44 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Find Helm charts
+      ansible.builtin.find:
+        paths: "{{ repo_dir }}/production/kubernetes/helm-charts"
+        patterns: Chart.yaml
+        recurse: true
+      register: helm_charts
+
+    - name: Check Helm chart mock secrets
+      ansible.builtin.stat:
+        path: "{{ item.path | dirname }}/secrets.mock.yaml"
+      loop: "{{ helm_charts.files }}"
+      register: helm_chart_mock_secrets
+
+    - name: Lint Helm charts with mock secrets
+      ansible.builtin.command:
+        argv:
+          - helm
+          - lint
+          - "{{ item.item.path | dirname }}"
+          - -f
+          - "{{ item.stat.path }}"
+      loop: "{{ helm_chart_mock_secrets.results }}"
+      changed_when: false
+      when:
+        - item.stat.exists
+
+    - name: Lint Helm charts without mock secrets
+      ansible.builtin.command:
+        argv:
+          - helm
+          - lint
+          - "{{ item.item.path | dirname }}"
+      loop: "{{ helm_chart_mock_secrets.results }}"
+      changed_when: false
+      when:
+        - not item.stat.exists

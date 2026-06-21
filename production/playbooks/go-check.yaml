@@ -1,0 +1,19 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Run go vet
+      ansible.builtin.include_tasks:
+        file: tasks/run-go-vet-check.yaml
+
+    - name: Run golangci-lint
+      ansible.builtin.include_tasks:
+        file: tasks/run-golangci-lint-check.yaml
+
+    - name: Run Gazelle diff check
+      ansible.builtin.include_tasks:
+        file: tasks/run-gazelle-diff-check.yaml

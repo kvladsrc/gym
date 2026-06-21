@@ -1,0 +1,11 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    bazel_target: //production/docker/blog-engine/...
+
+  tasks:
+    - name: Run blog-engine Bazel tests
+      ansible.builtin.include_tasks:
+        file: tasks/run-bazel-test-target.yaml

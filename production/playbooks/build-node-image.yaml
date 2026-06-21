@@ -4,50 +4,13 @@
 
   vars:
     repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
-    build_context: "{{ repo_dir }}/production/docker/build-node"
     image_repo: registry.your.domain/build
     image_tag: "rc-{{ zuul.commit_id }}"
+    image_build_context: "{{ repo_dir }}/production/docker/build-node"
+    image_build_volumes:
+      - /nix:/nix
 
   tasks:
-    - name: Locate fuse-overlayfs
-      ansible.builtin.command:
-        argv:
-          - which
-          - fuse-overlayfs
-      register: fuse_overlayfs
-      changed_when: false
-
-    - name: Build the build-node revision image
-      ansible.builtin.command:
-        argv:
-          - buildah
-          - --storage-driver
-          - overlay
-          - --storage-opt
-          - "overlay.mount_program={{ fuse_overlayfs.stdout }}"
-          - --cgroup-manager
-          - cgroupfs
-          - bud
-          - --format
-          - docker
-          - --isolation
-          - chroot
-          - --label
-          - "org.opencontainers.image.revision={{ zuul.commit_id }}"
-          - --tag
-          - "{{ image_repo }}:{{ image_tag }}"
-          - "{{ build_context }}"
-      changed_when: true
-
-    - name: Push the build-node revision image
-      ansible.builtin.command:
-        argv:
-          - buildah
-          - --storage-driver
-          - overlay
-          - --storage-opt
-          - "overlay.mount_program={{ fuse_overlayfs.stdout }}"
-          - push
-          - "{{ image_repo }}:{{ image_tag }}"
-          - "docker://{{ image_repo }}:{{ image_tag }}"
-      changed_when: true
+    - name: Build and push the build-node image
+      ansible.builtin.include_tasks:
+        file: tasks/build-container-image.yaml

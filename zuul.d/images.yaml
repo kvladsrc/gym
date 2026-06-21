@@ -1,0 +1,44 @@
+---
+- job:
+    name: build-blog-engine-image
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/build-blog-engine-image.yaml
+    files:
+      - ^go\.(mod|sum)$
+      - ^production/docker/blog-engine/
+
+- job:
+    name: promote-blog-engine-image
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/promote-blog-engine-image.yaml
+    files:
+      - ^go\.(mod|sum)$
+      - ^production/docker/blog-engine/
+
+- job:
+    name: build-node-image
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/build-node-image.yaml
+    files:
+      - ^production/docker/build-node/
+
+- job:
+    name: promote-build-node-image
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/promote-build-node-image.yaml
+    files:
+      - ^production/docker/build-node/
+
+- job:
+    name: build-zooreader-image
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/build-zooreader-image.yaml
+    files:
+      - ^production/docker/zooreader/
+
+- job:
+    name: promote-zooreader-image
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/promote-zooreader-image.yaml
+    files:
+      - ^production/docker/zooreader/

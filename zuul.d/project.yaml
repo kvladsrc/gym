@@ -1,0 +1,31 @@
+---
+- job:
+    name: renovate-bot
+    parent: renovate-base
+
+- project:
+    check:
+      jobs:
+        - pre-submit-check
+        - go-check
+        - bazel-test-blog-engine
+        - bazel-test-pipellm
+        - bazel-test-cpp-warmup
+        - bazel-test-cpp-rbtree
+        - pre-submit-check-coverage
+        - helm-chart-version-check
+        - helm-lint
+        - gdlint
+    gate:
+      jobs:
+        - build-blog-engine-image
+        - build-node-image
+        - build-zooreader-image
+    promote:
+      jobs:
+        - promote-blog-engine-image
+        - promote-build-node-image
+        - promote-zooreader-image
+    daily:
+      jobs:
+        - renovate-bot

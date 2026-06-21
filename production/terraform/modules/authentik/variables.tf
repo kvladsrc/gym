@@ -57,6 +57,13 @@ variable "applications" {
       internal_port   = 80
       skip_path_regex = "^/jsonrpc\\.php$"
     }
+    "blog-engine-author" = {
+      name          = "blog-engine-author"
+      slug          = "blog-engine-author"
+      external_host = "https://write.your.domain"
+      internal_host = "author.blog-engine.svc.cluster.local"
+      internal_port = 80
+    }
     "opengrok" = {
       name          = "opengrok"
       slug          = "opengrok"

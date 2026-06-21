@@ -1,0 +1,21 @@
+---
+- name: Run Gazelle in diff mode
+  ansible.builtin.shell: |
+    set -o pipefail
+    bazelisk run --lockfile_mode=off //:gazelle -- -mode=diff 2>&1 \
+      | sed -n '/^diff --git /,$p'
+  args:
+    executable: /bin/bash
+    chdir: "{{ repo_dir }}"
+  register: gazelle_diff
+  changed_when: false
+
+- name: Require Gazelle output to be up to date
+  ansible.builtin.fail:
+    msg: |
+      Gazelle found changes:
+      {{ gazelle_diff.stdout }}
+
+      Please run 'bazelisk run //:gazelle' and commit the changes.
+  when:
+    - gazelle_diff.stdout | length > 0

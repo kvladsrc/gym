@@ -5,6 +5,13 @@ resource "postgresql_database" "authentik" {
   depends_on = [postgresql_role.authentik]
 }
 
+resource "postgresql_database" "blog_engine" {
+  name  = "blog_engine"
+  owner = postgresql_role.blog_engine.name
+
+  depends_on = [postgresql_role.blog_engine]
+}
+
 resource "postgresql_database" "hedgedoc" {
   name  = "hedgedocdb"
   owner = postgresql_role.hedgedoc.name

@@ -1,0 +1,27 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_binary(
+    name = "blog-engine",
+    embed = [":blog-engine_lib"],
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "blog-engine_lib",
+    srcs = ["main.go"],
+    importpath = "src/production/docker/blog-engine/cmd/blog-engine",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//production/docker/blog-engine/internal/author",
+        "//production/docker/blog-engine/internal/config",
+        "//production/docker/blog-engine/internal/migrate",
+        "//production/docker/blog-engine/internal/web",
+        "//production/docker/blog-engine/internal/worker",
+    ],
+)
+
+go_test(
+    name = "blog-engine_test",
+    srcs = ["main_test.go"],
+    embed = [":blog-engine_lib"],
+)

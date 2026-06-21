@@ -1,0 +1,217 @@
+---
+global:
+  blogEngine:
+    config:
+      service:
+        name: blog-engine
+      http:
+        authorAddr: "0.0.0.0:8081"
+        webAddr: "0.0.0.0:8080"
+      database:
+        username: blog_engine
+        password: change-me  # pragma: allowlist secret
+        host: postgresql.postgres.svc.cluster.local
+        port: 5432
+        database: blog_engine
+        sslMode: disable
+      s3:
+        endpoint: "http://minio.minio.svc.cluster.local:9000"
+        region: "us-east-1"
+        accessKey: "change-me"
+        secretKey: "change-me"  # pragma: allowlist secret
+        authorBucket: "blog-engine"
+        publicBucket: "blog-engine"
+        forcePathStyle: true
+      openai:
+        apiKey: "change-me"  # pragma: allowlist secret
+        model: "gpt-5.4-nano"
+      publishing:
+        baseURL: "https://blog.your.domain"
+        releasePrefix: "releases/"
+        currentPointerKey: "current.json"
+
+configYaml: &configYaml |
+  {{- $config := .Values.global.blogEngine.config }}
+  {{- $db := $config.database }}
+  {{- $s3 := $config.s3 }}
+  {{- $openai := $config.openai }}
+  {{- $publishing := $config.publishing }}
+  {{- $f := "postgres://%s:%s@%s:%v/%s?sslmode=%s" }}
+  {{- $u := $db.username }}
+  {{- $p := $db.password }}
+  {{- $h := $db.host }}
+  {{- $port := $db.port }}
+  {{- $name := $db.database }}
+  {{- $ssl := $db.sslMode }}
+  {{- $dsn := printf $f $u $p $h $port $name $ssl }}
+  service:
+    name: {{ $config.service.name | quote }}
+
+  http:
+    author_addr: {{ $config.http.authorAddr | quote }}
+    web_addr: {{ $config.http.webAddr | quote }}
+
+  database:
+    dsn: {{ $dsn | quote }}
+
+  s3:
+    endpoint: {{ $s3.endpoint | quote }}
+    region: {{ $s3.region | quote }}
+    access_key: {{ $s3.accessKey | quote }}
+    secret_key: {{ $s3.secretKey | quote }}
+    author_bucket: {{ $s3.authorBucket | quote }}
+    public_bucket: {{ $s3.publicBucket | quote }}
+    force_path_style: {{ $s3.forcePathStyle }}
+
+  openai:
+    api_key: {{ $openai.apiKey | quote }}
+    model: {{ $openai.model | quote }}
+
+  publishing:
+    base_url: {{ $publishing.baseURL | quote }}
+    release_prefix: {{ $publishing.releasePrefix | quote }}
+    current_pointer_key: {{ $publishing.currentPointerKey | quote }}
+
+image: &blogEngineImage
+  image: registry.your.domain/blog-engine
+  imageTag: latest
+  imagePullPolicy: Always
+
+resources: &componentResources
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+configVolumeMount: &configVolumeMount
+  name: blog-engine-config
+  mountPath: /etc/blog-engine
+  readOnly: true
+
+migrateInitContainer: &migrateInitContainer
+  <<: *blogEngineImage
+  args:
+    - migrate
+    - --config=/etc/blog-engine/config.yaml
+  resources: *componentResources
+  volumeMounts:
+    - *configVolumeMount
+
+nxs:
+  releasePrefix: "-"
+
+  generic:
+    hookAnnotations: null
+    usePredefinedAffinity: false
+
+  secrets:
+    blog-engine-config:
+      data:
+        config.yaml: *configYaml  # pragma: allowlist secret
+
+  deployments:
+    author:
+      replicas: 1
+      extraSelectorLabels:
+        app.kubernetes.io/component: author
+      initContainers:
+        migrate:
+          <<: *migrateInitContainer
+      containers:
+        author:
+          <<: *blogEngineImage
+          args:
+            - author
+            - --config=/etc/blog-engine/config.yaml
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources: *componentResources
+          volumeMounts:
+            - *configVolumeMount
+      volumes:
+        - name: blog-engine-config
+          type: secret
+
+    web:
+      replicas: 1
+      extraSelectorLabels:
+        app.kubernetes.io/component: web
+      initContainers:
+        migrate:
+          <<: *migrateInitContainer
+      containers:
+        web:
+          <<: *blogEngineImage
+          args:
+            - web
+            - --config=/etc/blog-engine/config.yaml
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources: *componentResources
+          volumeMounts:
+            - *configVolumeMount
+      volumes:
+        - name: blog-engine-config
+          type: secret
+
+    worker:
+      replicas: 1
+      extraSelectorLabels:
+        app.kubernetes.io/component: worker
+      initContainers:
+        migrate:
+          <<: *migrateInitContainer
+      containers:
+        worker:
+          <<: *blogEngineImage
+          args:
+            - worker
+            - --config=/etc/blog-engine/config.yaml
+          resources: *componentResources
+          volumeMounts:
+            - *configVolumeMount
+      volumes:
+        - name: blog-engine-config
+          type: secret
+
+  services:
+    author:
+      type: ClusterIP
+      extraSelectorLabels:
+        app.kubernetes.io/component: author
+      ports:
+        - name: http
+          port: 80
+          targetPort: http
+          protocol: TCP
+    web:
+      type: ClusterIP
+      extraSelectorLabels:
+        app.kubernetes.io/component: web
+      ports:
+        - name: http
+          port: 80
+          targetPort: http
+          protocol: TCP

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>{{.Title}}</title>
+    <link rel="stylesheet" href="/static/admin.css" />
+  </head>
+  <body>
+    <nav><a href="/posts">Posts</a> <a href="/create">Create</a></nav>
+    <h1>{{.Title}}</h1>
+    <dl>
+      <dt>Tags</dt>
+      <dd>{{join .Tags ", "}}</dd>
+      <dt>Status</dt>
+      <dd>{{.Status}}</dd>
+      <dt>Latest check</dt>
+      <dd>{{.CheckStatus}}</dd>
+      <dt>Updated</dt>
+      <dd>{{.UpdatedAt.Format "2006-01-02 15:04"}}</dd>
+    </dl>
+    <nav>
+      <a href="/posts/{{.ID}}/edit?source=original">Edit original</a>
+      {{if .Suggested}}<a href="/posts/{{.ID}}/edit?source=suggested"
+        >Edit suggested</a
+      >{{end}}
+      <button type="button" disabled>Publish</button>
+      <button type="button" disabled>Recheck</button>
+    </nav>
+    {{if .CheckSummary}}
+    <section>
+      <h2>Check summary</h2>
+      <p>{{.CheckSummary}}</p>
+    </section>
+    {{end}}
+    <section>
+      <h2>Original</h2>
+      <pre>{{.Source}}</pre>
+    </section>
+    {{if .Suggested}}
+    <section>
+      <h2>Suggested</h2>
+      <pre>{{.Suggested}}</pre>
+    </section>
+    {{end}} {{if .DiffHTML}}
+    <section>
+      <h2>Diff</h2>
+      {{safeHTML .DiffHTML}}
+    </section>
+    {{end}}
+  </body>
+</html>

@@ -8,6 +8,10 @@ locals {
       actions = ["s3:*"]
       public  = false
     }
+    blog-engine = {
+      actions = ["s3:*"]
+      public  = false
+    }
     zuul = {
       actions = ["s3:*"]
       public  = true

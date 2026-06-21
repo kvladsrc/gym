@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Search</title>
+    <link rel="stylesheet" href="/static/web.css" />
+  </head>
+  <body>
+    <form method="get" action="/search">
+      <input type="search" name="q" value="{{.Query}}" />
+      <button type="submit">Search</button>
+    </form>
+    <main>
+      <h1>Search results</h1>
+      <p>No published documents are loaded yet.</p>
+    </main>
+  </body>
+</html>

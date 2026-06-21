@@ -1,0 +1,19 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "worker",
+    srcs = ["worker.go"],
+    importpath = "src/production/docker/blog-engine/internal/worker",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//production/docker/blog-engine/internal/config",
+        "//production/docker/blog-engine/internal/posts",
+    ],
+)
+
+go_test(
+    name = "worker_test",
+    srcs = ["worker_test.go"],
+    embed = [":worker"],
+    deps = ["//production/docker/blog-engine/internal/posts"],
+)

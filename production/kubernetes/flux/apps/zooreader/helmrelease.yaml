@@ -24,4 +24,4 @@ spec:
           containers:
             zooreader:
               # yamllint disable-line rule:line-length
-              imageTag: prod-1781779600-ab62d943388a888528fdbf6e8bff3668b1e963e1 # {"$imagepolicy": "flux-system:zooreader:tag"}
+              imageTag: prod-1781989978-2911937ad7e9049aaa1f71ed78da1bce0991790e # {"$imagepolicy": "flux-system:zooreader:tag"}
