@@ -70,6 +70,23 @@ After fetch, inspect the new graph before rebasing:
 jj log -n 30
 ```
 
+When the user says that the previous Gerrit CL was merged and asks for a new
+CL, do not continue editing the old local change by title alone. Fetch first,
+inspect the graph, and make the next review a fresh change whose parent is the
+current `master@origin` unless the user explicitly wants a stack:
+
+```sh
+jj git fetch
+jj log -n 30
+jj status
+```
+
+If the old local change is already merged upstream, either abandon it after
+verifying it is stale, or create/rebase the intended new change onto
+`master@origin`. Before upload, `jj show --summary` should show only the files
+for the new review and `jj log` should show `@-` at `master@origin` for a
+standalone CL.
+
 Use `jj rebase` for moving local work onto the desired destination. Common
 forms:
 
@@ -184,6 +201,7 @@ Before uploading:
 jj status
 jj log -n 20
 jj show --summary
+jj diff --summary
 ```
 
 Upload only the intended change or stack. Prefer explicit revisions over broad
@@ -200,6 +218,14 @@ updates the existing Gerrit review.
 
 After upload, report the Gerrit URL/change identifiers printed by the command
 and the final `jj status` summary.
+
+Sometimes `jj gerrit upload` succeeds but does not print a Gerrit URL. In that
+case, do not scan all `refs/changes/*` unless there is no better option: first
+use Gerrit query/API tooling if available, or inspect a narrow recent refs
+range. Remember that the commit object in Gerrit can differ from the local
+commit if upload tooling adds a `Change-Id` footer, so matching by local commit
+hash can fail. Matching by subject, `Change-Id`, and changed files is more
+reliable.
 
 ## Safety Rules
 

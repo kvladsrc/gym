@@ -104,7 +104,7 @@ function chooseWeapon(target, distance) {
 
 /**
  * Fire a placeholder weapon when the hero has a valid target.
- * @param {{x: number, y: number, width: number, height: number, facingRight: boolean, fireCooldown: number, attackTimer: number}} player
+ * @param {{x: number, y: number, width: number, height: number, facingRight: boolean, fireCooldown: number, attackTimer: number, weaponTimer: number, weaponState: string}} player
  * @param {{type: string, x: number, y: number, width: number, height: number, hp: number}[]} enemies
  * @param {{type: string, x: number, y: number, vx: number, vy: number, age: number, ttl: number}[]} projectiles
  * @returns {{type: string, x: number, y: number, vx: number, vy: number, age: number, ttl: number}[]}
@@ -120,6 +120,8 @@ export function maybeFireAtTarget(player, enemies, projectiles) {
   const weapon = knifeTarget
     ? "knife"
     : chooseWeapon(target.enemy, target.distance);
+  player.weaponState = weapon === "rifle" ? "pistol" : weapon;
+  player.weaponTimer = LAYOUT.HERO_WEAPON_TTL_FRAMES;
   if (weapon === "knife") {
     player.attackTimer = LAYOUT.ATTACK_TTL_FRAMES;
     return [

@@ -5,7 +5,10 @@ go_library(
     srcs = ["posts.go"],
     importpath = "src/production/docker/blog-engine/internal/posts",
     visibility = ["//visibility:public"],
-    deps = ["@com_github_jackc_pgx_v5//stdlib"],
+    deps = [
+        "@com_github_jackc_pgx_v5//stdlib",
+        "@com_github_pmezard_go_difflib//difflib",
+    ],
 )
 
 go_test(

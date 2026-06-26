@@ -27,6 +27,8 @@ const controls = document.getElementById("controls");
 const loading = document.getElementById("loading");
 const pageNumInput = document.getElementById("page-num");
 const pageCountSpan = document.getElementById("page-count");
+const prevPageButton = document.getElementById("prev-page");
+const nextPageButton = document.getElementById("next-page");
 const zoomOutButton = document.getElementById("zoom-out");
 const zoomInButton = document.getElementById("zoom-in");
 const zoomValue = document.getElementById("zoom-value");
@@ -56,6 +58,7 @@ let bgNeedsRedraw = true;
 let resizeTimeout = null;
 let pdfZoom = 1;
 let terrain = [];
+let terrainTheme = "grass";
 let enemies = [];
 let impactEffects = [];
 let projectiles = [];
@@ -93,6 +96,8 @@ const player = {
   facingRight: true,
   attackTimer: 0,
   fireCooldown: 0,
+  weaponTimer: 0,
+  weaponState: "idle",
   jetpackActive: false,
   turboJetpackActive: false,
 };
@@ -145,6 +150,9 @@ pageNumInput.addEventListener("change", (e) => {
     pageNumInput.value = pageNum;
   }
 });
+
+prevPageButton.addEventListener("click", onPrevPage);
+nextPageButton.addEventListener("click", onNextPage);
 
 zoomOutButton.addEventListener("click", () =>
   setPdfZoom(pdfZoom - LAYOUT.PDF_ZOOM_STEP),
@@ -261,6 +269,7 @@ async function renderPage(num) {
 
   pageRendering = false;
   bgNeedsRedraw = true;
+  updatePageControls();
   generateWorld();
   heroSpeech.maybeRequest(pageNum, pageText);
 
@@ -281,6 +290,13 @@ function setPdfZoom(nextZoom) {
   }
 }
 
+function updatePageControls() {
+  if (!pdfDoc) return;
+
+  prevPageButton.disabled = pageNum <= 1;
+  nextPageButton.disabled = pageNum >= pdfDoc.numPages;
+}
+
 /**
  * Generate deterministic world objects for the current page.
  * Seed is based on pageNum so terrain and actors stay consistent.
@@ -288,6 +304,7 @@ function setPdfZoom(nextZoom) {
 function generateWorld() {
   const world = createPageWorld(pageNum, gameInfo);
   terrain = world.terrain;
+  terrainTheme = world.terrainTheme;
   enemies = world.enemies;
   impactEffects = [];
   projectiles = [];
@@ -399,6 +416,7 @@ function update(dt) {
 
   player.attackTimer = Math.max(0, player.attackTimer - dt);
   player.fireCooldown = Math.max(0, player.fireCooldown - dt);
+  player.weaponTimer = Math.max(0, player.weaponTimer - dt);
   updateEnemies(dt);
   projectiles = maybeFireAtTarget(player, enemies, projectiles);
 
@@ -496,19 +514,94 @@ function drawEnemies() {
   for (const enemy of enemies) {
     gameCtx.save();
     if (enemy.type === "flyer") {
-      gameCtx.fillStyle = "#111";
-      gameCtx.beginPath();
-      gameCtx.arc(
-        enemy.x + enemy.width / 2,
-        enemy.y + enemy.height / 2,
-        enemy.width / 2,
-        0,
-        Math.PI * 2,
-      );
-      gameCtx.fill();
-      gameCtx.fillStyle = "#fff";
-      gameCtx.fillRect(enemy.x + 9, enemy.y + 12, 5, 5);
-      gameCtx.fillRect(enemy.x + enemy.width - 14, enemy.y + 12, 5, 5);
+      if (sprites.gnatFlyer.complete && sprites.gnatFlyer.naturalHeight !== 0) {
+        const frameIndex =
+          Math.floor(animationFrame / 5 + enemy.y / 18) %
+          LAYOUT.FLYER_SPRITE_FRAMES;
+        const frameWidth =
+          sprites.gnatFlyer.naturalWidth / LAYOUT.FLYER_SPRITE_FRAMES;
+        const flyingLeft =
+          enemy.x + enemy.width / 2 > player.x + player.width / 2;
+
+        if (flyingLeft) {
+          gameCtx.translate(enemy.x + enemy.width, enemy.y);
+          gameCtx.scale(-1, 1);
+          gameCtx.drawImage(
+            sprites.gnatFlyer,
+            frameIndex * frameWidth,
+            0,
+            frameWidth,
+            sprites.gnatFlyer.naturalHeight,
+            0,
+            0,
+            enemy.width,
+            enemy.height,
+          );
+        } else {
+          gameCtx.drawImage(
+            sprites.gnatFlyer,
+            frameIndex * frameWidth,
+            0,
+            frameWidth,
+            sprites.gnatFlyer.naturalHeight,
+            enemy.x,
+            enemy.y,
+            enemy.width,
+            enemy.height,
+          );
+        }
+      } else {
+        gameCtx.fillStyle = "#111";
+        gameCtx.beginPath();
+        gameCtx.arc(
+          enemy.x + enemy.width / 2,
+          enemy.y + enemy.height / 2,
+          enemy.width / 2,
+          0,
+          Math.PI * 2,
+        );
+        gameCtx.fill();
+        gameCtx.fillStyle = "#fff";
+        gameCtx.fillRect(enemy.x + 9, enemy.y + 12, 5, 5);
+        gameCtx.fillRect(enemy.x + enemy.width - 14, enemy.y + 12, 5, 5);
+      }
+    } else if (
+      sprites.leechCrawler.complete &&
+      sprites.leechCrawler.naturalHeight !== 0
+    ) {
+      const frameIndex =
+        Math.floor(animationFrame / 8 + enemy.x / 24) %
+        LAYOUT.CRAWLER_SPRITE_FRAMES;
+      const frameWidth =
+        sprites.leechCrawler.naturalWidth / LAYOUT.CRAWLER_SPRITE_FRAMES;
+
+      if (enemy.vx < 0) {
+        gameCtx.translate(enemy.x + enemy.width, enemy.y);
+        gameCtx.scale(-1, 1);
+        gameCtx.drawImage(
+          sprites.leechCrawler,
+          frameIndex * frameWidth,
+          0,
+          frameWidth,
+          sprites.leechCrawler.naturalHeight,
+          0,
+          0,
+          enemy.width,
+          enemy.height,
+        );
+      } else {
+        gameCtx.drawImage(
+          sprites.leechCrawler,
+          frameIndex * frameWidth,
+          0,
+          frameWidth,
+          sprites.leechCrawler.naturalHeight,
+          enemy.x,
+          enemy.y,
+          enemy.width,
+          enemy.height,
+        );
+      }
     } else {
       gameCtx.fillStyle = "#111";
       gameCtx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
@@ -544,9 +637,15 @@ function drawProjectiles() {
       gameCtx.arc(projectile.x, projectile.y, 18, 0, Math.PI * 2);
       gameCtx.fill();
     } else if (projectile.type === "grenade") {
-      gameCtx.beginPath();
-      gameCtx.arc(projectile.x, projectile.y, 7, 0, Math.PI * 2);
-      gameCtx.fill();
+      if (sprites.grenade.complete && sprites.grenade.naturalHeight !== 0) {
+        gameCtx.translate(projectile.x, projectile.y);
+        gameCtx.rotate(projectile.age * 0.3);
+        gameCtx.drawImage(sprites.grenade, -12, -12, 24, 24);
+      } else {
+        gameCtx.beginPath();
+        gameCtx.arc(projectile.x, projectile.y, 7, 0, Math.PI * 2);
+        gameCtx.fill();
+      }
     } else {
       gameCtx.beginPath();
       gameCtx.arc(projectile.x, projectile.y, 4, 0, Math.PI * 2);
@@ -609,8 +708,18 @@ function drawBackground() {
 function drawTerrain() {
   const terrainSegments =
     terrain.length > 0 ? terrain : [{ x: 0, width: gameInfo.width, level: 0 }];
+  const terrainBlock = sprites.terrainBlocks?.[terrainTheme];
+  const loadedTerrainBlock =
+    terrainBlock?.complete && terrainBlock.naturalHeight !== 0
+      ? terrainBlock
+      : Object.values(sprites.terrainBlocks ?? {}).find(
+          (block) => block.complete && block.naturalHeight !== 0,
+        );
 
-  for (const segment of terrainSegments) {
+  if (!loadedTerrainBlock) return;
+
+  for (let index = 0; index < terrainSegments.length; index++) {
+    const segment = terrainSegments[index];
     if (segment.level === 2) {
       continue;
     }
@@ -619,16 +728,36 @@ function drawTerrain() {
       gameInfo.groundY - segment.level * LAYOUT.TERRAIN_LEVEL_HEIGHT;
     const blockSize = LAYOUT.TERRAIN_SEGMENT_WIDTH;
     const drawY = surfaceY;
+    const left = terrainSegments[index - 1];
+    const right = terrainSegments[index + 1];
+    const connectedLeft = left && left.level === segment.level;
+    const connectedRight = right && right.level === segment.level;
 
     gameCtx.save();
-    gameCtx.fillStyle = segment.level === 0 ? "#f7f7f7" : "#e8e8e8";
+    gameCtx.drawImage(
+      loadedTerrainBlock,
+      segment.x,
+      drawY,
+      blockSize,
+      blockSize,
+    );
+
     gameCtx.strokeStyle = "#000";
     gameCtx.lineWidth = 2;
-    gameCtx.fillRect(segment.x, drawY, blockSize, blockSize);
-    gameCtx.strokeRect(segment.x, drawY, blockSize, blockSize);
-
-    gameCtx.fillStyle = "rgba(0, 0, 0, 0.08)";
-    gameCtx.fillRect(segment.x + 6, drawY + 6, blockSize - 12, 8);
+    gameCtx.beginPath();
+    gameCtx.moveTo(segment.x, drawY);
+    gameCtx.lineTo(segment.x + blockSize, drawY);
+    if (!connectedLeft) {
+      gameCtx.moveTo(segment.x, drawY);
+      gameCtx.lineTo(segment.x, drawY + blockSize);
+    }
+    if (!connectedRight) {
+      gameCtx.moveTo(segment.x + blockSize, drawY);
+      gameCtx.lineTo(segment.x + blockSize, drawY + blockSize);
+    }
+    gameCtx.moveTo(segment.x, drawY + blockSize);
+    gameCtx.lineTo(segment.x + blockSize, drawY + blockSize);
+    gameCtx.stroke();
     gameCtx.restore();
   }
 }
@@ -781,8 +910,44 @@ function drawPlayer() {
     gameCtx.translate(-(px + pw / 2), -py);
   }
 
-  if (sprites.player.complete && sprites.player.naturalHeight !== 0) {
-    gameCtx.drawImage(sprites.player, px, py, pw, ph);
+  const moving = Math.abs(player.vx) > 0.4;
+  const stateName =
+    player.weaponTimer > 0
+      ? player.weaponState
+      : player.jetpackActive
+        ? "jetpack"
+        : !player.isGrounded
+          ? "jump"
+          : moving
+            ? "run"
+            : "idle";
+  const playerSprite =
+    sprites.playerStates[stateName] ?? sprites.playerStates.run;
+
+  if (playerSprite.complete && playerSprite.naturalHeight !== 0) {
+    const animated =
+      moving ||
+      player.jetpackActive ||
+      player.weaponTimer > 0 ||
+      !player.isGrounded;
+    const isSheet = playerSprite.naturalWidth > playerSprite.naturalHeight;
+    const frameCount = isSheet ? LAYOUT.PLAYER_SPRITE_FRAMES : 1;
+    const frameIndex =
+      frameCount > 1 && animated
+        ? Math.floor(animationFrame / 7) % frameCount
+        : 0;
+    const frameWidth = playerSprite.naturalWidth / frameCount;
+    gameCtx.drawImage(
+      playerSprite,
+      frameIndex * frameWidth,
+      0,
+      frameWidth,
+      playerSprite.naturalHeight,
+      px,
+      py,
+      pw,
+      ph,
+    );
   } else {
     gameCtx.fillStyle = "#000";
     gameCtx.fillRect(px, py, pw, ph);

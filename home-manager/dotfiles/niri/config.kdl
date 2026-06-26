@@ -69,6 +69,22 @@ animations {
     }
 }
 
+window-rule {
+    match app-id=r#"^gamescope$"#
+
+    default-column-width { proportion 1.0; }
+    open-fullscreen true
+    variable-refresh-rate true
+
+    border {
+        off
+    }
+
+    shadow {
+        off
+    }
+}
+
 prefer-no-csd
 
 xwayland-satellite {

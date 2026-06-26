@@ -5,7 +5,11 @@
     <link rel="stylesheet" href="/static/admin.css" />
   </head>
   <body>
-    <nav><a href="/posts">Posts</a> <a href="/create">Create</a></nav>
+    <nav>
+      <a href="/posts">Posts</a> <a href="/create">Create</a>
+      <a href="/help">Help</a>
+      {{if .PublicBlog}}<a href="{{.PublicBlog}}">Blog</a>{{end}}
+    </nav>
     <h1>Posts</h1>
     <table>
       <thead>
@@ -18,7 +22,7 @@
         </tr>
       </thead>
       <tbody>
-        {{range .}}
+        {{range .Posts}}
         <tr>
           <td><a href="/posts/{{.ID}}">{{.Title}}</a></td>
           <td>{{join .Tags ", "}}</td>

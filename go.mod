@@ -8,6 +8,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/google/generative-ai-go v0.20.1
 	github.com/jackc/pgx/v5 v5.10.0
+	github.com/pmezard/go-difflib v1.0.0
 	google.golang.org/api v0.186.0
 	gopkg.in/yaml.v3 v3.0.1
 )

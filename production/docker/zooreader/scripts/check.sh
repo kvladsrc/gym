@@ -11,14 +11,21 @@ APP_DIR="production/docker/zooreader"
 
 cd "$ROOT"
 mapfile -t JS_FILES < <(find "$APP_DIR" -name '*.js' | sort)
+mapfile -t MJS_FILES < <(find "$APP_DIR" -name '*.mjs' | sort)
+mapfile -t PNG_FILES < <(find "$APP_DIR" -name '*.png' | sort)
+mapfile -t SH_FILES < <(find "$APP_DIR/scripts" -name '*.sh' | sort)
 
 FILES=(
     "${APP_DIR}/Dockerfile"
+    "${APP_DIR}/ASSET_PIPELINE.md"
     "${APP_DIR}/PLAN.md"
     "${APP_DIR}/index.html"
     "${APP_DIR}/nginx.conf"
     "${APP_DIR}/style.css"
     "${JS_FILES[@]}"
+    "${MJS_FILES[@]}"
+    "${SH_FILES[@]}"
+    "${PNG_FILES[@]}"
 )
 
 for dep in node pre-commit; do
@@ -33,6 +40,12 @@ echo "-> Checking JavaScript syntax"
 for js_file in "${JS_FILES[@]}"; do
     node --check "$js_file"
 done
+for js_file in "${MJS_FILES[@]}"; do
+    node --check "$js_file"
+done
+
+echo "-> Checking asset dimensions"
+bash "${APP_DIR}/scripts/check-assets.sh"
 
 echo "-> Running targeted pre-commit hooks"
 pre-commit run --files "${FILES[@]}"

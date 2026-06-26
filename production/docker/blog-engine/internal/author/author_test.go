@@ -15,19 +15,22 @@ import (
 func TestPages(t *testing.T) {
 	now := time.Date(2026, 6, 20, 12, 30, 0, 0, time.UTC)
 	app := app{
+		publicBlog: "https://blog.example.test",
 		store: &fakeStore{
 			list: []posts.Post{
 				{
-					ID:          1,
-					RevisionID:  1,
-					Title:       "First post",
-					Tags:        []string{"go", "blog"},
-					Source:      "* Heading",
-					Suggested:   "* Better heading",
-					DiffHTML:    "<pre>diff</pre>",
-					Status:      posts.StatusPendingCheck,
-					CheckStatus: "",
-					UpdatedAt:   now,
+					ID:                  1,
+					RevisionID:          1,
+					PublishedRevisionID: 1,
+					PublishedPath:       "/posts/A0.html",
+					Title:               "First post",
+					Tags:                []string{"go", "blog"},
+					Source:              "* Heading",
+					Suggested:           "* Better heading",
+					DiffHTML:            "<pre>diff</pre>",
+					Status:              posts.StatusPending,
+					CheckStatus:         "",
+					UpdatedAt:           now,
 				},
 			},
 		},
@@ -43,7 +46,10 @@ func TestPages(t *testing.T) {
 			path:    "/posts",
 			handler: app.posts,
 			want: []string{
-				`<nav><a href="/posts">Posts</a> <a href="/create">Create</a></nav>`,
+				`href="/posts">Posts</a>`,
+				`href="/create">Create</a>`,
+				`href="/help">Help</a>`,
+				`href="https://blog.example.test">Blog</a>`,
 				"<h1>Posts</h1>",
 				"<table>",
 				"<th>Status</th>",
@@ -57,7 +63,10 @@ func TestPages(t *testing.T) {
 			path:    "/create",
 			handler: app.create,
 			want: []string{
-				`<nav><a href="/posts">Posts</a> <a href="/create">Create</a></nav>`,
+				`href="/posts">Posts</a>`,
+				`href="/create">Create</a>`,
+				`href="/help">Help</a>`,
+				`href="https://blog.example.test">Blog</a>`,
 				`<form method="post" action="/posts">`,
 				`name="title"`,
 				`name="tags"`,
@@ -70,12 +79,21 @@ func TestPages(t *testing.T) {
 			path:    "/posts/1",
 			handler: app.postDetail,
 			want: []string{
-				`<nav><a href="/posts">Posts</a> <a href="/create">Create</a></nav>`,
+				`href="/posts">Posts</a>`,
+				`href="/create">Create</a>`,
+				`href="/help">Help</a>`,
+				`href="https://blog.example.test">Blog</a>`,
 				"<h1>First post</h1>",
 				"Edit original",
 				"Edit suggested",
 				"Publish",
+				`action="/posts/1/publish"`,
+				`action="/posts/1/recheck"`,
 				"Recheck",
+				"Latest revision",
+				"Published revision",
+				"Published post",
+				`href="https://blog.example.test/posts/A0.html"`,
 				"* Heading",
 				"* Better heading",
 				"<pre>diff</pre>",
@@ -86,11 +104,31 @@ func TestPages(t *testing.T) {
 			path:    "/posts/1/edit",
 			handler: app.edit,
 			want: []string{
-				`<nav><a href="/posts">Posts</a> <a href="/create">Create</a></nav>`,
+				`href="/posts">Posts</a>`,
+				`href="/create">Create</a>`,
+				`href="/help">Help</a>`,
+				`href="https://blog.example.test">Blog</a>`,
 				"<h1>Edit post</h1>",
 				`action="/posts/1/revisions"`,
 				`value="First post"`,
 				"* Heading",
+			},
+		},
+		{
+			name:    "help page renders markup reference",
+			path:    "/help",
+			handler: app.help,
+			want: []string{
+				`href="https://blog.example.test">Blog</a>`,
+				"<h1>Help</h1>",
+				"<h2>Inline markup</h2>",
+				"<code>*bold*</code>",
+				"<code>/italic/</code>",
+				"<code>_underline_</code>",
+				"<code>=verbatim=</code>",
+				"<code>~code~</code>",
+				"<code>+strike-through+</code>",
+				"<code>[[https://example.com][a link]]</code>",
 			},
 		},
 		{
@@ -270,6 +308,52 @@ func TestUpdatePost(t *testing.T) {
 	}
 }
 
+func TestRecheckPost(t *testing.T) {
+	store := &fakeStore{}
+	app := app{store: store}
+	req := httptest.NewRequest(http.MethodPost, "/posts/1/recheck", nil)
+	req.SetPathValue("id", "1")
+	rec := httptest.NewRecorder()
+
+	app.recheckPost(rec, req)
+
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusSeeOther)
+	}
+	if location := rec.Header().Get("Location"); location != "/posts/1" {
+		t.Fatalf("Location = %q, want %q", location, "/posts/1")
+	}
+	if len(store.rechecked) != 1 {
+		t.Fatalf("rechecked posts = %d, want 1", len(store.rechecked))
+	}
+	if store.rechecked[0] != 1 {
+		t.Fatalf("rechecked post = %d, want 1", store.rechecked[0])
+	}
+}
+
+func TestPublishPost(t *testing.T) {
+	store := &fakeStore{}
+	app := app{store: store}
+	req := httptest.NewRequest(http.MethodPost, "/posts/1/publish", nil)
+	req.SetPathValue("id", "1")
+	rec := httptest.NewRecorder()
+
+	app.publishPost(rec, req)
+
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusSeeOther)
+	}
+	if location := rec.Header().Get("Location"); location != "/posts/1" {
+		t.Fatalf("Location = %q, want %q", location, "/posts/1")
+	}
+	if len(store.published) != 1 {
+		t.Fatalf("published posts = %d, want 1", len(store.published))
+	}
+	if store.published[0] != 1 {
+		t.Fatalf("published post = %d, want 1", store.published[0])
+	}
+}
+
 func TestHomeRedirectsToPosts(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
@@ -284,10 +368,69 @@ func TestHomeRedirectsToPosts(t *testing.T) {
 	}
 }
 
+func TestCanPublish(t *testing.T) {
+	tests := []struct {
+		status string
+		want   bool
+	}{
+		{status: posts.StatusPending, want: true},
+		{status: posts.StatusNeedsChanges, want: true},
+		{status: posts.StatusReady, want: true},
+		{status: posts.StatusError, want: true},
+		{status: posts.StatusChecking, want: false},
+		{status: posts.StatusPublishing, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.status, func(t *testing.T) {
+			if got := canPublish(posts.Post{Status: tt.status}); got != tt.want {
+				t.Fatalf("canPublish(%q) = %t, want %t", tt.status, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPublicPostURL(t *testing.T) {
+	tests := []struct {
+		name string
+		base string
+		path string
+		want string
+	}{
+		{
+			name: "joins base and path",
+			base: "https://blog.example.test",
+			path: "/posts/A0.html",
+			want: "https://blog.example.test/posts/A0.html",
+		},
+		{
+			name: "preserves base path",
+			base: "https://example.test/blog/",
+			path: "posts/A0.html",
+			want: "https://example.test/blog/posts/A0.html",
+		},
+		{
+			name: "requires published path",
+			base: "https://blog.example.test",
+			want: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := publicPostURL(tt.base, tt.path); got != tt.want {
+				t.Fatalf("publicPostURL(%q, %q) = %q, want %q", tt.base, tt.path, got, tt.want)
+			}
+		})
+	}
+}
+
 type fakeStore struct {
-	list    []posts.Post
-	created []posts.CreateInput
-	updated []posts.UpdateInput
+	list      []posts.Post
+	created   []posts.CreateInput
+	published []int64
+	rechecked []int64
+	updated   []posts.UpdateInput
 }
 
 func (store *fakeStore) Create(_ context.Context, input posts.CreateInput) (posts.Post, error) {
@@ -306,6 +449,16 @@ func (store *fakeStore) Get(_ context.Context, id int64) (posts.Post, error) {
 		}
 	}
 	return posts.Post{}, nil
+}
+
+func (store *fakeStore) Publish(_ context.Context, id int64) (posts.Post, error) {
+	store.published = append(store.published, id)
+	return posts.Post{ID: id}, nil
+}
+
+func (store *fakeStore) Recheck(_ context.Context, id int64) (posts.Post, error) {
+	store.rechecked = append(store.rechecked, id)
+	return posts.Post{ID: id}, nil
 }
 
 func (store *fakeStore) Update(_ context.Context, _ int64, input posts.UpdateInput) (posts.Post, error) {

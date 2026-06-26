@@ -77,6 +77,24 @@ Inspect recent builds or buildsets:
 .agents/skills/zuul/scripts/zuul-api '/tenant/your.domain/buildsets?limit=20'
 ```
 
+For a Gerrit change, prefer filtering by change number and always check the
+patchset before treating a result as current:
+
+```sh
+.agents/skills/zuul/scripts/zuul-api '/tenant/your.domain/buildsets?change=9234&limit=5'
+.agents/skills/zuul/scripts/zuul-api '/tenant/your.domain/builds?change=9234&limit=20'
+.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/status
+```
+
+Old failed buildsets remain visible after a new patchset is uploaded. A
+current buildset can have `result: null` while jobs are still running, and
+briefly even after the last job reports `SUCCESS` while Zuul reports back to
+Gerrit. Wait for the buildset result to become `SUCCESS` or `FAILURE` before
+giving a final CI answer.
+
+When a job fails, use the `log_url` from the builds API and read the relevant
+log excerpt. Keep the final report tied to the exact change and patchset.
+
 ## Authentik Validation
 
 When changing Zuul Authentik proxy settings, verify that API endpoints do not

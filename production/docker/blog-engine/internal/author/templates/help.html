@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Help</title>
+    <link rel="stylesheet" href="/static/admin.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="/posts">Posts</a> <a href="/create">Create</a>
+      <a href="/help">Help</a>
+      {{if .PublicBlog}}<a href="{{.PublicBlog}}">Blog</a>{{end}}
+    </nav>
+    <h1>Help</h1>
+    <section>
+      <h2>Inline markup</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Markup</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>*bold*</code></td>
+            <td>bold object</td>
+          </tr>
+          <tr>
+            <td><code>/italic/</code></td>
+            <td>italic object</td>
+          </tr>
+          <tr>
+            <td><code>_underline_</code></td>
+            <td>underline object</td>
+          </tr>
+          <tr>
+            <td><code>=verbatim=</code></td>
+            <td>verbatim object</td>
+          </tr>
+          <tr>
+            <td><code>~code~</code></td>
+            <td>code object</td>
+          </tr>
+          <tr>
+            <td><code>+strike-through+</code></td>
+            <td>strike-through object</td>
+          </tr>
+          <tr>
+            <td><code>[[https://example.com][a link]]</code></td>
+            <td>link object</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </body>
+</html>

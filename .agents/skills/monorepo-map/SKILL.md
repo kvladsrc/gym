@@ -60,6 +60,9 @@ Gerrit/Jujutsu as the change workflow:
 2. Move that task to `Work in progress` before editing.
 3. Create a focused `jj` change for the task. If another CL is open, create a
    separate sibling change from `master@origin` unless a stack is intended.
+   If the previous CL was just merged, fetch first and make the next CL a
+   fresh change on the updated `master@origin`; do not keep editing a stale
+   local change that only happens to have a familiar title.
 4. Implement the smallest reviewable change and run the narrowest relevant
    validation through `/nix/var/nix/profiles/default/bin/nix develop -c just`.
 5. Describe the change non-interactively with `jj desc`, including the

@@ -1,6 +1,7 @@
 import { LAYOUT } from "./config.js";
 
 const GAP_LEVEL = 2;
+const TERRAIN_THEMES = ["grass", "snow", "desert"];
 const ALLOWED_NEXT_LEVELS = {
   0: [0, GAP_LEVEL],
   1: [1, GAP_LEVEL],
@@ -199,12 +200,14 @@ export function terrainGroundAtX(terrain, x, gameInfo) {
  *     maxX?: number,
  *   }[],
  *   terrain: {x: number, width: number, level: number}[],
+ *   terrainTheme: string,
  * }}
  */
 export function createPageWorld(pageNum, gameInfo) {
   const seed = Math.imul(pageNum, 0x9e3779b1) >>> 0;
   const numCrawlers = 2 + ((seed >> 2) % 3);
   const numFlyers = 1 + ((seed >> 6) % 2);
+  const terrainTheme = TERRAIN_THEMES[(seed >> 10) % TERRAIN_THEMES.length];
   const terrain = createTerrain(seed, gameInfo);
   const enemies = [];
 
@@ -218,9 +221,9 @@ export function createPageWorld(pageNum, gameInfo) {
     enemies.push({
       type: "crawler",
       x: enemyX,
-      y: terrainGround.groundY - LAYOUT.ENEMY_SIZE,
-      width: LAYOUT.ENEMY_SIZE,
-      height: LAYOUT.ENEMY_SIZE,
+      y: terrainGround.groundY - LAYOUT.CRAWLER_HEIGHT,
+      width: LAYOUT.CRAWLER_WIDTH,
+      height: LAYOUT.CRAWLER_HEIGHT,
       hp: 1,
       vx: i % 2 === 0 ? LAYOUT.CRAWLER_SPEED : -LAYOUT.CRAWLER_SPEED,
       minX: bounds.minX,
@@ -232,15 +235,15 @@ export function createPageWorld(pageNum, gameInfo) {
     const fromLeft = ((seed >> (8 + i)) & 1) === 0;
     enemies.push({
       type: "flyer",
-      x: fromLeft ? -LAYOUT.ENEMY_SIZE : gameInfo.width + LAYOUT.ENEMY_SIZE,
+      x: fromLeft ? -LAYOUT.FLYER_WIDTH : gameInfo.width + LAYOUT.FLYER_WIDTH,
       y:
         gameInfo.gameHeight * 0.52 +
         ((seed * 31 + i * 97) % Math.max(1, gameInfo.gameHeight * 0.28)),
-      width: LAYOUT.ENEMY_SIZE,
-      height: LAYOUT.ENEMY_SIZE,
+      width: LAYOUT.FLYER_WIDTH,
+      height: LAYOUT.FLYER_HEIGHT,
       hp: 1,
     });
   }
 
-  return { enemies, terrain };
+  return { enemies, terrain, terrainTheme };
 }

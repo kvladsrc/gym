@@ -15,6 +15,7 @@ type Config struct {
 	S3         S3Config         `yaml:"s3"`
 	OpenAI     OpenAIConfig     `yaml:"openai"`
 	Publishing PublishingConfig `yaml:"publishing"`
+	Worker     WorkerConfig     `yaml:"worker"`
 }
 
 // ServiceConfig identifies this blog engine deployment.
@@ -52,9 +53,13 @@ type OpenAIConfig struct {
 
 // PublishingConfig contains static publication naming settings.
 type PublishingConfig struct {
-	BaseURL           string `yaml:"base_url"`
-	ReleasePrefix     string `yaml:"release_prefix"`
-	CurrentPointerKey string `yaml:"current_pointer_key"`
+	BaseURL  string `yaml:"base_url"`
+	StateKey string `yaml:"state_key"`
+}
+
+// WorkerConfig contains background worker scheduling settings.
+type WorkerConfig struct {
+	PollInterval string `yaml:"poll_interval"`
 }
 
 // Load reads, parses, and validates a YAML config file.
@@ -77,21 +82,20 @@ func Load(path string) (Config, error) {
 // Validate checks that required config fields are present.
 func (cfg Config) Validate() error {
 	required := map[string]string{
-		"service.name":                   cfg.Service.Name,
-		"http.author_addr":               cfg.HTTP.AuthorAddr,
-		"http.web_addr":                  cfg.HTTP.WebAddr,
-		"database.dsn":                   cfg.Database.DSN,
-		"s3.endpoint":                    cfg.S3.Endpoint,
-		"s3.region":                      cfg.S3.Region,
-		"s3.access_key":                  cfg.S3.AccessKey,
-		"s3.secret_key":                  cfg.S3.SecretKey,
-		"s3.author_bucket":               cfg.S3.AuthorBucket,
-		"s3.public_bucket":               cfg.S3.PublicBucket,
-		"openai.api_key":                 cfg.OpenAI.APIKey,
-		"openai.model":                   cfg.OpenAI.Model,
-		"publishing.base_url":            cfg.Publishing.BaseURL,
-		"publishing.release_prefix":      cfg.Publishing.ReleasePrefix,
-		"publishing.current_pointer_key": cfg.Publishing.CurrentPointerKey,
+		"service.name":         cfg.Service.Name,
+		"http.author_addr":     cfg.HTTP.AuthorAddr,
+		"http.web_addr":        cfg.HTTP.WebAddr,
+		"database.dsn":         cfg.Database.DSN,
+		"s3.endpoint":          cfg.S3.Endpoint,
+		"s3.region":            cfg.S3.Region,
+		"s3.access_key":        cfg.S3.AccessKey,
+		"s3.secret_key":        cfg.S3.SecretKey,
+		"s3.author_bucket":     cfg.S3.AuthorBucket,
+		"s3.public_bucket":     cfg.S3.PublicBucket,
+		"openai.api_key":       cfg.OpenAI.APIKey,
+		"openai.model":         cfg.OpenAI.Model,
+		"publishing.base_url":  cfg.Publishing.BaseURL,
+		"publishing.state_key": cfg.Publishing.StateKey,
 	}
 	for field, value := range required {
 		if value == "" {

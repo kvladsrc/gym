@@ -1,6 +1,7 @@
 body {
-  color: #202124;
-  font-family: system-ui, sans-serif;
+  background: #edf6e6;
+  color: #1f211c;
+  font-family: "Mononoki Nerd Font", "Mononoki", ui-monospace, monospace;
   line-height: 1.5;
   margin: 2rem auto;
   max-width: 72rem;
@@ -8,7 +9,23 @@ body {
 }
 
 a {
-  color: #0b57d0;
+  color: #00708a;
+}
+
+a:visited {
+  color: #6b3fb1;
+}
+
+h1 {
+  color: #9a4a5d;
+}
+
+h2 {
+  color: #2d6d3c;
+}
+
+h3 {
+  color: #00708a;
 }
 
 nav {
@@ -18,15 +35,22 @@ nav {
 }
 
 table {
+  background: #f8fcf3;
+  border: 1px solid #9db18f;
   border-collapse: collapse;
   width: 100%;
 }
 
 td,
 th {
-  border-bottom: 1px solid #dadce0;
+  border: 1px solid #9db18f;
   padding: 0.5rem;
   text-align: left;
+}
+
+th {
+  background: #d7e8c8;
+  color: #2d6d3c;
 }
 
 form {
@@ -39,19 +63,117 @@ label {
   gap: 0.25rem;
 }
 
+.checkbox-field {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.checkbox-field input {
+  margin: 0;
+}
+
 input,
 textarea {
+  background: #f8fcf3;
+  border: 1px solid #9db18f;
+  color: inherit;
   font: inherit;
+  padding: 0.35rem;
+}
+
+button {
+  background: #d7e8c8;
+  border: 1px solid #7a8f6f;
+  color: #1f211c;
+  font: inherit;
+  padding: 0.35rem 0.65rem;
+}
+
+.post-detail {
+  align-items: start;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+}
+
+.post-content {
+  min-width: 0;
+}
+
+.post-header {
+  border-bottom: 1px solid #9db18f;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+}
+
+.post-header h1 {
+  margin-bottom: 0.25rem;
+}
+
+.post-meta {
+  color: #708068;
+  margin: 0;
+}
+
+.post-sidebar {
+  background: #f8fcf3;
+  border: 1px solid #9db18f;
+  padding: 1rem;
+}
+
+.post-sidebar h2 {
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.post-sidebar section + section {
+  border-top: 1px solid #d7e8c8;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.meta-list {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.meta-list dt {
+  color: #708068;
+  font-size: 0.9rem;
+}
+
+.meta-list dd {
+  margin: 0 0 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.actions form {
+  display: block;
+}
+
+@media (max-width: 56rem) {
+  .post-detail {
+    grid-template-columns: 1fr;
+  }
 }
 
 pre {
-  background: #f8f9fa;
+  background: #f8fcf3;
+  border: 1px solid #9db18f;
   overflow: auto;
   padding: 1rem;
 }
 
 .error {
-  color: #b3261e;
+  color: #a04418;
 }
 
 .diff-line {
@@ -59,9 +181,14 @@ pre {
 }
 
 .diff-line.add {
-  background: #e6f4ea;
+  background: #d7e8c8;
 }
 
 .diff-line.del {
-  background: #fce8e6;
+  background: #ead8d6;
+}
+
+.diff-line.meta {
+  color: #708068;
+  font-weight: 600;
 }

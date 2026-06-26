@@ -26,6 +26,18 @@ If a Nix command fails with cache, daemon, or sandbox access errors, rerun the
 same command outside the sandbox (accepting the permission prompt if one
 appears) rather than bypassing the toolchain.
 
+In managed agent sandboxes, the common Nix failure mode is:
+
+```text
+cannot connect to socket at '/nix/var/nix/daemon-socket/socket':
+Operation not permitted
+```
+
+Rerun the exact same command with elevated sandbox permissions. Warnings such
+as `SQLite database ... eval-cache ... is busy` are usually Nix cache noise
+when the command exits successfully; do not treat them as failures by
+themselves.
+
 ## Just Recipes
 
 Use `just` as the entry point for repository tasks. List available recipes
@@ -76,6 +88,20 @@ touches shared tooling or cross-project behavior:
 Some pre-commit hooks can auto-fix on the first pass. If `just lint` reports
 "files were modified by this hook", inspect the changes, make the generator
 produce that format directly, then rerun `just lint`.
+
+For Go changes that add or remove module dependencies, check all three
+integration points:
+
+```sh
+go.mod
+go.sum
+MODULE.bazel
+MODULE.bazel.lock
+```
+
+`go.sum` may already contain the needed checksum and remain unchanged. Bazel
+commands can update `MODULE.bazel.lock`; inspect the lockfile after tests and
+include it only when it reflects the dependency change.
 
 ## Repository Hygiene
 
