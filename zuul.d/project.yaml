@@ -18,6 +18,7 @@
         - gdlint
     gate:
       jobs:
+        - noop
         - build-blog-engine-image
         - build-node-image
         - build-zooreader-image

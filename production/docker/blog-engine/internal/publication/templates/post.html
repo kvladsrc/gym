@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{.Title}}</title>
+    {{if .CanonicalPath}}
+    <link rel="canonical" href="{{.CanonicalPath}}" />
+    {{end}}
+    <link rel="stylesheet" href="/public.css" />
+  </head>
+  <body>
+    <article>
+      <h1>{{.Title}}</h1>
+      <p class="post-meta">Published {{.PublishedOn}}</p>
+      {{.TagsHTML}} {{.BodyHTML}}
+    </article>
+    {{.NavHTML}}
+  </body>
+</html>

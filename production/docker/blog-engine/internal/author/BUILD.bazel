@@ -7,6 +7,7 @@ go_library(
         "static/admin.css",
         "templates/detail.html",
         "templates/edit.html",
+        "templates/help.html",
         "templates/posts.html",
     ],
     importpath = "src/production/docker/blog-engine/internal/author",

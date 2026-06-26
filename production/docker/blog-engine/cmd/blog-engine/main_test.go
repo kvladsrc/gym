@@ -91,6 +91,7 @@ openai:
   model: "gpt-4.1-mini"
 publishing:
   base_url: "https://blog.example"
-  release_prefix: "releases/"
-  current_pointer_key: "current.json"
+  state_key: "state.json"
+worker:
+  poll_interval: "30s"
 `

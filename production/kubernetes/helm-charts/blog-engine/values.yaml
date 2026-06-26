@@ -27,8 +27,9 @@ global:
         model: "gpt-5.4-nano"
       publishing:
         baseURL: "https://blog.your.domain"
-        releasePrefix: "releases/"
-        currentPointerKey: "current.json"
+        stateKey: "state.json"
+      worker:
+        pollInterval: "30s"
 
 configYaml: &configYaml |
   {{- $config := .Values.global.blogEngine.config }}
@@ -36,6 +37,7 @@ configYaml: &configYaml |
   {{- $s3 := $config.s3 }}
   {{- $openai := $config.openai }}
   {{- $publishing := $config.publishing }}
+  {{- $worker := $config.worker }}
   {{- $f := "postgres://%s:%s@%s:%v/%s?sslmode=%s" }}
   {{- $u := $db.username }}
   {{- $p := $db.password }}
@@ -69,8 +71,10 @@ configYaml: &configYaml |
 
   publishing:
     base_url: {{ $publishing.baseURL | quote }}
-    release_prefix: {{ $publishing.releasePrefix | quote }}
-    current_pointer_key: {{ $publishing.currentPointerKey | quote }}
+    state_key: {{ $publishing.stateKey | quote }}
+
+  worker:
+    poll_interval: {{ $worker.pollInterval | quote }}
 
 image: &blogEngineImage
   image: registry.your.domain/blog-engine

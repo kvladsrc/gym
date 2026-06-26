@@ -1,63 +1,116 @@
 package web
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"src/production/docker/blog-engine/internal/objectstore"
 )
 
-func TestPages(t *testing.T) {
-	tests := []struct {
-		name    string
-		path    string
-		handler http.HandlerFunc
-		want    []string
-		forbid  []string
-	}{
-		{
-			name:    "home renders search form",
-			path:    "/",
-			handler: home,
-			want: []string{
-				`<form method="get" action="/search">`,
-				`<h1>Blog</h1>`,
+func TestProxyServesStaticObject(t *testing.T) {
+	store := fakeStore{
+		objects: map[string]objectstore.Object{
+			"public/index.html": {
+				Body:        []byte("<!doctype html><h1>Published</h1>"),
+				ContentType: "text/html; charset=utf-8",
 			},
 		},
+	}
+	app := app{store: store, bucket: "public"}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	app.proxy(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if rec.Header().Get("Content-Type") != "text/html; charset=utf-8" {
+		t.Fatalf("content type = %q", rec.Header().Get("Content-Type"))
+	}
+	if !strings.Contains(rec.Body.String(), "<h1>Published</h1>") {
+		t.Fatalf("body = %q", rec.Body.String())
+	}
+}
+
+func TestProxyReturnsNotFoundForMissingObject(t *testing.T) {
+	app := app{
+		store:  fakeStore{objects: map[string]objectstore.Object{}},
+		bucket: "public",
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	app.proxy(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusNotFound)
+	}
+}
+
+func TestRequestObjectKey(t *testing.T) {
+	tests := []struct {
+		name        string
+		requestPath string
+		want        string
+		wantErr     bool
+	}{
 		{
-			name:    "search escapes query",
-			path:    `/search?q=%22%3E%3Cscript%3Ealert(1)%3C/script%3E`,
-			handler: search,
-			want: []string{
-				`&#34;&gt;&lt;script&gt;alert(1)&lt;/script&gt;`,
-			},
-			forbid: []string{
-				`<script>alert(1)</script>`,
-			},
+			name:        "home",
+			requestPath: "/",
+			want:        "index.html",
+		},
+		{
+			name:        "nested index",
+			requestPath: "/tags/go/",
+			want:        "tags/go/index.html",
+		},
+		{
+			name:        "post",
+			requestPath: "/posts/A1.html",
+			want:        "posts/A1.html",
+		},
+		{
+			name:        "reject traversal",
+			requestPath: "/../secret",
+			wantErr:     true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
-			rec := httptest.NewRecorder()
-
-			tt.handler(rec, req)
-
-			if rec.Code != http.StatusOK {
-				t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
-			}
-			body := rec.Body.String()
-			for _, want := range tt.want {
-				if !strings.Contains(body, want) {
-					t.Fatalf("body missing %q:\n%s", want, body)
+			got, err := requestObjectKey(tt.requestPath)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatalf("requestObjectKey() returned nil error")
 				}
+				return
 			}
-			for _, forbid := range tt.forbid {
-				if strings.Contains(body, forbid) {
-					t.Fatalf("body contains forbidden %q:\n%s", forbid, body)
-				}
+			if err != nil {
+				t.Fatalf("requestObjectKey() returned error: %v", err)
+			}
+			if got != tt.want {
+				t.Fatalf("key = %q, want %q", got, tt.want)
 			}
 		})
 	}
+}
+
+type fakeStore struct {
+	objects map[string]objectstore.Object
+}
+
+func (store fakeStore) Get(_ context.Context, bucket string, key string) (objectstore.Object, error) {
+	object, ok := store.objects[bucket+"/"+key]
+	if !ok {
+		return objectstore.Object{}, objectstore.ErrNotFound
+	}
+	if strings.Contains(string(object.Body), "force-error") {
+		return objectstore.Object{}, errors.New("forced")
+	}
+	return object, nil
 }

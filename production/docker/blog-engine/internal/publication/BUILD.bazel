@@ -1,0 +1,28 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "publication",
+    srcs = ["publication.go"],
+    embedsrcs = [
+        "static/public.css",
+        "templates/feed.html",
+        "templates/post.html",
+    ],
+    importpath = "src/production/docker/blog-engine/internal/publication",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//production/docker/blog-engine/internal/config",
+        "//production/docker/blog-engine/internal/objectstore",
+        "//production/docker/blog-engine/internal/posts",
+    ],
+)
+
+go_test(
+    name = "publication_test",
+    srcs = ["publication_test.go"],
+    embed = [":publication"],
+    deps = [
+        "//production/docker/blog-engine/internal/objectstore",
+        "//production/docker/blog-engine/internal/posts",
+    ],
+)

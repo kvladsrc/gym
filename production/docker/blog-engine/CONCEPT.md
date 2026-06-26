@@ -81,8 +81,8 @@ newer revision is explicitly published.
 
 ### Worker
 
-The worker processes durable jobs stored in PostgreSQL. It should use
-database leases or row locking so multiple workers can run safely.
+The worker processes posts whose latest revision is marked `pending`
+in PostgreSQL.
 
 The first check is grammar-only:
 
@@ -95,7 +95,8 @@ The first check is grammar-only:
 For a successful check:
 
 - if `Publish after checks pass` is false, the post becomes `ready`
-- if `Publish after checks pass` is true, the worker publishes it
+- if `Publish after checks pass` is true, the revision becomes
+  `pending_publish`
 
 For a failed check:
 
@@ -113,29 +114,26 @@ Responsibilities:
 - serve post pages
 - serve the main feed page
 - serve tag pages
-- handle search requests by searching over the loaded published
-  documents
 
 The web component may keep an in-memory or local-disk cache of objects
 loaded from S3, but S3 remains the source of truth.
 
-Public pages should remain plain HTML and CSS. Search is server-side:
-
-```text
-GET /search?q=distributed+systems
-```
-
-The response is a normal HTML search results page.
+Public pages should remain plain HTML and CSS.
 
 ## Data Ownership
 
 PostgreSQL stores author workflow state:
 
 - posts
-- post revisions
-- check runs
-- jobs
-- releases
+- revisions
+- checks
+
+`posts` group immutable revisions and point at the revision shown in
+the author table. A revision stores the full post snapshot: title,
+tags, source, workflow status, and author options. Checks are
+append-only records linked to revisions; `revisions.latest_check_id`
+points at the current author-visible check. Check request and response
+payloads are stored as JSON.
 
 S3 stores larger immutable artifacts:
 
@@ -143,18 +141,21 @@ S3 stores larger immutable artifacts:
 - model-suggested org source
 - rendered diff HTML
 - rendered public HTML/CSS
-- generated search index or document snapshots
 
-The public web component reads only published S3 artifacts. It should
-not need database credentials.
+The public web component is a small reverse proxy over published S3
+artifacts. It maps incoming paths directly to public bucket object keys
+and should not need database credentials.
 
 ## Post Statuses
 
-Initial statuses:
+Initial revision statuses:
 
-- `checking` - a revision was submitted and checks are running
+- `pending` - a revision was submitted and is waiting for checks
+- `checking` - checks are running for the revision
 - `needs_changes` - grammar check found necessary changes
 - `ready` - checks passed and the post is waiting for manual publish
+- `pending_publish` - a revision is queued for publication
+- `publishing` - the worker is publishing the revision
 - `published` - a revision is currently published
 - `error` - the pipeline failed for a technical reason
 - `archived` - hidden from the active author workflow
@@ -191,7 +192,7 @@ Actions:
 - `Edit original`
 - `Edit suggested`, when a suggested version exists
 - `Recheck`
-- `Publish`, when the latest revision is publishable
+- `Publish`
 - `Archive`
 
 `Edit suggested` opens the create/edit form with the model-suggested
@@ -222,7 +223,6 @@ The public blog is a minimal rendered site:
 - main feed with recent posts
 - individual post pages
 - tag pages
-- server-side search
 - RSS or Atom feed later
 
 No calendar archive is planned for the MVP.
@@ -233,9 +233,6 @@ Tags are clickable and lead to statically generated tag pages:
 /tags/go/
 /tags/distributed-systems/
 ```
-
-Search is handled by the public `web` command over documents loaded
-from S3.  The search page and results page are plain HTML.
 
 ## Org-Mode Subset
 
@@ -253,27 +250,47 @@ clearly when unsupported syntax would produce surprising output.
 
 ## Publishing Model
 
-Revisions are immutable. Publishing a post means selecting one checked
-revision and rendering it into the public artifact set.
+Published post files are immutable after their real post content is
+written. Feed files and preallocated placeholder files are mutable static
+artifacts that are rewritten when new posts are published.
 
-The public release should be switchable atomically. A simple
-implementation can write rendered files under a release prefix and
-then update a small current pointer object:
+The public bucket uses a flat linked-list layout:
 
 ```text
-releases/<release-id>/...
-current.json
+index.html
+posts/<key>.html
+tags/<tag>/<key>.html
+tags/<tag>/index.html
+state.json
 ```
 
-The web component reads `current.json` and serves the referenced
-release.
+`index.html` is the static main feed with recent posts. Each
+`tags/<tag>/index.html` is the static tag feed for that tag. Feed
+entries contain the post title, date, tags, public URL, and an excerpt.
+`state.json` is a publisher implementation detail and stores the
+current head, reserved next key, and feed entries for the global list
+and each tag list.
+
+Each rendered post links left to the reserved future key and right to
+the previous head. When the next post is published, it overwrites that
+future placeholder with the real post content and creates a new
+placeholder. Older real post files do not need to be rewritten.
+
+Example global flow:
+
+```text
+publish A0: posts/A1.html (A0 copy) <- posts/A0.html <-> END
+publish A1: posts/A2.html (A1 copy) <- posts/A1.html <-> posts/A0.html <-> END
+```
+
+Tag lists use the same mechanism under `tags/<tag>/`. The database
+stores only workflow state and selected revision pointers, not rendered
+public HTML.
 
 ## Open Questions
 
 - Exact project name and public domain.
 - Whether `web` should cache S3 content in memory only or also on
   local disk.
-- Whether generated search data should be JSON, SQLite, or plain
-  rendered document snapshots.
 - Exact PostgreSQL schema and job lease implementation.
 - Exact grammar-check prompt and response schema.

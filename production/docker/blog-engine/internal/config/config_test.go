@@ -27,8 +27,11 @@ func TestLoad(t *testing.T) {
 	if cfg.Service.Name != "blog-engine" {
 		t.Fatalf("service name = %q, want blog-engine", cfg.Service.Name)
 	}
-	if cfg.Publishing.CurrentPointerKey != "current.json" {
-		t.Fatalf("current pointer key = %q, want current.json", cfg.Publishing.CurrentPointerKey)
+	if cfg.Publishing.StateKey != "state.json" {
+		t.Fatalf("state key = %q, want state.json", cfg.Publishing.StateKey)
+	}
+	if cfg.Worker.PollInterval != "45s" {
+		t.Fatalf("worker poll interval = %q, want 45s", cfg.Worker.PollInterval)
 	}
 }
 
@@ -52,8 +55,9 @@ openai:
   model: "gpt-5.4-nano"
 publishing:
   base_url: "https://blog.example"
-  release_prefix: "releases/"
-  current_pointer_key: "current.json"
+  state_key: "state.json"
+worker:
+  poll_interval: "45s"
 `
 
 func TestValidateRequiredFields(t *testing.T) {
@@ -87,11 +91,11 @@ func TestValidateRequiredFields(t *testing.T) {
 			wantErr: "s3.public_bucket is required",
 		},
 		{
-			name: "requires current pointer key",
+			name: "requires state key",
 			mutate: func(cfg *Config) {
-				cfg.Publishing.CurrentPointerKey = ""
+				cfg.Publishing.StateKey = ""
 			},
-			wantErr: "publishing.current_pointer_key is required",
+			wantErr: "publishing.state_key is required",
 		},
 	}
 
@@ -140,9 +144,9 @@ func validConfig() Config {
 			Model:  "gpt-5.4-nano",
 		},
 		Publishing: PublishingConfig{
-			BaseURL:           "https://blog.example",
-			ReleasePrefix:     "releases/",
-			CurrentPointerKey: "current.json",
+			BaseURL:  "https://blog.example",
+			StateKey: "state.json",
 		},
+		Worker: WorkerConfig{PollInterval: "45s"},
 	}
 }

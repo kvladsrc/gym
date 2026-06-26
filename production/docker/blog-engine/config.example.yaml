@@ -25,5 +25,7 @@ openai:
 
 publishing:
   base_url: "https://blog.your.domain"
-  release_prefix: "releases/"
-  current_pointer_key: "current.json"
+  state_key: "state.json"
+
+worker:
+  poll_interval: "30s"

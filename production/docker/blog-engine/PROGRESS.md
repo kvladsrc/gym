@@ -2,10 +2,10 @@
 
 ## Current Phase
 
-Phase 1: author workflow.
+Phase 3: publishing.
 
-The goal of this phase is to make the private author workflow useful before
-implementing the checker and publisher pipeline.
+The goal of this phase is to finish the static public blog surface while
+keeping the author workflow and worker pipeline small.
 
 ## Status
 
@@ -31,10 +31,14 @@ implementing the checker and publisher pipeline.
 - [x] Post detail page shell with check artifacts and actions.
 - [x] Immutable post revision records.
 - [x] Edit flow that creates a new revision.
-- [x] Durable grammar check jobs.
-- [x] Worker leases and grammar check status transitions.
+- [x] Pending-check worker and grammar check status transitions.
 - [x] OpenAI grammar check request path.
-- [ ] Publish and recheck actions.
+- [x] Recheck action.
+- [x] Manual publish queue and database publish marker.
+- [x] Static public rendering and upload.
+- [x] Published post metadata and author UI public links.
+- [x] Static main feed with recent post excerpts.
+- [x] Static tag feeds with recent post excerpts.
 
 ## Milestones
 
@@ -71,8 +75,8 @@ implementing the checker and publisher pipeline.
 
 ### Phase 2: Grammar Check Pipeline
 
-- durable job table
-- worker leases and retries
+- pending-check post polling
+- pending-publish post polling
 - grammar check client interface
 - suggested source artifact
 - static HTML diff artifact
@@ -83,24 +87,22 @@ implementing the checker and publisher pipeline.
 ### Phase 3: Publishing
 
 - org subset renderer
-- static public feed
+- rendered HTML uploaded as flat S3 objects
+- linked-list state and placeholder pages
+- web reverse proxy for public S3 objects
+- static main feed page
 - static post pages
-- tag pages
-- release prefix layout in S3
-- atomic current release pointer
+- static tag feed pages
 
 ### Phase 4: Public Web
 
 - S3-backed public serving
 - in-memory or local-disk cache
-- server-side keyword search over published documents
-- plain HTML search results page
 
 ## Open Decisions
 
 - Final service name and public hostnames.
 - Exact S3 bucket names.
 - PostgreSQL migration tool.
-- Search index format.
 - Whether unsupported org syntax blocks rendering or is escaped as text.
 - OpenAI API key source for the grammar checker.

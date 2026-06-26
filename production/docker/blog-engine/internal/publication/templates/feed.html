@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{.Title}}</title>
+    <link rel="canonical" href="{{.CanonicalPath}}" />
+    <link rel="stylesheet" href="/public.css" />
+  </head>
+  <body>
+    <h1>{{.Title}}</h1>
+    {{if .Items}} {{range .Items}}
+    <article class="feed-entry">
+      <h2><a href="{{.Path}}">{{.Title}}</a></h2>
+      {{if .PublishedOn}}
+      <p class="post-meta">Published {{.PublishedOn}}</p>
+      {{end}} {{.TagsHTML}} {{if .Excerpt}}
+      <p>{{.Excerpt}}</p>
+      {{end}}
+    </article>
+    {{end}} {{else}}
+    <p>No published posts yet.</p>
+    {{end}}
+  </body>
+</html>

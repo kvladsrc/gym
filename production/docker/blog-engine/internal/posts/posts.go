@@ -3,6 +3,7 @@ package posts
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html"
@@ -10,133 +11,181 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/pmezard/go-difflib/difflib"
 )
 
 var _ = stdlib.GetDefaultDriver
 
 const (
-	// StatusPendingCheck means a post is saved and waiting for checks.
-	StatusPendingCheck = "pending_check"
+	// StatusPending means a revision is waiting for checks.
+	StatusPending = "pending"
+	// StatusChecking means a revision is being checked.
+	StatusChecking = "checking"
 	// StatusNeedsChanges means checks found author-visible grammar issues.
 	StatusNeedsChanges = "needs_changes"
 	// StatusReady means checks passed and the post can be published.
 	StatusReady = "ready"
+	// StatusPendingPublish means a revision is waiting to be published.
+	StatusPendingPublish = "pending_publish"
+	// StatusPublishing means a revision is being published.
+	StatusPublishing = "publishing"
+	// StatusPublished means a revision is currently published.
+	StatusPublished = "published"
 	// StatusError means the latest revision failed for a technical reason.
 	StatusError = "error"
-	// StatusArchived means a post is hidden from the active author workflow.
-	StatusArchived = "archived"
 
-	// CheckStatusSuccess means all checks passed for a revision.
+	// CheckKindGrammar identifies the initial OpenAI grammar check.
+	CheckKindGrammar = "grammar"
+	// CheckStatusRunning means a check is currently executing.
+	CheckStatusRunning = "running"
+	// CheckStatusSuccess means a check completed successfully.
 	CheckStatusSuccess = "success"
-	// CheckStatusFailed means at least one check failed for a revision.
+	// CheckStatusFailed means a check found author-visible issues.
 	CheckStatusFailed = "failed"
-
-	// JobKindGrammarCheck identifies the initial OpenAI grammar check.
-	JobKindGrammarCheck = "grammar_check"
-	// JobStatusPending means a job is waiting for a worker lease.
-	JobStatusPending = "pending"
-	// JobStatusRunning means a worker currently owns the job lease.
-	JobStatusRunning = "running"
-	// JobStatusSucceeded means the job completed successfully.
-	JobStatusSucceeded = "succeeded"
-	// JobStatusFailed means the job failed permanently for now.
-	JobStatusFailed = "failed"
+	// CheckStatusError means a check failed for a technical reason.
+	CheckStatusError = "error"
 )
 
-// Schema contains the idempotent PostgreSQL schema for blog posts.
+// Schema creates or updates the blog post schema without deleting existing data.
 const Schema = `
 CREATE TABLE IF NOT EXISTS posts (
 	id BIGSERIAL PRIMARY KEY,
-	title TEXT NOT NULL,
-	tags TEXT NOT NULL DEFAULT '',
-	source TEXT NOT NULL,
-	auto_publish BOOLEAN NOT NULL DEFAULT false,
-	status TEXT NOT NULL,
-	check_status TEXT NOT NULL DEFAULT '',
 	latest_revision_id BIGINT,
-	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-	updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS post_revisions (
-	id BIGSERIAL PRIMARY KEY,
-	post_id BIGINT NOT NULL REFERENCES posts(id),
-	source TEXT NOT NULL,
-	suggested_source TEXT NOT NULL DEFAULT '',
-	diff_html TEXT NOT NULL DEFAULT '',
-	check_status TEXT NOT NULL DEFAULT '',
-	check_summary TEXT NOT NULL DEFAULT '',
-	created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS jobs (
-	id BIGSERIAL PRIMARY KEY,
-	kind TEXT NOT NULL,
-	post_id BIGINT NOT NULL REFERENCES posts(id),
-	revision_id BIGINT NOT NULL REFERENCES post_revisions(id),
-	status TEXT NOT NULL,
-	attempts INTEGER NOT NULL DEFAULT 0,
-	lease_until TIMESTAMPTZ,
-	last_error TEXT NOT NULL DEFAULT '',
+	published_revision_id BIGINT,
+	published_path TEXT NOT NULL DEFAULT '',
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 ALTER TABLE posts ADD COLUMN IF NOT EXISTS latest_revision_id BIGINT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS published_revision_id BIGINT;
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS published_path TEXT NOT NULL DEFAULT '';
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+ALTER TABLE posts ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
-INSERT INTO post_revisions (post_id, source, check_status, created_at)
-SELECT id, source, check_status, created_at
-FROM posts
-WHERE latest_revision_id IS NULL;
+CREATE TABLE IF NOT EXISTS revisions (
+	id BIGSERIAL PRIMARY KEY,
+	post_id BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+	latest_check_id BIGINT,
+	title TEXT NOT NULL,
+	tags TEXT NOT NULL DEFAULT '',
+	source TEXT NOT NULL,
+	auto_publish BOOLEAN NOT NULL DEFAULT false,
+	status TEXT NOT NULL,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
-UPDATE posts
-SET latest_revision_id = latest.id
-FROM (
-	SELECT DISTINCT ON (post_id) post_id, id
-	FROM post_revisions
-	ORDER BY post_id, created_at DESC, id DESC
-) AS latest
-WHERE posts.id = latest.post_id
-	AND posts.latest_revision_id IS NULL;
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS post_id BIGINT;
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS latest_check_id BIGINT;
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS title TEXT NOT NULL DEFAULT '';
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS tags TEXT NOT NULL DEFAULT '';
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT '';
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS auto_publish BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT '';
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
+CREATE TABLE IF NOT EXISTS checks (
+	id BIGSERIAL PRIMARY KEY,
+	revision_id BIGINT NOT NULL REFERENCES revisions(id) ON DELETE CASCADE,
+	kind TEXT NOT NULL,
+	status TEXT NOT NULL,
+	request_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+	response_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+	error TEXT NOT NULL DEFAULT '',
+	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	finished_at TIMESTAMPTZ
+);
+
+ALTER TABLE checks ADD COLUMN IF NOT EXISTS revision_id BIGINT;
+ALTER TABLE checks ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT '';
+ALTER TABLE checks ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT '';
+ALTER TABLE checks ADD COLUMN IF NOT EXISTS request_json JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE checks ADD COLUMN IF NOT EXISTS response_json JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE checks ADD COLUMN IF NOT EXISTS error TEXT NOT NULL DEFAULT '';
+ALTER TABLE checks ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+ALTER TABLE checks ADD COLUMN IF NOT EXISTS finished_at TIMESTAMPTZ;
+
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'posts_latest_revision_id_fkey'
+	) THEN
+		ALTER TABLE posts
+			ADD CONSTRAINT posts_latest_revision_id_fkey
+			FOREIGN KEY (latest_revision_id) REFERENCES revisions(id);
+	END IF;
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'posts_published_revision_id_fkey'
+	) THEN
+		ALTER TABLE posts
+			ADD CONSTRAINT posts_published_revision_id_fkey
+			FOREIGN KEY (published_revision_id) REFERENCES revisions(id);
+	END IF;
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'revisions_post_id_fkey'
+	) THEN
+		ALTER TABLE revisions
+			ADD CONSTRAINT revisions_post_id_fkey
+			FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
+	END IF;
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'revisions_latest_check_id_fkey'
+	) THEN
+		ALTER TABLE revisions
+			ADD CONSTRAINT revisions_latest_check_id_fkey
+			FOREIGN KEY (latest_check_id) REFERENCES checks(id);
+	END IF;
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'checks_revision_id_fkey'
+	) THEN
+		ALTER TABLE checks
+			ADD CONSTRAINT checks_revision_id_fkey
+			FOREIGN KEY (revision_id) REFERENCES revisions(id) ON DELETE CASCADE;
+	END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS posts_updated_at_idx ON posts (updated_at DESC);
-CREATE INDEX IF NOT EXISTS post_revisions_post_id_created_at_idx
-	ON post_revisions (post_id, created_at DESC, id DESC);
-CREATE INDEX IF NOT EXISTS jobs_pending_idx
-	ON jobs (status, kind, created_at, id);
+CREATE INDEX IF NOT EXISTS revisions_post_id_created_at_idx
+	ON revisions (post_id, created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS revisions_pending_idx
+	ON revisions (status, updated_at, id);
+CREATE INDEX IF NOT EXISTS checks_revision_id_created_at_idx
+	ON checks (revision_id, created_at DESC, id DESC);
 `
 
 // Post is the latest author-facing revision stored for a blog post.
 type Post struct {
-	ID           int64
-	RevisionID   int64
-	Title        string
-	Tags         []string
-	Source       string
-	Suggested    string
-	DiffHTML     string
-	AutoPublish  bool
-	Status       string
-	CheckStatus  string
-	CheckSummary string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-}
-
-// Job is a durable worker task joined to the source revision it should process.
-type Job struct {
-	ID         int64
-	Kind       string
-	PostID     int64
-	RevisionID int64
-	Attempts   int
-	Source     string
+	ID                  int64
+	RevisionID          int64
+	PublishedRevisionID int64
+	PublishedPath       string
+	Title               string
+	Tags                []string
+	Source              string
+	Suggested           string
+	DiffHTML            string
+	AutoPublish         bool
+	Status              string
+	CheckStatus         string
+	CheckSummary        string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
 }
 
 // GrammarResult is the persisted output of the grammar checker.
 type GrammarResult struct {
 	SuggestedSource string `json:"suggested_source"`
 	Summary         string `json:"summary"`
+	DiffHTML        string `json:"diff_html,omitempty"`
+}
+
+// GrammarRequest is the persisted logical request for a grammar check.
+type GrammarRequest struct {
+	Title  string   `json:"title"`
+	Tags   []string `json:"tags"`
+	Source string   `json:"source"`
 }
 
 // CreateInput contains author form data for a new post.
@@ -271,39 +320,37 @@ func (repo *Repository) Create(ctx context.Context, input CreateInput) (Post, er
 
 	var postID int64
 	err = tx.QueryRowContext(ctx, `
-INSERT INTO posts (title, tags, source, auto_publish, status)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO posts DEFAULT VALUES
 RETURNING id
-`,
-		strings.TrimSpace(input.Title),
-		FormatTags(input.Tags),
-		strings.TrimSpace(input.Source),
-		input.AutoPublish,
-		StatusPendingCheck,
-	).Scan(&postID)
+`).Scan(&postID)
 	if err != nil {
 		return Post{}, fmt.Errorf("create post: %w", err)
 	}
 
 	var revisionID int64
 	err = tx.QueryRowContext(ctx, `
-INSERT INTO post_revisions (post_id, source)
-VALUES ($1, $2)
+INSERT INTO revisions (post_id, title, tags, source, auto_publish, status)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id
-`, postID, strings.TrimSpace(input.Source)).Scan(&revisionID)
+`,
+		postID,
+		strings.TrimSpace(input.Title),
+		FormatTags(input.Tags),
+		strings.TrimSpace(input.Source),
+		input.AutoPublish,
+		StatusPending,
+	).Scan(&revisionID)
 	if err != nil {
 		return Post{}, fmt.Errorf("create post revision: %w", err)
 	}
 
 	if _, err := tx.ExecContext(ctx, `
 UPDATE posts
-SET latest_revision_id = $1
+SET latest_revision_id = $1,
+	updated_at = now()
 WHERE id = $2
 `, revisionID, postID); err != nil {
 		return Post{}, fmt.Errorf("set latest revision: %w", err)
-	}
-	if err := enqueueGrammarCheck(ctx, tx, postID, revisionID); err != nil {
-		return Post{}, err
 	}
 	if err := tx.Commit(); err != nil {
 		return Post{}, fmt.Errorf("commit create post: %w", err)
@@ -328,34 +375,27 @@ func (repo *Repository) Update(ctx context.Context, id int64, input UpdateInput)
 
 	var revisionID int64
 	err = tx.QueryRowContext(ctx, `
-INSERT INTO post_revisions (post_id, source)
-VALUES ($1, $2)
+INSERT INTO revisions (post_id, title, tags, source, auto_publish, status)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id
-`, id, strings.TrimSpace(input.Source)).Scan(&revisionID)
+`,
+		id,
+		strings.TrimSpace(input.Title),
+		FormatTags(input.Tags),
+		strings.TrimSpace(input.Source),
+		input.AutoPublish,
+		StatusPending,
+	).Scan(&revisionID)
 	if err != nil {
 		return Post{}, fmt.Errorf("create post revision: %w", err)
 	}
 
 	result, err := tx.ExecContext(ctx, `
 UPDATE posts
-SET title = $1,
-	tags = $2,
-	source = $3,
-	auto_publish = $4,
-	status = $5,
-	check_status = '',
-	latest_revision_id = $6,
+SET latest_revision_id = $1,
 	updated_at = now()
-WHERE id = $7
-`,
-		strings.TrimSpace(input.Title),
-		FormatTags(input.Tags),
-		strings.TrimSpace(input.Source),
-		input.AutoPublish,
-		StatusPendingCheck,
-		revisionID,
-		id,
-	)
+WHERE id = $2
+`, revisionID, id)
 	if err != nil {
 		return Post{}, fmt.Errorf("update post: %w", err)
 	}
@@ -364,11 +404,106 @@ WHERE id = $7
 	} else if rows == 0 {
 		return Post{}, sql.ErrNoRows
 	}
-	if err := enqueueGrammarCheck(ctx, tx, id, revisionID); err != nil {
-		return Post{}, err
-	}
 	if err := tx.Commit(); err != nil {
 		return Post{}, fmt.Errorf("commit update post: %w", err)
+	}
+
+	return repo.Get(ctx, id)
+}
+
+// Recheck marks the latest immutable revision for another grammar check.
+func (repo *Repository) Recheck(ctx context.Context, id int64) (Post, error) {
+	tx, err := repo.db.BeginTx(ctx, nil)
+	if err != nil {
+		return Post{}, fmt.Errorf("begin recheck post: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	var revisionID sql.NullInt64
+	err = tx.QueryRowContext(ctx, `
+SELECT latest_revision_id
+FROM posts
+WHERE id = $1
+FOR UPDATE
+`, id).Scan(&revisionID)
+	if err != nil {
+		return Post{}, fmt.Errorf("load post revision for recheck: %w", err)
+	}
+	if !revisionID.Valid {
+		return Post{}, fmt.Errorf("post %d has no latest revision", id)
+	}
+
+	if _, err := tx.ExecContext(ctx, `
+UPDATE revisions
+SET latest_check_id = NULL,
+	status = $3,
+	updated_at = now()
+WHERE id = $1 AND post_id = $2
+`, revisionID.Int64, id, StatusPending); err != nil {
+		return Post{}, fmt.Errorf("reset post check status: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
+UPDATE posts
+SET updated_at = now()
+WHERE id = $1
+`, id); err != nil {
+		return Post{}, fmt.Errorf("touch post: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return Post{}, fmt.Errorf("commit recheck post: %w", err)
+	}
+
+	return repo.Get(ctx, id)
+}
+
+// Publish queues the latest immutable revision for publishing.
+func (repo *Repository) Publish(ctx context.Context, id int64) (Post, error) {
+	tx, err := repo.db.BeginTx(ctx, nil)
+	if err != nil {
+		return Post{}, fmt.Errorf("begin publish post: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	var revisionID sql.NullInt64
+	var status string
+	err = tx.QueryRowContext(ctx, `
+SELECT p.latest_revision_id, r.status
+FROM posts p
+JOIN revisions r ON r.id = p.latest_revision_id
+WHERE p.id = $1
+FOR UPDATE
+`, id).Scan(&revisionID, &status)
+	if err != nil {
+		return Post{}, fmt.Errorf("load post revision for publish: %w", err)
+	}
+	if !revisionID.Valid {
+		return Post{}, fmt.Errorf("post %d has no latest revision", id)
+	}
+	if status == StatusChecking || status == StatusPublishing {
+		return Post{}, fmt.Errorf("revision %d status is %q and cannot be published yet", revisionID.Int64, status)
+	}
+
+	if _, err := tx.ExecContext(ctx, `
+UPDATE revisions
+SET status = $1,
+	updated_at = now()
+WHERE id = $2 AND post_id = $3
+`, StatusPendingPublish, revisionID.Int64, id); err != nil {
+		return Post{}, fmt.Errorf("queue revision publish: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
+UPDATE posts
+SET updated_at = now()
+WHERE id = $1
+`, id); err != nil {
+		return Post{}, fmt.Errorf("touch post: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return Post{}, fmt.Errorf("commit publish post: %w", err)
 	}
 
 	return repo.Get(ctx, id)
@@ -377,15 +512,21 @@ WHERE id = $7
 // ListLatest returns posts ordered for the author table.
 func (repo *Repository) ListLatest(ctx context.Context) ([]Post, error) {
 	rows, err := repo.db.QueryContext(ctx, `
-SELECT p.id, COALESCE(r.id, 0), p.title, p.tags, COALESCE(r.source, p.source),
-	COALESCE(r.suggested_source, ''), COALESCE(r.diff_html, ''),
-	p.auto_publish, p.status, p.check_status, COALESCE(r.check_summary, ''),
-	p.created_at, p.updated_at
+SELECT p.id, r.id, COALESCE(p.published_revision_id, 0), p.published_path,
+	r.title, r.tags, r.source,
+	CASE WHEN c.status = 'failed'
+		THEN COALESCE(c.response_json->>'suggested_source', '')
+		ELSE ''
+	END,
+	COALESCE(c.response_json->>'diff_html', ''),
+	r.auto_publish, r.status, COALESCE(c.status, ''),
+	COALESCE(c.response_json->>'summary', ''),
+	p.created_at, r.updated_at
 FROM posts p
-LEFT JOIN post_revisions r ON r.id = p.latest_revision_id
-WHERE p.status <> $1
-ORDER BY p.updated_at DESC, p.id DESC
-`, StatusArchived)
+JOIN revisions r ON r.id = p.latest_revision_id
+LEFT JOIN checks c ON c.id = r.latest_check_id
+ORDER BY r.updated_at DESC, p.id DESC
+`)
 	if err != nil {
 		return nil, fmt.Errorf("list posts: %w", err)
 	}
@@ -400,6 +541,8 @@ ORDER BY p.updated_at DESC, p.id DESC
 		if err := rows.Scan(
 			&post.ID,
 			&post.RevisionID,
+			&post.PublishedRevisionID,
+			&post.PublishedPath,
 			&post.Title,
 			&tags,
 			&post.Source,
@@ -428,16 +571,25 @@ func (repo *Repository) Get(ctx context.Context, id int64) (Post, error) {
 	var post Post
 	var tags string
 	err := repo.db.QueryRowContext(ctx, `
-SELECT p.id, COALESCE(r.id, 0), p.title, p.tags, COALESCE(r.source, p.source),
-	COALESCE(r.suggested_source, ''), COALESCE(r.diff_html, ''),
-	p.auto_publish, p.status, p.check_status, COALESCE(r.check_summary, ''),
-	p.created_at, p.updated_at
+SELECT p.id, r.id, COALESCE(p.published_revision_id, 0), p.published_path,
+	r.title, r.tags, r.source,
+	CASE WHEN c.status = 'failed'
+		THEN COALESCE(c.response_json->>'suggested_source', '')
+		ELSE ''
+	END,
+	COALESCE(c.response_json->>'diff_html', ''),
+	r.auto_publish, r.status, COALESCE(c.status, ''),
+	COALESCE(c.response_json->>'summary', ''),
+	p.created_at, r.updated_at
 FROM posts p
-LEFT JOIN post_revisions r ON r.id = p.latest_revision_id
+JOIN revisions r ON r.id = p.latest_revision_id
+LEFT JOIN checks c ON c.id = r.latest_check_id
 WHERE p.id = $1
 `, id).Scan(
 		&post.ID,
 		&post.RevisionID,
+		&post.PublishedRevisionID,
+		&post.PublishedPath,
 		&post.Title,
 		&tags,
 		&post.Source,
@@ -457,134 +609,172 @@ WHERE p.id = $1
 	return post, nil
 }
 
-// LeaseGrammarJob atomically claims one due grammar-check job for a worker.
-func (repo *Repository) LeaseGrammarJob(ctx context.Context, lease time.Duration) (Job, bool, error) {
-	tx, err := repo.db.BeginTx(ctx, nil)
-	if err != nil {
-		return Job{}, false, fmt.Errorf("begin lease job: %w", err)
-	}
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	var job Job
-	err = tx.QueryRowContext(ctx, `
-WITH next AS (
-	SELECT id
-	FROM jobs
-	WHERE kind = $1
-		AND (
-			status = $2
-			OR (status = $3 AND lease_until < now())
-		)
-	ORDER BY created_at, id
-	LIMIT 1
-	FOR UPDATE SKIP LOCKED
-), claimed AS (
-	UPDATE jobs
-	SET status = $3,
-		attempts = attempts + 1,
-		lease_until = now() + ($4 || ' seconds')::interval,
-		updated_at = now()
-	FROM next
-	WHERE jobs.id = next.id
-	RETURNING jobs.id, jobs.kind, jobs.post_id, jobs.revision_id, jobs.attempts
-)
-SELECT claimed.id, claimed.kind, claimed.post_id, claimed.revision_id,
-	claimed.attempts, post_revisions.source
-FROM claimed
-JOIN post_revisions ON post_revisions.id = claimed.revision_id
-`, JobKindGrammarCheck, JobStatusPending, JobStatusRunning, int(lease.Seconds())).Scan(
-		&job.ID,
-		&job.Kind,
-		&job.PostID,
-		&job.RevisionID,
-		&job.Attempts,
-		&job.Source,
+// NextPendingCheck returns the next post whose latest revision needs checking.
+func (repo *Repository) NextPendingCheck(ctx context.Context) (Post, bool, error) {
+	var post Post
+	var tags string
+	err := repo.db.QueryRowContext(ctx, `
+SELECT p.id, r.id, COALESCE(p.published_revision_id, 0), p.published_path,
+	r.title, r.tags, r.source,
+	CASE WHEN c.status = 'failed'
+		THEN COALESCE(c.response_json->>'suggested_source', '')
+		ELSE ''
+	END,
+	COALESCE(c.response_json->>'diff_html', ''),
+	r.auto_publish, r.status, COALESCE(c.status, ''),
+	COALESCE(c.response_json->>'summary', ''),
+	p.created_at, r.updated_at
+FROM posts p
+JOIN revisions r ON r.id = p.latest_revision_id
+LEFT JOIN checks c ON c.id = r.latest_check_id
+WHERE r.status = $1
+ORDER BY r.updated_at, p.id
+LIMIT 1
+`, StatusPending).Scan(
+		&post.ID,
+		&post.RevisionID,
+		&post.PublishedRevisionID,
+		&post.PublishedPath,
+		&post.Title,
+		&tags,
+		&post.Source,
+		&post.Suggested,
+		&post.DiffHTML,
+		&post.AutoPublish,
+		&post.Status,
+		&post.CheckStatus,
+		&post.CheckSummary,
+		&post.CreatedAt,
+		&post.UpdatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
-		return Job{}, false, nil
+		return Post{}, false, nil
 	}
 	if err != nil {
-		return Job{}, false, fmt.Errorf("lease grammar job: %w", err)
+		return Post{}, false, fmt.Errorf("get next pending check: %w", err)
 	}
-	if err := tx.Commit(); err != nil {
-		return Job{}, false, fmt.Errorf("commit lease job: %w", err)
-	}
-	return job, true, nil
+	post.Tags = ParseTags(tags)
+	return post, true, nil
 }
 
-// CompleteGrammarJob stores checker output and updates author-facing status.
-func (repo *Repository) CompleteGrammarJob(ctx context.Context, job Job, result GrammarResult) error {
+// StartGrammarCheck records a running grammar check for a pending revision.
+func (repo *Repository) StartGrammarCheck(ctx context.Context, post Post, request GrammarRequest) (int64, error) {
+	encoded, err := json.Marshal(request)
+	if err != nil {
+		return 0, fmt.Errorf("encode grammar check request: %w", err)
+	}
+
 	tx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("begin complete job: %w", err)
+		return 0, fmt.Errorf("begin start grammar check: %w", err)
 	}
 	defer func() {
 		_ = tx.Rollback()
 	}()
 
-	suggested := strings.TrimSpace(result.SuggestedSource)
-	source := strings.TrimSpace(job.Source)
+	var status string
+	err = tx.QueryRowContext(ctx, `
+SELECT status
+FROM revisions
+WHERE id = $1 AND post_id = $2
+FOR UPDATE
+`, post.RevisionID, post.ID).Scan(&status)
+	if err != nil {
+		return 0, fmt.Errorf("lock revision for grammar check: %w", err)
+	}
+	if status != StatusPending {
+		return 0, fmt.Errorf("revision %d status is %q, want %q", post.RevisionID, status, StatusPending)
+	}
+
+	var checkID int64
+	err = tx.QueryRowContext(ctx, `
+INSERT INTO checks (revision_id, kind, status, request_json)
+VALUES ($1, $2, $3, $4::jsonb)
+RETURNING id
+`, post.RevisionID, CheckKindGrammar, CheckStatusRunning, string(encoded)).Scan(&checkID)
+	if err != nil {
+		return 0, fmt.Errorf("create grammar check: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
+UPDATE revisions
+SET latest_check_id = $1,
+	status = $2,
+	updated_at = now()
+WHERE id = $3 AND post_id = $4
+`, checkID, StatusChecking, post.RevisionID, post.ID); err != nil {
+		return 0, fmt.Errorf("mark revision checking: %w", err)
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("commit start grammar check: %w", err)
+	}
+	return checkID, nil
+}
+
+// CompleteGrammarCheck stores checker output and updates author-facing status.
+func (repo *Repository) CompleteGrammarCheck(ctx context.Context, post Post, checkID int64, result GrammarResult) error {
+	tx, err := repo.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin complete grammar check: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	suggested := normalizeLineEndings(strings.TrimSpace(result.SuggestedSource))
+	source := normalizeLineEndings(strings.TrimSpace(post.Source))
 	if suggested == "" {
 		suggested = source
 	}
 	status := StatusReady
 	checkStatus := CheckStatusSuccess
 	diffHTML := ""
-	suggestedForStorage := ""
 	if suggested != source {
 		status = StatusNeedsChanges
 		checkStatus = CheckStatusFailed
-		suggestedForStorage = suggested
 		diffHTML = renderDiffHTML(source, suggested)
+	} else if post.AutoPublish {
+		status = StatusPendingPublish
+	}
+	result.SuggestedSource = suggested
+	result.DiffHTML = diffHTML
+	encoded, err := json.Marshal(result)
+	if err != nil {
+		return fmt.Errorf("encode grammar check response: %w", err)
 	}
 
 	if _, err := tx.ExecContext(ctx, `
-UPDATE post_revisions
-SET suggested_source = $1,
-	diff_html = $2,
-	check_status = $3,
-	check_summary = $4
-WHERE id = $5
+UPDATE checks
+SET status = $1,
+	response_json = $2::jsonb,
+	finished_at = now()
+WHERE id = $3 AND revision_id = $4
 `,
-		suggestedForStorage,
-		diffHTML,
 		checkStatus,
-		strings.TrimSpace(result.Summary),
-		job.RevisionID,
+		string(encoded),
+		checkID,
+		post.RevisionID,
 	); err != nil {
 		return fmt.Errorf("store grammar result: %w", err)
 	}
 	if _, err := tx.ExecContext(ctx, `
-UPDATE posts
+UPDATE revisions
 SET status = $1,
-	check_status = $2,
 	updated_at = now()
-WHERE id = $3 AND latest_revision_id = $4
-`, status, checkStatus, job.PostID, job.RevisionID); err != nil {
-		return fmt.Errorf("update post check status: %w", err)
-	}
-	if _, err := tx.ExecContext(ctx, `
-UPDATE jobs
-SET status = $1,
-	lease_until = NULL,
-	updated_at = now()
-WHERE id = $2
-`, JobStatusSucceeded, job.ID); err != nil {
-		return fmt.Errorf("mark job succeeded: %w", err)
+WHERE id = $2 AND post_id = $3 AND latest_check_id = $4
+`, status, post.RevisionID, post.ID, checkID); err != nil {
+		return fmt.Errorf("update revision check status: %w", err)
 	}
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit complete job: %w", err)
+		return fmt.Errorf("commit complete grammar check: %w", err)
 	}
 	return nil
 }
 
-// FailGrammarJob records a technical checker failure.
-func (repo *Repository) FailGrammarJob(ctx context.Context, job Job, cause error) error {
+// FailGrammarCheck records a technical checker failure.
+func (repo *Repository) FailGrammarCheck(ctx context.Context, post Post, checkID int64, cause error) error {
 	tx, err := repo.db.BeginTx(ctx, nil)
 	if err != nil {
-		return fmt.Errorf("begin fail job: %w", err)
+		return fmt.Errorf("begin fail grammar check: %w", err)
 	}
 	defer func() {
 		_ = tx.Rollback()
@@ -595,58 +785,216 @@ func (repo *Repository) FailGrammarJob(ctx context.Context, job Job, cause error
 		message = cause.Error()
 	}
 	if _, err := tx.ExecContext(ctx, `
-UPDATE post_revisions
-SET check_status = $1,
-	check_summary = $2
-WHERE id = $3
-`, CheckStatusFailed, message, job.RevisionID); err != nil {
-		return fmt.Errorf("store failure result: %w", err)
+UPDATE checks
+SET status = $1,
+	error = $2,
+	finished_at = now()
+WHERE id = $3 AND revision_id = $4
+`, CheckStatusError, message, checkID, post.RevisionID); err != nil {
+		return fmt.Errorf("store grammar failure: %w", err)
 	}
 	if _, err := tx.ExecContext(ctx, `
-UPDATE posts
+UPDATE revisions
 SET status = $1,
-	check_status = $2,
 	updated_at = now()
-WHERE id = $3 AND latest_revision_id = $4
-`, StatusError, CheckStatusFailed, job.PostID, job.RevisionID); err != nil {
-		return fmt.Errorf("update post failure status: %w", err)
-	}
-	if _, err := tx.ExecContext(ctx, `
-UPDATE jobs
-SET status = $1,
-	lease_until = NULL,
-	last_error = $2,
-	updated_at = now()
-WHERE id = $3
-`, JobStatusFailed, message, job.ID); err != nil {
-		return fmt.Errorf("mark job failed: %w", err)
+WHERE id = $2 AND post_id = $3 AND latest_check_id = $4
+`, StatusError, post.RevisionID, post.ID, checkID); err != nil {
+		return fmt.Errorf("update revision failure status: %w", err)
 	}
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit fail job: %w", err)
+		return fmt.Errorf("commit fail grammar check: %w", err)
 	}
 	return nil
 }
 
-func enqueueGrammarCheck(ctx context.Context, tx *sql.Tx, postID int64, revisionID int64) error {
-	if _, err := tx.ExecContext(ctx, `
-INSERT INTO jobs (kind, post_id, revision_id, status)
-VALUES ($1, $2, $3, $4)
-`, JobKindGrammarCheck, postID, revisionID, JobStatusPending); err != nil {
-		return fmt.Errorf("enqueue grammar check: %w", err)
+// NextPendingPublish returns the next post whose latest revision needs publishing.
+func (repo *Repository) NextPendingPublish(ctx context.Context) (Post, bool, error) {
+	var post Post
+	var tags string
+	err := repo.db.QueryRowContext(ctx, `
+SELECT p.id, r.id, COALESCE(p.published_revision_id, 0), p.published_path,
+	r.title, r.tags, r.source,
+	CASE WHEN c.status = 'failed'
+		THEN COALESCE(c.response_json->>'suggested_source', '')
+		ELSE ''
+	END,
+	COALESCE(c.response_json->>'diff_html', ''),
+	r.auto_publish, r.status, COALESCE(c.status, ''),
+	COALESCE(c.response_json->>'summary', ''),
+	p.created_at, r.updated_at
+FROM posts p
+JOIN revisions r ON r.id = p.latest_revision_id
+LEFT JOIN checks c ON c.id = r.latest_check_id
+WHERE r.status = $1
+ORDER BY r.updated_at, p.id
+LIMIT 1
+`, StatusPendingPublish).Scan(
+		&post.ID,
+		&post.RevisionID,
+		&post.PublishedRevisionID,
+		&post.PublishedPath,
+		&post.Title,
+		&tags,
+		&post.Source,
+		&post.Suggested,
+		&post.DiffHTML,
+		&post.AutoPublish,
+		&post.Status,
+		&post.CheckStatus,
+		&post.CheckSummary,
+		&post.CreatedAt,
+		&post.UpdatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return Post{}, false, nil
+	}
+	if err != nil {
+		return Post{}, false, fmt.Errorf("get next pending publish: %w", err)
+	}
+	post.Tags = ParseTags(tags)
+	return post, true, nil
+}
+
+// StartPublish marks a pending publish revision as owned by a worker.
+func (repo *Repository) StartPublish(ctx context.Context, post Post) error {
+	result, err := repo.db.ExecContext(ctx, `
+UPDATE revisions
+SET status = $1,
+	updated_at = now()
+WHERE id = $2
+	AND post_id = $3
+	AND status = $4
+`, StatusPublishing, post.RevisionID, post.ID, StatusPendingPublish)
+	if err != nil {
+		return fmt.Errorf("start publish: %w", err)
+	}
+	if rows, err := result.RowsAffected(); err != nil {
+		return fmt.Errorf("count publishing revisions: %w", err)
+	} else if rows == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+// CompletePublish records the latest revision as published.
+func (repo *Repository) CompletePublish(ctx context.Context, post Post, publishedPath string) error {
+	tx, err := repo.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin complete publish: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	result, err := tx.ExecContext(ctx, `
+UPDATE posts
+SET published_revision_id = $1,
+	published_path = $3,
+	updated_at = now()
+WHERE id = $2
+	AND latest_revision_id = $1
+`, post.RevisionID, post.ID, strings.TrimSpace(publishedPath))
+	if err != nil {
+		return fmt.Errorf("set published revision: %w", err)
+	}
+	if rows, err := result.RowsAffected(); err != nil {
+		return fmt.Errorf("count published posts: %w", err)
+	} else if rows == 0 {
+		return sql.ErrNoRows
+	}
+	result, err = tx.ExecContext(ctx, `
+UPDATE revisions
+SET status = $1,
+	updated_at = now()
+WHERE id = $2
+	AND post_id = $3
+	AND status = $4
+`, StatusPublished, post.RevisionID, post.ID, StatusPublishing)
+	if err != nil {
+		return fmt.Errorf("mark revision published: %w", err)
+	}
+	if rows, err := result.RowsAffected(); err != nil {
+		return fmt.Errorf("count published revisions: %w", err)
+	} else if rows == 0 {
+		return sql.ErrNoRows
+	}
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit complete publish: %w", err)
+	}
+	return nil
+}
+
+// FailPublish records a technical publishing failure.
+func (repo *Repository) FailPublish(ctx context.Context, post Post, cause error) error {
+	if _, err := repo.db.ExecContext(ctx, `
+UPDATE revisions
+SET status = $1,
+	updated_at = now()
+WHERE id = $2
+	AND post_id = $3
+	AND status = $4
+`, StatusError, post.RevisionID, post.ID, StatusPublishing); err != nil {
+		return fmt.Errorf("mark publish failed: %w", err)
 	}
 	return nil
 }
 
 func renderDiffHTML(original string, suggested string) string {
+	original = normalizeLineEndings(original)
+	suggested = normalizeLineEndings(suggested)
+	if original == suggested {
+		return ""
+	}
+
+	diff, err := difflib.GetUnifiedDiffString(difflib.UnifiedDiff{
+		A:       difflib.SplitLines(original),
+		B:       difflib.SplitLines(suggested),
+		Context: 3,
+	})
+	if err != nil || diff == "" {
+		return renderWholeTextDiffHTML(original, suggested)
+	}
+
+	var builder strings.Builder
+	builder.WriteString(`<pre class="diff">`)
+	for _, line := range strings.Split(strings.TrimSuffix(diff, "\n"), "\n") {
+		builder.WriteString(`<span class="diff-line`)
+		builder.WriteString(diffLineClass(line))
+		builder.WriteString(`">`)
+		builder.WriteString(html.EscapeString(line))
+		builder.WriteString(`</span>`)
+	}
+	builder.WriteString(`</pre>`)
+	return builder.String()
+}
+
+func normalizeLineEndings(text string) string {
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	return strings.ReplaceAll(text, "\r", "\n")
+}
+
+func renderWholeTextDiffHTML(original string, suggested string) string {
 	var builder strings.Builder
 	builder.WriteString(`<pre class="diff">`)
 	builder.WriteString(`<span class="diff-line del">- `)
 	builder.WriteString(html.EscapeString(original))
 	builder.WriteString(`</span>`)
-	builder.WriteString("\n")
 	builder.WriteString(`<span class="diff-line add">+ `)
 	builder.WriteString(html.EscapeString(suggested))
 	builder.WriteString(`</span>`)
 	builder.WriteString(`</pre>`)
 	return builder.String()
+}
+
+func diffLineClass(line string) string {
+	switch {
+	case strings.HasPrefix(line, "@@"):
+		return " meta"
+	case strings.HasPrefix(line, "+"):
+		return " add"
+	case strings.HasPrefix(line, "-"):
+		return " del"
+	default:
+		return ""
+	}
 }

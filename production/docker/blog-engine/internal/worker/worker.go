@@ -13,27 +13,39 @@ import (
 	"time"
 
 	"src/production/docker/blog-engine/internal/config"
+	"src/production/docker/blog-engine/internal/objectstore"
 	"src/production/docker/blog-engine/internal/posts"
+	"src/production/docker/blog-engine/internal/publication"
 )
 
-const (
-	pollInterval = 30 * time.Second
-	jobLease     = 5 * time.Minute
-)
+const defaultPollInterval = 30 * time.Second
 
 type store interface {
-	LeaseGrammarJob(context.Context, time.Duration) (posts.Job, bool, error)
-	CompleteGrammarJob(context.Context, posts.Job, posts.GrammarResult) error
-	FailGrammarJob(context.Context, posts.Job, error) error
+	NextPendingCheck(context.Context) (posts.Post, bool, error)
+	StartGrammarCheck(context.Context, posts.Post, posts.GrammarRequest) (int64, error)
+	CompleteGrammarCheck(context.Context, posts.Post, int64, posts.GrammarResult) error
+	FailGrammarCheck(context.Context, posts.Post, int64, error) error
+	NextPendingPublish(context.Context) (posts.Post, bool, error)
+	StartPublish(context.Context, posts.Post) error
+	CompletePublish(context.Context, posts.Post, string) error
+	FailPublish(context.Context, posts.Post, error) error
 }
 
 type checker interface {
 	CheckGrammar(context.Context, string) (posts.GrammarResult, error)
 }
 
+type publisher interface {
+	Publish(context.Context, posts.Post) (string, error)
+}
+
 // Run starts the background worker component.
 func Run(ctx context.Context, cfg config.Config) error {
-	slog.Info("starting worker component", "service", cfg.Service.Name)
+	interval, err := pollInterval(cfg)
+	if err != nil {
+		return err
+	}
+	slog.Info("starting worker component", "service", cfg.Service.Name, "poll_interval", interval)
 
 	repo, err := posts.Open(cfg.Database.DSN)
 	if err != nil {
@@ -42,14 +54,15 @@ func Run(ctx context.Context, cfg config.Config) error {
 	defer closeRepository(repo)
 
 	app := app{
-		store:   repo,
-		checker: openAIClient{apiKey: cfg.OpenAI.APIKey, model: cfg.OpenAI.Model, httpClient: http.DefaultClient},
+		store:     repo,
+		checker:   openAIClient{apiKey: cfg.OpenAI.APIKey, model: cfg.OpenAI.Model, httpClient: http.DefaultClient},
+		publisher: publication.NewPublisher(cfg, objectstore.New(cfg)),
 	}
 	if err := app.processNext(ctx); err != nil {
-		slog.Error("worker job failed", "error", err)
+		slog.Error("worker check failed", "error", err)
 	}
 
-	ticker := time.NewTicker(pollInterval)
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
@@ -59,38 +72,103 @@ func Run(ctx context.Context, cfg config.Config) error {
 			return nil
 		case <-ticker.C:
 			if err := app.processNext(ctx); err != nil {
-				slog.Error("worker job failed", "error", err)
+				slog.Error("worker check failed", "error", err)
 			}
 		}
 	}
 }
 
+func pollInterval(cfg config.Config) (time.Duration, error) {
+	raw := strings.TrimSpace(cfg.Worker.PollInterval)
+	if raw == "" {
+		return defaultPollInterval, nil
+	}
+	interval, err := time.ParseDuration(raw)
+	if err != nil {
+		return 0, fmt.Errorf("parse worker.poll_interval: %w", err)
+	}
+	if interval <= 0 {
+		return 0, fmt.Errorf("worker.poll_interval must be positive")
+	}
+	return interval, nil
+}
+
 type app struct {
-	store   store
-	checker checker
+	store     store
+	checker   checker
+	publisher publisher
 }
 
 func (app app) processNext(ctx context.Context) error {
-	job, ok, err := app.store.LeaseGrammarJob(ctx, jobLease)
+	processed, err := app.processPendingCheck(ctx)
+	if err != nil {
+		return err
+	}
+	if processed {
+		return nil
+	}
+	return app.processPendingPublish(ctx)
+}
+
+func (app app) processPendingCheck(ctx context.Context) (bool, error) {
+	post, ok, err := app.store.NextPendingCheck(ctx)
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		slog.Debug("no posts pending check")
+		return false, nil
+	}
+
+	checkID, err := app.store.StartGrammarCheck(ctx, post, posts.GrammarRequest{
+		Title:  post.Title,
+		Tags:   post.Tags,
+		Source: post.Source,
+	})
+	if err != nil {
+		return false, err
+	}
+	result, err := app.checker.CheckGrammar(ctx, post.Source)
+	if err != nil {
+		if failErr := app.store.FailGrammarCheck(ctx, post, checkID, err); failErr != nil {
+			return true, fmt.Errorf("grammar check failed: %w; storing failure: %v", err, failErr)
+		}
+		return true, err
+	}
+	if err := app.store.CompleteGrammarCheck(ctx, post, checkID, result); err != nil {
+		return true, err
+	}
+	slog.Info("grammar check completed", "post_id", post.ID, "revision_id", post.RevisionID, "check_id", checkID)
+	return true, nil
+}
+
+func (app app) processPendingPublish(ctx context.Context) error {
+	post, ok, err := app.store.NextPendingPublish(ctx)
 	if err != nil {
 		return err
 	}
 	if !ok {
-		slog.Debug("no worker jobs available")
+		slog.Debug("no posts pending publish")
 		return nil
 	}
 
-	result, err := app.checker.CheckGrammar(ctx, job.Source)
+	if err := app.store.StartPublish(ctx, post); err != nil {
+		return err
+	}
+	publishedPath, err := app.publisher.Publish(ctx, post)
 	if err != nil {
-		if failErr := app.store.FailGrammarJob(ctx, job, err); failErr != nil {
-			return fmt.Errorf("grammar check failed: %w; storing failure: %v", err, failErr)
+		if failErr := app.store.FailPublish(ctx, post, err); failErr != nil {
+			return fmt.Errorf("publish failed: %w; storing failure: %v", err, failErr)
 		}
 		return err
 	}
-	if err := app.store.CompleteGrammarJob(ctx, job, result); err != nil {
+	if err := app.store.CompletePublish(ctx, post, publishedPath); err != nil {
+		if failErr := app.store.FailPublish(ctx, post, err); failErr != nil {
+			return fmt.Errorf("publish failed: %w; storing failure: %v", err, failErr)
+		}
 		return err
 	}
-	slog.Info("grammar check completed", "job_id", job.ID, "post_id", job.PostID, "revision_id", job.RevisionID)
+	slog.Info("publish completed", "post_id", post.ID, "revision_id", post.RevisionID)
 	return nil
 }
 

@@ -145,6 +145,17 @@ p {
   color: #fff;
 }
 
+.btn:disabled {
+  border-color: #888;
+  color: #888;
+  cursor: default;
+}
+
+.btn:disabled:hover {
+  background: #fff;
+  color: #888;
+}
+
 /* Apply .btn .btn--small in HTML; only size overrides here */
 .btn--small {
   padding: 2px 8px;

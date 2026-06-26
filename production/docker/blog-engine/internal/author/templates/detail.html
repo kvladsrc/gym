@@ -5,46 +5,82 @@
     <link rel="stylesheet" href="/static/admin.css" />
   </head>
   <body>
-    <nav><a href="/posts">Posts</a> <a href="/create">Create</a></nav>
-    <h1>{{.Title}}</h1>
-    <dl>
-      <dt>Tags</dt>
-      <dd>{{join .Tags ", "}}</dd>
-      <dt>Status</dt>
-      <dd>{{.Status}}</dd>
-      <dt>Latest check</dt>
-      <dd>{{.CheckStatus}}</dd>
-      <dt>Updated</dt>
-      <dd>{{.UpdatedAt.Format "2006-01-02 15:04"}}</dd>
-    </dl>
     <nav>
-      <a href="/posts/{{.ID}}/edit?source=original">Edit original</a>
-      {{if .Suggested}}<a href="/posts/{{.ID}}/edit?source=suggested"
-        >Edit suggested</a
-      >{{end}}
-      <button type="button" disabled>Publish</button>
-      <button type="button" disabled>Recheck</button>
+      <a href="/posts">Posts</a> <a href="/create">Create</a>
+      <a href="/help">Help</a>
+      {{if .PublicBlog}}<a href="{{.PublicBlog}}">Blog</a>{{end}}
     </nav>
-    {{if .CheckSummary}}
-    <section>
-      <h2>Check summary</h2>
-      <p>{{.CheckSummary}}</p>
-    </section>
-    {{end}}
-    <section>
-      <h2>Original</h2>
-      <pre>{{.Source}}</pre>
-    </section>
-    {{if .Suggested}}
-    <section>
-      <h2>Suggested</h2>
-      <pre>{{.Suggested}}</pre>
-    </section>
-    {{end}} {{if .DiffHTML}}
-    <section>
-      <h2>Diff</h2>
-      {{safeHTML .DiffHTML}}
-    </section>
-    {{end}}
+    <main class="post-detail">
+      <article class="post-content">
+        <header class="post-header">
+          <h1>{{.Title}}</h1>
+          <p class="post-meta">
+            Updated {{.UpdatedAt.Format "2006-01-02 15:04"}} {{if .Tags}} |
+            {{join .Tags ", "}}{{end}}
+          </p>
+        </header>
+        <section>
+          <h2>Original</h2>
+          <pre>{{.Source}}</pre>
+        </section>
+        {{if .Suggested}}
+        <section>
+          <h2>Suggested</h2>
+          <pre>{{.Suggested}}</pre>
+        </section>
+        {{end}} {{if .DiffHTML}}
+        <section>
+          <h2>Diff</h2>
+          {{safeHTML .DiffHTML}}
+        </section>
+        {{end}}
+      </article>
+      <aside class="post-sidebar">
+        <section>
+          <h2>Workflow</h2>
+          <dl class="meta-list">
+            <dt>Status</dt>
+            <dd>{{.Status}}</dd>
+            <dt>Latest check</dt>
+            <dd>{{if .CheckStatus}}{{.CheckStatus}}{{else}}None{{end}}</dd>
+            <dt>Latest revision</dt>
+            <dd>{{.RevisionID}}</dd>
+            <dt>Published revision</dt>
+            <dd>
+              {{if
+              .PublishedRevisionID}}{{.PublishedRevisionID}}{{else}}None{{end}}
+            </dd>
+            {{with publicPostURL .PublicBlog .PublishedPath}}
+            <dt>Published post</dt>
+            <dd><a href="{{.}}">{{.}}</a></dd>
+            {{end}}
+          </dl>
+        </section>
+        <section>
+          <h2>Actions</h2>
+          <div class="actions">
+            <a href="/posts/{{.ID}}/edit?source=original">Edit original</a>
+            {{if .Suggested}}<a href="/posts/{{.ID}}/edit?source=suggested"
+              >Edit suggested</a
+            >{{end}} {{if canPublish .Post}}
+            <form method="post" action="/posts/{{.ID}}/publish">
+              <button type="submit">Publish</button>
+            </form>
+            {{else}}
+            <button type="button" disabled>Publish</button>
+            {{end}}
+            <form method="post" action="/posts/{{.ID}}/recheck">
+              <button type="submit">Recheck</button>
+            </form>
+          </div>
+        </section>
+        {{if .CheckSummary}}
+        <section>
+          <h2>Check summary</h2>
+          <p>{{.CheckSummary}}</p>
+        </section>
+        {{end}}
+      </aside>
+    </main>
   </body>
 </html>

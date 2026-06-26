@@ -9,7 +9,8 @@ RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/
 
 # Copy static game files
-COPY index.html style.css main.js player.png grass.png desert.png ice.png lava.png /usr/share/nginx/html/
+COPY index.html style.css main.js /usr/share/nginx/html/
+COPY assets/ /usr/share/nginx/html/assets/
 COPY src/ /usr/share/nginx/html/src/
 
 # Add healthcheck
