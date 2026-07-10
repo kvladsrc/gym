@@ -4,9 +4,21 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 check:
     bash scripts/check.sh
 
-# Validate Zooreader static asset dimensions
+# Validate the Zooreader static asset contract.
 check-assets:
     bash scripts/check-assets.sh
+
+# Run the offline asset-workflow integration tests.
+test-assets:
+    node --test scripts/assets.test.mjs
+
+# Generate the next hero concept and save it as the active identity reference.
+asset-hero-concept:
+    node scripts/assets.mjs hero-concept
+
+# Generate and install static action poses plus a four-frame run cycle.
+asset-hero-full:
+    node scripts/assets.mjs hero-full
 
 # Serve Zooreader locally
 serve port="8080" host="127.0.0.1":

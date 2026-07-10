@@ -7,6 +7,7 @@
     check:
       jobs:
         - pre-submit-check
+        - zooreader-javascript-check
         - go-check
         - bazel-test-blog-engine
         - bazel-test-pipellm

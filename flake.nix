@@ -118,6 +118,7 @@
           golangci-lint
           golint
           gotools
+          imagemagick
           haskell.compiler.ghc984Binary
           kubernetes-helm
           lcov

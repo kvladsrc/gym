@@ -5,6 +5,15 @@
     run: production/playbooks/pre-submit-check.yaml
 
 - job:
+    name: zooreader-javascript-check
+    files:
+      - ^production/docker/zooreader/.*\.(cjs|js|mjs)$
+      - ^production/playbooks/zooreader-javascript-check\.yaml$
+      - ^zuul\.d/(checks|project)\.yaml$
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/zooreader-javascript-check.yaml
+
+- job:
     name: bazel-test-blog-engine
     files:
       - ^go\.(mod|sum)$

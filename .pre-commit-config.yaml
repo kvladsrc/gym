@@ -91,7 +91,7 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        files: "\\.(js|jsx|ts|tsx|json|css|scss|html)$"
+        files: "\\.(cjs|js|jsx|mjs|ts|tsx|json|css|scss|html)$"
 
   # ---------- YAML quality ----------
   - repo: https://github.com/adrienverge/yamllint
@@ -154,6 +154,6 @@ repos:
 
   # ---------- Checkov ----------
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.3.2'
+    rev: '3.3.8'
     hooks:
       - id: checkov

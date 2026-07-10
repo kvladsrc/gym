@@ -33,9 +33,10 @@ zero-player auto-runner:
    - Support `A`/`D` in addition to left/right arrows.
    - Keep generated terrain traversal deterministic for any left/right input.
 2. Add basic animation and feedback.
-   - Idle bob, walk cycle, attack swing, projectile feedback, and impact
-     flashes.
-   - Keep asset requirements minimal until a sprite sheet exists.
+   - Four-frame running cycle, idle bob, movement squash/stretch, attack
+     overlays, projectile feedback, and impact flashes.
+   - Keep action states as single readable poses; only running needs a short
+     generated cycle because canvas motion alone does not convey the stride.
 3. Introduce the zero-player combat loop.
    - Keep world actors split from terrain.
    - Give the hero a tiny automatic arsenal: melee, flamethrower, grenade,

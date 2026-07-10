@@ -904,6 +904,7 @@ function drawPlayer() {
   drawJetpack(px, py, pw, ph);
 
   gameCtx.save();
+  gameCtx.imageSmoothingEnabled = false;
   if (player.facingRight) {
     gameCtx.translate(px + pw / 2, py);
     gameCtx.scale(-1, 1);

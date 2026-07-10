@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 4,
+  "id": "hero-2026-07-10T17-43-22-507Z",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "sourceSize": "1024x1024",
+  "targetSize": 96,
+  "logicalPixelSize": 32,
+  "paletteColors": 12,
+  "prompt": "Use case: stylized-concept\nAsset type: tiny 2D game character drawn at roughly 60x60 screen pixels\nPrimary request: create an original, charming retro action hero with the broad\nreadability of a cozy 16-bit adventure-RPG character, without copying any\nexisting game or character.\nSubject: slightly oversized square head, one blocky blond flat-top shape,\nblack sunglasses as one bold band, broad red sleeveless torso, compact dark\ntrousers, oversized black gloves, and large heavy boots. Keep the anatomy\nshort, chunky, and deliberately stylized rather than realistic.\nStyle/medium: hand-authored pixel art designed on a 32x32 logical grid and\nupscaled. Use 8-12 flat colors total, a strong dark outline, large color\nclusters, at most two shades per material, and a clear silhouette.\nConstraints: every important feature must survive at 60x60. Avoid individual\nbullets, boot laces, muscle striations, fabric folds, hatching, dithering,\nrealistic anatomy, gradients, antialiasing, thin lines, and any detail smaller\nthan two logical pixels. No text, logo, interface, trademark, watermark, or\nexact likeness of a protected character.\n\nCreate the canonical identity reference in a relaxed, combat-ready idle stance. The compact blocky pistol is lowered but visible. Preserve a clean side-on screen-left read. Let the character occupy about 80 percent of the canvas height.\n\nThe source canvas is square. Show exactly one complete\nfull-body character in exactly one pose. This is one static game image, not\nan animation, sprite sheet, sequence, lineup, turn-around, or multi-panel\ncomposition. The character faces screen-left. Keep the same camera, apparent\nbody scale, horizontal center, and generous outer padding as the supplied\nreference. Do not crop hair, weapon, hands, or boots. Use a perfectly uniform\nopaque #ff00ff magenta background across the entire canvas, without a\nground plane, shadow, texture, gradient, border, or scenery.",
+  "source": "asset-work/concepts/hero-2026-07-10T17-43-22-507Z/source.png",
+  "preview": "asset-work/concepts/hero-2026-07-10T17-43-22-507Z/concept.png",
+  "usage": {
+    "input_tokens": 434,
+    "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 434
+    },
+    "output_tokens": 7024,
+    "output_tokens_details": {
+      "image_tokens": 7024,
+      "text_tokens": 0
+    },
+    "total_tokens": 7458
+  }
+}
