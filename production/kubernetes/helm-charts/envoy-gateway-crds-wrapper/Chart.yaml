@@ -3,8 +3,8 @@ apiVersion: v2
 name: envoy-gateway-crds-wrapper
 description: "Wrapper chart: Envoy Gateway CRDs"
 type: application
-version: 0.3.0
+version: 0.4.0
 dependencies:
   - name: gateway-crds-helm
-    version: 1.8.1
+    version: 1.8.2
     repository: "oci://docker.io/envoyproxy"

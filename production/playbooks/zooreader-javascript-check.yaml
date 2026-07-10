@@ -1,0 +1,28 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Find Zooreader JavaScript files
+      ansible.builtin.find:
+        paths: "{{ repo_dir }}/production/docker/zooreader"
+        patterns:
+          - "*.cjs"
+          - "*.js"
+          - "*.mjs"
+        recurse: true
+      register: zooreader_javascript_files
+
+    - name: Check Zooreader JavaScript syntax
+      ansible.builtin.command:
+        argv:
+          - node
+          - --check
+          - "{{ item.path }}"
+      changed_when: false
+      loop: "{{ zooreader_javascript_files.files }}"
+      loop_control:
+        label: "{{ item.path }}"

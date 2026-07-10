@@ -5,6 +5,7 @@
 
 namespace warmup {
 
+// Returns a permutation with the fewest equal adjacent pairs in O(n) time.
 std::vector<int> reorganize_string(std::vector<int> a);
 
 }  // namespace warmup

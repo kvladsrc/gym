@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 3,
+  "concept": "hero-2026-07-10T12-36-28-612Z",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "sourceSize": "1024x1024",
+  "targetSize": 96,
+  "reference": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/reference.png",
+  "referenceSha256": "7f6e601d27b591528db146da42bd240e60f21cb6904d3364f0e22664b2417604",
+  "states": {
+    "idle": {
+      "fingerprint": "3ea8a0d2d23e474bb8ed4328797752d6b305b3e23a72256866113b4530e91a09",
+      "source": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/reference.png",
+      "output": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/player.png"
+    },
+    "run": {
+      "fingerprint": "cda3e8a6d7ac9d4eb9f617dc85b6116e01dde44afbbacdbc4fdcdc81c9ad95b5",
+      "prompt": "Create an original retro sci-fi action hero for a small\nbrowser game. Use the broad archetype of a brash 1990s action-game\nprotagonist without copying any existing character: square-jawed face,\ntall blond flat-top haircut, black rectangular sunglasses, muscular bare\narms, a red sleeveless tactical top, dark combat trousers, black fingerless\ngloves, ammunition belt, and heavy black combat boots. Use an exaggerated,\nconfident silhouette that remains readable when reduced to 96x96 pixels.\n\nRender high-quality black-first pixel art with sharp white highlights, gray\nhatch-like volume strokes, restrained red accents, a limited retro palette,\nhard crisp pixel clusters, and no soft painterly shading. The result must be\nan original design with no text, logo, interface, trademark, or exact\nlikeness of a protected character.\n\nUse the supplied image as the canonical identity reference. This must be the same hero, not a redesign. Preserve the face, haircut, sunglasses, body proportions, clothing construction, palette, outline weight, pixel clusters, camera, and screen-left orientation. Change only the pose and the state-specific equipment required below.\n\nState pose: A single strong mid-stride running pose toward screen-left, with a heavy boot stride and readable shoulder counter-motion.\n\nThe source canvas is square. Show exactly one complete\nfull-body character in exactly one pose. This is one static game image, not\nan animation, sprite sheet, sequence, lineup, turn-around, or multi-panel\ncomposition. The character faces screen-left. Keep the same camera, apparent\nbody scale, horizontal center, and generous outer padding as the supplied\nreference. Do not crop hair, weapon, hands, or boots. Use a perfectly uniform\nopaque #ff00ff magenta background across the entire canvas, without a\nground plane, shadow, texture, gradient, border, or scenery.",
+      "source": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/run-source.png",
+      "output": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/player-run.png",
+      "usage": {
+        "input_tokens": 1418,
+        "input_tokens_details": {
+          "image_tokens": 1024,
+          "text_tokens": 394
+        },
+        "output_tokens": 7024,
+        "output_tokens_details": {
+          "image_tokens": 7024,
+          "text_tokens": 0
+        },
+        "total_tokens": 8442
+      }
+    },
+    "jump": {
+      "fingerprint": "bb5cb5cca0537c6f19dbc24082400cf1e9e91caa956112c8b5ec7b9489161ae7",
+      "prompt": "Create an original retro sci-fi action hero for a small\nbrowser game. Use the broad archetype of a brash 1990s action-game\nprotagonist without copying any existing character: square-jawed face,\ntall blond flat-top haircut, black rectangular sunglasses, muscular bare\narms, a red sleeveless tactical top, dark combat trousers, black fingerless\ngloves, ammunition belt, and heavy black combat boots. Use an exaggerated,\nconfident silhouette that remains readable when reduced to 96x96 pixels.\n\nRender high-quality black-first pixel art with sharp white highlights, gray\nhatch-like volume strokes, restrained red accents, a limited retro palette,\nhard crisp pixel clusters, and no soft painterly shading. The result must be\nan original design with no text, logo, interface, trademark, or exact\nlikeness of a protected character.\n\nUse the supplied image as the canonical identity reference. This must be the same hero, not a redesign. Preserve the face, haircut, sunglasses, body proportions, clothing construction, palette, outline weight, pixel clusters, camera, and screen-left orientation. Change only the pose and the state-specific equipment required below.\n\nState pose: A single compact airborne jump pose moving toward screen-left, knees raised and boots clearly separated, ready to land.\n\nThe source canvas is square. Show exactly one complete\nfull-body character in exactly one pose. This is one static game image, not\nan animation, sprite sheet, sequence, lineup, turn-around, or multi-panel\ncomposition. The character faces screen-left. Keep the same camera, apparent\nbody scale, horizontal center, and generous outer padding as the supplied\nreference. Do not crop hair, weapon, hands, or boots. Use a perfectly uniform\nopaque #ff00ff magenta background across the entire canvas, without a\nground plane, shadow, texture, gradient, border, or scenery.",
+      "source": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/jump-source.png",
+      "output": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/player-jump.png",
+      "usage": {
+        "input_tokens": 1417,
+        "input_tokens_details": {
+          "image_tokens": 1024,
+          "text_tokens": 393
+        },
+        "output_tokens": 7024,
+        "output_tokens_details": {
+          "image_tokens": 7024,
+          "text_tokens": 0
+        },
+        "total_tokens": 8441
+      }
+    },
+    "jetpack": {
+      "fingerprint": "e3c4a4496cb24efceed7e50ac3fadb1f0115268b6b2cf3fad35666bffd35d882",
+      "prompt": "Create an original retro sci-fi action hero for a small\nbrowser game. Use the broad archetype of a brash 1990s action-game\nprotagonist without copying any existing character: square-jawed face,\ntall blond flat-top haircut, black rectangular sunglasses, muscular bare\narms, a red sleeveless tactical top, dark combat trousers, black fingerless\ngloves, ammunition belt, and heavy black combat boots. Use an exaggerated,\nconfident silhouette that remains readable when reduced to 96x96 pixels.\n\nRender high-quality black-first pixel art with sharp white highlights, gray\nhatch-like volume strokes, restrained red accents, a limited retro palette,\nhard crisp pixel clusters, and no soft painterly shading. The result must be\nan original design with no text, logo, interface, trademark, or exact\nlikeness of a protected character.\n\nUse the supplied image as the canonical identity reference. This must be the same hero, not a redesign. Preserve the face, haircut, sunglasses, body proportions, clothing construction, palette, outline weight, pixel clusters, camera, and screen-left orientation. Change only the pose and the state-specific equipment required below.\n\nState pose: A single stable jetpack-hover pose facing screen-left, with the backpack thruster visible, legs lifted, and only a very short exhaust because the game draws its own flame.\n\nThe source canvas is square. Show exactly one complete\nfull-body character in exactly one pose. This is one static game image, not\nan animation, sprite sheet, sequence, lineup, turn-around, or multi-panel\ncomposition. The character faces screen-left. Keep the same camera, apparent\nbody scale, horizontal center, and generous outer padding as the supplied\nreference. Do not crop hair, weapon, hands, or boots. Use a perfectly uniform\nopaque #ff00ff magenta background across the entire canvas, without a\nground plane, shadow, texture, gradient, border, or scenery.",
+      "source": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/jetpack-source.png",
+      "output": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/player-jetpack.png",
+      "usage": {
+        "input_tokens": 1430,
+        "input_tokens_details": {
+          "image_tokens": 1024,
+          "text_tokens": 406
+        },
+        "output_tokens": 7024,
+        "output_tokens_details": {
+          "image_tokens": 7024,
+          "text_tokens": 0
+        },
+        "total_tokens": 8454
+      }
+    },
+    "grenade": {
+      "fingerprint": "b3f1d794910672c56a57b097edc0011cbc9ada867e2d82f0e39c86e92a1c0ea2",
+      "prompt": "Create an original retro sci-fi action hero for a small\nbrowser game. Use the broad archetype of a brash 1990s action-game\nprotagonist without copying any existing character: square-jawed face,\ntall blond flat-top haircut, black rectangular sunglasses, muscular bare\narms, a red sleeveless tactical top, dark combat trousers, black fingerless\ngloves, ammunition belt, and heavy black combat boots. Use an exaggerated,\nconfident silhouette that remains readable when reduced to 96x96 pixels.\n\nRender high-quality black-first pixel art with sharp white highlights, gray\nhatch-like volume strokes, restrained red accents, a limited retro palette,\nhard crisp pixel clusters, and no soft painterly shading. The result must be\nan original design with no text, logo, interface, trademark, or exact\nlikeness of a protected character.\n\nUse the supplied image as the canonical identity reference. This must be the same hero, not a redesign. Preserve the face, haircut, sunglasses, body proportions, clothing construction, palette, outline weight, pixel clusters, camera, and screen-left orientation. Change only the pose and the state-specific equipment required below.\n\nState pose: A single grenade-throw action pose facing screen-left, with the throwing arm just completing its release and the other arm balancing the body. Do not show a grenade in flight, projectile, smoke, spark, or motion trail because the game draws the thrown grenade separately.\n\nThe source canvas is square. Show exactly one complete\nfull-body character in exactly one pose. This is one static game image, not\nan animation, sprite sheet, sequence, lineup, turn-around, or multi-panel\ncomposition. The character faces screen-left. Keep the same camera, apparent\nbody scale, horizontal center, and generous outer padding as the supplied\nreference. Do not crop hair, weapon, hands, or boots. Use a perfectly uniform\nopaque #ff00ff magenta background across the entire canvas, without a\nground plane, shadow, texture, gradient, border, or scenery.",
+      "source": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/grenade-source.png",
+      "output": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/player-grenade.png",
+      "usage": {
+        "input_tokens": 1448,
+        "input_tokens_details": {
+          "image_tokens": 1024,
+          "text_tokens": 424
+        },
+        "output_tokens": 7024,
+        "output_tokens_details": {
+          "image_tokens": 7024,
+          "text_tokens": 0
+        },
+        "total_tokens": 8472
+      }
+    },
+    "flamethrower": {
+      "fingerprint": "294a8778ca46bd576132a53bf3b2af745a2d2b2ea7542c6fc7900b6665a7a4eb",
+      "prompt": "Create an original retro sci-fi action hero for a small\nbrowser game. Use the broad archetype of a brash 1990s action-game\nprotagonist without copying any existing character: square-jawed face,\ntall blond flat-top haircut, black rectangular sunglasses, muscular bare\narms, a red sleeveless tactical top, dark combat trousers, black fingerless\ngloves, ammunition belt, and heavy black combat boots. Use an exaggerated,\nconfident silhouette that remains readable when reduced to 96x96 pixels.\n\nRender high-quality black-first pixel art with sharp white highlights, gray\nhatch-like volume strokes, restrained red accents, a limited retro palette,\nhard crisp pixel clusters, and no soft painterly shading. The result must be\nan original design with no text, logo, interface, trademark, or exact\nlikeness of a protected character.\n\nUse the supplied image as the canonical identity reference. This must be the same hero, not a redesign. Preserve the face, haircut, sunglasses, body proportions, clothing construction, palette, outline weight, pixel clusters, camera, and screen-left orientation. Change only the pose and the state-specific equipment required below.\n\nState pose: A single braced flamethrower-firing pose facing screen-left, both hands controlling a compact nozzle; show no emitted flame because the game draws the attack effect.\n\nThe source canvas is square. Show exactly one complete\nfull-body character in exactly one pose. This is one static game image, not\nan animation, sprite sheet, sequence, lineup, turn-around, or multi-panel\ncomposition. The character faces screen-left. Keep the same camera, apparent\nbody scale, horizontal center, and generous outer padding as the supplied\nreference. Do not crop hair, weapon, hands, or boots. Use a perfectly uniform\nopaque #ff00ff magenta background across the entire canvas, without a\nground plane, shadow, texture, gradient, border, or scenery.",
+      "source": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/flamethrower-source.png",
+      "output": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/player-flamethrower.png",
+      "usage": {
+        "input_tokens": 1429,
+        "input_tokens_details": {
+          "image_tokens": 1024,
+          "text_tokens": 405
+        },
+        "output_tokens": 7024,
+        "output_tokens_details": {
+          "image_tokens": 7024,
+          "text_tokens": 0
+        },
+        "total_tokens": 8453
+      }
+    },
+    "pistol": {
+      "fingerprint": "821c73f781fa7217991c94b2b40ee62f7ae57773f58bf9c00db7921f2a333ad4",
+      "prompt": "Create an original retro sci-fi action hero for a small\nbrowser game. Use the broad archetype of a brash 1990s action-game\nprotagonist without copying any existing character: square-jawed face,\ntall blond flat-top haircut, black rectangular sunglasses, muscular bare\narms, a red sleeveless tactical top, dark combat trousers, black fingerless\ngloves, ammunition belt, and heavy black combat boots. Use an exaggerated,\nconfident silhouette that remains readable when reduced to 96x96 pixels.\n\nRender high-quality black-first pixel art with sharp white highlights, gray\nhatch-like volume strokes, restrained red accents, a limited retro palette,\nhard crisp pixel clusters, and no soft painterly shading. The result must be\nan original design with no text, logo, interface, trademark, or exact\nlikeness of a protected character.\n\nUse the supplied image as the canonical identity reference. This must be the same hero, not a redesign. Preserve the face, haircut, sunglasses, body proportions, clothing construction, palette, outline weight, pixel clusters, camera, and screen-left orientation. Change only the pose and the state-specific equipment required below.\n\nState pose: A single pistol-firing pose facing screen-left, arm extended with restrained recoil and the silhouette still balanced over the boots.\n\nThe source canvas is square. Show exactly one complete\nfull-body character in exactly one pose. This is one static game image, not\nan animation, sprite sheet, sequence, lineup, turn-around, or multi-panel\ncomposition. The character faces screen-left. Keep the same camera, apparent\nbody scale, horizontal center, and generous outer padding as the supplied\nreference. Do not crop hair, weapon, hands, or boots. Use a perfectly uniform\nopaque #ff00ff magenta background across the entire canvas, without a\nground plane, shadow, texture, gradient, border, or scenery.",
+      "source": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/pistol-source.png",
+      "output": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/player-pistol.png",
+      "usage": {
+        "input_tokens": 1419,
+        "input_tokens_details": {
+          "image_tokens": 1024,
+          "text_tokens": 395
+        },
+        "output_tokens": 7024,
+        "output_tokens_details": {
+          "image_tokens": 7024,
+          "text_tokens": 0
+        },
+        "total_tokens": 8443
+      }
+    },
+    "knife": {
+      "fingerprint": "53f84b5a2d226cb9be9ada275318b562ba22301fb4a4a48dcc69329269748157",
+      "prompt": "Create an original retro sci-fi action hero for a small\nbrowser game. Use the broad archetype of a brash 1990s action-game\nprotagonist without copying any existing character: square-jawed face,\ntall blond flat-top haircut, black rectangular sunglasses, muscular bare\narms, a red sleeveless tactical top, dark combat trousers, black fingerless\ngloves, ammunition belt, and heavy black combat boots. Use an exaggerated,\nconfident silhouette that remains readable when reduced to 96x96 pixels.\n\nRender high-quality black-first pixel art with sharp white highlights, gray\nhatch-like volume strokes, restrained red accents, a limited retro palette,\nhard crisp pixel clusters, and no soft painterly shading. The result must be\nan original design with no text, logo, interface, trademark, or exact\nlikeness of a protected character.\n\nUse the supplied image as the canonical identity reference. This must be the same hero, not a redesign. Preserve the face, haircut, sunglasses, body proportions, clothing construction, palette, outline weight, pixel clusters, camera, and screen-left orientation. Change only the pose and the state-specific equipment required below.\n\nState pose: A single side-on knife-slash pose facing screen-left, torso twisted but face and feet still oriented left; show no motion arc because the game draws it.\n\nThe source canvas is square. Show exactly one complete\nfull-body character in exactly one pose. This is one static game image, not\nan animation, sprite sheet, sequence, lineup, turn-around, or multi-panel\ncomposition. The character faces screen-left. Keep the same camera, apparent\nbody scale, horizontal center, and generous outer padding as the supplied\nreference. Do not crop hair, weapon, hands, or boots. Use a perfectly uniform\nopaque #ff00ff magenta background across the entire canvas, without a\nground plane, shadow, texture, gradient, border, or scenery.",
+      "source": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/knife-source.png",
+      "output": "asset-work/heroes/hero-2026-07-10T12-36-28-612Z/states/player-knife.png",
+      "usage": {
+        "input_tokens": 1427,
+        "input_tokens_details": {
+          "image_tokens": 1024,
+          "text_tokens": 403
+        },
+        "output_tokens": 7024,
+        "output_tokens_details": {
+          "image_tokens": 7024,
+          "text_tokens": 0
+        },
+        "total_tokens": 8451
+      }
+    }
+  }
+}

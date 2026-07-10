@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "id": "hero-2026-07-10T12-36-28-612Z",
+  "model": "gpt-image-2",
+  "quality": "high",
+  "sourceSize": "1024x1024",
+  "targetSize": 96,
+  "prompt": "Create an original retro sci-fi action hero for a small\nbrowser game. Use the broad archetype of a brash 1990s action-game\nprotagonist without copying any existing character: square-jawed face,\ntall blond flat-top haircut, black rectangular sunglasses, muscular bare\narms, a red sleeveless tactical top, dark combat trousers, black fingerless\ngloves, ammunition belt, and heavy black combat boots. Use an exaggerated,\nconfident silhouette that remains readable when reduced to 96x96 pixels.\n\nRender high-quality black-first pixel art with sharp white highlights, gray\nhatch-like volume strokes, restrained red accents, a limited retro palette,\nhard crisp pixel clusters, and no soft painterly shading. The result must be\nan original design with no text, logo, interface, trademark, or exact\nlikeness of a protected character.\n\nCreate the canonical identity reference in a relaxed, combat-ready idle stance. The compact futuristic pistol is lowered but visible. Preserve a clean side-on screen-left read.\n\nThe source canvas is square. Show exactly one complete\nfull-body character in exactly one pose. This is one static game image, not\nan animation, sprite sheet, sequence, lineup, turn-around, or multi-panel\ncomposition. The character faces screen-left. Keep the same camera, apparent\nbody scale, horizontal center, and generous outer padding as the supplied\nreference. Do not crop hair, weapon, hands, or boots. Use a perfectly uniform\nopaque #ff00ff magenta background across the entire canvas, without a\nground plane, shadow, texture, gradient, border, or scenery.",
+  "source": "asset-work/concepts/hero-2026-07-10T12-36-28-612Z/source.png",
+  "preview": "asset-work/concepts/hero-2026-07-10T12-36-28-612Z/concept.png",
+  "usage": {
+    "input_tokens": 337,
+    "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 337
+    },
+    "output_tokens": 7024,
+    "output_tokens_details": {
+      "image_tokens": 7024,
+      "text_tokens": 0
+    },
+    "total_tokens": 7361
+  }
+}
