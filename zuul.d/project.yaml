@@ -10,6 +10,7 @@
         - zooreader-javascript-check
         - go-check
         - bazel-test-blog-engine
+        - bazel-test-registry-retention
         - bazel-test-pipellm
         - bazel-test-cpp-warmup
         - bazel-test-cpp-rbtree
@@ -31,3 +32,4 @@
     daily:
       jobs:
         - renovate-bot
+        - registry-retention

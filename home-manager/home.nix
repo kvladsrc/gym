@@ -104,6 +104,7 @@ in
     noto-fonts-color-emoji
     pavucontrol
     slurp
+    swaybg
     wl-clipboard
     wlogout
     xwayland-satellite
@@ -161,6 +162,9 @@ in
       source = dotfiles/waybar;
       recursive = true;
     };
+    ".local/share/wallpapers/discordia.png" = {
+      source = dotfiles/wallpapers/discordia.png;
+    };
     ".emacs.d" = {
       source = dotfiles/emacs.d;
       recursive = true;
@@ -195,8 +199,29 @@ in
       size = 16;
     };
     shellIntegration.enableBashIntegration = true;
-    themeFile = "Terafox";
     settings = {
+      background = "#17131f";
+      foreground = "#f1ead7";
+      cursor = "#d6a83c";
+      cursor_text_color = "#17131f";
+      selection_background = "#76528b";
+      selection_foreground = "#f1ead7";
+      color0 = "#292230";
+      color1 = "#ad5368";
+      color2 = "#557c68";
+      color3 = "#d6a83c";
+      color4 = "#76658a";
+      color5 = "#9a6e9f";
+      color6 = "#6f9482";
+      color7 = "#d7d0b5";
+      color8 = "#554b5c";
+      color9 = "#d46a7f";
+      color10 = "#72a087";
+      color11 = "#e5bd58";
+      color12 = "#9581aa";
+      color13 = "#b98bbe";
+      color14 = "#8bb5a1";
+      color15 = "#f1ead7";
       confirm_os_window_close = 0;
       term = "xterm-256color";
     };
