@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MNIST digit recognition</title>
+    <style>
+      :root {
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: #181818;
+        background: #f5f5f1;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 3rem 1.25rem;
+      }
+
+      main {
+        width: min(100%, 720px);
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: clamp(2rem, 6vw, 3.5rem);
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .subtitle {
+        margin: 0 0 2rem;
+        color: #555;
+      }
+
+      h2 {
+        margin: 0 0 0.75rem;
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 2rem;
+        align-items: start;
+      }
+
+      #drawing {
+        display: block;
+        width: 280px;
+        height: 280px;
+        border: 1px solid #181818;
+        background: #000;
+        cursor: crosshair;
+        touch-action: none;
+      }
+
+      .hint {
+        margin: 0.5rem 0 1rem;
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.75rem;
+      }
+
+      button {
+        min-height: 2.75rem;
+        padding: 0.7rem 1rem;
+        border: 1px solid #181818;
+        border-radius: 0;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer;
+      }
+
+      #clear {
+        background: #fff;
+        color: #181818;
+      }
+
+      #predict {
+        flex: 1;
+        background: #181818;
+        color: #fff;
+      }
+
+      button:disabled {
+        border-color: #aaa;
+        background: #aaa;
+        color: #fff;
+        cursor: not-allowed;
+      }
+
+      .result {
+        min-width: 0;
+      }
+
+      #digit {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-size: clamp(3rem, 10vw, 6rem);
+        font-weight: 800;
+        line-height: 0.85;
+      }
+
+      #status {
+        display: block;
+        margin-bottom: 1.25rem;
+        color: #555;
+      }
+
+      .probability {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        padding: 0.35rem 0;
+        border-bottom: 1px solid #d2d2cc;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .probability.best {
+        font-weight: 700;
+      }
+
+      @media (max-width: 620px) {
+        body {
+          padding-top: 2rem;
+        }
+
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        #drawing {
+          width: min(280px, 100%);
+          height: auto;
+          aspect-ratio: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>MNIST</h1>
+      <p class="subtitle">Draw a digit and let the neural network guess it.</p>
+
+      <section class="workspace">
+        <form id="classifier">
+          <canvas id="drawing" width="280" height="280"></canvas>
+          <p class="hint">Draw one white digit on the black canvas.</p>
+          <div class="actions">
+            <button id="clear" type="button">Clear</button>
+            <button id="predict" type="submit" disabled>Recognize</button>
+          </div>
+        </form>
+
+        <section class="result" aria-live="polite">
+          <h2>Result</h2>
+          <span id="digit">—</span>
+          <span id="status">Draw a digit first</span>
+          <div id="probabilities"></div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const canvas = document.querySelector("#drawing");
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      const form = document.querySelector("#classifier");
+      const clear = document.querySelector("#clear");
+      const predict = document.querySelector("#predict");
+      const digit = document.querySelector("#digit");
+      const status = document.querySelector("#status");
+      const probabilities = document.querySelector("#probabilities");
+      let drawing = false;
+      let hasDrawing = false;
+
+      function resetResult(message) {
+        digit.textContent = "—";
+        status.textContent = message;
+        probabilities.replaceChildren();
+      }
+
+      function clearCanvas() {
+        context.fillStyle = "black";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        hasDrawing = false;
+        predict.disabled = true;
+        resetResult("Draw a digit first");
+      }
+
+      function pointerPosition(event) {
+        const bounds = canvas.getBoundingClientRect();
+        return {
+          x: ((event.clientX - bounds.left) * canvas.width) / bounds.width,
+          y: ((event.clientY - bounds.top) * canvas.height) / bounds.height,
+        };
+      }
+
+      canvas.addEventListener("pointerdown", (event) => {
+        drawing = true;
+        hasDrawing = true;
+        predict.disabled = false;
+        resetResult("Ready to recognize");
+        canvas.setPointerCapture(event.pointerId);
+        const point = pointerPosition(event);
+        context.beginPath();
+        context.moveTo(point.x, point.y);
+        context.lineTo(point.x + 0.01, point.y + 0.01);
+        context.stroke();
+      });
+
+      canvas.addEventListener("pointermove", (event) => {
+        if (!drawing) return;
+        const point = pointerPosition(event);
+        context.lineTo(point.x, point.y);
+        context.stroke();
+      });
+
+      for (const eventName of ["pointerup", "pointercancel"]) {
+        canvas.addEventListener(eventName, () => {
+          drawing = false;
+        });
+      }
+
+      function drawingBounds() {
+        const pixels = context.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        ).data;
+        let left = canvas.width;
+        let top = canvas.height;
+        let right = -1;
+        let bottom = -1;
+
+        for (let y = 0; y < canvas.height; y += 1) {
+          for (let x = 0; x < canvas.width; x += 1) {
+            if (pixels[(y * canvas.width + x) * 4] <= 8) continue;
+            left = Math.min(left, x);
+            top = Math.min(top, y);
+            right = Math.max(right, x);
+            bottom = Math.max(bottom, y);
+          }
+        }
+
+        if (right < left || bottom < top) {
+          throw new Error("Draw a digit first");
+        }
+        return { left, top, right, bottom };
+      }
+
+      function centeredInput() {
+        const bounds = drawingBounds();
+        const sourceWidth = bounds.right - bounds.left + 1;
+        const sourceHeight = bounds.bottom - bounds.top + 1;
+        const scale = Math.min(20 / sourceWidth, 20 / sourceHeight);
+        const width = sourceWidth * scale;
+        const height = sourceHeight * scale;
+
+        const fitted = document.createElement("canvas");
+        fitted.width = 28;
+        fitted.height = 28;
+        const fittedContext = fitted.getContext("2d", {
+          willReadFrequently: true,
+        });
+        fittedContext.fillStyle = "black";
+        fittedContext.fillRect(0, 0, 28, 28);
+        fittedContext.imageSmoothingEnabled = true;
+        fittedContext.imageSmoothingQuality = "high";
+        fittedContext.drawImage(
+          canvas,
+          bounds.left,
+          bounds.top,
+          sourceWidth,
+          sourceHeight,
+          (28 - width) / 2,
+          (28 - height) / 2,
+          width,
+          height,
+        );
+
+        const fittedPixels = fittedContext.getImageData(0, 0, 28, 28).data;
+        let mass = 0;
+        let centerX = 0;
+        let centerY = 0;
+        for (let y = 0; y < 28; y += 1) {
+          for (let x = 0; x < 28; x += 1) {
+            const value = fittedPixels[(y * 28 + x) * 4];
+            mass += value;
+            centerX += x * value;
+            centerY += y * value;
+          }
+        }
+
+        const shiftX = Math.round(13.5 - centerX / mass);
+        const shiftY = Math.round(13.5 - centerY / mass);
+        const centered = document.createElement("canvas");
+        centered.width = 28;
+        centered.height = 28;
+        const centeredContext = centered.getContext("2d", {
+          willReadFrequently: true,
+        });
+        centeredContext.fillStyle = "black";
+        centeredContext.fillRect(0, 0, 28, 28);
+        centeredContext.drawImage(fitted, shiftX, shiftY);
+        return centeredContext.getImageData(0, 0, 28, 28).data;
+      }
+
+      function modelInput() {
+        if (!hasDrawing) throw new Error("Draw a digit first");
+        const pixels = centeredInput();
+        return Array.from(
+          { length: 28 * 28 },
+          (_, index) => pixels[index * 4] / 255,
+        );
+      }
+
+      function showResult(result) {
+        digit.textContent = result.prediction;
+        status.textContent = `${(
+          result.probabilities[result.prediction] * 100
+        ).toFixed(1)}% confidence`;
+        probabilities.replaceChildren();
+
+        result.probabilities.forEach((probability, label) => {
+          const row = document.createElement("div");
+          const name = document.createElement("span");
+          const value = document.createElement("span");
+
+          row.className = `probability${
+            label === result.prediction ? " best" : ""
+          }`;
+          name.textContent = label;
+          value.textContent = `${(probability * 100).toFixed(1)}%`;
+          row.append(name, value);
+          probabilities.append(row);
+        });
+      }
+
+      clear.addEventListener("click", clearCanvas);
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        try {
+          predict.disabled = true;
+          status.textContent = "Recognizing…";
+          const response = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pixels: modelInput() }),
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.error || "Recognition failed");
+          }
+          showResult(result);
+        } catch (error) {
+          resetResult(error.message);
+        } finally {
+          predict.disabled = !hasDrawing;
+        }
+      });
+
+      context.strokeStyle = "white";
+      context.lineWidth = 16;
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      clearCanvas();
+    </script>
+  </body>
+</html>
