@@ -1,0 +1,19 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Apply container registry retention policy
+      ansible.builtin.command:
+        argv:
+          - bazelisk
+          - run
+          - //production/registry-retention:registry-retention
+          - --
+          - --apply
+      args:
+        chdir: "{{ repo_dir }}"
+      changed_when: false

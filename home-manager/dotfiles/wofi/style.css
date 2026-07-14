@@ -1,11 +1,12 @@
-@define-color frame #6f7f73;
-@define-color frame_dark #3f5145;
-@define-color panel #aeb8a7;
-@define-color highlight #d2dccb;
-@define-color shadow #4f5f4b;
-@define-color text #141414;
-@define-color selected #3f7f72;
-@define-color selected_text #ffffff;
+@define-color frame #44394d;
+@define-color frame_dark #292230;
+@define-color panel #c2bba4;
+@define-color highlight #e2dbc2;
+@define-color shadow #554b5c;
+@define-color text #19151d;
+@define-color selected #76528b;
+@define-color selected_text #f1ead7;
+@define-color apple #d6a83c;
 
 * {
   font-family: "Mononoki Nerd Font";
@@ -28,10 +29,10 @@ window {
   padding: 5px 9px;
   color: @text;
   background-color: @panel;
-  border-top: 1px solid @shadow;
-  border-left: 1px solid @shadow;
-  border-right: 1px solid @highlight;
-  border-bottom: 1px solid @highlight;
+  border-top: 2px solid @apple;
+  border-left: 2px solid @apple;
+  border-right: 2px solid @shadow;
+  border-bottom: 2px solid @shadow;
 }
 
 #input:focus {

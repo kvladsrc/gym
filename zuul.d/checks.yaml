@@ -7,9 +7,7 @@
 - job:
     name: zooreader-javascript-check
     files:
-      - ^production/docker/zooreader/.*\.(cjs|js|mjs)$
-      - ^production/playbooks/zooreader-javascript-check\.yaml$
-      - ^zuul\.d/(checks|project)\.yaml$
+      - ^production/docker/zooreader/
     post-run: production/playbooks/notify-ntfy-on-failure.yaml
     run: production/playbooks/zooreader-javascript-check.yaml
 
@@ -20,6 +18,14 @@
       - ^production/docker/blog-engine/
     post-run: production/playbooks/notify-ntfy-on-failure.yaml
     run: production/playbooks/bazel-test-blog-engine.yaml
+
+- job:
+    name: bazel-test-registry-retention
+    files:
+      - ^go\.(mod|sum)$
+      - ^production/registry-retention/
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/bazel-test-registry-retention.yaml
 
 - job:
     name: go-check

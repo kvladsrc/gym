@@ -24,24 +24,24 @@ spec:
         author:
           initContainers:
             migrate:
-              imageTag: prod-1782424674-026a1a2fe9f4e8fd55aa5f1edac987aafad9f8a1 # {"$imagepolicy": "flux-system:blog-engine:tag"}
+              imageTag: prod-1783759271-39c1d8a26f4cc077da4518f5526766bac898c701 # {"$imagepolicy": "flux-system:blog-engine:tag"}
           containers:
             author:
-              imageTag: prod-1782424674-026a1a2fe9f4e8fd55aa5f1edac987aafad9f8a1 # {"$imagepolicy": "flux-system:blog-engine:tag"}
+              imageTag: prod-1783759271-39c1d8a26f4cc077da4518f5526766bac898c701 # {"$imagepolicy": "flux-system:blog-engine:tag"}
         web:
           initContainers:
             migrate:
-              imageTag: prod-1782424674-026a1a2fe9f4e8fd55aa5f1edac987aafad9f8a1 # {"$imagepolicy": "flux-system:blog-engine:tag"}
+              imageTag: prod-1783759271-39c1d8a26f4cc077da4518f5526766bac898c701 # {"$imagepolicy": "flux-system:blog-engine:tag"}
           containers:
             web:
-              imageTag: prod-1782424674-026a1a2fe9f4e8fd55aa5f1edac987aafad9f8a1 # {"$imagepolicy": "flux-system:blog-engine:tag"}
+              imageTag: prod-1783759271-39c1d8a26f4cc077da4518f5526766bac898c701 # {"$imagepolicy": "flux-system:blog-engine:tag"}
         worker:
           initContainers:
             migrate:
-              imageTag: prod-1782424674-026a1a2fe9f4e8fd55aa5f1edac987aafad9f8a1 # {"$imagepolicy": "flux-system:blog-engine:tag"}
+              imageTag: prod-1783759271-39c1d8a26f4cc077da4518f5526766bac898c701 # {"$imagepolicy": "flux-system:blog-engine:tag"}
           containers:
             worker:
-              imageTag: prod-1782424674-026a1a2fe9f4e8fd55aa5f1edac987aafad9f8a1 # {"$imagepolicy": "flux-system:blog-engine:tag"}
+              imageTag: prod-1783759271-39c1d8a26f4cc077da4518f5526766bac898c701 # {"$imagepolicy": "flux-system:blog-engine:tag"}
   valuesFrom:
     - kind: Secret
       name: openai-api

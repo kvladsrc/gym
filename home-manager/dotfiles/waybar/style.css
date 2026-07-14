@@ -85,7 +85,7 @@ window#waybar {
   margin: 3px 0 3px 7px;
   padding: 3px 11px;
   color: @text_on_dark;
-  background-color: @selected;
+  background-color: @selected_dark;
   border-top: 1px solid @shadow;
   border-left: 1px solid @shadow;
   border-right: 1px solid @highlight;

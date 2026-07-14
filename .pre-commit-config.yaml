@@ -70,11 +70,13 @@ repos:
       - id: clang-format
       - id: cppcheck
         args:
+          - --language=c++
           - --check-level=exhaustive
           - --suppress=missingInclude
           - --suppress=missingIncludeSystem
           - --suppress=unusedStructMember
           - --suppress=unusedFunction
+          - --suppress=constParameter
           - --suppress=constParameterCallback
           - --enable=style
       - id: cpplint

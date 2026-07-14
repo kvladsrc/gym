@@ -42,3 +42,8 @@
     run: production/playbooks/promote-zooreader-image.yaml
     files:
       - ^production/docker/zooreader/
+
+- job:
+    name: registry-retention
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/registry-retention.yaml
