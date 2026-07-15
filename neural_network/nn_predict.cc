@@ -5,8 +5,8 @@
 #include <sstream>
 #include <string>
 
-#include "nn_io.h"   // NOLINT(build/include_subdir)
-#include "nn_lib.h"  // NOLINT(build/include_subdir)
+#include "nn_io.h"          // NOLINT(build/include_subdir)
+#include "nn_lib/nn_lib.h"  // NOLINT(build/include_subdir)
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {

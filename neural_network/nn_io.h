@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "nn_lib.h"  // NOLINT(build/include_subdir)
+#include "nn_lib/nn_lib.h"  // NOLINT(build/include_subdir)
 
 class NNIO {
  public:

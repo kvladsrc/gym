@@ -25,8 +25,8 @@ cc_binary(
 
 cc_library(
     name = "nn_lib",
-    srcs = ["nn_lib.cc"],
-    hdrs = ["nn_lib.h"],
+    srcs = ["nn_lib/nn_lib.cc"],
+    hdrs = ["nn_lib/nn_lib.h"],
     copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )

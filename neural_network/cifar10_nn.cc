@@ -11,9 +11,9 @@
 #include <string>
 #include <vector>
 
-#include "cifar10.h"  // NOLINT(build/include_subdir)
-#include "nn_io.h"    // NOLINT(build/include_subdir)
-#include "nn_lib.h"   // NOLINT(build/include_subdir)
+#include "cifar10.h"        // NOLINT(build/include_subdir)
+#include "nn_io.h"          // NOLINT(build/include_subdir)
+#include "nn_lib/nn_lib.h"  // NOLINT(build/include_subdir)
 
 namespace {
 

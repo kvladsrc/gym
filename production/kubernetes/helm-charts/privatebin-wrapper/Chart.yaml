@@ -3,9 +3,9 @@ apiVersion: v2
 name: privatebin-wrapper
 description: "Wrapper chart: privatebin"
 type: application
-version: 0.24.0
+version: 0.25.0
 appVersion: "2.0.3"
 dependencies:
   - name: privatebin
-    version: 0.23.4
+    version: 0.23.5
     repository: "https://privatebin.github.io/helm-chart"

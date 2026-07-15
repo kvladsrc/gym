@@ -8,9 +8,9 @@
 #include <random>
 #include <vector>
 
-#include "mnist.h"   // NOLINT(build/include_subdir)
-#include "nn_io.h"   // NOLINT(build/include_subdir)
-#include "nn_lib.h"  // NOLINT(build/include_subdir)
+#include "mnist.h"          // NOLINT(build/include_subdir)
+#include "nn_io.h"          // NOLINT(build/include_subdir)
+#include "nn_lib/nn_lib.h"  // NOLINT(build/include_subdir)
 
 namespace {
 
@@ -52,7 +52,7 @@ bool valid_dataset(const MnistDataset& dataset, const char* name) {
   return true;
 }
 
-void evaluate(NN& net, const MnistDataset& dataset) {
+void evaluate(NN& net, const MnistDataset& dataset, const char* split) {
   constexpr double epsilon = 1e-15;
   std::size_t correct = 0;
   double loss = 0.0;
@@ -67,12 +67,12 @@ void evaluate(NN& net, const MnistDataset& dataset) {
     loss -= std::log(std::max(probabilities[label], epsilon));
   }
 
-  const double test_size = static_cast<double>(dataset.images.size());
-  std::cout << std::fixed << std::setprecision(2)
-            << "test accuracy: " << (100.0 * correct / test_size) << "% ("
+  const double dataset_size = static_cast<double>(dataset.images.size());
+  std::cout << std::fixed << std::setprecision(2) << split
+            << " accuracy: " << (100.0 * correct / dataset_size) << "% ("
             << correct << '/' << dataset.images.size() << ")\n"
-            << std::setprecision(6)
-            << "test cross-entropy: " << (loss / test_size) << '\n';
+            << std::setprecision(6) << split
+            << " loss (cross-entropy): " << (loss / dataset_size) << '\n';
 }
 
 }  // namespace
@@ -137,7 +137,8 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  evaluate(net, test);
+  evaluate(net, training, "train");
+  evaluate(net, test, "test");
   NNIO::save(net, argv[5]);
   std::cout << "saved model to " << argv[5] << '\n';
   return 0;
