@@ -39,10 +39,6 @@ func generate(path: String) -> void:
 	hex_level_builder.build(self, entries, _area_seed(path))
 
 
-func refresh_markers() -> void:
-	pass
-
-
 func _clear_generated_children() -> void:
 	for child in get_children():
 		child.queue_free()

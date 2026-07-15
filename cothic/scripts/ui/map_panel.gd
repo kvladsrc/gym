@@ -10,8 +10,8 @@ var _scan_generation := 0
 
 func _ready() -> void:
 	add_to_group("map_panel")
+	add_to_group("ui_modal")
 	workspace = get_tree().get_first_node_in_group("workspace")
-	PixelUi.style_buttons(self)
 	close()
 
 
@@ -43,10 +43,6 @@ func open() -> void:
 func close() -> void:
 	_scan_generation += 1
 	visible = false
-
-
-func is_open() -> bool:
-	return visible
 
 
 func _rebuild_path_list() -> void:
@@ -123,17 +119,20 @@ func _child_directories(path: String, depth: int) -> Array[Dictionary]:
 
 func _add_path_row(path: String, depth: int) -> void:
 	var button := Button.new()
-	button.text = "%s%s" % [_indent(depth), workspace.get_relative_path(path)]
+	var path_name := path.get_file()
+	if path == workspace.root_path:
+		path_name = path_name if path_name != "" else path
+	button.text = (
+		"%s%s%s" % [_indent(depth), "◆  " if path == workspace.current_path else "", path_name]
+	)
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.disabled = path == workspace.current_path
-	PixelUi.style_button(button)
 	button.pressed.connect(_on_path_button_pressed.bind(path))
 	path_list.add_child(button)
 
 
 func _add_status_row(text: String) -> void:
 	var label := Label.new()
-	PixelUi.style_label(label)
 	label.text = text
 	path_list.add_child(label)
 

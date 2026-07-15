@@ -2,8 +2,8 @@ class_name IslandGenerator
 extends RefCounted
 
 const ISLAND_RADIUS := 28
-const MIN_ISLAND_TILE_COUNT := 12
-const ISLAND_TILES_PER_ENTRY := 8
+const MIN_ISLAND_TILE_COUNT := 6
+const ISLAND_TILES_PER_ENTRY := 3
 const ISLAND_SEED := 19
 
 

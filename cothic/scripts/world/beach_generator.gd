@@ -3,13 +3,13 @@ extends RefCounted
 
 const BEACH_SEED := 73
 const MIN_BEACH_COUNT := 1
-const MAX_BEACH_COUNT := 2
-const MIN_BEACH_TILE_COUNT := 2
-const MAX_BEACH_TILE_COUNT := 4
+const MAX_BEACH_COUNT := 1
+const MIN_BEACH_TILE_COUNT := 1
+const MAX_BEACH_TILE_COUNT := 2
 const SAND_MODELS: Array[String] = [
 	"sand",
 	"sand",
-	"sand-desert",
+	"sand-rocks",
 ]
 
 var _directions: Array[Vector2i] = []
