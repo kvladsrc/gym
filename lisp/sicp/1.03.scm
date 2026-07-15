@@ -1,0 +1,7 @@
+(define (sum_of_max_squad a b c)
+  (define (squad x) (* x x))
+  (define (max x y)
+    (if (> x y) x y))
+  (define (min x y)
+    (if (> x y) x y))
+  (+ (squad (max a b)) (squad (max (min a b) c))))

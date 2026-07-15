@@ -1,0 +1,10 @@
+(define (circle? x)
+  (let ((unique `()))
+    (define (circle-iter x)
+      (if (pair? x)
+	  (if (in-set? x unique)
+	      #t
+	      (begin (append! x unique)
+		     (circle-iter (cdr x))))
+	  #f))
+    (circle-iter x)))

@@ -1,0 +1,6 @@
+(define (make-rat n d)
+  (cond ((and (< 0 n) (< 0 d)) (cons n d))
+	((and (> 0 n) (> 0 d)) (cons (- n) (- d)))
+	(else (if (> 0 n)
+		  (cons n (abs d))
+		  (cons (- n) (abs d))))))

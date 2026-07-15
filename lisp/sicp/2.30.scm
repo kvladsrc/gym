@@ -1,0 +1,15 @@
+(define (square-tree tree)
+  (cond ((pair? tree) (cons (square-tree (car tree))
+			    (square-tree (cdr tree))))
+	((null? tree) null)
+	(else (square tree))))
+
+(define (square x)
+  (* x x))
+
+(define (square-tree-hight-level-procedure tree)
+  (map (lambda (x)
+	 (if (pair? x)
+	     (square-tree-hight-level-procedure x)
+	     (square x)))
+       tree))
