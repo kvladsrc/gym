@@ -8,12 +8,13 @@
 
 namespace {
 
+// Returns the ReLU activation of a scalar.
 double relu(double a) { return std::max(a, static_cast<double>(0)); }
 
-// ReLU activation.
+// Applies ReLU element-wise.
 void activate(V& v) { std::transform(v.begin(), v.end(), v.begin(), relu); }
 
-// He initialization for ReLU layers.
+// Initializes weights with the He normal distribution.
 void initialize_he(M& layer) {
   if (layer.empty() || layer.front().empty()) {
     return;
@@ -23,8 +24,10 @@ void initialize_he(M& layer) {
     std::random_device random_device;
     return random_device();
   }());
+
   const double standard_deviation =
       std::sqrt(2.0 / static_cast<double>(layer.front().size()));
+
   std::normal_distribution<double> dist(0.0, standard_deviation);
 
   for (auto& neuron_weights : layer) {
@@ -33,20 +36,51 @@ void initialize_he(M& layer) {
   }
 }
 
-// V * M.
+// Returns the dot product of the vector with each matrix row.
 V operator*(const V& v, const M& m) {
-  V res;
-  for (const auto& n : m) {
-    double out = 0;
-    for (std::size_t i = 0; i < n.size(); ++i) {
-      out += n[i] * v[i];
+  V res(m.size(), 0.0);
+
+  for (std::size_t row = 0; row < m.size(); ++row) {
+    for (std::size_t col = 0; col < m[row].size(); ++col) {
+      res[row] += m[row][col] * v[col];
     }
-    res.push_back(out);
   }
+
   return res;
 }
 
-// V + V.
+// Multiplies every vector element by a scalar.
+V operator*(const V& v, double scalar) {
+  V res = v;
+  std::transform(res.begin(), res.end(), res.begin(),
+                 [scalar](double value) { return value * scalar; });
+  return res;
+}
+
+// Subtracts vectors element-wise in place.
+V& operator-=(V& lhs, const V& rhs) {
+  for (std::size_t i = 0; i < lhs.size(); ++i) {
+    lhs[i] -= rhs[i];
+  }
+  return lhs;
+}
+
+// Adds vectors element-wise in place.
+V& operator+=(V& lhs, const V& rhs) {
+  for (std::size_t i = 0; i < lhs.size(); ++i) {
+    lhs[i] += rhs[i];
+  }
+  return lhs;
+}
+
+// Multiplies a vector by a scalar in place.
+V& operator*=(V& lhs, double scalar) {
+  std::transform(lhs.begin(), lhs.end(), lhs.begin(),
+                 [scalar](double value) { return value * scalar; });
+  return lhs;
+}
+
+// Adds vectors element-wise.
 V operator+(const V& lhs, const V& rhs) {
   V res = lhs;
   for (std::size_t i = 0; i < res.size(); ++i) {
@@ -55,32 +89,24 @@ V operator+(const V& lhs, const V& rhs) {
   return res;
 }
 
-// Transpose matrix for back propagation.
-M transpose(const M& matrix) {
-  if (matrix.empty()) {
-    return {};
-  }
-
-  const size_t rows = matrix.size();
-  const size_t cols = matrix.front().size();
+// Returns the matrix transpose.
+M transpose(const M& m) {
+  const size_t rows = m.size();
+  const size_t cols = m.front().size();
 
   M result(cols, V(rows));
 
   for (size_t row = 0; row < rows; ++row) {
     for (size_t col = 0; col < cols; ++col) {
-      result[col][row] = matrix[row][col];
+      result[col][row] = m[row][col];
     }
   }
 
   return result;
 }
 
-// Output values to probabilities.
+// Converts logits to probabilities with softmax.
 void softmax(V& v) {
-  if (v.empty()) {
-    return;
-  }
-
   const double maximum = *std::max_element(v.begin(), v.end());
   double sum = 0;
 
@@ -99,6 +125,10 @@ NN::NN(std::size_t in, double astep_size, double aregularization)
     : input_size(in), step_size(astep_size), regularization(aregularization) {}
 
 void NN::add_layer(std::size_t out) {
+  if (out == 0) {
+    return;
+  }
+
   auto width = input_size;
 
   if (!network.empty()) {
@@ -116,29 +146,28 @@ void NN::add_layer(std::size_t out) {
 }
 
 void NN::back_propagation(const V& example, double normalizer) {
-  // P_j - Y_j is derivative for loss function Softmax +
-  // Cross-entropy, no ReLU. Divide by the number of examples to get
-  // the average batch gradient.
+  // P_j - Y_j is the derivative of softmax cross-entropy with respect
+  // to output logit j. Divide by the batch size to obtain the mean
+  // gradient.
   V d = ans;
   for (size_t i = 0; i < d.size(); ++i) {
-    d[i] = (d[i] - example[i]) * normalizer;
+    d[i] -= example[i];
+    d[i] *= normalizer;
   }
 
   for (size_t l = 0; l < network.size(); ++l) {
     auto back_l = network.size() - 1 - l;
 
-    for (size_t n = 0; n < d.size(); ++n) {
-      biases_grads[back_l][n] += d[n];
+    biases_grads[back_l] += d;
 
-      for (size_t w = 0; w < grads[back_l][n].size(); ++w) {
-        // Accumulate gradient for batch to calculate the average.
-        if (back_l == 0) {
-          // Input vector.
-          grads[back_l][n][w] += input[w] * d[n];
-        } else {
-          // Previous layer output.
-          grads[back_l][n][w] += outs[back_l - 1][w] * d[n];
-        }
+    // Accumulate this example's contribution to the batch gradient.
+    for (size_t n = 0; n < d.size(); ++n) {
+      if (back_l == 0) {
+        // Input vector.
+        grads[back_l][n] += input * d[n];
+      } else {
+        // Previous layer output.
+        grads[back_l][n] += outs[back_l - 1] * d[n];
       }
     }
 
@@ -149,7 +178,7 @@ void NN::back_propagation(const V& example, double normalizer) {
     auto tm = transpose(network[back_l]);
     d = d * tm;
 
-    // ReLU derivation.
+    // Apply the ReLU derivative.
     for (size_t i = 0; i < d.size(); ++i) {
       if (outs[back_l - 1][i] == 0.0) {
         d[i] = 0.0;
@@ -158,41 +187,45 @@ void NN::back_propagation(const V& example, double normalizer) {
   }
 }
 
-// Change weights and wipe out grads buffers.
+// Update parameters and clear the gradient buffers.
 void NN::apply_grads() {
   for (size_t l = 0; l < network.size(); ++l) {
-    for (size_t row = 0; row < network[l].size(); ++row) {
-      biases[l][row] -= step_size * biases_grads[l][row];
-      biases_grads[l][row] = 0;
+    // Update biases.
+    biases_grads[l] *= step_size;
+    biases[l] -= biases_grads[l];
 
-      for (size_t col = 0; col < network[l][row].size(); ++col) {
-        network[l][row][col] -=
-            step_size *
-            (grads[l][row][col] + regularization * network[l][row][col]);
-        grads[l][row][col] = 0.0;
-      }
+    // Wipe out bias gradients.
+    std::fill(biases_grads[l].begin(), biases_grads[l].end(), 0.0);
+
+    for (size_t row = 0; row < network[l].size(); ++row) {
+      // L2 regularization.
+      grads[l][row] += network[l][row] * regularization;
+      grads[l][row] *= step_size;
+      network[l][row] -= grads[l][row];
+
+      // Wipe out gradients.
+      std::fill(grads[l][row].begin(), grads[l][row].end(), 0.0);
     }
   }
 }
 
 void NN::forward() {
-  if (network.size() == 1) {
-    outs[0] = (input * network[0]) + biases[0];
-    ans = outs[0];
-    softmax(ans);
-    return;
+  // Compute the first layer and apply ReLU if it is hidden.
+  outs[0] = input * network[0];
+  outs[0] += biases[0];
+
+  // A single-layer network has no hidden layers.
+  if (network.size() > 1) {
+    activate(outs[0]);
   }
 
-  // Input layer + ReLU.
-  outs[0] = (input * network[0]) + biases[0];
-  activate(outs[0]);
-
-  // Hidden layers + ReLU.
+  // Compute the remaining layers and apply ReLU to hidden layers.
   for (std::size_t i = 1; i < network.size(); ++i) {
-    outs[i] = outs[i - 1] * network[i] + biases[i];
+    outs[i] = outs[i - 1] * network[i];
+    outs[i] += biases[i];
 
-    // Do not apply ReLU on output layer (it erase order for negative
-    // logits).
+    // Do not apply ReLU to the output layer: it would collapse all
+    // negative logits to zero.
     if (i != network.size() - 1) {
       activate(outs[i]);
     }
@@ -203,7 +236,8 @@ void NN::forward() {
 }
 
 void NN::train(const M& inputs, const M& examples) {
-  // Needed to calculate average loss.
+  // Scale each example's contribution to obtain the mean batch
+  // gradient.
   const double normalizer = 1.0 / static_cast<double>(inputs.size());
 
   for (std::size_t i = 0; i < inputs.size(); ++i) {

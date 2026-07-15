@@ -8,6 +8,11 @@ profile docked {
   output eDP-1 disable
 }
 
+profile portrait {
+  output $HOME_1 enable transform 90
+  output $INTERNAL disable
+}
+
 output "DP-1" {
   mode 1920x1080@60.00
   position 1600,0
