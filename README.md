@@ -18,55 +18,60 @@ production, and may contain errors.
 
 ### Codeforces Solutions
 
-`cpp/codeforces` — Solutions from [Codeforces](https://codeforces.com).
+[`cpp/codeforces`](cpp/codeforces) — Solutions from
+[Codeforces](https://codeforces.com).
 
 ### Algorithms & Data Structures
 
-`cpp/warmup` — Educational implementations of core algorithms, data
-structures and techniques. Tests for this section were written with
-the help of Gemini CLI.
-
-Notable: `black_white_array` -- a cache-friendly sorted dynamic array
-supporting insert / search / remove, based on [Bille et al.,
-2020](https://arxiv.org/abs/2004.09051).
+[`cpp/warmup`](cpp/warmup) — Educational implementations of core
+algorithms, data structures and techniques. Tests for this section
+were written with the help of Gemini CLI.
 
 ### SICP solutions
 
-`/sicp` — My first experience in programming.
+[`lisp/sicp`](lisp/sicp) — My first experience in programming.
 
 ![SICP](static/sicp_book.png)
 
+### Neural Network
+
+[`neural_network/nn_lib`](neural_network/nn_lib) — An educational C++
+implementation of a fully connected neural network and backpropagation
+using only the standard library. It trains on a CPU to about 95%
+accuracy on MNIST.
+
+### Pet Project (Evolutionary Art)
+
+[`pet_project`](pet_project) — An experimental evolutionary algorithm
+that draws images using pixels, utilizing an ImageNet-trained model as
+the fitness function. It "evolves" images from random pixels into
+recognizable shapes.
+
+![Granny Smith](static/granny_smith.gif)
+![Indigo Bird](static/indigo_bird.gif)
+![Ladybug](static/ladybug.gif)
+
+### Production Infrastructure
+
+[`production`](production) — Production-grade infrastructure managed
+with GitOps and infrastructure as code. It includes reproducible Bazel
+builds, CI checks, speculative jobs, gated changes, and single sign-on
+for deployed services.
+
 ### PipeLLM
 
-`/pipellm` - A simple and lightweight CLI tool for working with the
-**Gemini API** using named prompts and shell aliases:
+[`pipellm`](pipellm) - A simple and lightweight CLI tool for working
+with the **Gemini API** using named prompts and shell aliases:
 
 ```bash
 cat error.txt | grep ERROR | summary | kharms
 # → Everything has vanished like smoke, the file exists no more.
 ```
 
-### Ripples
-
-`/ripples_cli` is a text-based RPG engine powered by Google Gemini. It
-generates real-time dialogues and interactions based on a static world
-graph and a dynamic event journal.
-
-**Key Mechanics**:
-
-- **World Graph**: Define your world in [DOT](https://graphviz.org/)
-  format. Vertices (Nodes) serve as Locations or NPCs.
-
-- **Dynamic Edges**: The LLM generates available player choices in
-  real-time, effectively creating new edges in the graph.
-
-- **Living Context**: Key player actions are recorded and serves as
-  context for future generations.
-
 ### Cothic
 
-`/cothic` is a Godot 4.6 prototype that turns a real codebase into an
-explorable isometric world.
+[`cothic`](cothic) is a Godot 4.6 prototype that turns a real codebase
+into an explorable isometric world.
 
 Each repository directory becomes a procedurally generated location:
 connected islands, beaches, rivers, terrain dressing, file buildings,
@@ -83,48 +88,49 @@ refactor, and investigation tasks for review.
 </p>
 <!-- markdownlint-enable MD013 MD033 -->
 
-### Pet Project (Evolutionary Art)
-
-`pet_project` — An experimental evolutionary algorithm that draws
-images using pixels, utilizing an ImageNet-trained model as the
-fitness function. It "evolves" images from random pixels into
-recognizable shapes.
-
-![Granny Smith](static/granny_smith.gif)
-![Indigo Bird](static/indigo_bird.gif)
-![Ladybug](static/ladybug.gif)
-
 ### Zooreader
 
-`production/docker/zooreader` — A static JavaScript application that
-allows you to upload and read a PDF file formatted as the Google
-Chrome "No Internet" dinosaur game, featuring Duke Nukem running
-through the pages.
+[`production/docker/zooreader`](production/docker/zooreader) — A
+zero-player platform game layered over PDF reading. The protagonist
+independently traverses platforms and fights enemies as the reader
+progresses through the page. With an LLM, it can also make brief
+comments about the page content.
 
-<!-- markdownlint-disable MD013 MD033 -->
-<p>
-  <a href="static/zooreader.gif"><img src="static/zooreader.gif" width="240" alt="Zooreader gameplay"></a>
-</p>
-<!-- markdownlint-enable MD013 MD033 -->
+![Zooreader zero-player gameplay](static/zooreader.png)
 
-### Production Infrastructure
+### Ripples
 
-`production/` — A collection of Dockerfiles, Helm charts, and
-Kubernetes configurations used to manage and deploy my hobby
-programming infrastructure and personal services.
+[`ripples_cli`](ripples_cli) is a text-based RPG engine powered by
+Google Gemini. It generates real-time dialogues and interactions based
+on a static world graph and a dynamic event journal.
+
+**Key Mechanics**:
+
+- **World Graph**: Define your world in [DOT](https://graphviz.org/)
+  format. Vertices (Nodes) serve as Locations or NPCs.
+
+- **Dynamic Edges**: The LLM generates available player choices in
+  real-time, effectively creating new edges in the graph.
+
+- **Living Context**: Key player actions are recorded and serves as
+  context for future generations.
 
 ### AI-Assisted Code
 
 **Note**: Several parts of this repository were generated or assisted
 by LLMs. Notably:
 
-- `production/docker/zooreader` was fully generated by an LLM.
-- `pet_project` was partially generated by an LLM.
-- `cpp/warmup` tests were automatically ported from BATS to
+- [`production/docker/zooreader`](production/docker/zooreader) was
+  fully generated by an LLM.
+- [`pet_project`](pet_project) was partially generated by an LLM.
+- [`cpp/warmup`](cpp/warmup) tests were automatically ported from BATS to
   GoogleTest.
-- `pipellm` heavily generated based on the project's design specs.
-- `ripples_cli` generated based on the project's design specs.
-- `cothic` is being developed with substantial LLM assistance.
+- [`pipellm`](pipellm) heavily generated based on the project's design
+  specs.
+- [`ripples_cli`](ripples_cli) generated based on the project's design
+  specs.
+- [`cothic`](cothic) is being developed with substantial LLM
+  assistance.
 
 ## Purpose
 

@@ -1,0 +1,11 @@
+(define (same-parity a . b)
+  (define (helper l)
+    (cond ((null? l) null)
+	  ((same-parity? a (car l))
+	   (cons (car l)
+		 (helper (cdr l))))
+	  (else (helper (cdr l)))))
+  (cons a (helper b)))
+
+(define (same-parity? a b)
+  (= (remainder (+ a b) 2) 0))

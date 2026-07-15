@@ -1,0 +1,8 @@
+(define (union-set a b)
+  (cond ((null? a) b)
+	((null? b) a)
+	((element-of-set (car a) b)
+	 (union-set (cdr a) b))
+	(else (union-set (cdr a)
+			 (cons (car a)
+			       b)))))
