@@ -10,11 +10,11 @@ var workspace: Workspace
 
 func _ready() -> void:
 	add_to_group("start_menu")
+	add_to_group("ui_modal")
 	workspace = get_tree().get_first_node_in_group("workspace")
 	error_label.text = ""
 	file_dialog.dir_selected.connect(_on_directory_selected)
 	_configure_last_project()
-	PixelUi.style_buttons(self)
 
 	if workspace != null and workspace.current_path != "":
 		close()
@@ -37,10 +37,6 @@ func open() -> void:
 
 func close() -> void:
 	visible = false
-
-
-func is_open() -> bool:
-	return visible
 
 
 func _on_browse_button_pressed() -> void:

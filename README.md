@@ -71,20 +71,26 @@ cat error.txt | grep ERROR | summary | kharms
 ### Cothic
 
 [`cothic`](cothic) is a Godot 4.6 prototype that turns a real codebase
-into an explorable isometric world.
+into a cozy, explorable isometric world.
 
 Each repository directory becomes a procedurally generated location:
 connected islands, beaches, rivers, terrain dressing, file buildings,
 and directory portals are built from the structure of the selected
 project. Files can be opened in-game, directories can be traversed
-through portals or fast travel, and prompt tools can queue inspect,
-refactor, and investigation tasks for review.
+through portals or fast travel, and text files can be read in a
+read-only in-game viewer.
+
+The world combines stylized 3D terrain with detailed 2D sprites, an
+eight-direction animated hero, roaming wildlife, animated water, and
+procedural vegetation. A fantasy-inspired reader, map, and path navigation.
 
 <!-- markdownlint-disable MD013 MD033 -->
 <p>
-  <a href="static/cothic/cothic01.png"><img src="static/cothic/cothic01.png" width="240" alt="Cothic generated repository location"></a>
-  <a href="static/cothic/cothic02.png"><img src="static/cothic/cothic02.png" width="240" alt="Cothic in-game file reader"></a>
-  <a href="static/cothic/cothic04.png"><img src="static/cothic/cothic04.png" width="240" alt="Cothic generated rivers and buildings"></a>
+  <a href="static/cothic/img1.png"><img src="static/cothic/img1.png" width="240" alt="Cothic coastline, wildlife, and repository portals"></a>
+  <a href="static/cothic/img2.png"><img src="static/cothic/img2.png" width="240" alt="Cothic generated village and sheep"></a>
+  <a href="static/cothic/img3.png"><img src="static/cothic/img3.png" width="240" alt="Cothic fantasy in-game file reader"></a>
+  <a href="static/cothic/img4.png"><img src="static/cothic/img4.png" width="240" alt="Cothic generated repository city"></a>
+  <a href="static/cothic/img5.png"><img src="static/cothic/img5.png" width="240" alt="Cothic procedural terrain and roaming wildlife"></a>
 </p>
 <!-- markdownlint-enable MD013 MD033 -->
 

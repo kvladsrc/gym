@@ -1,5 +1,9 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
+# Show all available commands
+default:
+    @just --list --list-submodules
+
 # Build the resume PDF with YAAC: Another Awesome CV
 build:
     latexmk -C -cd cv.tex

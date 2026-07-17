@@ -1,0 +1,126 @@
+[gd_resource type="Theme" load_steps=9 format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/AlegreyaSansSC-Regular.ttf" id="1_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.105, 0.073, 0.045, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.65, 0.43, 0.2, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.18, 0.12, 0.065, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.33, 0.15, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button_hover"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.29, 0.19, 0.085, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.88, 0.62, 0.27, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button_pressed"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.4, 0.25, 0.095, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.78, 0.36, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button_disabled"]
+content_margin_left = 12.0
+content_margin_top = 7.0
+content_margin_right = 12.0
+content_margin_bottom = 7.0
+bg_color = Color(0.12, 0.095, 0.065, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.29, 0.24, 0.17, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_input"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.045, 0.038, 0.029, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.36, 0.18, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_input_focus"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.065, 0.048, 0.03, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.65, 0.28, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_code"]
+content_margin_left = 10.0
+content_margin_top = 8.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+bg_color = Color(0.035, 0.045, 0.039, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.32, 0.37, 0.25, 1)
+
+[resource]
+default_font = ExtResource("1_font")
+default_font_size = 20
+Label/colors/font_color = Color(0.95, 0.88, 0.72, 1)
+Label/colors/font_shadow_color = Color(0.02, 0.015, 0.01, 1)
+Label/constants/shadow_offset_x = 1
+Label/constants/shadow_offset_y = 1
+Button/colors/font_color = Color(0.94, 0.85, 0.67, 1)
+Button/colors/font_disabled_color = Color(0.48, 0.45, 0.39, 1)
+Button/colors/font_hover_color = Color(1, 0.94, 0.75, 1)
+Button/colors/font_pressed_color = Color(1, 0.94, 0.75, 1)
+Button/font_sizes/font_size = 19
+Button/styles/disabled = SubResource("StyleBox_button_disabled")
+Button/styles/focus = SubResource("StyleBox_button_hover")
+Button/styles/hover = SubResource("StyleBox_button_hover")
+Button/styles/normal = SubResource("StyleBox_button")
+Button/styles/pressed = SubResource("StyleBox_button_pressed")
+CodeEdit/styles/normal = SubResource("StyleBox_code")
+LineEdit/colors/caret_color = Color(1, 0.84, 0.52, 1)
+LineEdit/colors/font_color = Color(0.96, 0.9, 0.78, 1)
+LineEdit/colors/font_placeholder_color = Color(0.58, 0.54, 0.47, 1)
+LineEdit/styles/focus = SubResource("StyleBox_input_focus")
+LineEdit/styles/normal = SubResource("StyleBox_input")
+LineEdit/styles/read_only = SubResource("StyleBox_input")
+PanelContainer/styles/panel = SubResource("StyleBox_panel")
+TooltipPanel/styles/panel = SubResource("StyleBox_panel")

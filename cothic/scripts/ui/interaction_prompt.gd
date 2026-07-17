@@ -1,4 +1,6 @@
-extends Label
+extends MarginContainer
+
+@onready var prompt_label: Label = %PromptLabel
 
 
 func _ready() -> void:
@@ -7,10 +9,10 @@ func _ready() -> void:
 
 
 func show_prompt(action: String, target_name: String) -> void:
-	text = "%s: %s" % [action, target_name]
+	prompt_label.text = "E    %s  %s" % [action, target_name]
 	visible = true
 
 
 func clear_prompt() -> void:
-	text = ""
+	prompt_label.text = ""
 	visible = false

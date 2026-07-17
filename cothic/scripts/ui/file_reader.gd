@@ -11,9 +11,9 @@ var workspace: Workspace
 
 func _ready() -> void:
 	add_to_group("file_reader")
+	add_to_group("ui_modal")
 	workspace = get_tree().get_first_node_in_group("workspace")
 	CodeSurface.configure(content_edit)
-	PixelUi.style_buttons(self)
 	close()
 
 
@@ -73,10 +73,6 @@ func open_file(path: String) -> void:
 
 func close() -> void:
 	visible = false
-
-
-func is_open() -> bool:
-	return visible
 
 
 func _show_error(path: String, message: String) -> void:

@@ -1,26 +1,38 @@
 extends CharacterBody3D
 
+const MOVEMENT_FRAME_COUNT := 8
+const MOVEMENT_ANIMATION_FPS := 8.0
+const SPRINT_ANIMATION_SPEED := 1.35
+const DIRECTION_COUNT := 8
+
 @export var walk_speed: float = 4.0
 @export var sprint_speed: float = 7.0
 @export var gravity: float = 24.0
+@export var turn_speed: float = 12.0
 @export var spawn_position: Vector3 = Vector3.ZERO
 @export var spawn_yaw: float = 0.0
 @export var cursor_ground_y: float = 2.0
 @export var cursor_hover_radius: float = 3.2
 @export var fall_respawn_y: float = -12.0
 @export var camera_zoom_step: float = 1.5
-@export var camera_zoom_min: float = 10.0
+@export var camera_zoom_min: float = 7.0
 @export var camera_zoom_max: float = 22.0
+@export var use_2d_visual: bool = true
 
 var focused_interactable: WorldInteractable
+var _sprite_direction_row := 0
+var _sprite_animation_position := 0.0
 
 @onready var visual_root: Node3D = $VisualRoot
+@onready var ranger_model: Node3D = $VisualRoot/Ranger
+@onready var knight_sprite: Sprite3D = $VisualRoot/KnightSprite
 @onready var spring_arm: SpringArm3D = $CameraPivot/SpringArm3D
 @onready var camera: Camera3D = $CameraPivot/SpringArm3D/Camera3D
 
 
 func _ready() -> void:
 	add_to_group("player")
+	_sync_player_visual()
 
 	var workspace := get_tree().get_first_node_in_group("workspace")
 	if workspace != null and workspace.has_signal("current_path_changed"):
@@ -28,44 +40,16 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _is_start_menu_open():
+	if event.is_action_pressed("toggle_visual"):
+		use_2d_visual = not use_2d_visual
+		_sync_player_visual()
+		get_viewport().set_input_as_handled()
 		return
 
-	if _is_draft_preview_open():
-		return
-
-	if _is_diff_preview_open():
-		return
-
-	if _is_task_panel_open():
-		if event.is_action_pressed("open_tasks") or event.is_action_pressed("ui_cancel"):
-			get_tree().call_group("task_panel", "close")
-			get_viewport().set_input_as_handled()
-		return
-
-	if _is_map_open():
-		if event.is_action_pressed("open_map") or event.is_action_pressed("ui_cancel"):
-			get_tree().call_group("map_panel", "close")
-			get_viewport().set_input_as_handled()
-		return
-
-	if _is_file_reader_open():
+	if _is_modal_open():
 		return
 
 	_handle_camera_zoom(event)
-
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_update_focused_interactable()
-		if focused_interactable != null and focused_interactable.entry_type == "file":
-			focused_interactable.use_tool()
-
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.physical_keycode == KEY_1:
-			_set_active_tool_slot(1)
-		if event.physical_keycode == KEY_2:
-			_set_active_tool_slot(2)
-		if event.physical_keycode == KEY_3:
-			_set_active_tool_slot(3)
 
 	if event.is_action_pressed("interact"):
 		_update_focused_interactable()
@@ -78,24 +62,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("open_map"):
 		get_tree().call_group("map_panel", "toggle")
 
-	if event.is_action_pressed("open_tasks"):
-		get_tree().call_group("task_panel", "toggle")
-
 
 func _physics_process(delta: float) -> void:
 	if global_position.y < fall_respawn_y:
 		_respawn_at_start()
 		return
 
-	if (
-		_is_start_menu_open()
-		or _is_file_reader_open()
-		or _is_map_open()
-		or _is_task_panel_open()
-		or _is_draft_preview_open()
-		or _is_diff_preview_open()
-	):
+	if _is_gameplay_blocked():
 		_clear_interaction_prompt()
+		_update_sprite_animation(Vector2.ZERO, false, delta)
 		velocity.x = 0.0
 		velocity.z = 0.0
 		if not is_on_floor():
@@ -120,8 +95,9 @@ func _physics_process(delta: float) -> void:
 
 	var direction := _screen_input_to_world_direction(input_dir)
 
+	var sprinting := Input.is_action_pressed("sprint")
 	var speed := walk_speed
-	if Input.is_action_pressed("sprint"):
+	if sprinting:
 		speed = sprint_speed
 
 	velocity.x = direction.x * speed
@@ -133,7 +109,8 @@ func _physics_process(delta: float) -> void:
 		velocity.y = -0.1
 
 	move_and_slide()
-	_face_movement_direction(direction)
+	_update_sprite_animation(input_dir, sprinting, delta)
+	_face_movement_direction(direction, delta)
 	_update_focused_interactable()
 
 
@@ -178,24 +155,6 @@ func _clear_interaction_prompt() -> void:
 	get_tree().call_group("interaction_prompt", "clear_prompt")
 
 
-func _set_active_tool(tool_id: String) -> void:
-	var tool_state := get_tree().get_first_node_in_group("tool_state")
-	if tool_state != null and tool_state.has_method("set_active_tool"):
-		tool_state.set_active_tool(tool_id)
-		_update_cursor_state()
-		if focused_interactable != null:
-			_show_interaction_prompt(focused_interactable)
-
-
-func _set_active_tool_slot(slot: int) -> void:
-	var tool_state := get_tree().get_first_node_in_group("tool_state")
-	if tool_state != null and tool_state.has_method("set_active_tool_slot"):
-		tool_state.set_active_tool_slot(slot)
-		_update_cursor_state()
-		if focused_interactable != null:
-			_show_interaction_prompt(focused_interactable)
-
-
 func _on_workspace_current_path_changed(_path: String) -> void:
 	_respawn_at_start()
 	_clear_interaction_focus()
@@ -206,13 +165,51 @@ func _respawn_at_start() -> void:
 	rotation.y = spawn_yaw
 	visual_root.rotation.y = 0.0
 	velocity = Vector3.ZERO
+	_reset_sprite_animation()
 
 
-func _face_movement_direction(direction: Vector3) -> void:
-	if direction.length_squared() < 0.001:
+func _sync_player_visual() -> void:
+	knight_sprite.visible = use_2d_visual
+	ranger_model.visible = not use_2d_visual
+	_reset_sprite_animation()
+
+
+func _update_sprite_animation(input_direction: Vector2, sprinting: bool, delta: float) -> void:
+	if not use_2d_visual:
 		return
 
-	visual_root.rotation.y = atan2(direction.x, direction.z)
+	if input_direction.length_squared() < 0.001:
+		_sprite_animation_position = 0.0
+		_set_sprite_frame(0)
+		return
+
+	_sprite_direction_row = _direction_row_for_input(input_direction)
+	var playback_speed := SPRINT_ANIMATION_SPEED if sprinting else 1.0
+	_sprite_animation_position += delta * MOVEMENT_ANIMATION_FPS * playback_speed
+	_set_sprite_frame(int(_sprite_animation_position) % MOVEMENT_FRAME_COUNT)
+
+
+func _reset_sprite_animation() -> void:
+	_sprite_animation_position = 0.0
+	_set_sprite_frame(0)
+
+
+func _set_sprite_frame(animation_frame: int) -> void:
+	knight_sprite.frame = _sprite_direction_row * MOVEMENT_FRAME_COUNT + animation_frame
+
+
+func _direction_row_for_input(input_direction: Vector2) -> int:
+	var angle := atan2(-input_direction.x, input_direction.y)
+	return wrapi(roundi(angle / (PI / 4.0)), 0, DIRECTION_COUNT)
+
+
+func _face_movement_direction(direction: Vector3, delta: float) -> void:
+	if use_2d_visual or direction.length_squared() < 0.001:
+		return
+
+	var target_yaw := atan2(direction.x, direction.z)
+	var blend := 1.0 - exp(-turn_speed * delta)
+	visual_root.rotation.y = lerp_angle(visual_root.rotation.y, target_yaw, blend)
 
 
 func _screen_input_to_world_direction(input_dir: Vector2) -> Vector3:
@@ -289,65 +286,19 @@ func _cursor_ground_point() -> Variant:
 
 func _update_cursor_state() -> void:
 	var entry_type := ""
-	var tool_id := ""
-	var tool_state := get_tree().get_first_node_in_group("tool_state")
-	if tool_state != null and tool_state.has_method("get_active_tool"):
-		tool_id = tool_state.get_active_tool()
-
 	if focused_interactable != null:
 		entry_type = focused_interactable.entry_type
-	get_tree().call_group("game_cursor", "set_cursor_state", entry_type, tool_id)
+	get_tree().call_group("game_cursor", "set_cursor_state", entry_type)
 
 
-func _is_file_reader_open() -> bool:
-	var readers := get_tree().get_nodes_in_group("file_reader")
-	for reader in readers:
-		if reader.has_method("is_open") and reader.is_open():
-			return true
-
-	return false
+func _is_gameplay_blocked() -> bool:
+	return _is_modal_open()
 
 
-func _is_start_menu_open() -> bool:
-	var panels := get_tree().get_nodes_in_group("start_menu")
-	for panel in panels:
-		if panel.has_method("is_open") and panel.is_open():
-			return true
-
-	return false
-
-
-func _is_map_open() -> bool:
-	var panels := get_tree().get_nodes_in_group("map_panel")
-	for panel in panels:
-		if panel.has_method("is_open") and panel.is_open():
-			return true
-
-	return false
-
-
-func _is_task_panel_open() -> bool:
-	var panels := get_tree().get_nodes_in_group("task_panel")
-	for panel in panels:
-		if panel.has_method("is_open") and panel.is_open():
-			return true
-
-	return false
-
-
-func _is_draft_preview_open() -> bool:
-	var panels := get_tree().get_nodes_in_group("draft_preview")
-	for panel in panels:
-		if panel.has_method("is_open") and panel.is_open():
-			return true
-
-	return false
-
-
-func _is_diff_preview_open() -> bool:
-	var panels := get_tree().get_nodes_in_group("diff_preview")
-	for panel in panels:
-		if panel.has_method("is_open") and panel.is_open():
+func _is_modal_open() -> bool:
+	for node in get_tree().get_nodes_in_group("ui_modal"):
+		var control := node as Control
+		if control != null and control.visible:
 			return true
 
 	return false

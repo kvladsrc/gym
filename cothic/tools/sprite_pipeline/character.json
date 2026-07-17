@@ -1,0 +1,18 @@
+{
+  "model": "assets/models/Ranger.glb",
+  "name": "ranger",
+  "output_size": 128,
+  "frames": {
+    "walk": 8
+  },
+  "directions": [
+    ["south", 0],
+    ["south_west", 45],
+    ["west", 90],
+    ["north_west", 135],
+    ["north", 180],
+    ["north_east", 225],
+    ["east", 270],
+    ["south_east", 315]
+  ]
+}

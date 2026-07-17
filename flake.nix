@@ -27,6 +27,12 @@
           config.cudaVersion = "12";
         };
 
+        graphicsPkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          config.cudaSupport = false;
+        };
+
         helm-plugins-dir = pkgs.symlinkJoin {
           name = "helm-plugins";
           paths = with pkgs.kubernetes-helmPlugins; [
@@ -139,6 +145,7 @@
           age
           fluxcd
           godotPackages_4_6.godot
+          godotPackages_4_6.export-template
           jujutsu
           just
           kubectl
@@ -181,6 +188,19 @@
               export TALOSCONFIG="/home/myuser/src/production/kubernetes/talos/_out/talosconfig"
               export KUBECONFIG="/home/myuser/talos/kubeconfig"
             '';
+          };
+
+          cothic-assets = graphicsPkgs.mkShell {
+            packages = with graphicsPkgs; [
+              bash
+              blender
+              ffmpeg
+              imagemagick
+              jq
+              just
+              libresprite
+              oxipng
+            ];
           };
         };
       }

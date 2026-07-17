@@ -1,5 +1,67 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
+# Show all available commands
+default:
+    @just --list --list-submodules
+
+# Run Cothic without opening the Godot editor
+run repo_root="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    repo_root={{ quote(repo_root) }}
+    if [[ -n "${repo_root}" ]]; then
+        godot --path . -- --repo-root "${repo_root}"
+    else
+        godot --path .
+    fi
+
+# Render one 8-direction prototype animation with Blender
+sprites-render animation="walk":
+    blender --background --python-exit-code 1 \
+        --python tools/sprite_pipeline/render.py -- \
+        --project-root . \
+        --animation {{ quote(animation) }}
+
+# Pack rendered animation frames into a sprite sheet
+sprites-pack animation="walk":
+    bash tools/sprite_pipeline/pack.sh \
+        . {{ quote(animation) }}
+
+# Build an enlarged MP4 preview for one animation direction
+sprites-preview animation="walk" direction="00_south":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    project_root=$(pwd)
+    animation={{ quote(animation) }}
+    direction={{ quote(direction) }}
+    input="${project_root}/tmp/sprites/ranger/${animation}/${direction}/frame_%02d.png"
+    output="${project_root}/tmp/sprites/ranger/${animation}-${direction}-preview.mp4"
+    ffmpeg -hide_banner -loglevel error -y -framerate 8 -i "${input}" \
+        -vf "scale=512:512:flags=neighbor,format=yuv420p" "${output}"
+    echo "Wrote ${output}"
+
+# Render and pack the movement prototype
+sprites-proof:
+    just sprites-render walk
+    just sprites-pack walk
+    just sprites-preview walk
+
+# Export a standalone Linux release build
+build:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    mkdir -p build
+    template_home="$(mktemp -d)"
+    trap 'rm -rf "${template_home}"' EXIT
+
+    template_dir="${template_home}/godot/export_templates/4.6.stable"
+    mkdir -p "${template_dir}"
+    ln -s "$(readlink -f "$(command -v godot-template)")" \
+        "${template_dir}/linux_release.x86_64"
+
+    XDG_DATA_HOME="${template_home}" godot --headless --quiet --path . \
+        --export-release Linux build/cothic.x86_64
+
 # Run all checks needed while working on Cothic
 check: fmt lint smoke
 

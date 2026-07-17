@@ -3,9 +3,7 @@ extends Control
 const POINTER_TEXTURE := preload("res://assets/cursors/pointer.png")
 const COLOR_DEFAULT := Color(1.0, 1.0, 1.0, 0.95)
 const COLOR_DIRECTORY := Color(0.35, 0.8, 1.0, 0.95)
-const COLOR_INSPECT := Color(1.0, 0.95, 0.45, 0.95)
-const COLOR_REFACTOR := Color(1.0, 0.35, 0.25, 0.95)
-const COLOR_INVESTIGATE := Color(0.7, 0.45, 1.0, 0.95)
+const COLOR_FILE := Color(1.0, 0.95, 0.45, 0.95)
 const CURSOR_SCALE := 2.0
 const CURSOR_HOTSPOT := Vector2(1, 1)
 
@@ -13,6 +11,7 @@ var cursor_color := COLOR_DEFAULT
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("game_cursor")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	z_index = 1000
@@ -25,15 +24,11 @@ func _process(_delta: float) -> void:
 	queue_redraw()
 
 
-func set_cursor_state(entry_type: String, tool_id: String) -> void:
+func set_cursor_state(entry_type: String) -> void:
 	if entry_type == "directory":
 		cursor_color = COLOR_DIRECTORY
-	elif tool_id == ToolState.TOOL_REFACTOR:
-		cursor_color = COLOR_REFACTOR
-	elif tool_id == ToolState.TOOL_INVESTIGATE:
-		cursor_color = COLOR_INVESTIGATE
 	elif entry_type == "file":
-		cursor_color = COLOR_INSPECT
+		cursor_color = COLOR_FILE
 	else:
 		cursor_color = COLOR_DEFAULT
 	queue_redraw()
@@ -59,18 +54,8 @@ func _update_mouse_mode() -> void:
 
 
 func _is_ui_panel_open() -> bool:
-	return (
-		_is_group_panel_open("start_menu")
-		or _is_group_panel_open("file_reader")
-		or _is_group_panel_open("map_panel")
-		or _is_group_panel_open("task_panel")
-		or _is_group_panel_open("draft_preview")
-		or _is_group_panel_open("diff_preview")
-	)
-
-
-func _is_group_panel_open(group_name: String) -> bool:
-	for panel in get_tree().get_nodes_in_group(group_name):
-		if panel.has_method("is_open") and panel.is_open():
+	for node in get_tree().get_nodes_in_group("ui_modal"):
+		var control := node as Control
+		if control != null and control.visible:
 			return true
 	return false
