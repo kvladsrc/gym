@@ -14,6 +14,7 @@
         - bazel-test-pipellm
         - bazel-test-cpp-warmup
         - bazel-test-cpp-rbtree
+        - bazel-test-neural-network
         - pre-submit-check-coverage
         - helm-chart-version-check
         - helm-lint

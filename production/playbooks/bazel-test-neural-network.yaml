@@ -1,0 +1,30 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    bazel_target: //neural_network/...
+
+  tasks:
+    - name: Build neural_network Bazel targets
+      ansible.builtin.command:
+        argv:
+          - bazelisk
+          - build
+          - "{{ bazel_target }}"
+          - --verbose_failures
+      args:
+        chdir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+      changed_when: false
+
+    - name: Test neural_network Bazel targets
+      ansible.builtin.command:
+        argv:
+          - bazelisk
+          - test
+          - "{{ bazel_target }}"
+          - --verbose_failures
+          - --test_output=errors
+      args:
+        chdir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+      changed_when: false

@@ -1,0 +1,10 @@
+{{- $configMap := index .Values.nxs.wrapperConfigMaps "ntfy-flux-template" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ntfy-flux-template
+  labels:
+    app.kubernetes.io/component: templates
+data:
+{{ tpl (toYaml $configMap.data) . | indent 2 }}

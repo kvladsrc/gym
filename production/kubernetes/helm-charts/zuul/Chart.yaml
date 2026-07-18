@@ -3,9 +3,9 @@ apiVersion: v2
 name: zuul
 description: A Helm chart for Zuul CI/CD
 type: application
-version: 0.15.2
+version: 0.16.1
 dependencies:
   - name: nxs-universal-chart
     alias: nxs
-    version: 3.1.0
+    version: 3.1.1
     repository: "oci://registry.nixys.ru/nuc"

@@ -1,6 +1,5 @@
 #include "mnist.h"  // NOLINT(build/include_subdir)
 
-#include <algorithm>
 #include <array>
 #include <fstream>
 #include <limits>
@@ -34,8 +33,8 @@ std::ifstream open_file(const std::string& path) {
 
 }  // namespace
 
-MnistDataset load_mnist(const std::string& images_path,
-                        const std::string& labels_path) {
+Dataset load_mnist(const std::string& images_path,
+                   const std::string& labels_path) {
   auto images = open_file(images_path);
   auto labels = open_file(labels_path);
 
@@ -63,25 +62,21 @@ MnistDataset load_mnist(const std::string& images_path,
   }
 
   const std::size_t image_size = static_cast<std::size_t>(rows) * cols;
-  MnistDataset dataset;
+  Dataset dataset;
   dataset.rows = rows;
   dataset.cols = cols;
+  dataset.channels = 1;
+  dataset.class_count = 10;
   dataset.images.reserve(image_count);
   dataset.labels.reserve(label_count);
 
-  std::vector<unsigned char> pixels(image_size);
   for (std::uint32_t i = 0; i < image_count; ++i) {
-    images.read(reinterpret_cast<char*>(pixels.data()), pixels.size());
+    Image image(image_size);
+    images.read(reinterpret_cast<char*>(image.data()), image.size());
     if (!images) {
       throw std::runtime_error("unexpected end of " + images_path);
     }
-
-    std::vector<double> sample(image_size);
-    std::transform(pixels.begin(), pixels.end(), sample.begin(),
-                   [](const unsigned char pixel) {
-                     return static_cast<double>(pixel) / 255.0;
-                   });
-    dataset.images.push_back(std::move(sample));
+    dataset.images.push_back(std::move(image));
   }
 
   for (std::uint32_t i = 0; i < label_count; ++i) {

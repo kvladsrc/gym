@@ -6,15 +6,43 @@
 #include <random>
 #include <utility>
 
-namespace {
-
 // Returns the ReLU activation of a scalar.
 double relu(double a) { return std::max(a, static_cast<double>(0)); }
 
 // Applies ReLU element-wise.
 void activate(V& v) { std::transform(v.begin(), v.end(), v.begin(), relu); }
 
-// Initializes weights with the He normal distribution.
+// Inverse dropout. Scales elements by 1/p with p chance or 0.0 in
+// place.
+void dropout(V& v, double p) {
+  static thread_local std::mt19937 rng([] {
+    std::random_device random_device;
+    return random_device();
+  }());
+  std::bernoulli_distribution keep(p);
+
+  std::transform(v.begin(), v.end(), v.begin(),
+                 [&](double value) { return keep(rng) ? value / p : 0.0; });
+}
+
+// Converts logits to probabilities with softmax.
+void softmax(V& v) {
+  const double maximum = *std::max_element(v.begin(), v.end());
+  double sum = 0;
+
+  for (auto& i : v) {
+    i = std::exp(i - maximum);
+    sum += i;
+  }
+
+  std::transform(v.begin(), v.end(), v.begin(),
+                 [sum](const double value) { return value / sum; });
+}
+
+namespace {
+
+// ReLU friendly initialization. Initializes weights with the He
+// normal distribution.
 void initialize_he(M& layer) {
   if (layer.empty() || layer.front().empty()) {
     return;
@@ -80,15 +108,6 @@ V& operator*=(V& lhs, double scalar) {
   return lhs;
 }
 
-// Adds vectors element-wise.
-V operator+(const V& lhs, const V& rhs) {
-  V res = lhs;
-  for (std::size_t i = 0; i < res.size(); ++i) {
-    res[i] += rhs[i];
-  }
-  return res;
-}
-
 // Returns the matrix transpose.
 M transpose(const M& m) {
   const size_t rows = m.size();
@@ -105,24 +124,14 @@ M transpose(const M& m) {
   return result;
 }
 
-// Converts logits to probabilities with softmax.
-void softmax(V& v) {
-  const double maximum = *std::max_element(v.begin(), v.end());
-  double sum = 0;
-
-  for (auto& i : v) {
-    i = std::exp(i - maximum);
-    sum += i;
-  }
-
-  std::transform(v.begin(), v.end(), v.begin(),
-                 [sum](const double value) { return value / sum; });
-}
-
 }  // namespace
 
-NN::NN(std::size_t in, double astep_size, double aregularization)
-    : input_size(in), step_size(astep_size), regularization(aregularization) {}
+NN::NN(std::size_t in, double astep_size, double aregularization,
+       double adropout_keep_probability)
+    : input_size(in),
+      step_size(astep_size),
+      regularization(aregularization),
+      dropout_keep_probability(adropout_keep_probability) {}
 
 void NN::add_layer(std::size_t out) {
   if (out == 0) {
@@ -175,10 +184,11 @@ void NN::back_propagation(const V& example, double normalizer) {
       break;
     }
 
-    auto tm = transpose(network[back_l]);
-    d = d * tm;
+    d = d * transpose(network[back_l]);
+    d *= 1.0 / dropout_keep_probability;
 
-    // Apply the ReLU derivative.
+    // A zero stored activation means either ReLU rejected the neuron or
+    // dropout removed it. Apply both derivatives with their shared mask.
     for (size_t i = 0; i < d.size(); ++i) {
       if (outs[back_l - 1][i] == 0.0) {
         d[i] = 0.0;
@@ -209,7 +219,7 @@ void NN::apply_grads() {
   }
 }
 
-void NN::forward() {
+void NN::forward_pass(bool inference) {
   // Compute the first layer and apply ReLU if it is hidden.
   outs[0] = input * network[0];
   outs[0] += biases[0];
@@ -217,6 +227,10 @@ void NN::forward() {
   // A single-layer network has no hidden layers.
   if (network.size() > 1) {
     activate(outs[0]);
+
+    if (!inference) {
+      dropout(outs[0], dropout_keep_probability);
+    }
   }
 
   // Compute the remaining layers and apply ReLU to hidden layers.
@@ -224,10 +238,14 @@ void NN::forward() {
     outs[i] = outs[i - 1] * network[i];
     outs[i] += biases[i];
 
-    // Do not apply ReLU to the output layer: it would collapse all
-    // negative logits to zero.
+    // Do not apply ReLU and Dropout to the output layer: it would
+    // collapse all negative logits to zero.
     if (i != network.size() - 1) {
       activate(outs[i]);
+
+      if (!inference) {
+        dropout(outs[i], dropout_keep_probability);
+      }
     }
   }
 
@@ -242,7 +260,7 @@ void NN::train(const M& inputs, const M& examples) {
 
   for (std::size_t i = 0; i < inputs.size(); ++i) {
     input = inputs[i];
-    forward();
+    forward_pass(false);
     back_propagation(examples[i], normalizer);
   }
 
@@ -251,6 +269,6 @@ void NN::train(const M& inputs, const M& examples) {
 
 V NN::predict(const V& in) {
   input = in;
-  forward();
+  forward_pass(true);
   return ans;
 }

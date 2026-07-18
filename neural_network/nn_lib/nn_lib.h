@@ -10,6 +10,18 @@ using V = std::vector<double>;
 // Matrix.
 using M = std::vector<V>;
 
+// Returns the ReLU activation of a scalar.
+double relu(double value);
+
+// Applies ReLU element-wise.
+void activate(V& values);
+
+// Applies inverted dropout in place.
+void dropout(V& values, double keep_probability);
+
+// Converts logits to probabilities in place.
+void softmax(V& values);
+
 class NNIO;
 
 // A fully connected network with ReLU hidden layers and a softmax
@@ -18,7 +30,8 @@ class NN {
  public:
   // Creates a network with the given input width and optimizer
   // settings.
-  explicit NN(std::size_t in, double astep_size, double regularization);
+  explicit NN(std::size_t in, double astep_size, double regularization,
+              double dropout_keep_probability = 1.0);
 
   ~NN() = default;
 
@@ -37,7 +50,7 @@ class NN {
   NN();
 
   // Runs the forward pass for the current input.
-  void forward();
+  void forward_pass(bool inference);
 
   // Applies accumulated gradients and clears their buffers.
   void apply_grads();
@@ -59,6 +72,7 @@ class NN {
   std::vector<V> biases;
   double step_size;
   double regularization;
+  double dropout_keep_probability;
 };
 
 #endif  // NEURAL_NETWORK_NN_LIB_H_
