@@ -1,0 +1,10 @@
+{{- $configMap := index .Values.nxs.wrapperConfigMaps "event-exporter-config" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: event-exporter-config
+  labels:
+    app.kubernetes.io/component: event-exporter
+data:
+{{ tpl (toYaml $configMap.data) . | indent 2 }}

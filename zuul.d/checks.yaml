@@ -60,6 +60,13 @@
     run: production/playbooks/bazel-test-cpp-rbtree.yaml
 
 - job:
+    name: bazel-test-neural-network
+    files:
+      - ^neural_network/
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/bazel-test-neural-network.yaml
+
+- job:
     name: pre-submit-check-coverage
     post-run: production/playbooks/notify-ntfy-on-failure.yaml
     run: production/playbooks/pre-submit-check-coverage.yaml

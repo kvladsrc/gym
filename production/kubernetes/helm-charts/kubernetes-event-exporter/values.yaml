@@ -29,7 +29,8 @@ nxs:
               - list
               - watch
 
-  configMaps:
+  # Flux drops ConfigMaps rendered by the NXS template, so the wrapper owns them.
+  wrapperConfigMaps:
     event-exporter-config:
       labels:
         app.kubernetes.io/component: event-exporter

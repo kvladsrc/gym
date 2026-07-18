@@ -17,7 +17,8 @@ nxs:
       size: 1Gi
       storageClassName: nfs-client
 
-  configMaps:
+  # Flux drops ConfigMaps rendered by the NXS template, so the wrapper owns them.
+  wrapperConfigMaps:
     ntfy-flux-template:
       labels:
         app.kubernetes.io/component: templates

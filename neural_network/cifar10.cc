@@ -21,12 +21,16 @@ std::ifstream open_batch(const std::string& path) {
 
 }  // namespace
 
-Cifar10Dataset load_cifar10(const std::vector<std::string>& batch_paths) {
+Dataset load_cifar10(const std::vector<std::string>& batch_paths) {
   if (batch_paths.empty()) {
     throw std::invalid_argument("no CIFAR-10 batches provided");
   }
 
-  Cifar10Dataset dataset;
+  Dataset dataset;
+  dataset.rows = kCifar10Height;
+  dataset.cols = kCifar10Width;
+  dataset.channels = kCifar10Channels;
+  dataset.class_count = 10;
   for (const std::string& path : batch_paths) {
     std::ifstream input = open_batch(path);
     const std::streamoff size = input.tellg();
@@ -42,7 +46,7 @@ Cifar10Dataset load_cifar10(const std::vector<std::string>& batch_paths) {
 
     for (std::size_t record = 0; record < record_count; ++record) {
       std::uint8_t label = 0;
-      Cifar10Image image{};
+      Image image(kCifar10ImageSize);
       input.read(reinterpret_cast<char*>(&label), 1);
       input.read(reinterpret_cast<char*>(image.data()), image.size());
       if (!input) {
