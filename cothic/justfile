@@ -46,6 +46,10 @@ sprites-proof:
     just sprites-pack walk
     just sprites-preview walk
 
+# Assemble the knight atlas from five generated direction strips
+sprites-assemble animation="walk" *args="":
+    bash tools/sprite_pipeline/assemble.sh . {{ quote(animation) }} {{ args }}
+
 # Export a standalone Linux release build
 build:
     #!/usr/bin/env bash

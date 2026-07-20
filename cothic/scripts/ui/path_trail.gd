@@ -1,6 +1,6 @@
 extends Control
 
-const HERO_ATLAS: Texture2D = preload("res://assets/sprites/knight/walk_v7.png")
+const HERO_ATLAS: Texture2D = preload("res://assets/sprites/knight/walk_v10.png")
 const HERO_HEAD_REGION := Rect2(38.0, 4.0, 52.0, 52.0)
 const STOP_WIDTH := 142.0
 const CONNECTOR_WIDTH := 66.0

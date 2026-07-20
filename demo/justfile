@@ -1,0 +1,25 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+output_dir := "build"
+
+# Show all available commands
+default:
+    @just --list --list-submodules
+
+# Build the mock backpropagation presentation
+backprop:
+    mkdir -p "{{output_dir}}"
+    latexmk -C -cd -outdir=../"{{output_dir}}" backprop/backprop.tex
+    latexmk \
+        -lualatex \
+        -cd \
+        -outdir=../"{{output_dir}}" \
+        -interaction=nonstopmode \
+        -halt-on-error \
+        backprop/backprop.tex
+    latexmk -c -cd -outdir=../"{{output_dir}}" backprop/backprop.tex
+    rm -f \
+        "{{output_dir}}/backprop.nav" \
+        "{{output_dir}}/backprop.snm" \
+        "{{output_dir}}/backprop.vrb"
+    @echo "Presentation: demo/{{output_dir}}/backprop.pdf"

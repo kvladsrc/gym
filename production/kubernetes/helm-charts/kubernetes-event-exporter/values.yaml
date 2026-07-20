@@ -131,25 +131,25 @@ nxs:
                 endpoint: http://ntfy.ntfy.svc.cluster.local/prod-k8s-warnings
                 headers:
                   Title: >-
-                    Kubernetes {{`{{ "{{ .Reason }}" }}`}}:
-                    {{`{{ "{{ .InvolvedObject.Kind }}" }}`}}/{{`{{ "{{ .InvolvedObject.Name }}" }}`}}
+                    Kubernetes {{`{{ .Reason }}`}}:
+                    {{`{{ .InvolvedObject.Kind }}`}}/{{`{{ .InvolvedObject.Name }}`}}
                   Priority: high
                   Tags: warning
                 layout:
                   message: |-
-                    warning: Kubernetes {{`{{ "{{ .Reason }}" }}`}}
+                    warning: Kubernetes {{`{{ .Reason }}`}}
 
-                    Namespace: {{`{{ "{{ .InvolvedObject.Namespace }}" }}`}}
-                    Kind: {{`{{ "{{ .InvolvedObject.Kind }}" }}`}}
-                    Name: {{`{{ "{{ .InvolvedObject.Name }}" }}`}}
-                    Source: {{`{{ "{{ .Source.Component }}" }}`}} {{`{{ "{{ .Source.Host }}" }}`}}
-                    Count: {{`{{ "{{ .Count }}" }}`}}
-                    Message: {{`{{ "{{ .Message }}" }}`}}
-                  reason: "{{`{{ "{{ .Reason }}" }}`}}"
-                  namespace: "{{`{{ "{{ .InvolvedObject.Namespace }}" }}`}}"
-                  kind: "{{`{{ "{{ .InvolvedObject.Kind }}" }}`}}"
-                  name: "{{`{{ "{{ .InvolvedObject.Name }}" }}`}}"
-                  count: "{{`{{ "{{ .Count }}" }}`}}"
+                    Namespace: {{`{{ .InvolvedObject.Namespace }}`}}
+                    Kind: {{`{{ .InvolvedObject.Kind }}`}}
+                    Name: {{`{{ .InvolvedObject.Name }}`}}
+                    Source: {{`{{ .Source.Component }}`}} {{`{{ .Source.Host }}`}}
+                    Count: {{`{{ .Count }}`}}
+                    Message: {{`{{ .Message }}`}}
+                  reason: "{{`{{ .Reason }}`}}"
+                  namespace: "{{`{{ .InvolvedObject.Namespace }}`}}"
+                  kind: "{{`{{ .InvolvedObject.Kind }}`}}"
+                  name: "{{`{{ .InvolvedObject.Name }}`}}"
+                  count: "{{`{{ .Count }}`}}"
 
   deployments:
     event-exporter:

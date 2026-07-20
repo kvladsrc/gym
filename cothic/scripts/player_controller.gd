@@ -4,6 +4,9 @@ const MOVEMENT_FRAME_COUNT := 8
 const MOVEMENT_ANIMATION_FPS := 8.0
 const SPRINT_ANIMATION_SPEED := 1.35
 const DIRECTION_COUNT := 8
+# On-screen height of one sprite frame in world units (128 px * 0.0198).
+# pixel_size is derived from it, so the atlas resolution can change freely.
+const SPRITE_WORLD_HEIGHT := 128.0 * 0.0198
 
 @export var walk_speed: float = 4.0
 @export var sprint_speed: float = 7.0
@@ -32,6 +35,7 @@ var _sprite_animation_position := 0.0
 
 func _ready() -> void:
 	add_to_group("player")
+	_sync_sprite_scale()
 	_sync_player_visual()
 
 	var workspace := get_tree().get_first_node_in_group("workspace")
@@ -172,6 +176,12 @@ func _sync_player_visual() -> void:
 	knight_sprite.visible = use_2d_visual
 	ranger_model.visible = not use_2d_visual
 	_reset_sprite_animation()
+
+
+func _sync_sprite_scale() -> void:
+	var cell_height := knight_sprite.texture.get_height() / DIRECTION_COUNT
+	knight_sprite.pixel_size = SPRITE_WORLD_HEIGHT / cell_height
+	knight_sprite.offset = Vector2(0, cell_height * 0.5)
 
 
 func _update_sprite_animation(input_direction: Vector2, sprinting: bool, delta: float) -> void:

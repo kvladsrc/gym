@@ -95,6 +95,13 @@ const WILDLIFE_MAX_COUNT := 16
 const WILDLIFE_PIXEL_SIZES: Array[float] = [0.0045, 0.0047, 0.0044]
 const WILDLIFE_GROUND_OFFSETS: Array[float] = [148.0, 145.0, 142.0]
 const WILDLIFE_RUN_SPEEDS: Array[float] = [4.2, 3.4, 4.8]
+const TEXTURED_STONE_BUILDING_MODELS: Array[String] = [
+	"building-castle",
+	"building-tower",
+	"building-wall",
+	"building-walls",
+	"building-wizard-tower",
+]
 const SHADOWLESS_TERRAIN_MODELS := {
 	"grass": true,
 	"sand": true,
@@ -126,6 +133,7 @@ var _river_tile_by_coord: Dictionary = {}
 var _terrain_noise := FastNoiseLite.new()
 var _terrain_material: ShaderMaterial
 var _building_material: ShaderMaterial
+var _textured_stone_building_material: ShaderMaterial
 var _nature_textures: Array[AtlasTexture] = []
 var _stone_decor_textures: Array[AtlasTexture] = []
 var _wildlife_frames: Array[SpriteFrames] = []
@@ -625,9 +633,11 @@ func _add_model(
 	instance.position = position
 	instance.scale = Vector3.ONE * HEX_SCALE
 	instance.rotation.y = rotation_y
-	var material := (
-		_get_building_material() if _uses_roof_texture(model_name) else _get_terrain_material()
-	)
+	var material := _get_terrain_material()
+	if _uses_roof_texture(model_name):
+		material = _get_building_material()
+	if _uses_textured_stone(model_name):
+		material = _get_textured_stone_building_material()
 	_apply_material(instance, material)
 	if SHADOWLESS_TERRAIN_MODELS.has(model_name) or model_name.begins_with("river-"):
 		_disable_shadow_casting(instance)
@@ -660,8 +670,19 @@ func _get_building_material() -> ShaderMaterial:
 	return _building_material
 
 
+func _get_textured_stone_building_material() -> ShaderMaterial:
+	if _textured_stone_building_material == null:
+		_textured_stone_building_material = _get_building_material().duplicate() as ShaderMaterial
+		_textured_stone_building_material.set_shader_parameter("building_enabled", 1.0)
+	return _textured_stone_building_material
+
+
 func _uses_roof_texture(model_name: String) -> bool:
 	return model_name.begins_with("building-")
+
+
+func _uses_textured_stone(model_name: String) -> bool:
+	return model_name in TEXTURED_STONE_BUILDING_MODELS
 
 
 func _disable_shadow_casting(root: Node) -> void:
