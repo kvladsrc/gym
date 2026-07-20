@@ -11,6 +11,7 @@ uniform vec3 water_key : source_color = vec3(0.5608, 0.8588, 1.0);
 uniform vec3 bark_light_key : source_color = vec3(0.6706, 0.3725, 0.2549);
 uniform vec3 bark_dark_key : source_color = vec3(0.5961, 0.349, 0.2549);
 uniform float roof_enabled : hint_range(0.0, 1.0, 1.0) = 0.0;
+uniform float building_enabled : hint_range(0.0, 1.0, 1.0) = 0.0;
 
 uniform vec3 grass_shadow : source_color = vec3(0.17, 0.34, 0.19);
 uniform vec3 grass_light : source_color = vec3(0.5, 0.72, 0.38);
@@ -31,6 +32,13 @@ uniform vec3 stone_light : source_color = vec3(0.72, 0.73, 0.69);
 uniform vec3 stone_warm : source_color = vec3(0.48, 0.44, 0.37);
 uniform float stone_texels_per_unit : hint_range(1.0, 8.0, 0.5) = 5.0;
 uniform float stone_grain_strength : hint_range(0.0, 0.4, 0.01) = 0.34;
+
+uniform vec3 building_stone_shadow : source_color = vec3(0.17, 0.2, 0.22);
+uniform vec3 building_stone_mid : source_color = vec3(0.38, 0.4, 0.4);
+uniform vec3 building_stone_light : source_color = vec3(0.6, 0.62, 0.6);
+uniform vec3 building_stone_weathered : source_color = vec3(0.53, 0.47, 0.35);
+uniform float building_stone_texels_per_unit : hint_range(2.0, 12.0, 0.5) = 6.0;
+uniform float building_stone_grain_strength : hint_range(0.0, 0.4, 0.01) = 0.18;
 
 uniform vec3 foliage_shadow : source_color = vec3(0.035, 0.09, 0.055);
 uniform vec3 foliage_mid : source_color = vec3(0.1, 0.24, 0.12);
@@ -54,6 +62,7 @@ uniform float water_texels_per_unit : hint_range(1.0, 8.0, 0.5) = 3.0;
 uniform float water_animation_fps : hint_range(1.0, 12.0, 1.0) = 6.0;
 
 varying vec3 world_position;
+varying vec3 world_normal;
 varying float model_height;
 
 
@@ -95,6 +104,24 @@ float grass_palette_mask(vec3 color) {
 
 float sand_palette_mask(vec3 color) {
 	return max(palette_mask(color, sand_key), palette_mask(color, sand_bank_key));
+}
+
+
+float building_stone_palette_mask(vec3 color) {
+	float channel_high = max(color.r, max(color.g, color.b));
+	float channel_low = min(color.r, min(color.g, color.b));
+	float mineral = 1.0 - smoothstep(0.36, 0.58, channel_high - channel_low);
+	mineral *= smoothstep(0.07, 0.18, channel_high);
+
+	float grass = grass_palette_mask(color);
+	float sand = sand_palette_mask(color);
+	float water = palette_mask(color, water_key);
+	float bark = max(
+		palette_mask(color, bark_light_key),
+		palette_mask(color, bark_dark_key)
+	);
+	float organic = max(max(grass, sand), max(water, bark));
+	return max(palette_mask(color, stone_key), mineral * (1.0 - organic));
 }
 
 
@@ -172,6 +199,44 @@ vec3 stone_surface(vec2 position) {
 	float dark_chip = 1.0 - smoothstep(0.02, 0.13, pixel_grain);
 	color = mix(color, stone_light, light_chip * 0.44);
 	return mix(color, stone_shadow, dark_chip * 0.5);
+}
+
+
+vec2 building_stone_projection(vec3 position, vec3 normal) {
+	if (abs(normal.y) >= max(abs(normal.x), abs(normal.z))) {
+		return position.xz;
+	}
+	if (abs(normal.x) > abs(normal.z)) {
+		return vec2(position.z, position.y);
+	}
+	return vec2(position.x, position.y);
+}
+
+
+vec3 building_stone_surface(vec3 position, vec3 normal) {
+	vec2 projected_position = building_stone_projection(position, normal);
+	vec2 texel = floor(projected_position * building_stone_texels_per_unit);
+	float broad = value_noise(projected_position * 0.58 + vec2(13.0, 41.0));
+	float mottling = value_noise(projected_position * 1.85 + vec2(29.0, 7.0));
+	float weathering = value_noise(projected_position * 0.72 + vec2(43.0, 17.0));
+	float grain = random_value(texel + vec2(71.0, 23.0));
+
+	float tone = 0.3 + broad * 0.32 + mottling * 0.15;
+	tone += (grain - 0.5) * building_stone_grain_strength;
+	vec3 color = mix(
+		building_stone_shadow,
+		building_stone_light,
+		clamp(tone, 0.0, 1.0)
+	);
+	color = mix(color, building_stone_mid, 0.18);
+	float weathering_mask = smoothstep(0.68, 0.9, weathering);
+	color = mix(color, building_stone_weathered, weathering_mask * 0.18);
+
+	float light_speckle = smoothstep(0.92, 0.99, grain);
+	float dark_grain = random_value(texel + vec2(11.0, 83.0));
+	float dark_speckle = smoothstep(0.9, 0.99, dark_grain);
+	color = mix(color, building_stone_light, light_speckle * 0.22);
+	return mix(color, building_stone_shadow, dark_speckle * 0.28);
 }
 
 
@@ -274,6 +339,7 @@ vec3 water_surface(vec2 position) {
 
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_normal = normalize(MODEL_NORMAL_MATRIX * NORMAL);
 	model_height = VERTEX.y;
 }
 
@@ -283,7 +349,13 @@ void fragment() {
 	float ground_layer = 1.0 - smoothstep(0.205, 0.235, model_height);
 	float grass = grass_palette_mask(source) * ground_layer;
 	float sand = sand_palette_mask(source) * ground_layer;
-	float stone = palette_mask(source, stone_key) * ground_layer;
+	float stone_palette = mix(
+		palette_mask(source, stone_key),
+		building_stone_palette_mask(source),
+		building_enabled
+	);
+	float building_stone = stone_palette * building_enabled;
+	float dressed_stone = stone_palette * ground_layer * (1.0 - building_enabled);
 	float water = palette_mask(source, water_key);
 	float foliage = grass_palette_mask(source) * (1.0 - ground_layer);
 	float bark_keys = max(
@@ -297,7 +369,12 @@ void fragment() {
 
 	vec3 color = mix(source, grass_surface(world_position.xz), grass);
 	color = mix(color, sand_surface(world_position.xz), sand);
-	color = mix(color, stone_surface(world_position.xz), stone);
+	color = mix(color, stone_surface(world_position.xz), dressed_stone);
+	color = mix(
+		color,
+		building_stone_surface(world_position, world_normal),
+		building_stone
+	);
 	color = mix(color, water_surface(world_position.xz), water);
 	color = mix(color, foliage_surface(world_position), foliage);
 	color = mix(color, bark_surface(world_position), bark);

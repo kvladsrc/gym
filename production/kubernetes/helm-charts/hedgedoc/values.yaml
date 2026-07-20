@@ -1,5 +1,5 @@
 ---
-env: &hedgedocEnv
+env:
   # Basic configuration
   CMD_DOMAIN: "hedgedoc.your.domain"
   CMD_URL_ADDPORT: "false"
@@ -38,10 +38,6 @@ nxs:
         - ReadWriteOnce
       size: 2Gi
       storageClassName: nfs-client
-
-  secrets:
-    hedgedoc-env:
-      data: *hedgedocEnv
 
   deployments:
     hedgedoc:

@@ -2,6 +2,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 
 mod cothic
 mod cv
+mod demo
 mod neural_network
 mod talos "production/kubernetes/talos"
 mod zooreader "production/docker/zooreader"
