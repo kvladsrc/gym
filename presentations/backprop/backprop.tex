@@ -552,52 +552,71 @@ for batch in batches:
   Each row of a matrix contains all incoming weights of one neuron.
 \end{frame}
 
-\begin{frame}{Without ReLU, Three Layers Become One}
+\begin{frame}{Without Nonlinearity, Depth Disappears}
+  \centering
+  \begin{tikzpicture}[x=1cm, y=1cm, >=stealth]
+    \node (x1) at (0,0) {$x$};
+    \node (h1) at (3,0) {$h_1$};
+    \node (h2) at (6,0) {$h_2$};
+    \node (y1) at (9,0) {$y$};
+    \draw[->, thick] (x1) -- node[above] {$W_1, b_1$} (h1);
+    \draw[->, thick] (h1) -- node[above] {$W_2, b_2$} (h2);
+    \draw[->, thick] (h2) -- node[above] {$W_3, b_3$} (y1);
+
+    \node at (4.5,-1.05) {\Large $\equiv$};
+
+    \node (x2) at (2.5,-2.1) {$x$};
+    \node (y2) at (6.5,-2.1) {$y$};
+    \draw[->, very thick, structure.fg] (x2) --
+      node[above] {$W_*, b_*$} (y2);
+  \end{tikzpicture}
+
+  \vspace{0.5em}
+  \begin{align*}
+    y
+      &= W_3\bigl(W_2(W_1x+b_1)+b_2\bigr)+b_3 \\
+      &= \underbrace{W_3W_2W_1}_{W_*}x
+       + \underbrace{W_3W_2b_1+W_3b_2+b_3}_{b_*} \\
+      &= W_*x+b_*.
+  \end{align*}
+\end{frame}
+
+\begin{frame}{ReLU: A Simple Nonlinearity}
   \small
-  \begin{block}{Three consecutive matrix multiplications}
-    \centering
-    \begin{tikzpicture}[x=1cm, y=1cm]
-      \node (x) at (0,0) {$x$};
-      \node[draw, rounded corners, minimum width=1.25cm] (w1) at (2,0)
-        {$W_1$};
-      \node[draw, rounded corners, minimum width=1.25cm] (w2) at (5,0)
-        {$W_2$};
-      \node[draw, rounded corners, minimum width=1.25cm] (w3) at (8,0)
-        {$W_3$};
-      \node (y) at (10,0) {$y$};
-      \draw[->] (x) -- (w1);
-      \draw[->] (w1) -- node[above] {$W_1x$} (w2);
-      \draw[->] (w2) -- node[above] {$W_2W_1x$} (w3);
-      \draw[->] (w3) -- (y);
-    \end{tikzpicture}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \centering
+      \vspace{2em}
+      \large
+      \[
+        \operatorname{ReLU}(x)=\max(0,x)
+      \]
+      \[
+        \operatorname{ReLU}'(x)=
+        \begin{cases}
+          0, & x<0, \\
+          1, & x>0.
+        \end{cases}
+      \]
+    \end{column}
 
-    \vspace{-0.3em}
-    \begin{equation*}
-      y = W_3\bigl(W_2(W_1x)\bigr) = (W_3W_2W_1)x.
-    \end{equation*}
-  \end{block}
-  \vspace{-0.3em}
+    \begin{column}{0.47\textwidth}
+      \textbf{Why use ReLU?}
+      \begin{itemize}
+        \item One \texttt{max} operation.
+        \item Its derivative is just a binary mask.
+        \item It works well in practice.
+      \end{itemize}
 
-  \begin{block}{One equivalent matrix multiplication}
-    \centering
-    \begin{tikzpicture}[x=1cm, y=1cm]
-      \node (x) at (0,0) {$x$};
-      \node[draw, rounded corners, minimum width=3cm] (wc) at (3,0)
-        {$W_{\text{combined}}$};
-      \node (y) at (6,0) {$y$};
-      \draw[->] (x) -- (wc);
-      \draw[->] (wc) -- (y);
-    \end{tikzpicture}
-    \qquad
-    $W_{\text{combined}} = W_3W_2W_1$.
-  \end{block}
-  \vspace{-0.3em}
-
-  \begin{alertblock}{ReLU prevents this collapse}
-    With $\operatorname{ReLU}(z)=\max(0,z)$ between the matrices,
-    $y=W_3\operatorname{ReLU}(W_2\operatorname{ReLU}(W_1x))$ cannot generally
-    be reduced to one matrix multiplication.
-  \end{alertblock}
+      \vspace{0.5em}
+      \textbf{Other choices}
+      \begin{itemize}
+        \item Sigmoid or tanh
+        \item Leaky ReLU
+        \item GELU or SiLU
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \begin{frame}[fragile]{One Layer in Pseudocode}

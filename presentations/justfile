@@ -22,4 +22,4 @@ backprop:
         "{{output_dir}}/backprop.nav" \
         "{{output_dir}}/backprop.snm" \
         "{{output_dir}}/backprop.vrb"
-    @echo "Presentation: demo/{{output_dir}}/backprop.pdf"
+    @echo "Presentation: presentations/{{output_dir}}/backprop.pdf"
