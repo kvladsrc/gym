@@ -2,8 +2,8 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 
 mod cothic
 mod cv
-mod demo
 mod neural_network
+mod presentations
 mod talos "production/kubernetes/talos"
 mod zooreader "production/docker/zooreader"
 
@@ -44,4 +44,5 @@ gym_dir := env("HOME") / "repos" / "gym"
 
 sync-gym dest=gym_dir:
     @just cv build
+    @just presentations backprop
     bash scripts/sync_gym.sh {{ dest }}
