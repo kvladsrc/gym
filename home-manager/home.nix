@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   nixgl,
   ...
@@ -7,6 +8,29 @@
 let
   user = "myuser";
   version = "26.05";
+  blenderMcpAddon = pkgs.fetchurl {
+    url = "https://raw.githubusercontent.com/ahujasid/blender-mcp/da4e16d2069ce5154eaa2535bf995e843caf5c73/addon.py";
+    hash = "sha256-ymlVu1hNeOIp8CCoudcBFECtxulNqwrI4BqyeU2xncA="; # pragma: allowlist secret
+  };
+  blenderWithMcp = config.lib.nixGL.wrap (
+    pkgs.symlinkJoin {
+      name = "blender-with-mcp-${pkgs.blender.version}";
+      paths = [ pkgs.blender ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram "$out/bin/blender" \
+          --add-flags "--addons blender_mcp"
+      '';
+    }
+  );
+  godot = config.lib.nixGL.wrap pkgs.godotPackages_4_6.godot;
+  godotMcp = pkgs.writeShellApplication {
+    name = "godot-mcp";
+    runtimeInputs = [ pkgs.nodejs ];
+    text = ''
+      exec npx -y @coding-solo/godot-mcp@0.1.1
+    '';
+  };
 in
 {
   home.username = user;
@@ -111,11 +135,12 @@ in
 
     # GPU enabled.
     (config.lib.nixGL.wrap blockbench)
+    blenderWithMcp
     (config.lib.nixGL.wrap celestia)
     (config.lib.nixGL.wrap easyeffects)
     (config.lib.nixGL.wrap f3d)
     (config.lib.nixGL.wrap gamescope)
-    (config.lib.nixGL.wrap godotPackages_4_6.godot)
+    godot
     (config.lib.nixGL.wrap gthumb)
     (config.lib.nixGL.wrap kooha)
     (config.lib.nixGL.wrap niri)
@@ -142,6 +167,11 @@ in
   ];
 
   home.file = {
+    # Codex was configured imperatively before Home Manager took ownership.
+    ".codex/config.toml".force = true;
+    ".config/blender/${lib.versions.majorMinor pkgs.blender.version}/scripts/addons/blender_mcp.py" = {
+      source = blenderMcpAddon;
+    };
     ".config/niri" = {
       source = dotfiles/niri;
       recursive = true;
@@ -199,29 +229,8 @@ in
       size = 16;
     };
     shellIntegration.enableBashIntegration = true;
+    themeFile = "yorumi-abyss";
     settings = {
-      background = "#2b303e";
-      foreground = "#faf9f7";
-      cursor = "#f8f1b0";
-      cursor_text_color = "#2b303e";
-      selection_background = "#e2869e";
-      selection_foreground = "#2b303e";
-      color0 = "#2b303e";
-      color1 = "#b65869";
-      color2 = "#7b9f8b";
-      color3 = "#ecb876";
-      color4 = "#6ab9e4";
-      color5 = "#d896b1";
-      color6 = "#67b8c7";
-      color7 = "#e7e4e5";
-      color8 = "#63687a";
-      color9 = "#e2869e";
-      color10 = "#9ac2a8";
-      color11 = "#f8dca2";
-      color12 = "#8ecbed";
-      color13 = "#ebb0c8";
-      color14 = "#8bd3dc";
-      color15 = "#faf9f7";
       confirm_os_window_close = 0;
       term = "xterm-256color";
     };
@@ -298,6 +307,49 @@ in
   };
 
   programs.home-manager.enable = true;
+
+  programs.codex = {
+    enable = true;
+    settings = {
+      model = "gpt-5.6-sol";
+      model_reasoning_effort = "high";
+      personality = "pragmatic";
+      approvals_reviewer = "user";
+
+      projects."/home/${user}/Dropbox/src".trust_level = "trusted";
+
+      notice."hide_gpt-5.1-codex-max_migration_prompt" = true;
+
+      tui.model_availability_nux = {
+        "gpt-5.5" = 4;
+        "gpt-5.6-sol" = 4;
+      };
+
+      mcp_servers = {
+        blender = {
+          command = "${pkgs.uv}/bin/uvx";
+          args = [
+            "--python"
+            "${pkgs.python311}/bin/python"
+            "blender-mcp==1.6.4"
+          ];
+          env = {
+            BLENDER_HOST = "127.0.0.1";
+            BLENDER_PORT = "9876";
+            DISABLE_TELEMETRY = "true";
+          };
+          startup_timeout_sec = 60;
+          tool_timeout_sec = 300;
+        };
+        godot = {
+          command = "${godotMcp}/bin/godot-mcp";
+          env.GODOT_PATH = "${godot}/bin/godot";
+          startup_timeout_sec = 60;
+          tool_timeout_sec = 300;
+        };
+      };
+    };
+  };
 
   programs.yazi = {
     enable = true;

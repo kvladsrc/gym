@@ -34,7 +34,7 @@ printf 'Prewarming %s with %s\n' "${nix_store}" "${image}"
 
 sudo "${buildah}" from \
     --name "${container}" \
-    --pull newer \
+    --pull=newer \
     "${image}" >/dev/null
 
 sudo "${buildah}" run \
@@ -42,7 +42,7 @@ sudo "${buildah}" run \
     --network host \
     --volume "${nix_store}:/nix" \
     --volume "${script_dir}:/workspace" \
-    --workdir /workspace \
+    --workingdir /workspace \
     "${container}" \
     /nix/var/nix/profiles/default/bin/nix \
     build .#buildNodeTools \

@@ -1,12 +1,12 @@
-@define-color frame #3d4557;
-@define-color frame_dark #292e3b;
-@define-color panel #c9c7d8;
-@define-color highlight #faf9f7;
-@define-color shadow #706b82;
-@define-color text #252936;
-@define-color selected #e2869e;
-@define-color selected_text #252936;
-@define-color apple #ecb876;
+@define-color frame #150032;
+@define-color frame_dark #0e0022;
+@define-color panel #534264;
+@define-color highlight #9676c1;
+@define-color shadow #301157;
+@define-color text #f5e595;
+@define-color selected #fdc304;
+@define-color selected_text #150032;
+@define-color apple #dea90d;
 
 * {
   font-family: "Mononoki Nerd Font";
