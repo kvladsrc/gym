@@ -50,6 +50,7 @@
         '';
 
         ci = with pkgs; [
+          ansible-lint
           bazelisk
           buildifier
           cabal-install

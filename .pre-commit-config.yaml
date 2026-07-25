@@ -95,6 +95,19 @@ repos:
       - id: prettier
         files: "\\.(cjs|js|jsx|mjs|ts|tsx|json|css|scss|html)$"
 
+  # ---------- LaTeX ----------
+  - repo: https://github.com/WGUNDERWOOD/tex-fmt
+    rev: v0.5.7
+    hooks:
+      - id: tex-fmt
+        args: [--check, --nowrap]
+        files: ^(cv|presentations)/.*\.tex$
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.3
+    hooks:
+      - id: codespell
+        files: ^(cv|presentations)/.*\.tex$
+
   # ---------- YAML quality ----------
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.38.0
@@ -159,3 +172,13 @@ repos:
     rev: '3.3.8'
     hooks:
       - id: checkov
+
+  # ---------- Ansible ----------
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v26.6.0
+    hooks:
+      - id: ansible-lint
+        args: [--profile, min, production/playbooks]
+        always_run: false
+        files: ^production/playbooks/.*\.ya?ml$
+        pass_filenames: false

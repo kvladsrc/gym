@@ -109,6 +109,7 @@
 
         ci = with pkgs; [
           bazelisk
+          buildah
           buildifier
           cabal-install
           clang-tools

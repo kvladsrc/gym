@@ -6,6 +6,7 @@ const MODEL_PALETTE_PATH := "res://assets/models/hexagon-kit/Textures/colormap.p
 const PORTAL_TEXTURE_PATH := "res://assets/sprites/world/archive_gateway.png"
 const NATURE_ATLAS_PATH := "res://assets/sprites/world/nature_atlas.png"
 const STONE_DECOR_ATLAS_PATH := "res://assets/sprites/world/stone_decor_atlas.png"
+const WAYSTONE_SCENE_PATH := "res://assets/models/decor/gothic_waystone.glb"
 const WILDLIFE_TEXTURE_PATHS: Array[String] = [
 	"res://assets/sprites/wildlife/fox_run.png",
 	"res://assets/sprites/wildlife/boar_run.png",
@@ -28,6 +29,7 @@ const PORTAL_PIXEL_SIZE := 0.003
 const PORTAL_GROUND_OFFSET_PIXELS := 513.0
 const PORTAL_COLLISION_RADIUS := 0.8
 const NATURE_DECORATION_SEED := 739
+const WAYSTONE_DECORATION_SEED := 853
 const WILDLIFE_SEED := 947
 const NATURE_DENSITY := 1.0
 const NATURE_SECONDARY_DENSITY := 0.9
@@ -36,6 +38,13 @@ const LOW_GRASS_DENSITY := 0.95
 const LOW_GRASS_SECONDARY_DENSITY := 0.45
 const STONE_DECOR_DENSITY := 0.9
 const STONE_DECOR_SECONDARY_DENSITY := 0.35
+const WAYSTONE_TARGET_DENSITY := 1.0 / 48.0
+const WAYSTONE_MIN_COUNT := 1
+const WAYSTONE_MAX_COUNT := 3
+const WAYSTONE_OFFSET_X := 2.0
+const WAYSTONE_OFFSET_Z := 1.8
+const WAYSTONE_BASE_ROTATION := PI / 8.0
+const WAYSTONE_ROTATION_JITTER := PI / 12.0
 const NATURE_OFFSET_X := 2.8
 const NATURE_OFFSET_Z := 2.4
 const INTERACTABLE_HEIGHT := 3.0
@@ -199,6 +208,7 @@ func _render_location(
 	_add_walk_surface(parent, island_cells)
 	_add_terrain_obstacles(parent, island_cells, placements)
 	_add_nature_details(parent, island_cells, placements, generation_seed)
+	_add_waystone_decorations(parent, island_cells, placements, generation_seed)
 	_add_wildlife(parent, island_cells, placements, generation_seed)
 	_add_repository_objects(parent, placements)
 
@@ -307,6 +317,57 @@ func _add_nature_details(
 			_add_low_grass_decorations(parent, coord, rng)
 		elif model_name.begins_with("stone"):
 			_add_stone_decorations(parent, coord, rng)
+
+
+func _add_waystone_decorations(
+	parent: Node3D, island_cells: Dictionary, placements: Array[Dictionary], generation_seed: int
+) -> void:
+	if not ResourceLoader.exists(WAYSTONE_SCENE_PATH):
+		push_warning("Missing waystone decoration: %s" % WAYSTONE_SCENE_PATH)
+		return
+
+	var placement_by_coord := _placement_by_coord(placements)
+	var candidates: Array[Vector2i] = []
+	for coord_value in island_cells:
+		var coord: Vector2i = coord_value
+		if (
+			coord != Vector2i.ZERO
+			and not placement_by_coord.has(coord)
+			and _terrain_model_by_coord.get(coord, "") == "grass"
+		):
+			candidates.append(coord)
+
+	if candidates.is_empty():
+		return
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = _seed_with_offset(generation_seed, WAYSTONE_DECORATION_SEED)
+	_shuffle_coords(candidates, rng)
+	var target_count := clampi(
+		int(round(float(candidates.size()) * WAYSTONE_TARGET_DENSITY)),
+		min(WAYSTONE_MIN_COUNT, candidates.size()),
+		min(WAYSTONE_MAX_COUNT, candidates.size())
+	)
+	var packed_scene := load(WAYSTONE_SCENE_PATH) as PackedScene
+	for index in range(target_count):
+		var coord := candidates[index]
+		var instance := packed_scene.instantiate() as Node3D
+		if instance == null:
+			continue
+
+		var position := _hex_to_world(coord)
+		instance.name = "GothicWaystone_%d_%d" % [coord.x, coord.y]
+		instance.position = Vector3(
+			position.x + rng.randf_range(-WAYSTONE_OFFSET_X, WAYSTONE_OFFSET_X),
+			OBJECT_Y,
+			position.z + rng.randf_range(-WAYSTONE_OFFSET_Z, WAYSTONE_OFFSET_Z)
+		)
+		instance.rotation.y = (
+			WAYSTONE_BASE_ROTATION
+			+ rng.randf_range(-WAYSTONE_ROTATION_JITTER, WAYSTONE_ROTATION_JITTER)
+		)
+		instance.scale = Vector3.ONE * rng.randf_range(0.92, 1.08)
+		parent.add_child(instance)
 
 
 func _add_general_nature_decorations(

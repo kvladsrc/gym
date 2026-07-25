@@ -15,7 +15,7 @@
     \centering
     \vfill
     {\usebeamerfont{title}\usebeamercolor[fg]{structure}
-      \Huge\insertsectionhead\par}
+    \Huge\insertsectionhead\par}
     \vfill
   \end{frame}
 }
@@ -121,13 +121,13 @@ for i = 1 to 1000:
       \begin{tikzpicture}[x=0.95cm, y=1.05cm]
         \draw[->] (-2.5, 0) -- (3, 0) node[right] {$w_1$};
         \draw[->] (-2.5, -0.1) -- (-2.5, 3.4)
-          node[above] {$L(w_1, D)$};
+        node[above] {$L(w_1, D)$};
         \draw[thick, blue, domain=-2.2:2.7, samples=80]
-          plot (\x, {0.35 * (\x - 0.7)^2 + 0.4});
+        plot (\x, {0.35 * (\x - 0.7)^2 + 0.4});
         \fill[red] (-1.2, 1.66) circle (2.5pt)
-          node[above left] {current};
+        node[above left] {current};
         \fill[green!50!black] (0.7, 0.4) circle (2.5pt)
-          node[below] {minimum};
+        node[below] {minimum};
       \end{tikzpicture}
     \end{column}
   \end{columns}
@@ -173,20 +173,20 @@ for i = 1 to 1000:
       \begin{tikzpicture}[x=0.95cm, y=1.05cm]
         \draw[->] (-2.5, 0) -- (3, 0) node[right] {$w_1$};
         \draw[->] (-2.5, -0.1) -- (-2.5, 3.4)
-          node[above] {$L(w_1, D)$};
+        node[above] {$L(w_1, D)$};
         \draw[thick, blue, domain=-2.2:2.7, samples=80]
-          plot (\x, {0.35 * (\x - 0.7)^2 + 0.4});
+        plot (\x, {0.35 * (\x - 0.7)^2 + 0.4});
         \draw[dashed, gray] (-1.2, 0) -- (-1.2, 1.66);
         \draw[dashed, gray] (-0.4, 0) -- (-0.4, 0.82);
         \draw[->, very thick, red] (-1.13, 1.58) -- (-0.48, 0.9);
         \draw[->, thick] (-1.15, -0.23) -- (-0.45, -0.23)
-          node[midway, below] {$-\text{step\_size} \cdot g_1$};
+        node[midway, below] {$-\text{step\_size} \cdot g_1$};
         \fill[red] (-1.2, 1.66) circle (2.5pt)
-          node[above left] {$w_1$};
+        node[above left] {$w_1$};
         \fill[green!50!black] (-0.4, 0.82) circle (2.5pt)
-          node[above right] {$w_1'$};
+        node[above right] {$w_1'$};
         \fill[black] (0.7, 0.4) circle (2pt)
-          node[below] {minimum};
+        node[below] {minimum};
       \end{tikzpicture}
     \end{column}
     \begin{column}{0.36\textwidth}
@@ -303,11 +303,11 @@ for batch in batches:
       For several inputs, keep the other inputs fixed:
       \begin{align*}
         f(x,y)=xy
-          &:& \frac{\partial f}{\partial x}=y,
-          && \frac{\partial f}{\partial y}=x, \\
+        &:& \frac{\partial f}{\partial x}=y,
+        && \frac{\partial f}{\partial y}=x, \\
         f(x,y)=x+y
-          &:& \frac{\partial f}{\partial x}=1,
-          && \frac{\partial f}{\partial y}=1.
+        &:& \frac{\partial f}{\partial x}=1,
+        && \frac{\partial f}{\partial y}=1.
       \end{align*}
     \end{column}
   \end{columns}
@@ -331,13 +331,13 @@ for batch in batches:
   Name the inner expression $q=x+y$. Then $f=qz$, and
   \begin{align*}
     \frac{\partial f}{\partial x}
-      &= \frac{\partial f}{\partial q}
-         \frac{\partial q}{\partial x}, \\
+    &= \frac{\partial f}{\partial q}
+    \frac{\partial q}{\partial x}, \\
     \frac{\partial f}{\partial q} &= z,
     &\qquad
     \frac{\partial q}{\partial x} &= 1, \\
     \frac{\partial f}{\partial x}
-      &= z \cdot 1 = z.
+    &= z \cdot 1 = z.
   \end{align*}
 
   \vfill
@@ -384,7 +384,7 @@ for batch in batches:
     g_2
     = \frac{\partial L}{\partial w_2}
     = \frac{\partial l_2}{\partial w_2}
-      \frac{\partial L}{\partial l_2}.
+    \frac{\partial L}{\partial l_2}.
   \end{equation*}
 
   \begin{columns}[T]
@@ -436,7 +436,7 @@ for batch in batches:
           \node (dots) at (0,-0.35) {$\vdots$};
           \node (xn) at (0,-1.2) {$x_n$};
           \node[draw, circle, minimum size=1.05cm] (sum) at (3,0.2)
-            {$\sum$};
+          {$\sum$};
           \node (bias) at (3,-1.5) {$b$};
           \node (z) at (5.1,0.2) {$z$};
           \draw[->] (x1) -- node[above, sloped] {$w_1$} (sum);
@@ -490,10 +490,10 @@ for batch in batches:
       \begin{block}{Computation graph: $2 \to 3 \to 2$}
         \centering
         \begin{tikzpicture}[
-          x=0.9cm,
-          y=0.9cm,
-          neuron/.style={draw, circle, minimum size=0.75cm},
-        ]
+            x=0.9cm,
+            y=0.9cm,
+            neuron/.style={draw, circle, minimum size=0.75cm},
+          ]
           \node[neuron] (x1) at (0,1) {$x_1$};
           \node[neuron] (x2) at (0,-1) {$x_2$};
           \node[neuron] (h1) at (2.2,1.5) {$h_1$};
@@ -520,7 +520,8 @@ for batch in batches:
     \begin{column}{0.54\textwidth}
       \begin{block}{The same network as matrices}
         \begin{equation*}
-          \begin{bmatrix}h_1 \\ h_2 \\ h_3\end{bmatrix}
+          \begin{bmatrix}h_1 \\ h_2 \\ h_3
+          \end{bmatrix}
           =
           \underbrace{
             \begin{bmatrix}
@@ -529,12 +530,14 @@ for batch in batches:
               w_{31} & w_{32}
             \end{bmatrix}
           }_{W_1\; (3 \times 2)}
-          \begin{bmatrix}x_1 \\ x_2\end{bmatrix}
+          \begin{bmatrix}x_1 \\ x_2
+          \end{bmatrix}
           + b_1
         \end{equation*}
 
         \begin{equation*}
-          \begin{bmatrix}y_1 \\ y_2\end{bmatrix}
+          \begin{bmatrix}y_1 \\ y_2
+          \end{bmatrix}
           =
           \underbrace{
             \begin{bmatrix}
@@ -542,7 +545,8 @@ for batch in batches:
               v_{21} & v_{22} & v_{23}
             \end{bmatrix}
           }_{W_2\; (2 \times 3)}
-          \begin{bmatrix}h_1 \\ h_2 \\ h_3\end{bmatrix}
+          \begin{bmatrix}h_1 \\ h_2 \\ h_3
+          \end{bmatrix}
           + b_2
         \end{equation*}
       \end{block}
@@ -568,16 +572,16 @@ for batch in batches:
     \node (x2) at (2.5,-2.1) {$x$};
     \node (y2) at (6.5,-2.1) {$y$};
     \draw[->, very thick, structure.fg] (x2) --
-      node[above] {$W_*, b_*$} (y2);
+    node[above] {$W_*, b_*$} (y2);
   \end{tikzpicture}
 
   \vspace{0.5em}
   \begin{align*}
     y
-      &= W_3\bigl(W_2(W_1x+b_1)+b_2\bigr)+b_3 \\
-      &= \underbrace{W_3W_2W_1}_{W_*}x
-       + \underbrace{W_3W_2b_1+W_3b_2+b_3}_{b_*} \\
-      &= W_*x+b_*.
+    &= W_3\bigl(W_2(W_1x+b_1)+b_2\bigr)+b_3 \\
+    &= \underbrace{W_3W_2W_1}_{W_*}x
+    + \underbrace{W_3W_2b_1+W_3b_2+b_3}_{b_*} \\
+    &= W_*x+b_*.
   \end{align*}
 \end{frame}
 
