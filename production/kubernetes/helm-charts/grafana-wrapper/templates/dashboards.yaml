@@ -1,0 +1,32 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | quote }}
+data:
+  cluster-overview.json: |
+{{ .Files.Get "dashboards/cluster-overview.json" | nindent 4 }}
+{{- range $path, $_ := .Files.Glob "dashboards/vendor/*.json" }}
+{{- $filename := base $path }}
+{{- $name := trimSuffix ".json" $filename }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-{{ $name }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    helm.sh/chart: {{ printf "%s-%s" $.Chart.Name $.Chart.Version | quote }}
+data:
+  {{ $filename }}: |
+{{ $.Files.Get $path | replace "\"uid\": \"$DS_PROMETHEUS\"" "\"uid\": \"victoriametrics\"" | nindent 4 }}
+{{- end }}

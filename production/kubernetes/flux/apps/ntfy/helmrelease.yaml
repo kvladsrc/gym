@@ -19,4 +19,4 @@ spec:
         name: gerrit
         namespace: flux-system
   dependsOn:
-    - name: nfs
+    - name: local-path-provisioner

@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodically reconcile the lab server from Gerrit
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30s
+Persistent=true
+Unit=ansible-pull.service
+
+[Install]
+WantedBy=timers.target

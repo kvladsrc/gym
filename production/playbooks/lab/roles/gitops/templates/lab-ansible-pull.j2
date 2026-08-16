@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -eu
+
+export GIT_SSH_COMMAND='/usr/bin/ssh -i {{ lab_gitops_private_key }} -o IdentitiesOnly=yes -o UserKnownHostsFile={{ lab_gitops_known_hosts }}'
+
+exec /usr/bin/flock --nonblock /run/ansible-pull.lock \
+    /usr/bin/ansible-pull \
+    --url {{ lab_gitops_repository | quote }} \
+    --checkout {{ lab_gitops_revision | quote }} \
+    --directory {{ lab_gitops_checkout | quote }} \
+    --clean \
+    --inventory localhost, \
+    --connection local \
+    {{ lab_gitops_playbook | quote }}

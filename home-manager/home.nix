@@ -42,7 +42,6 @@ in
     packages = nixgl;
     defaultWrapper = "mesa";
     offloadWrapper = "mesaPrime";
-    vulkan.enable = true;
     installScripts = [
       "mesa"
       "mesaPrime"
@@ -349,6 +348,11 @@ in
         };
       };
     };
+  };
+
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;
   };
 
   programs.yazi = {

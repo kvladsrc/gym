@@ -12,7 +12,7 @@ resource "authentik_provider_proxy" "proxy_providers" {
 
   mode = each.value.mode
 
-  basic_auth_enabled            = true
+  basic_auth_enabled            = each.value.basic_auth_enabled
   basic_auth_username_attribute = "cn"
   basic_auth_password_attribute = "cn" # pragma: allowlist secret
 

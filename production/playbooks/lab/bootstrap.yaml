@@ -1,0 +1,9 @@
+---
+- name: Bootstrap pull-based GitOps on the lab server
+  hosts: lab.your.domain
+  become: true
+  gather_facts: true
+  vars_files:
+    - vars/main.yaml
+  roles:
+    - role: gitops

@@ -1,0 +1,88 @@
+---
+- name: Install GitOps runtime packages
+  ansible.builtin.apt:
+    name: "{{ lab_gitops_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create the GitOps configuration directory
+  ansible.builtin.file:
+    path: /etc/ansible-pull
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Check the Gerrit deploy key
+  ansible.builtin.stat:
+    path: "{{ lab_gitops_private_key }}"
+  register: lab_gitops_private_key_stat
+
+- name: Require the Gerrit deploy key
+  ansible.builtin.assert:
+    that:
+      - lab_gitops_private_key_stat.stat.exists
+      - lab_gitops_private_key_stat.stat.isreg
+    fail_msg: >-
+      Install the read-only Gerrit deploy key at
+      {{ lab_gitops_private_key }} before bootstrapping GitOps.
+
+- name: Protect the Gerrit deploy key
+  ansible.builtin.file:
+    path: "{{ lab_gitops_private_key }}"
+    state: file
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Install the pinned Gerrit host key
+  ansible.builtin.copy:
+    content: "{{ lab_gitops_gerrit_host_key }}\n"
+    dest: "{{ lab_gitops_known_hosts }}"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Create the GitOps checkout parent
+  ansible.builtin.file:
+    path: "{{ lab_gitops_checkout | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Install the Ansible pull wrapper
+  ansible.builtin.template:
+    src: lab-ansible-pull.j2
+    dest: /usr/local/sbin/lab-ansible-pull
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Install the Ansible pull service
+  ansible.builtin.template:
+    src: ansible-pull.service.j2
+    dest: /etc/systemd/system/ansible-pull.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Install the Ansible pull timer
+  ansible.builtin.template:
+    src: ansible-pull.timer.j2
+    dest: /etc/systemd/system/ansible-pull.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Flush systemd handlers before enabling the timer
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start the Ansible pull timer
+  ansible.builtin.systemd_service:
+    name: ansible-pull.timer
+    enabled: true
+    state: started

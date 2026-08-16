@@ -11,6 +11,7 @@
         - go-check
         - bazel-test-blog-engine
         - bazel-test-registry-retention
+        - bazel-test-infra-doctor
         - bazel-test-pipellm
         - bazel-test-cpp-warmup
         - bazel-test-cpp-rbtree
@@ -25,6 +26,9 @@
         - build-blog-engine-image
         - build-node-image
         - build-zooreader-image
+    post:
+      jobs:
+        - opengrok-reindex
     promote:
       jobs:
         - promote-blog-engine-image

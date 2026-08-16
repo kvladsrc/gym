@@ -1,0 +1,9 @@
+---
+- job:
+    name: opengrok-reindex
+    description: Synchronize and reindex OpenGrok after a branch update.
+    nodeset:
+      nodes: []
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/opengrok-reindex.yaml
+    timeout: 3600

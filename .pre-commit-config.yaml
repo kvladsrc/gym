@@ -127,7 +127,7 @@ repos:
 
   # ---------- Dockerfiles ----------
   - repo: https://github.com/AleksaC/hadolint-py
-    rev: v2.14.0
+    rev: v2.15.1
     hooks:
       - id: hadolint
         args: [--ignore, DL3008, --ignore, DL3018]
@@ -169,13 +169,13 @@ repos:
 
   # ---------- Checkov ----------
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.3.8'
+    rev: '3.3.11'
     hooks:
       - id: checkov
 
   # ---------- Ansible ----------
   - repo: https://github.com/ansible/ansible-lint
-    rev: v26.6.0
+    rev: v26.8.0
     hooks:
       - id: ansible-lint
         args: [--profile, min, production/playbooks]

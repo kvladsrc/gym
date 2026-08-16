@@ -11,11 +11,11 @@ nxs:
     usePredefinedAffinity: false
 
   pvcs:
-    ntfy-data:
+    ntfy-local-data:
       accessModes:
         - ReadWriteOnce
       size: 1Gi
-      storageClassName: nfs-client
+      storageClassName: local-rebuildable
 
   # Flux drops ConfigMaps rendered by the NXS template, so the wrapper owns them.
   wrapperConfigMaps:
@@ -107,7 +107,7 @@ nxs:
       volumes:
         - name: data
           type: pvc
-          originalName: ntfy-data
+          originalName: ntfy-local-data
         - name: flux-template
           type: configMap
           originalName: ntfy-flux-template

@@ -1,0 +1,481 @@
+---
+victoria-metrics:
+  serviceAccount:
+    automountToken: false
+  server:
+    fullnameOverride: victoria-metrics
+    retentionPeriod: 14d
+    extraArgs:
+      opentelemetry.usePrometheusNaming: "true"
+    persistentVolume:
+      enabled: true
+      storageClassName: local-rebuildable
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 768Mi
+
+victoria-logs:
+  serviceAccount:
+    create: true
+    automountToken: false
+  vector:
+    enabled: false
+  server:
+    fullnameOverride: victoria-logs
+    retentionPeriod: 7d
+    retentionMaxDiskUsagePercent: "85"
+    persistentVolume:
+      enabled: true
+      storageClassName: local-rebuildable
+      size: 15Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 768Mi
+
+kube-state-metrics:
+  fullnameOverride: kube-state-metrics
+  prometheusScrape: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+otel-agent:
+  fullnameOverride: otel-agent
+  mode: daemonset
+
+  image:
+    repository: >-
+      ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+  command:
+    name: otelcol-k8s
+
+  presets:
+    hostMetrics:
+      enabled: true
+    kubernetesAttributes:
+      enabled: true
+    kubeletMetrics:
+      enabled: true
+
+  alternateConfig:
+    exporters:
+      otlp/gateway:
+        endpoint: otel-collector:4317
+        tls:
+          insecure: true
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      resource/cluster:
+        attributes:
+          - action: upsert
+            key: k8s.cluster.name
+            value: your.domain
+    receivers:
+      filelog:
+        exclude:
+          - /var/log/pods/observability_otel-agent*_*/otel-agent/*.log
+          - /var/log/pods/observability_otel-collector*_*/otel-collector/*.log
+        include:
+          - /var/log/pods/*/*/*.log
+        include_file_path: true
+        operators:
+          - id: container-parser
+            type: container
+        retry_on_failure:
+          enabled: true
+        start_at: end
+      kubeletstats:
+        insecure_skip_verify: true
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        logs:
+          exporters:
+            - otlp/gateway
+          processors:
+            - memory_limiter
+            - resource/cluster
+            - batch
+          receivers:
+            - filelog
+        metrics:
+          exporters:
+            - otlp/gateway
+          processors:
+            - memory_limiter
+            - resource/cluster
+            - batch
+          receivers: []
+      telemetry:
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: 0.0.0.0
+                    port: 8888
+
+  extraVolumeMounts:
+    - name: varlogpods
+      mountPath: /var/log/pods
+      readOnly: true
+  extraVolumes:
+    - name: varlogpods
+      hostPath:
+        path: /var/log/pods
+        type: Directory
+
+  ports:
+    otlp:
+      enabled: false
+    otlp-http:
+      enabled: false
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+    metrics:
+      enabled: true
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+
+otel-collector:
+  fullnameOverride: otel-collector
+  mode: deployment
+  replicaCount: 1
+
+  image:
+    repository: >-
+      ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+  command:
+    name: otelcol-k8s
+
+  presets:
+    clusterMetrics:
+      enabled: true
+    kubernetesEvents:
+      enabled: true
+
+  alternateConfig:
+    exporters:
+      otlp_http/victoria:
+        compression: gzip
+        encoding: proto
+        logs_endpoint: >-
+          http://victoria-logs:9428/insert/opentelemetry/v1/logs
+        metrics_endpoint: >-
+          http://victoria-metrics:8428/opentelemetry/v1/metrics
+        tls:
+          insecure: true
+    extensions:
+      health_check:
+        endpoint: ${env:MY_POD_IP}:13133
+    processors:
+      batch: {}
+      deltatocumulative:
+        max_stale: 5m
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+      resource/cluster:
+        attributes:
+          - action: upsert
+            key: k8s.cluster.name
+            value: your.domain
+      transform/prometheus_labels:
+        error_mode: ignore
+        metric_statements:
+          - context: datapoint
+            statements:
+              - >-
+                set(datapoint.attributes["job"],
+                resource.attributes["service.name"])
+                where datapoint.attributes["job"] == nil
+              - >-
+                set(datapoint.attributes["instance"],
+                resource.attributes["service.instance.id"])
+                where datapoint.attributes["instance"] == nil
+              - >-
+                set(datapoint.attributes["namespace"],
+                resource.attributes["k8s.namespace.name"])
+                where datapoint.attributes["namespace"] == nil
+              - >-
+                set(datapoint.attributes["pod"],
+                resource.attributes["k8s.pod.name"])
+                where datapoint.attributes["pod"] == nil
+              - >-
+                set(datapoint.attributes["container"],
+                resource.attributes["k8s.container.name"])
+                where datapoint.attributes["container"] == nil
+              - >-
+                set(datapoint.attributes["node"],
+                resource.attributes["k8s.node.name"])
+                where datapoint.attributes["node"] == nil
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: ${env:MY_POD_IP}:4317
+          http:
+            endpoint: ${env:MY_POD_IP}:4318
+      prometheus:
+        config:
+          global:
+            external_labels:
+              cluster: your.domain
+            scrape_interval: 30s
+            scrape_timeout: 10s
+          scrape_configs:
+            - job_name: otel-collector
+              static_configs:
+                - targets:
+                    - 127.0.0.1:8888
+            - job_name: otel-agent
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_namespace
+                  regex: observability
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_label_app_kubernetes_io_name
+                  regex: otel-agent
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_container_port_name
+                  regex: metrics
+                - source_labels:
+                    - __meta_kubernetes_pod_name
+                  target_label: pod
+                - source_labels:
+                    - __meta_kubernetes_namespace
+                  target_label: namespace
+            - job_name: coredns
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_namespace
+                  regex: kube-system
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_label_k8s_app
+                  regex: kube-dns
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_container_port_name
+                  regex: metrics
+                - source_labels:
+                    - __meta_kubernetes_pod_name
+                  target_label: pod
+            - job_name: flux
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_namespace
+                  regex: flux-system
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_container_port_name
+                  regex: http-prom
+                - source_labels:
+                    - __meta_kubernetes_pod_label_app
+                  target_label: controller
+                - source_labels:
+                    - __meta_kubernetes_pod_name
+                  target_label: pod
+                - source_labels:
+                    - __meta_kubernetes_namespace
+                  target_label: namespace
+            - job_name: envoy-gateway
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_namespace
+                  regex: envoy-gateway-system
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_label_app_kubernetes_io_name
+                  regex: gateway-helm
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_container_port_name
+                  regex: metrics
+                - source_labels:
+                    - __meta_kubernetes_pod_name
+                  target_label: pod
+            - job_name: envoy-proxy
+              metrics_path: /stats/prometheus
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_namespace
+                  regex: envoy-gateway-system
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_label_app_kubernetes_io_name
+                  regex: envoy
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_container_port_name
+                  regex: metrics
+                - source_labels:
+                    - __meta_kubernetes_pod_name
+                  target_label: pod
+            - job_name: cert-manager
+              static_configs:
+                - targets:
+                    - >-
+                      cert-manager-controller-metrics.cert-manager.svc.cluster.local:9402
+            - job_name: kyverno
+              static_configs:
+                - targets:
+                    - kyverno-svc-metrics.kyverno.svc.cluster.local:8000
+                    - >-
+                      kyverno-background-controller-metrics.kyverno.svc.cluster.local:8000
+                    - >-
+                      kyverno-cleanup-controller-metrics.kyverno.svc.cluster.local:8000
+                    - >-
+                      kyverno-reports-controller-metrics.kyverno.svc.cluster.local:8000
+            - job_name: victoria-metrics
+              static_configs:
+                - targets:
+                    - victoria-metrics.observability.svc.cluster.local:8428
+            - job_name: victoria-logs
+              static_configs:
+                - targets:
+                    - victoria-logs.observability.svc.cluster.local:9428
+            - job_name: grafana
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_namespace
+                  regex: grafana
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_label_app_kubernetes_io_name
+                  regex: grafana
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_container_port_name
+                  regex: grafana
+                - source_labels:
+                    - __meta_kubernetes_namespace
+                  target_label: namespace
+                - source_labels:
+                    - __meta_kubernetes_pod_name
+                  target_label: pod
+                - source_labels:
+                    - __meta_kubernetes_pod_container_name
+                  target_label: container
+            - job_name: kubernetes-event-exporter
+              static_configs:
+                - targets:
+                    - >-
+                      event-exporter.kubernetes-event-exporter.svc.cluster.local:2112
+            - job_name: kube-state-metrics
+              static_configs:
+                - targets:
+                    - kube-state-metrics.observability.svc.cluster.local:8080
+    service:
+      extensions:
+        - health_check
+      pipelines:
+        logs:
+          exporters:
+            - otlp_http/victoria
+          processors:
+            - memory_limiter
+            - resource/cluster
+            - batch
+          receivers:
+            - otlp
+        metrics:
+          exporters:
+            - otlp_http/victoria
+          processors:
+            - memory_limiter
+            - deltatocumulative
+            - transform/prometheus_labels
+            - resource/cluster
+            - batch
+          receivers:
+            - otlp
+            - prometheus
+      telemetry:
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: 0.0.0.0
+                    port: 8888
+
+  ports:
+    otlp:
+      enabled: true
+      hostPort: null
+    otlp-http:
+      enabled: true
+      hostPort: null
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+    metrics:
+      enabled: true
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi

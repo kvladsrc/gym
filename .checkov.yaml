@@ -5,6 +5,8 @@
 skip-path:
   - archive
   - production/kubernetes
+  # One-shot privileged hostPath bootstrap manifest, not a GitOps workload.
+  - production/docker/build-node/store-init-job.yaml
 
 # Only scan specific directories if needed (already configured in
 # pre-commit)

@@ -144,6 +144,7 @@
 
         workstation = with pkgs; [
           age
+          ansible
           fluxcd
           godotPackages_4_6.godot
           godotPackages_4_6.export-template

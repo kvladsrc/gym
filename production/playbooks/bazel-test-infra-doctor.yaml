@@ -1,0 +1,25 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    bazel_target: //production/infra-doctor:all
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Run infra-doctor Bazel tests
+      ansible.builtin.include_tasks:
+        file: tasks/run-bazel-test-target.yaml
+
+    - name: Check repository infrastructure invariants
+      ansible.builtin.command:
+        argv:
+          - bazelisk
+          - run
+          - //production/infra-doctor
+          - --
+          - --root
+          - "{{ repo_dir }}"
+      args:
+        chdir: "{{ repo_dir }}"
+      changed_when: false

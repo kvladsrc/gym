@@ -28,6 +28,18 @@
     run: production/playbooks/bazel-test-registry-retention.yaml
 
 - job:
+    name: bazel-test-infra-doctor
+    files:
+      - ^MODULE\.bazel(\.lock)?$
+      - ^go\.(mod|sum)$
+      - ^production/infra-doctor/
+      - ^production/kubernetes/flux/
+      - ^production/kubernetes/helm-charts/
+      - ^production/terraform/modules/(authentik|cloudflare)/
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/bazel-test-infra-doctor.yaml
+
+- job:
     name: go-check
     files:
       - ^go\.(mod|sum)$
@@ -84,6 +96,7 @@
     name: helm-lint
     files:
       - ^production/kubernetes/helm-charts/
+      - ^scripts/check_helm_dependencies\.sh$
     post-run: production/playbooks/notify-ntfy-on-failure.yaml
     run: production/playbooks/helm-lint.yaml
 

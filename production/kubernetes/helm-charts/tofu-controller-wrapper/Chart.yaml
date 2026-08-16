@@ -3,8 +3,8 @@ apiVersion: v2
 name: tofu-controller-wrapper
 description: "Wrapper chart: tofu-controller"
 type: application
-version: 0.2.0
+version: 0.3.0
 dependencies:
   - name: tofu-controller
-    version: 0.16.4
+    version: 0.16.5
     repository: "https://flux-iac.github.io/tofu-controller"

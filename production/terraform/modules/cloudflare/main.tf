@@ -53,6 +53,15 @@ resource "cloudflare_dns_record" "cs_bonfire" {
   ttl     = 1
 }
 
+resource "cloudflare_dns_record" "dash_bonfire" {
+  zone_id = var.cloudflare_zone_id
+  name    = "dash"
+  content = "192.168.1.220"
+  type    = "A"
+  proxied = false
+  ttl     = 1
+}
+
 resource "cloudflare_dns_record" "dns_bonfire" {
   zone_id = var.cloudflare_zone_id
   name    = "dns"
@@ -184,6 +193,16 @@ resource "cloudflare_dns_record" "bb_bonfire" {
   zone_id = var.cloudflare_zone_id
   name    = "bb"
   content = "192.168.1.220"
+  type    = "A"
+  proxied = false
+  ttl     = 1
+}
+
+# VirtualBox lab host (.101)
+resource "cloudflare_dns_record" "lab_bonfire" {
+  zone_id = var.cloudflare_zone_id
+  name    = "lab"
+  content = "192.168.1.101"
   type    = "A"
   proxied = false
   ttl     = 1

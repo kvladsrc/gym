@@ -23,4 +23,4 @@ spec:
       name: opengrok-secrets
       valuesKey: values.yaml
   dependsOn:
-    - name: nfs
+    - name: local-path-provisioner

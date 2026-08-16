@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+expected_lineage="/etc/letsencrypt/live/{{ lab_cockpit_hostname }}"
+if [ "${RENEWED_LINEAGE:-}" != "${expected_lineage}" ]; then
+    exit 0
+fi
+
+install -o root -g root -m 0644 \
+    "${RENEWED_LINEAGE}/fullchain.pem" \
+    /etc/cockpit/ws-certs.d/50-letsencrypt.cert
+install -o root -g root -m 0600 \
+    "${RENEWED_LINEAGE}/privkey.pem" \
+    /etc/cockpit/ws-certs.d/50-letsencrypt.key
+systemctl try-restart cockpit.service

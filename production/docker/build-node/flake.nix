@@ -80,10 +80,20 @@
           shfmt
         ];
       in
-      rec {
-        packages.buildNodeTools = pkgs.symlinkJoin {
-          name = "build-node-tools";
-          paths = ci ++ os ++ container;
+      {
+        packages = rec {
+          buildNodeTools = pkgs.symlinkJoin {
+            name = "build-node-tools";
+            paths = ci ++ os ++ container;
+          };
+
+          buildNodeStore = pkgs.symlinkJoin {
+            name = "build-node-store";
+            paths = [
+              pkgs.nix
+              buildNodeTools
+            ];
+          };
         };
       }
     );

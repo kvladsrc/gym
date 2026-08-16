@@ -12,16 +12,16 @@ nxs:
       automountServiceAccountToken: true
 
   pvcs:
-    opengrok-data-pvc:
+    opengrok-data-local-pvc:
       accessModes:
-        - ReadWriteMany
-      size: 10Gi
-      storageClassName: nfs-client
-    opengrok-src-pvc:
+        - ReadWriteOnce
+      size: 5Gi
+      storageClassName: local-rebuildable
+    opengrok-src-local-pvc:
       accessModes:
-        - ReadWriteMany
-      size: 10Gi
-      storageClassName: nfs-client
+        - ReadWriteOnce
+      size: 5Gi
+      storageClassName: local-rebuildable
 
   deployments:
     opengrok:
@@ -35,7 +35,7 @@ nxs:
           imagePullPolicy: Always
           env:
             - name: SYNC_PERIOD_MINUTES
-              value: "240"
+              value: "1440"
             - name: WORKERS
               value: "1"
             - name: CATALINA_OPTS
@@ -45,6 +45,9 @@ nxs:
           ports:
             - name: http
               containerPort: 8080
+              protocol: TCP
+            - name: reindex
+              containerPort: 5000
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -82,10 +85,10 @@ nxs:
       volumes:
         - name: data
           type: pvc
-          originalName: opengrok-data-pvc
+          originalName: opengrok-data-local-pvc
         - name: src
           type: pvc
-          originalName: opengrok-src-pvc
+          originalName: opengrok-src-local-pvc
       extraVolumes:
         - name: ssh
           secret:
@@ -99,4 +102,8 @@ nxs:
         - name: http
           port: 8080
           targetPort: http
+          protocol: TCP
+        - name: reindex
+          port: 5000
+          targetPort: reindex
           protocol: TCP

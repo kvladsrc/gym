@@ -26,8 +26,8 @@ zuul:
 
   scheduler:
     count: 1
-    storageSize: 80Gi
-    storageClassName: ""
+    storageSize: 20Gi
+    storageClassName: local-rebuildable
     config:
       secretName: zuul-tenant-config  # pragma: allowlist secret
 
@@ -150,9 +150,10 @@ nxs:
           spec:
             accessModes:
               - ReadWriteOnce
+            storageClassName: local-rebuildable
             resources:
               requests:
-                storage: 80Gi
+                storage: 20Gi
     zuul-executor:
       replicas: 1
       serviceName: zuul-executor
