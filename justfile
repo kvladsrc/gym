@@ -1,7 +1,9 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
+mod aimam
 mod cothic
 mod cv
+mod local_llm
 mod neural_network
 mod presentations
 mod talos "production/kubernetes/talos"
@@ -30,6 +32,10 @@ flake-update:
     nix flake update
     cd home-manager && nix flake update
 
+# Resolve Helm dependencies exactly as Flux does for Git-backed charts
+helm-check-deps:
+    bash scripts/check_helm_dependencies.sh
+
 # Upgrade Flux and regenerate the install manifest
 flux-upgrade:
     flux install --export --components-extra=image-reflector-controller,image-automation-controller > production/kubernetes/flux/infrastructure/flux-system/gotk-components.yaml
@@ -37,6 +43,10 @@ flux-upgrade:
 # Run all bazel tests
 test *args="":
     bazelisk test //... --verbose_failures {{ args }}
+
+# Check cross-file production infrastructure invariants
+infra-doctor:
+    bazelisk run //production/infra-doctor
 
 # Sync selected directories/files to the public gym repo
 

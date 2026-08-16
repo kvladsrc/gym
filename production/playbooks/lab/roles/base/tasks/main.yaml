@@ -1,0 +1,29 @@
+---
+- name: Assert the lab role runs on Debian
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.distribution == "Debian"
+      - ansible_facts.distribution_major_version == "13"
+    fail_msg: The lab configuration supports Debian 13 only.
+
+- name: Install base administration packages
+  ansible.builtin.apt:
+    name: "{{ lab_base_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Configure the local timezone data
+  ansible.builtin.file:
+    src: /usr/share/zoneinfo/Europe/Warsaw
+    dest: /etc/localtime
+    state: link
+    force: true
+
+- name: Configure the local timezone name
+  ansible.builtin.copy:
+    content: "Europe/Warsaw\n"
+    dest: /etc/timezone
+    owner: root
+    group: root
+    mode: "0644"

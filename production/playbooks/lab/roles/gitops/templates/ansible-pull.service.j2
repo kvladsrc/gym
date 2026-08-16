@@ -1,0 +1,11 @@
+[Unit]
+Description=Reconcile the lab server from Gerrit with Ansible
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/lab-ansible-pull
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=30min

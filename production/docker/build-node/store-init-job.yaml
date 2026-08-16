@@ -1,0 +1,46 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: build-node-store-init
+  namespace: zuul
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 7200
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: build-node-store-init
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: store-init
+          image: >-
+            docker.io/nixos/nix:2.35.1@sha256:377d4887aca98f0dfa12971c1ea6d6a625a435d8b610d4c95a436843da6fbfd1
+          imagePullPolicy: IfNotPresent
+          command:
+            - /workspace/store-init.sh
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 4Gi
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: target
+              mountPath: /target
+            - name: workspace
+              mountPath: /workspace
+              readOnly: true
+      volumes:
+        - name: target
+          hostPath:
+            path: /var/mnt/local-path-provisioner/zuul
+            type: DirectoryOrCreate
+        - name: workspace
+          configMap:
+            name: build-node-store-init
+            defaultMode: 0555

@@ -1,0 +1,60 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+  vars:
+    opengrok_host: opengrok.opengrok.svc.cluster.local
+    opengrok_url: "http://{{ opengrok_host }}:8080"
+    opengrok_reindex_url: "http://{{ opengrok_host }}:5000/reindex"
+
+  tasks:
+    - name: Wait for the OpenGrok reindex endpoint
+      ansible.builtin.wait_for:
+        host: "{{ opengrok_host }}"
+        port: 5000
+        state: started
+        connect_timeout: 5
+        sleep: 10
+        timeout: 900
+      changed_when: false
+
+    - name: Read the current OpenGrok index time
+      # checkov:skip=CKV2_ANSIBLE_1: cluster-local OpenGrok service uses HTTP
+      ansible.builtin.uri:
+        url: "{{ opengrok_url }}/api/v1/system/indextime"
+        method: GET
+        return_content: true
+        status_code: 200
+        timeout: 10
+      register: opengrok_index_before
+      changed_when: false
+
+    - name: Trigger OpenGrok synchronization and reindexing
+      # checkov:skip=CKV2_ANSIBLE_1: cluster-local OpenGrok service uses HTTP
+      ansible.builtin.uri:
+        url: "{{ opengrok_reindex_url }}"
+        method: GET
+        headers:
+          Authorization: "Bearer opengrok-reindex"
+        return_content: true
+        status_code: 200
+        timeout: 10
+      register: opengrok_reindex
+      changed_when: true
+      failed_when: (opengrok_reindex.content | trim) != "Reindex triggered"
+
+    - name: Wait for OpenGrok reindexing to finish
+      # checkov:skip=CKV2_ANSIBLE_1: cluster-local OpenGrok service uses HTTP
+      ansible.builtin.uri:
+        url: "{{ opengrok_url }}/api/v1/system/indextime"
+        method: GET
+        return_content: true
+        status_code: 200
+        timeout: 10
+      register: opengrok_index_after
+      until: >-
+        (opengrok_index_after.content | trim)
+        != (opengrok_index_before.content | trim)
+      retries: 170
+      delay: 10
+      changed_when: false

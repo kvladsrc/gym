@@ -3,7 +3,7 @@ apiVersion: v2
 name: zookeeper-wrapper
 description: "Wrapper chart: zookeeper"
 type: application
-version: 0.9.1
+version: 0.10.0
 dependencies:
   - name: zookeeper
     version: 13.8.7

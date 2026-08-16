@@ -89,6 +89,9 @@ xwayland-satellite {
 }
 
 spawn-at-startup "gentoo-pipewire-launcher"
+// Complete the gnome-keyring daemon started and unlocked by greetd's PAM
+// session before applications try to access encrypted credentials.
+spawn-at-startup "/usr/bin/gnome-keyring-daemon" "--start" "--components=secrets"
 spawn-at-startup "mako"
 spawn-at-startup "waybar"
 spawn-at-startup "swaybg" "-i" "/home/myuser/.local/share/wallpapers/discordia.png" "-m" "fill" "-c" "#17131f"

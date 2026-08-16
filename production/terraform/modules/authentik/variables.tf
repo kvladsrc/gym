@@ -24,6 +24,7 @@ variable "applications" {
     skip_path_regex              = optional(string, "")
     access_token_validity        = optional(string, "hours=16")
     internal_host_ssl_validation = optional(bool, true)
+    basic_auth_enabled           = optional(bool, true)
   }))
   default = {
     "miniflux" = {
@@ -48,6 +49,14 @@ variable "applications" {
       internal_host   = "gerrit-service.gerrit-cluster.svc.cluster.local"
       internal_port   = 80
       skip_path_regex = "^/a/plugins/checks/.*"
+    }
+    "grafana" = {
+      name               = "grafana"
+      slug               = "grafana"
+      external_host      = "https://dash.your.domain"
+      internal_host      = "grafana.grafana.svc.cluster.local"
+      internal_port      = 80
+      basic_auth_enabled = false
     }
     "kanboard" = {
       name            = "kanboard"
@@ -102,12 +111,13 @@ variable "applications" {
       internal_port = 80
     }
     "zuul" = {
-      name                  = "zuul"
-      slug                  = "zuul"
-      external_host         = "https://ci.your.domain"
-      internal_host         = "zuul-web.zuul.svc.cluster.local"
-      internal_port         = 9000
-      skip_path_regex       = "^/api(/.*)?$"
+      name            = "zuul"
+      slug            = "zuul"
+      external_host   = "https://ci.your.domain"
+      internal_host   = "zuul-web.zuul.svc.cluster.local"
+      internal_port   = 9000
+      skip_path_regex = "^/api(/.*)?$"
+      # checkov:skip=CKV_SECRET_6: Token validity is not a secret.
       access_token_validity = "hours=24"
     }
   }

@@ -4,7 +4,7 @@ zookeeper:
     repository: bitnamilegacy/zookeeper
   usePasswordFiles: false
   global:
-    defaultStorageClass: "nfs-client"
+    defaultStorageClass: "local-rebuildable"
     security:
       allowInsecureImages: true
   replicaCount: 1

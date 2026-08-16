@@ -8,6 +8,7 @@ resources:
   - cert-manager
   - docker-registry
   - envoy-gateway
+  - grafana
   - gerrit
   - gerrit-operator
   - headlamp
@@ -18,11 +19,13 @@ resources:
   - kyverno
   - kyverno-policies
   - kubernetes-event-exporter
+  - local-path-provisioner
   - metrics-server
   - miniflux
   - minio
   - nfs
   - ntfy
+  - observability
   - opengrok
   - pihole
   - postgres-ui

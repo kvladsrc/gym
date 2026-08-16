@@ -6,6 +6,15 @@
     repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
 
   tasks:
+    - name: Build locked Helm dependencies
+      ansible.builtin.command:
+        argv:
+          - bash
+          - scripts/check_helm_dependencies.sh
+      args:
+        chdir: "{{ repo_dir }}"
+      changed_when: false
+
     - name: Find Helm charts
       ansible.builtin.find:
         paths: "{{ repo_dir }}/production/kubernetes/helm-charts"

@@ -1,6 +1,6 @@
 dependencies:
 - name: nxs-universal-chart
   repository: oci://registry.nixys.ru/nuc
-  version: 3.1.1
-digest: sha256:a042ad4b5be427c4299ad52f9bbbd757016df49edf9eb7cdcc0ba8f985c6a901
-generated: "2026-07-17T12:03:40.154915499Z"
+  version: 3.2.0
+digest: sha256:45396e06415998d577908d52b206ecfffeb16e0ec87ff6f6c54cf7fcc1881c0c
+generated: "2026-08-11T06:03:50.491846973Z"

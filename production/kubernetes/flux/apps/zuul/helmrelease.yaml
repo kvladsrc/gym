@@ -24,7 +24,7 @@ spec:
       valuesKey: values.yaml
   dependsOn:
     - name: gerrit
+    - name: local-path-provisioner
     - name: minio
-    - name: nfs
     - name: postgresql
     - name: zookeeper

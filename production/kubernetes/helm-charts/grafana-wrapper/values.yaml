@@ -1,0 +1,212 @@
+---
+grafana:
+  testFramework:
+    enabled: false
+
+  rbac:
+    create: false
+  serviceAccount:
+    create: true
+    automountServiceAccountToken: false
+  automountServiceAccountToken: false
+  enableServiceLinks: false
+
+  deploymentStrategy:
+    type: Recreate
+
+  persistence:
+    enabled: true
+    storageClassName: local-rebuildable
+    accessModes:
+      - ReadWriteOnce
+    size: 2Gi
+  initChownData:
+    enabled: false
+
+  plugins:
+    - victoriametrics-logs-datasource@0.30.1
+
+  env:
+    GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: "true"
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      deleteDatasources:
+        - name: VictoriaMetrics
+          orgId: 1
+        - name: VictoriaLogs
+          orgId: 1
+      datasources:
+        - name: VictoriaMetrics
+          uid: victoriametrics
+          type: prometheus
+          access: proxy
+          url: http://victoria-metrics.observability.svc.cluster.local:8428
+          isDefault: true
+          editable: false
+          jsonData:
+            httpMethod: POST
+            timeInterval: 30s
+        - name: VictoriaLogs
+          uid: victorialogs
+          type: victoriametrics-logs-datasource
+          access: proxy
+          url: http://victoria-logs.observability.svc.cluster.local:9428
+          isDefault: false
+          editable: false
+          jsonData:
+            httpMethod: POST
+            maxLines: 50
+            logLevelRules:
+              - field: _msg
+                value: "(?i)\\b(fatal|panic|error)\\b"
+                level: error
+                operator: regex
+                enabled: true
+              - field: _msg
+                value: "(?i)\\bwarn(ing)?\\b"
+                level: warning
+                operator: regex
+                enabled: true
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: default
+          orgId: 1
+          folder: ""
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/default
+            foldersFromFilesStructure: false
+        - name: victoriametrics
+          orgId: 1
+          folder: Observability Stack
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/victoriametrics
+            foldersFromFilesStructure: false
+        - name: victorialogs
+          orgId: 1
+          folder: Observability Stack
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/victorialogs
+            foldersFromFilesStructure: false
+        - name: opentelemetry-collector
+          orgId: 1
+          folder: Observability Stack
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/opentelemetry-collector
+            foldersFromFilesStructure: false
+        - name: grafana-internal
+          orgId: 1
+          folder: Observability Stack
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/grafana-internal
+            foldersFromFilesStructure: false
+        - name: coredns
+          orgId: 1
+          folder: Platform
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/coredns
+            foldersFromFilesStructure: false
+        - name: flux-control-plane
+          orgId: 1
+          folder: Platform
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/flux-control-plane
+            foldersFromFilesStructure: false
+        - name: kyverno
+          orgId: 1
+          folder: Platform
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/kyverno
+            foldersFromFilesStructure: false
+  dashboardsConfigMaps:
+    default: grafana-dashboards
+    victoriametrics: grafana-dashboard-victoriametrics-single-node
+    victorialogs: grafana-dashboard-victorialogs-single-node
+    opentelemetry-collector: grafana-dashboard-opentelemetry-collector
+    grafana-internal: grafana-dashboard-grafana-internal
+    coredns: grafana-dashboard-coredns
+    flux-control-plane: grafana-dashboard-flux-control-plane
+    kyverno: grafana-dashboard-kyverno
+
+  grafana.ini:
+    analytics:
+      check_for_updates: false
+      reporting_enabled: false
+      feedback_links_enabled: false
+    news:
+      news_feed_enabled: false
+    server:
+      domain: dash.your.domain
+      root_url: https://dash.your.domain
+      enforce_domain: true
+    security:
+      cookie_secure: true
+      cookie_samesite: lax
+    users:
+      allow_sign_up: false
+      auto_assign_org: true
+      auto_assign_org_role: Viewer
+      viewers_can_edit: true
+    auth:
+      disable_login_form: true
+    auth.basic:
+      enabled: false
+    auth.anonymous:
+      enabled: false
+    auth.proxy:
+      enabled: true
+      header_name: X-authentik-username
+      header_property: username
+      auto_sign_up: true
+      sync_ttl: 5
+      whitelist: 10.244.0.0/16
+      headers: Name:X-authentik-name Email:X-authentik-email
+      headers_encoded: false
+      enable_login_token: false
+    dashboards:
+      default_home_dashboard_path: >-
+        /var/lib/grafana/dashboards/default/cluster-overview.json
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 2048Mi

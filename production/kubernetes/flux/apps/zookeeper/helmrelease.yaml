@@ -24,4 +24,4 @@ spec:
       valuesKey: values.yaml
   dependsOn:
     - name: cert-manager
-    - name: nfs
+    - name: local-path-provisioner

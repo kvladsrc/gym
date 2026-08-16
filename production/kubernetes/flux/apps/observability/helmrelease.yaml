@@ -1,0 +1,29 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: observability
+  namespace: flux-system
+spec:
+  install:
+    createNamespace: true
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 5m
+  upgrade:
+    strategy:
+      name: RetryOnFailure
+      retryInterval: 5m
+  releaseName: observability
+  targetNamespace: observability
+  storageNamespace: observability
+  interval: 10m
+  chart:
+    spec:
+      chart: ./production/kubernetes/helm-charts/observability-wrapper
+      sourceRef:
+        kind: GitRepository
+        name: gerrit
+        namespace: flux-system
+  dependsOn:
+    - name: local-path-provisioner

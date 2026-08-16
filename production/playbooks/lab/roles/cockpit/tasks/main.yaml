@@ -1,0 +1,132 @@
+---
+- name: Install Cockpit and ACME packages
+  ansible.builtin.apt:
+    name: "{{ lab_cockpit_packages }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+    install_recommends: false
+
+- name: Check the Cloudflare DNS credentials
+  ansible.builtin.stat:
+    path: "{{ lab_cockpit_cloudflare_credentials }}"
+  register: lab_cockpit_cloudflare_credentials_stat
+
+- name: Require bootstrapped Cloudflare DNS credentials
+  ansible.builtin.assert:
+    that:
+      - lab_cockpit_cloudflare_credentials_stat.stat.exists
+      - lab_cockpit_cloudflare_credentials_stat.stat.isreg
+    fail_msg: >-
+      Bootstrap {{ lab_cockpit_cloudflare_credentials }} with a Cloudflare API
+      token that can edit DNS records for your.domain.
+
+- name: Protect the Cloudflare DNS credentials
+  ansible.builtin.file:
+    path: "{{ lab_cockpit_cloudflare_credentials }}"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Configure Cockpit for direct TLS access
+  ansible.builtin.template:
+    src: cockpit.conf.j2
+    dest: /etc/cockpit/cockpit.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Cockpit
+
+- name: Create the Cockpit socket override directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/cockpit.socket.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure the Cockpit listen port
+  ansible.builtin.template:
+    src: cockpit.socket.conf.j2
+    dest: /etc/systemd/system/cockpit.socket.d/listen.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Cockpit socket
+
+- name: Create the Cockpit certificate directory
+  ansible.builtin.file:
+    path: /etc/cockpit/ws-certs.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create the Certbot deploy hook directory
+  ansible.builtin.file:
+    path: /etc/letsencrypt/renewal-hooks/deploy
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install the Cockpit certificate deploy hook
+  ansible.builtin.template:
+    src: deploy-cockpit-certificate.j2
+    dest: /etc/letsencrypt/renewal-hooks/deploy/cockpit
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Obtain the Cockpit certificate
+  ansible.builtin.command:
+    argv:
+      - certbot
+      - certonly
+      - --non-interactive
+      - --agree-tos
+      - --email
+      - "{{ lab_cockpit_acme_email }}"
+      - --cert-name
+      - "{{ lab_cockpit_hostname }}"
+      - --dns-cloudflare
+      - --dns-cloudflare-credentials
+      - "{{ lab_cockpit_cloudflare_credentials }}"
+      - --dns-cloudflare-propagation-seconds
+      - "30"
+      - --domain
+      - "{{ lab_cockpit_hostname }}"
+  args:
+    creates: "/etc/letsencrypt/live/{{ lab_cockpit_hostname }}/fullchain.pem"
+
+- name: Install the Cockpit certificate chain
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ lab_cockpit_hostname }}/fullchain.pem"
+    dest: /etc/cockpit/ws-certs.d/50-letsencrypt.cert
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Cockpit
+
+- name: Install the Cockpit certificate key
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ lab_cockpit_hostname }}/privkey.pem"
+    dest: /etc/cockpit/ws-certs.d/50-letsencrypt.key
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Restart Cockpit
+
+- name: Enable automatic certificate renewal
+  ansible.builtin.systemd_service:
+    name: certbot.timer
+    enabled: true
+    state: started
+
+- name: Enable the Cockpit socket
+  ansible.builtin.systemd_service:
+    name: cockpit.socket
+    enabled: true
+    state: started

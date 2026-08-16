@@ -1,0 +1,6 @@
+[WebService]
+Origins = {{ lab_cockpit_origin }} {{ lab_cockpit_origin | regex_replace('^https:', 'wss:') }}
+LoginTo = false
+
+[Session]
+IdleTimeout = 15
