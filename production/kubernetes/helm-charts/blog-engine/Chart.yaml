@@ -3,10 +3,10 @@ apiVersion: v2
 name: blog-engine
 description: "Dev chart for the blog engine"
 type: application
-version: 0.3.0
+version: 0.4.0
 appVersion: "0.1.0"
 dependencies:
   - name: nxs-universal-chart
     alias: nxs
-    version: 3.2.0
+    version: 3.2.1
     repository: "oci://registry.nixys.ru/nuc"

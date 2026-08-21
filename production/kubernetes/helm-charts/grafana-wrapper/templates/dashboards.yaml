@@ -15,6 +15,18 @@ data:
 {{- range $path, $_ := .Files.Glob "dashboards/vendor/*.json" }}
 {{- $filename := base $path }}
 {{- $name := trimSuffix ".json" $filename }}
+{{- $dashboard := $.Files.Get $path }}
+{{- $dashboard = $dashboard | replace "\"uid\": \"$DS_PROMETHEUS\"" "\"uid\": \"victoriametrics\"" }}
+{{- $dashboard = $dashboard | replace "\"uid\": \"${DS_PROMETHEUS}\"" "\"uid\": \"victoriametrics\"" }}
+{{- $dashboard = $dashboard | replace "\"uid\": \"$datasource\"" "\"uid\": \"victoriametrics\"" }}
+{{- $dashboard = $dashboard | replace "\"uid\": \"${datasource}\"" "\"uid\": \"victoriametrics\"" }}
+{{- if eq $filename "envoy-overview.json" }}
+{{- $dashboard = $dashboard | replace "envoy_cluster_upstream_rq_xx" "envoy_cluster_upstream_rq_xx_total" }}
+{{- $dashboard = $dashboard | replace "envoy_http_downstream_rq_xx" "envoy_http_downstream_rq_xx_total" }}
+{{- $dashboard = $dashboard | replace "envoy_listener_http_downstream_rq_xx" "envoy_listener_http_downstream_rq_xx_total" }}
+{{- $dashboard = $dashboard | replace "envoy_cluster_upstream_cx_destroy" "envoy_cluster_upstream_cx_destroy_total" }}
+{{- $dashboard = $dashboard | replace "envoy_http_downstream_cx_destroy" "envoy_http_downstream_cx_destroy_total" }}
+{{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -28,5 +40,5 @@ metadata:
     helm.sh/chart: {{ printf "%s-%s" $.Chart.Name $.Chart.Version | quote }}
 data:
   {{ $filename }}: |
-{{ $.Files.Get $path | replace "\"uid\": \"$DS_PROMETHEUS\"" "\"uid\": \"victoriametrics\"" | nindent 4 }}
+{{ $dashboard | nindent 4 }}
 {{- end }}

@@ -21,6 +21,8 @@ OpenTelemetry Collector receivers:
 - [Host Metrics Receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/hostmetricsreceiver)
 
 Version-pinned upstream dashboards live unchanged under `dashboards/vendor`.
-Helm renders each one into a separate ConfigMap and only resolves the
-VictoriaLogs dashboard's import-time Prometheus datasource placeholder. The
-dashboards are grouped into `Observability Stack` and `Platform` folders.
+Helm renders each one into a separate ConfigMap and resolves known import-time
+Prometheus datasource placeholders. At render time, the Envoy dashboard's
+counter names are adapted to the `_total` suffix emitted by the OpenTelemetry
+Prometheus receiver and remote-write pipeline. The dashboards are grouped into
+`Observability Stack` and `Platform` folders.

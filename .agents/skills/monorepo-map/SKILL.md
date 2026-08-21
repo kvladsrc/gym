@@ -48,6 +48,9 @@ workflow without requiring the user to reference each skill:
   `https://notify.your.domain`: read recent topic notifications, summarize
   incident signals, and correlate alerts with Flux, Zuul, Kubernetes,
   Terraform, or cert-manager state.
+- `observability` - use for read-only MetricsQL and LogsQL access to production
+  VictoriaMetrics and VictoriaLogs, telemetry coverage checks, and
+  evidence-based infrastructure incident analysis.
 - `monorepo-map` - use first for repository orientation, skill routing,
   directory layout, production component locations, and the working process.
 
