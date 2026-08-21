@@ -1,0 +1,7 @@
+---
+interface:
+  display_name: "Observability"
+  short_description: "Query production metrics and logs safely"
+  default_prompt: >-
+    Use $observability to inspect production VictoriaMetrics and VictoriaLogs,
+    correlate infrastructure symptoms, and report evidence-backed findings.

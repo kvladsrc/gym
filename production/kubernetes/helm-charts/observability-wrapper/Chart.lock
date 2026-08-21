@@ -1,7 +1,7 @@
 dependencies:
 - name: victoria-metrics-single
   repository: oci://ghcr.io/victoriametrics/helm-charts
-  version: 0.44.0
+  version: 0.45.0
 - name: victoria-logs-single
   repository: oci://ghcr.io/victoriametrics/helm-charts
   version: 0.13.9
@@ -13,6 +13,6 @@ dependencies:
   version: 0.170.0
 - name: kube-state-metrics
   repository: oci://ghcr.io/prometheus-community/charts
-  version: 8.0.0
-digest: sha256:5c7bbe99959cfa4bd6420f86c5f50ed8e3ee8abf97d826043a1e3ab7f218ccc2
-generated: "2026-08-16T13:28:17.622790617+02:00"
+  version: 8.4.0
+digest: sha256:07d1c1ada83e92e9bbe885b5db5950b85b56998fa908371a91fe1f93dd64ac17
+generated: "2026-08-19T06:10:29.751080739Z"

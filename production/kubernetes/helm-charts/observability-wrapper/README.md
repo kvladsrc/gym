@@ -16,10 +16,14 @@ writes to the Victoria backends.
 
 The collector also scrapes existing Prometheus endpoints for the OpenTelemetry
 collectors, VictoriaMetrics, VictoriaLogs, Grafana, CoreDNS, Flux, Envoy,
-cert-manager, Kyverno, Kubernetes Event Exporter, and `kube-state-metrics`.
+cert-manager, Authentik, MinIO, the Kubernetes API server, Kyverno, Kubernetes
+Event Exporter, and `kube-state-metrics`.
 Scraped metrics receive Prometheus-compatible `job`, `instance`, `namespace`,
 `pod`, `container`, and `node` labels plus the cluster labels used by
 provisioned Grafana dashboards.
+
+The 2026-08-21 coverage and incident review is recorded in the repository
+[AUDIT.md](../../../../AUDIT.md).
 
 VictoriaMetrics retains 14 days in a 10 GiB local volume. VictoriaLogs retains
 7 days in a 15 GiB local volume. Both use the non-backed-up

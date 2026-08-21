@@ -101,6 +101,74 @@ otel-agent:
         operators:
           - id: container-parser
             type: container
+          - id: severity-router
+            type: router
+            routes:
+              - expr: >-
+                  body matches
+                  "^\\s*\\{.*\"(level|severity|severity_text)\"\\s*:"
+                output: json-severity
+              - expr: >-
+                  body matches "(^|\\s)(level|severity)="
+                output: logfmt-severity
+              - expr: 'body matches "^[IWEF][0-9]{4}\\s"'
+                output: klog-severity
+              - expr: >-
+                  body matches
+                  "(?i)(^|\\s|\\[)(TRACE|DEBUG|INFO|WARN(ING)?|ERROR|ERR|FATAL|CRITICAL)(\\s|:|\\]|$)"
+                output: text-severity
+            default: emit
+          - id: json-severity
+            type: regex_parser
+            regex: >-
+              "(level|severity|severity_text)"\s*:\s*"(?P<log_level>[A-Za-z0-9_-]+)"
+            severity:
+              parse_from: attributes.log_level
+              overwrite_text: true
+              mapping:
+                warn: warning
+                error: err
+                fatal: critical
+            output: emit
+          - id: logfmt-severity
+            type: regex_parser
+            regex: >-
+              (^|\s)(level|severity)="?(?P<log_level>[A-Za-z0-9_-]+)"?
+            severity:
+              parse_from: attributes.log_level
+              overwrite_text: true
+              mapping:
+                warn: warning
+                error: err
+                fatal: critical
+            output: emit
+          - id: klog-severity
+            type: regex_parser
+            regex: '^(?P<log_level>[IWEF])[0-9]{4}\s'
+            severity:
+              parse_from: attributes.log_level
+              preset: none
+              overwrite_text: true
+              mapping:
+                info: I
+                warn: W
+                error: E
+                fatal: F
+            output: emit
+          - id: text-severity
+            type: regex_parser
+            regex: >-
+              (?i)(^|\s|\[)(?P<log_level>TRACE|DEBUG|INFO|WARN(ING)?|ERROR|ERR|FATAL|CRITICAL)(\s|:|\]|$)
+            severity:
+              parse_from: attributes.log_level
+              overwrite_text: true
+              mapping:
+                warn: warning
+                error: err
+                fatal: critical
+            output: emit
+          - id: emit
+            type: noop
         retry_on_failure:
           enabled: true
         start_at: end
@@ -175,6 +243,13 @@ otel-collector:
   mode: deployment
   replicaCount: 1
 
+  clusterRole:
+    rules:
+      - nonResourceURLs:
+          - /metrics
+        verbs:
+          - get
+
   image:
     repository: >-
       ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
@@ -214,6 +289,14 @@ otel-collector:
           - action: upsert
             key: k8s.cluster.name
             value: your.domain
+      transform/kubernetes_event_body:
+        error_mode: ignore
+        log_statements:
+          - context: log
+            statements:
+              - >-
+                set(body, attributes["object.note"])
+                where body == nil and attributes["object.note"] != nil
       transform/prometheus_labels:
         error_mode: ignore
         metric_statements:
@@ -368,6 +451,32 @@ otel-collector:
                 - targets:
                     - >-
                       cert-manager-controller-metrics.cert-manager.svc.cluster.local:9402
+            - job_name: authentik
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_namespace
+                  regex: authentik
+                - action: keep
+                  source_labels:
+                    - __meta_kubernetes_pod_container_port_name
+                  regex: metrics
+                - source_labels:
+                    - __meta_kubernetes_namespace
+                  target_label: namespace
+                - source_labels:
+                    - __meta_kubernetes_pod_name
+                  target_label: pod
+                - source_labels:
+                    - __meta_kubernetes_pod_container_name
+                  target_label: container
+            - job_name: authentik-outpost
+              static_configs:
+                - targets:
+                    - >-
+                      ak-outpost-terraform-managed-outpost-metrics.authentik.svc.cluster.local:9300
             - job_name: kyverno
               static_configs:
                 - targets:
@@ -420,6 +529,28 @@ otel-collector:
               static_configs:
                 - targets:
                     - kube-state-metrics.observability.svc.cluster.local:8080
+            - job_name: kubernetes-apiserver
+              scheme: https
+              authorization:
+                credentials_file: >-
+                  /var/run/secrets/kubernetes.io/serviceaccount/token
+              tls_config:
+                ca_file: >-
+                  /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                server_name: kubernetes.default.svc
+              static_configs:
+                - targets:
+                    - kubernetes.default.svc.cluster.local:443
+            - job_name: minio-cluster
+              metrics_path: /minio/v2/metrics/cluster
+              static_configs:
+                - targets:
+                    - minio.minio.svc.cluster.local:9000
+            - job_name: minio-node
+              metrics_path: /minio/v2/metrics/node
+              static_configs:
+                - targets:
+                    - minio.minio.svc.cluster.local:9000
     service:
       extensions:
         - health_check
@@ -429,6 +560,7 @@ otel-collector:
             - otlp_http/victoria
           processors:
             - memory_limiter
+            - transform/kubernetes_event_body
             - resource/cluster
             - batch
           receivers:

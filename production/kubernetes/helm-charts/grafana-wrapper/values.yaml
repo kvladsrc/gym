@@ -154,6 +154,46 @@ grafana:
           options:
             path: /var/lib/grafana/dashboards/kyverno
             foldersFromFilesStructure: false
+        - name: authentik
+          orgId: 1
+          folder: Platform
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/authentik
+            foldersFromFilesStructure: false
+        - name: kubernetes-api-server
+          orgId: 1
+          folder: Platform
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/kubernetes-api-server
+            foldersFromFilesStructure: false
+        - name: envoy-overview
+          orgId: 1
+          folder: Platform
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/envoy-overview
+            foldersFromFilesStructure: false
+        - name: minio
+          orgId: 1
+          folder: Storage
+          type: file
+          disableDeletion: true
+          allowUiUpdates: false
+          updateIntervalSeconds: 30
+          options:
+            path: /var/lib/grafana/dashboards/minio
+            foldersFromFilesStructure: false
   dashboardsConfigMaps:
     default: grafana-dashboards
     victoriametrics: grafana-dashboard-victoriametrics-single-node
@@ -163,6 +203,10 @@ grafana:
     coredns: grafana-dashboard-coredns
     flux-control-plane: grafana-dashboard-flux-control-plane
     kyverno: grafana-dashboard-kyverno
+    authentik: grafana-dashboard-authentik
+    kubernetes-api-server: grafana-dashboard-kubernetes-api-server
+    envoy-overview: grafana-dashboard-envoy-overview
+    minio: grafana-dashboard-minio
 
   grafana.ini:
     analytics:

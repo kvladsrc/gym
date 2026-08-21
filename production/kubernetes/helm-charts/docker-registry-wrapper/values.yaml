@@ -2,6 +2,12 @@
 docker-registry:
   replicaCount: 1
 
+  # Distribution 3 enables OTLP tracing to localhost by default. We do not
+  # collect traces, so disable the exporter instead of emitting retry errors.
+  extraEnvVars:
+    - name: OTEL_TRACES_EXPORTER
+      value: none
+
   resources:
     requests:
       cpu: 10m
