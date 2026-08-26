@@ -4,11 +4,11 @@ tofu-controller:
   concurrency: 24
   resources:
     limits:
-      cpu: 1000m
-      memory: 512Mi
+      cpu: 250m
+      memory: 256Mi
     requests:
-      cpu: 400m
-      memory: 64Mi
+      cpu: 50m
+      memory: 96Mi
   caCertValidityDuration: 24h
   certRotationCheckFrequency: 30m
   runner:

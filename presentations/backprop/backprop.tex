@@ -8,6 +8,7 @@
 \usefonttheme{professionalfonts}
 \usetheme{Copenhagen}
 \setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{headline}{}
 \setbeamertemplate{footline}[frame number]
 
 \AtBeginSection{
@@ -20,7 +21,7 @@
   \end{frame}
 }
 
-\title{Neural Network and Back Propagation from Scratch}
+\title{Neural Networks and Backpropagation from Scratch}
 \author{}
 \date{}
 
@@ -49,11 +50,11 @@
   The goal described what to build, but not what should count as success.
 
   \begin{itemize}
-    \item A network no better than a coin flip is still technically a model.
+    \item A binary classifier no better than a coin flip is still a model.
     \item If accuracy is 80\%, should we continue to 81\%, 82\%, or 99\%?
     \item Quality alone ignores training time and computational cost.
-    \item A model that outperforms all state-of-the-art models combined after
-      trillions of years of training is not a useful result.
+    \item A model that reaches high accuracy only after impractically long
+      training is not a useful result.
   \end{itemize}
 
   \begin{block}{A well-posed goal needs constraints}
@@ -61,42 +62,70 @@
   \end{block}
 \end{frame}
 
+\begin{frame}{Model, Dataset, and Loss}
+  \begin{description}
+    \item[Neural network] A function $f$ that maps an input $x$ to a
+      prediction $\hat y=f(x)$.
+    \item[Dataset] Examples $(x,y)$: an input and the expected output.
+    \item[Loss] For classification, the fraction of wrong answers:
+      \begin{equation*}
+        L(f,D)=\frac{\text{wrong answers}}{\text{all answers}}.
+      \end{equation*}
+  \end{description}
+
+  \begin{block}{Training}
+    Change the network to make the loss smaller.
+  \end{block}
+
+  \vfill
+  {\footnotesize
+    $^{*}$ This error rate is useful for evaluation but is not differentiable,
+    so training uses a loss such as cross-entropy.
+  }
+\end{frame}
+
 \begin{frame}[fragile]{Naive Algorithm: Brute-Force Selection}
   \small
-  \textbf{Definitions:} $W$ is a neural network, $D$ is a dataset, and
-  $L(W, D)$ is a loss to minimize. The function \texttt{rand\_net()} returns
-  a random neural network.
+  The function \texttt{rand\_net()} returns a random neural network $f$.
 
 \begin{verbatim}
 best = rand_net()
 for i = 1 to 1000:
-    n1 = rand_net()
-    if L(n1, D) < L(best, D):
-        best = n1
+    candidate = rand_net()
+    if L(candidate, D) < L(best, D):
+        best = candidate
 \end{verbatim}
 
   Sample many random networks and keep the one with the lowest loss.
 
-  This may produce accuracy slightly above chance. But once it does, should we
-  stop?
+  \begin{alertblock}{The problem}
+    Every candidate starts from scratch and discards what the current best
+    network has already learned. Among all possible networks, the chance of
+    sampling a good one is vanishingly small.
+  \end{alertblock}
 \end{frame}
 
-\begin{frame}[fragile]{{\normalsize Naive Algorithm №2: Random Local Search}}
+\begin{frame}[fragile]{{\normalsize Naive Algorithm 2: Random Local Search}}
   \small
+  The function \texttt{perturb(f, step)} returns a randomly modified network
+  close to $f$.
+
 \begin{verbatim}
 best = rand_net()
 step = 0.001
 for i = 1 to 1000:
-    g = rand_net() * step
-    if L(best + g, D) < L(best, D):
-        best = best + g
+    candidate = perturb(best, step)
+    if L(candidate, D) < L(best, D):
+        best = candidate
 \end{verbatim}
 
-  Instead of replacing the whole network, perturb its weights and accept only
-  changes that reduce the loss.
+  Instead of replacing the whole network, change it slightly and accept only
+  variants that reduce the loss.
 
-  \begin{alertblock}{What changed?}
-    The search procedure improved, but the objective did not become clearer.
+  \begin{alertblock}{The problem}
+    A random perturbation mixes helpful and harmful changes. In a large search
+    space it is usually poorly aligned with the best direction, so the chance
+    of a substantial improvement remains very small.
   \end{alertblock}
 \end{frame}
 
@@ -105,12 +134,13 @@ for i = 1 to 1000:
 \begin{frame}{One Parameter, One Loss Curve}
   \begin{columns}[c]
     \begin{column}{0.43\textwidth}
-      Consider a neural network with a single parameter $w_1$.
+      Consider a neural network $f_{w_1}$ controlled by a single parameter
+      $w_1$.
 
       For a fixed dataset $D$, its loss is now a function of one variable:
 
       \begin{equation*}
-        \ell(w_1) = L(w_1, D).
+        J(w_1) = L(f_{w_1}, D).
       \end{equation*}
 
       Training becomes a geometric problem: find the lowest point on this
@@ -121,7 +151,7 @@ for i = 1 to 1000:
       \begin{tikzpicture}[x=0.95cm, y=1.05cm]
         \draw[->] (-2.5, 0) -- (3, 0) node[right] {$w_1$};
         \draw[->] (-2.5, -0.1) -- (-2.5, 3.4)
-        node[above] {$L(w_1, D)$};
+        node[above] {$J(w_1)$};
         \draw[thick, blue, domain=-2.2:2.7, samples=80]
         plot (\x, {0.35 * (\x - 0.7)^2 + 0.4});
         \fill[red] (-1.2, 1.66) circle (2.5pt)
@@ -134,17 +164,17 @@ for i = 1 to 1000:
 \end{frame}
 
 \begin{frame}{From a Limit to a Numerical Derivative}
-  Define $f(w_1) = L(w_1, D)$. The derivative is the limit of the slope
+  Define $J(w_1)=L(f_{w_1},D)$. The derivative is the limit of the slope
   between two increasingly close points:
 
   \begin{columns}[T]
     \begin{column}{0.47\textwidth}
       \begin{block}{Exact derivative}
         \begin{equation*}
-          f'(w_1)
+          J'(w_1)
           =
           \lim_{h \to 0}
-          \frac{f(w_1 + h) - f(w_1)}{h}.
+          \frac{J(w_1 + h) - J(w_1)}{h}.
         \end{equation*}
       \end{block}
     \end{column}
@@ -156,13 +186,13 @@ for i = 1 to 1000:
         \begin{equation*}
           g_1
           =
-          \frac{L(w_1 + h, D) - L(w_1, D)}{h}.
+          \frac{J(w_1 + h) - J(w_1)}{h}.
         \end{equation*}
       \end{block}
     \end{column}
   \end{columns}
 
-  For a small, finite $h$, $g_1 \approx f'(w_1)$: it estimates how quickly
+  For a small, finite $h$, $g_1 \approx J'(w_1)$: it estimates how quickly
   the loss grows when $w_1$ increases.
 \end{frame}
 
@@ -173,7 +203,7 @@ for i = 1 to 1000:
       \begin{tikzpicture}[x=0.95cm, y=1.05cm]
         \draw[->] (-2.5, 0) -- (3, 0) node[right] {$w_1$};
         \draw[->] (-2.5, -0.1) -- (-2.5, 3.4)
-        node[above] {$L(w_1, D)$};
+        node[above] {$J(w_1)$};
         \draw[thick, blue, domain=-2.2:2.7, samples=80]
         plot (\x, {0.35 * (\x - 0.7)^2 + 0.4});
         \draw[dashed, gray] (-1.2, 0) -- (-1.2, 1.66);
@@ -209,21 +239,21 @@ for i = 1 to 1000:
 \begin{frame}[fragile]{From One Parameter to Many}
   \small
   Let $W = (w_1, \ldots, w_n)$ and collect all partial derivatives in a vector
-  $G$.
+  $G$. The network is $f_W$, and its objective is $J(W)=L(f_W,D)$.
 
 \begin{verbatim}
-base_loss = L(W, D)
+base_loss = J(W)
 G = zeros(n)
 for i = 1 to n:
-    W_probe = W
+    W_probe = copy(W)
     W_probe[i] += h
-    G[i] = (L(W_probe, D) - base_loss) / h
+    G[i] = (J(W_probe) - base_loss) / h
 
 W = W - step_size * G
 \end{verbatim}
 
   {\footnotesize
-    $^{*}$ We evaluate $L$ independently for every parameter: once for each
+    $^{*}$ We evaluate $J$ independently for every parameter: once for each
     perturbed parameter, plus one shared evaluation of \texttt{base\_loss}.
   }
 \end{frame}
@@ -233,58 +263,57 @@ W = W - step_size * G
   The problem is speed.
 
   \begin{block}{Cost of one training step}
-    For each of the $N$ parameters, compute the loss $L$ once:
+    Compute one base loss and one perturbed loss for each parameter:
     \begin{equation*}
-      \text{total work}
-      \approx
-      \underbrace{N}_{\text{number of parameters}}
-      \times
-      \underbrace{L}_{\text{one full loss evaluation}}.
+      \underbrace{N+1}_{\text{full loss evaluations}}
+      \quad\Longrightarrow\quad
+      \text{total work}=O(NC_J),
     \end{equation*}
-    Thus, one gradient step needs approximately $N$ evaluations of $L$.
+    where $C_J$ is the cost of evaluating $J(W)=L(f_W,D)$ once.
   \end{block}
 
   \begin{alertblock}{The bottleneck}
     Networks that do anything non-trivial have a huge number of parameters.
-    One training step therefore requires a huge number of evaluations of $L$.
+    One training step therefore requires a huge number of evaluations of $J$.
   \end{alertblock}
 \end{frame}
 
 \section{Optimizing Gradient Descent}
 
-\begin{frame}[fragile]{Stochastic Gradient Descent}
-  Instead of computing the loss on the entire dataset at once, split the
-  dataset into smaller batches:
+\begin{frame}[fragile]{Mini-Batch Gradient Descent}
+  Instead of computing the gradient on the entire dataset at once, shuffle
+  the examples and split them into mini-batches:
 
   \begin{equation*}
     D \quad\longrightarrow\quad B_1, B_2, \ldots, B_k.
   \end{equation*}
 
-  Compute the gradient on one batch, update the parameters, and continue with
-  the next batch.
+  Compute the gradient on one mini-batch, update the parameters, and continue
+  with the next. Reshuffle the data before the next epoch.
 
   \begin{block}{Training loop}
 \begin{verbatim}
 for batch in batches:
-    G = compute_gradient(L, W, batch)
+    G = compute_gradient(W, batch)
     W -= step_size * G
 \end{verbatim}
   \end{block}
 
-  Here, \texttt{compute\_gradient(L, W, batch)} means
-  $\nabla_W L(W, \text{batch})$: the gradient of the batch loss with respect
-  to $W$.
+  Here, \texttt{compute\_gradient(W, batch)} means
+  $\nabla_W L(f_W, \text{batch})$: the gradient of the batch loss with
+  respect to $W$.
 \end{frame}
 
-\begin{frame}{Back Propagation}
-  Here we develop an intuitive understanding of back propagation.
+\begin{frame}{Backpropagation}
+  Here we develop an intuitive understanding of backpropagation.
 
   \begin{block}{Intuition}
-    Back propagation is a way to compute gradients using the chain rule.
+    Backpropagation computes gradients efficiently by reusing intermediate
+    derivatives from the chain rule.
   \end{block}
 
-  Understanding back propagation is critical to understanding how neural
-  networks learn.
+  It turns one forward evaluation into gradients for all parameters with a
+  single reverse pass through the computation graph.
 \end{frame}
 
 \begin{frame}{Chain Rule}
@@ -348,8 +377,8 @@ for batch in batches:
 \end{frame}
 
 \begin{frame}{A Computation Graph}
-  Back propagation works on any computation graph. A neural network is only
-  one particular case.
+  Backpropagation applies the chain rule to a differentiable computation
+  graph. A neural network is one particular case.
 
   For this example, use the simplest possible loss: $L(l_3)=l_3$.
 
@@ -399,11 +428,11 @@ for batch in batches:
     \end{column}
     \begin{column}{0.46\textwidth}
       \begin{block}{Known from right to left}
+        Since $L(l_3)=l_3$ and $l_3=l_2w_3$ with $w_3=1$,
         \begin{equation*}
-          \frac{\partial L}{\partial l_2}=1.
+          \frac{\partial L}{\partial l_2}
+          =w_3\frac{\partial L}{\partial l_3}=1.
         \end{equation*}
-        We computed this derivative earlier because back propagation moves
-        from right to left.
       \end{block}
     \end{column}
   \end{columns}
@@ -424,8 +453,8 @@ for batch in batches:
         \includegraphics[width=\linewidth]{assets/biological-neuron.png}
       \end{block}
 
-      Receives signals through dendrites and sends one signal through the
-      axon.
+      Dendrites receive signals; the axon carries the neuron's output toward
+      its terminals.
     \end{column}
     \begin{column}{0.46\textwidth}
       \begin{block}{Computational model}
@@ -598,7 +627,7 @@ for batch in batches:
       \[
         \operatorname{ReLU}'(x)=
         \begin{cases}
-          0, & x<0, \\
+          0, & x\leq 0, \\
           1, & x>0.
         \end{cases}
       \]
@@ -623,90 +652,93 @@ for batch in batches:
   \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]{One Layer in Pseudocode}
-  \small
-  One layer is a matrix--vector product, a bias, and a nonlinearity:
+\begin{frame}[fragile]{One Hidden Layer in Pseudocode}
+  A layer combines its inputs and then applies the activation function:
 
-  \begin{block}{Matrix-style pseudocode}
+  \begin{block}{Python-like pseudocode}
 \begin{verbatim}
-def layer(x, W, b):
-    z = W @ x + b
-    output = maximum(z, 0)
-    return output
+def hidden_layer(x, weights, biases):
+    weighted_sum = weights @ x + biases
+    return relu(weighted_sum)
 \end{verbatim}
   \end{block}
 
-  \begin{equation*}
-    \underbrace{x}_{n\times 1}
-    \xrightarrow{\quad W\in\mathbb{R}^{m\times n}\quad}
-    \underbrace{Wx+b}_{m\times 1}
-    \xrightarrow{\quad \operatorname{ReLU}\quad}
-    \underbrace{\max(0,Wx+b)}_{m\times 1}.
-  \end{equation*}
+  \begin{itemize}
+    \item \texttt{@} combines every input with a learned weight.
+    \item The biases shift the result.
+    \item ReLU keeps positive values and replaces negative values with zero.
+  \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Forward Pass Through Hidden Layers}
+\begin{frame}[fragile]{Forward Pass}
   \small
-  Apply the same computation to every hidden layer and store each activation:
+  Apply the same operation to every hidden layer. Keep their outputs because
+  the backward pass will need them:
 
-  \begin{block}{Simplified from \texttt{NN::forward\_pass}}
+  \begin{block}{Python-like pseudocode}
 \begin{verbatim}
 def forward(x, weights, biases):
     activations = [x]
 
-    for layer in range(len(weights)):
-        z = weights[layer] @ x + biases[layer]
-        x = relu(z)
+    for layer in range(len(weights) - 1):
+        x = weights[layer] @ x + biases[layer]
+        x = relu(x)
         activations.append(x)
 
-    return activations
+    prediction = weights[-1] @ x + biases[-1]
+    return prediction, activations
 \end{verbatim}
   \end{block}
-
-  \vspace{0.3em}
-  {\footnotesize
-    \textbf{Why store activations?} Back propagation reuses each layer's input
-    to compute its weight gradient.
-  }
 \end{frame}
 
-\begin{frame}[fragile]{Back Propagation Through Hidden Layers}
+\begin{frame}[fragile]{Backward Pass}
   \footnotesize
-  Start with the loss derivative and visit the layers in reverse order:
+  Start with how the prediction should change, then visit the layers in
+  reverse order:
 
-  \begin{block}{Simplified from \texttt{NN::back\_propagation}}
+  \begin{block}{Python-like pseudocode}
 \begin{verbatim}
-def backpropagation(target, prediction, weights, activations):
-    d = prediction - target
+def backward(target, prediction, weights, activations):
+    d = loss_gradient(prediction, target)
+
     for layer in reversed(range(len(weights))):
         previous = activations[layer]
+        weight_grads[layer] += outer(d, previous)
         bias_grads[layer] += d
-        for row in range(len(d)):
-            for col in range(len(previous)):
-                weight_grads[layer][row][col] += d[row] * previous[col]
-        d = transpose(weights[layer]) @ d
-        d *= relu_derivative(previous)
+
+        if layer > 0:
+            d = weights[layer].T @ d
+            d *= relu_derivative(activations[layer])
 \end{verbatim}
   \end{block}
 
   {\scriptsize
-    $\operatorname{ReLU}'(a)$ is $1$ where $a>0$, otherwise $0$.\par
+    Here, \texttt{d} says how the current layer's output should change to
+    reduce the loss. Each iteration reuses it to continue one layer back.
   }
 \end{frame}
 
 \begin{frame}[fragile]{One Mini-Batch Training Step}
-  \footnotesize
-  \begin{block}{Simplified from \texttt{NN::train}}
+  \small
+  Add the gradients from the examples, average them, and update the network
+  once:
+
+  \begin{block}{Python-like pseudocode}
 \begin{verbatim}
-def train(batch_inputs, batch_targets):
-    for x, target in zip(batch_inputs, batch_targets):
-        activations = forward(x, weights, biases)
-        prediction = activations[-1]
-        backpropagation(target, prediction,
-                        weights, activations)
-    apply_grads()
+def train(batch):
+    clear_gradients()
+
+    for x, target in batch:
+        prediction, activations = forward(x, weights, biases)
+        backward(target, prediction, weights, activations)
+
+    average_gradients(len(batch))
+    apply_gradients(step_size)
 \end{verbatim}
   \end{block}
+
+  \texttt{apply\_gradients} moves every weight and bias a small step in the
+  direction that reduces the loss.
 \end{frame}
 
 \begin{frame}{Thank You!}

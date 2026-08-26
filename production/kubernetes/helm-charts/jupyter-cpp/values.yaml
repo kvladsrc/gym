@@ -51,8 +51,8 @@ nxs:
             periodSeconds: 10
           resources:
             requests:
-              cpu: 100m
-              memory: 512Mi
+              cpu: 25m
+              memory: 128Mi
             limits:
               cpu: 2000m
               memory: 4Gi

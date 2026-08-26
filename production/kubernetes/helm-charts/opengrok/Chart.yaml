@@ -3,7 +3,7 @@ apiVersion: v2
 name: opengrok
 description: "Wrapper chart: opengrok"
 type: application
-version: 0.13.0
+version: 0.13.1
 appVersion: "1.16.0"
 dependencies:
   - name: nxs-universal-chart

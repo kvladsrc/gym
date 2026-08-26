@@ -68,11 +68,11 @@ nxs:
             periodSeconds: 10
           resources:
             limits:
-              cpu: 1000m
-              memory: 1Gi
+              cpu: 500m
+              memory: 512Mi
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: 25m
+              memory: 192Mi
           volumeMounts:
             - name: uploads
               mountPath: /hedgedoc/public/uploads

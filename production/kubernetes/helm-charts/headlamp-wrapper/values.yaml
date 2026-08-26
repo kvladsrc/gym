@@ -34,7 +34,7 @@ headlamp:
     resources:
       requests:
         cpu: 10m
-        memory: 32Mi
+        memory: 160Mi
       limits:
         cpu: 250m
         memory: 256Mi

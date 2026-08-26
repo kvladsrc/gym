@@ -631,11 +631,71 @@
         "type": "victoriametrics-logs-datasource",
         "uid": "victorialogs"
       },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            }
+          },
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": ["sum"],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "severity_text:* | stats by (severity_text) count() logs",
+          "legendFormat": "{{severity_text}}",
+          "queryType": "statsRange",
+          "refId": "A"
+        }
+      ],
+      "title": "Log volume by severity",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
       "gridPos": {
         "h": 12,
         "w": 12,
         "x": 0,
-        "y": 28
+        "y": 36
       },
       "id": 8,
       "options": {
@@ -670,7 +730,7 @@
         "h": 12,
         "w": 12,
         "x": 12,
-        "y": 28
+        "y": 36
       },
       "id": 13,
       "options": {
@@ -712,6 +772,6 @@
   "timezone": "browser",
   "title": "Cluster Health & Capacity",
   "uid": "cluster-overview",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

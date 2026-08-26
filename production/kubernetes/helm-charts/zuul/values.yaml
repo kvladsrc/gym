@@ -4,9 +4,6 @@ gerrit:
   user: zuul
 
 zuul:
-  imagePrefix: quay.io/zuul-ci
-  zuulImageVersion: latest
-
   zookeeper:
     hosts: zookeeper.zookeeper.svc.cluster.local:3181
     secretName: "zookeeper-tls"  # pragma: allowlist secret
@@ -37,8 +34,8 @@ zuul:
     terminationGracePeriodSeconds: 21600
     resources:
       requests:
-        cpu: 100m
-        memory: 512Mi
+        cpu: 200m
+        memory: 768Mi
       limits:
         cpu: "2"
         memory: 2Gi
@@ -91,6 +88,8 @@ nxs:
       your.domain/zuul-conf-revision: "3"
 
   statefulSets:
+    # Zuul SQL migrations are forward-only. Keep every component on the
+    # same immutable image set and verify DB compatibility before rollback.
     zuul-scheduler:
       replicas: 1
       serviceName: zuul-scheduler
@@ -103,8 +102,9 @@ nxs:
       containers:
         scheduler:
           image: quay.io/zuul-ci/zuul-scheduler
-          imageTag: latest
-          imagePullPolicy: Always
+          # yamllint disable-line rule:line-length
+          imageTag: latest@sha256:005365352f6ef4a1db1eb9fa0990ddb17f3c8eb62988ae3d4e938e1de5cba571
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               cpu: 25m
@@ -170,8 +170,9 @@ nxs:
       containers:
         executor:
           image: quay.io/zuul-ci/zuul-executor
-          imageTag: latest
-          imagePullPolicy: Always
+          # yamllint disable-line rule:line-length
+          imageTag: latest@sha256:7e204d321957bc15400a55e03d2037793437c87abef32c8b7911f1176972c003
+          imagePullPolicy: IfNotPresent
           args:
             - /usr/local/bin/zuul-executor
             - -f
@@ -185,8 +186,8 @@ nxs:
               protocol: TCP
           resources:
             requests:
-              cpu: 100m
-              memory: 512Mi
+              cpu: 200m
+              memory: 768Mi
             limits:
               cpu: "2"
               memory: 2Gi
@@ -234,8 +235,9 @@ nxs:
       containers:
         fingergw:
           image: quay.io/zuul-ci/zuul-fingergw
-          imageTag: latest
-          imagePullPolicy: Always
+          # yamllint disable-line rule:line-length
+          imageTag: latest@sha256:4ede190731fab2477d1d67934186c97cf276c2b565e6ab0863ff40fe5a0252d8
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               cpu: 25m
@@ -273,8 +275,9 @@ nxs:
       containers:
         launcher:
           image: quay.io/zuul-ci/zuul-launcher
-          imageTag: latest
-          imagePullPolicy: Always
+          # yamllint disable-line rule:line-length
+          imageTag: latest@sha256:6cac0b2ff4cca25e66e816b629e296fb48158bbd1ca3034d9eceaad6fa7d011b
+          imagePullPolicy: IfNotPresent
           args:
             - /usr/local/bin/zuul-launcher
             - -f
@@ -318,8 +321,9 @@ nxs:
       containers:
         web:
           image: quay.io/zuul-ci/zuul-web
-          imageTag: latest
-          imagePullPolicy: Always
+          # yamllint disable-line rule:line-length
+          imageTag: latest@sha256:902a5e24c3ecfd4349332d2d8715e57209b45ffcbad136a822a2b5e75e8e9210
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               cpu: 25m
