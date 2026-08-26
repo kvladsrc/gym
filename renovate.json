@@ -5,6 +5,7 @@
   "enabledManagers": [
     "helmv3",
     "bazel-module",
+    "custom.regex",
     "pre-commit",
     "nix",
     "terraform"
@@ -20,12 +21,30 @@
   "nix": {
     "enabled": true
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/production/kubernetes/flux/apps/zuul/helmrelease\\.yaml$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+)\\s+# renovate: depName=(?<depName>\\S+)\\s+imageTag: \\s*(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]+)"
+      ]
+    }
+  ],
   "packageRules": [
     {
       "description": "Bump Helm wrapper chart version when Helm dependency changes",
       "matchManagers": ["helmv3"],
       "matchFileNames": ["production/kubernetes/helm-charts/**/Chart.yaml"],
       "bumpVersion": "minor"
+    },
+    {
+      "description": "Update all Zuul components together",
+      "matchManagers": ["custom.regex"],
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["/^quay\\.io\\/zuul-ci\\/zuul-/"],
+      "groupName": "Zuul container images"
     }
   ]
 }

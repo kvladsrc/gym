@@ -4,6 +4,6 @@ dependencies:
   version: 0.1.2
 - name: gerrit-operator-crds
   repository: file://../vendor/gerrit-operator-crds
-  version: 0.2.0
-digest: sha256:1f0f1e51a73ee5b993180b7a6c9993c243900bce3e65e257579b89ba00de8456
-generated: "2026-06-12T10:27:01.634033353+02:00"
+  version: 0.2.2
+digest: sha256:80eb674e04e1b6e17be10d71094b4968a6f20fcb9f2edf7cde0b1db99b01afd9
+generated: "2026-08-22T00:41:17.699681059+02:00"

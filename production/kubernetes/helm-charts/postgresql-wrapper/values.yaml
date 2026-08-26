@@ -12,13 +12,13 @@ postgresql:
   primary:
     resources:
       requests:
-        memory: 256Mi
+        memory: 384Mi
         ephemeral-storage: 50Mi
         cpu: 100m
       limits:
         memory: 512Mi
         ephemeral-storage: 2Gi
-        cpu: 500m
+        cpu: "1"
 
   image:
     repository: bitnamilegacy/postgresql

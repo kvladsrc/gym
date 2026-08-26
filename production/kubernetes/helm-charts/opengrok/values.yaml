@@ -70,9 +70,9 @@ nxs:
           resources:
             requests:
               cpu: 100m
-              memory: 512Mi
+              memory: 640Mi
             limits:
-              cpu: "1"
+              cpu: "2"
               memory: 1Gi
           volumeMounts:
             - name: data

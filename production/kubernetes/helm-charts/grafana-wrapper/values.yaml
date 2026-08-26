@@ -70,6 +70,146 @@ grafana:
                 operator: regex
                 enabled: true
 
+  alerting:
+    contactpoints.yaml:
+      apiVersion: 1
+      contactPoints:
+        - orgId: 1
+          name: Kubernetes OOM ntfy
+          receivers:
+            - uid: kubernetes-oom-ntfy
+              type: webhook
+              disableResolveMessage: false
+              settings:
+                httpMethod: POST
+                maxAlerts: 0
+                url: "http://ntfy.ntfy.svc.cluster.local/prod-k8s-warnings\
+                  ?tpl=yes&t=%7B%7B.title%7D%7D&m=%7B%7B.message%7D%7D\
+                  &p=high&ta=warning,skull&md=yes"
+    rules.yaml:
+      apiVersion: 1
+      groups:
+        - orgId: 1
+          name: Kubernetes container events
+          folder: Kubernetes
+          interval: 1m
+          rules:
+            - uid: kubernetes-container-oom-killed
+              title: KubernetesContainerOOMKilled
+              condition: C
+              data:
+                - refId: A
+                  relativeTimeRange:
+                    from: 600
+                    to: 0
+                  datasourceUid: victoriametrics
+                  model:
+                    datasource:
+                      type: prometheus
+                      uid: victoriametrics
+                    editorMode: code
+                    expr: |-
+                      max by (cluster, namespace, pod, container, uid) (
+                        (
+                          kube_pod_container_status_last_terminated_reason{
+                            reason="OOMKilled"
+                          } == 1
+                        )
+                        and on (namespace, pod, container, uid)
+                        (
+                          increase(
+                            kube_pod_container_status_restarts_total[5m]
+                          ) > 0
+                        )
+                      )
+                    instant: true
+                    intervalMs: 1000
+                    legendFormat: __auto
+                    maxDataPoints: 43200
+                    range: false
+                    refId: A
+                - refId: B
+                  relativeTimeRange:
+                    from: 0
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params: []
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - B
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: A
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    reducer: last
+                    refId: B
+                    type: reduce
+                - refId: C
+                  relativeTimeRange:
+                    from: 0
+                    to: 0
+                  datasourceUid: __expr__
+                  model:
+                    conditions:
+                      - evaluator:
+                          params:
+                            - 0
+                          type: gt
+                        operator:
+                          type: and
+                        query:
+                          params:
+                            - C
+                        reducer:
+                          params: []
+                          type: last
+                        type: query
+                    datasource:
+                      type: __expr__
+                      uid: __expr__
+                    expression: B
+                    intervalMs: 1000
+                    maxDataPoints: 43200
+                    refId: C
+                    type: threshold
+              dashboardUid: cluster-overview
+              panelId: 4
+              noDataState: OK
+              execErrState: KeepLast
+              for: 0s
+              annotations:
+                description: >-
+                  The last container termination reason was OOMKilled and its
+                  restart counter increased within the previous five minutes.
+                summary: >-
+                  A Kubernetes container was terminated by the OOM killer.
+              labels:
+                category: oom
+                component: kubernetes
+                severity: critical
+              isPaused: false
+              notification_settings:
+                receiver: Kubernetes OOM ntfy
+                group_by:
+                  - namespace
+                  - pod
+                  - container
+                group_wait: 0s
+                group_interval: 1m
+                repeat_interval: 24h
+
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1
@@ -250,7 +390,7 @@ grafana:
   resources:
     requests:
       cpu: 100m
-      memory: 512Mi
+      memory: 768Mi
     limits:
-      cpu: 500m
-      memory: 2048Mi
+      cpu: "1"
+      memory: 3Gi

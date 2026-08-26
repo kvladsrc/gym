@@ -30,6 +30,8 @@ spec:
     crds: Skip
   upgrade:
     crds: Skip
+    remediation:
+      retries: 3
   releaseName: envoy-gateway
   targetNamespace: envoy-gateway-system
   storageNamespace: envoy-gateway-system

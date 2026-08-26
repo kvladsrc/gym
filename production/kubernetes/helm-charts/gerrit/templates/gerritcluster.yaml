@@ -1,5 +1,5 @@
 ---
-apiVersion: "gerritoperator.google.com/v1beta15"
+apiVersion: "gerritoperator.google.com/v1beta17"
 kind: GerritCluster
 metadata:
   name: {{ .Values.gerrit.name }}

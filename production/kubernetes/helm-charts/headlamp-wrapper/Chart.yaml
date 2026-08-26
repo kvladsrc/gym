@@ -3,7 +3,7 @@ apiVersion: v2
 name: headlamp-wrapper
 description: "Wrapper chart: headlamp"
 type: application
-version: 0.6.0
+version: 0.6.1
 appVersion: "0.42.0"
 dependencies:
   - name: headlamp

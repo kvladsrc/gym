@@ -22,6 +22,44 @@ spec:
     - kind: Secret
       name: zuul-secrets
       valuesKey: values.yaml
+  values:
+    nxs:
+      # Zuul SQL migrations are forward-only. Keep every component on the
+      # same immutable image set and verify DB compatibility before rollback.
+      # yamllint disable rule:line-length
+      statefulSets:
+        zuul-scheduler:
+          containers:
+            scheduler:
+              # renovate: datasource=docker
+              # renovate: depName=quay.io/zuul-ci/zuul-scheduler
+              imageTag: latest@sha256:005365352f6ef4a1db1eb9fa0990ddb17f3c8eb62988ae3d4e938e1de5cba571
+        zuul-executor:
+          containers:
+            executor:
+              # renovate: datasource=docker
+              # renovate: depName=quay.io/zuul-ci/zuul-executor
+              imageTag: latest@sha256:7e204d321957bc15400a55e03d2037793437c87abef32c8b7911f1176972c003
+      deployments:
+        zuul-fingergw:
+          containers:
+            fingergw:
+              # renovate: datasource=docker
+              # renovate: depName=quay.io/zuul-ci/zuul-fingergw
+              imageTag: latest@sha256:4ede190731fab2477d1d67934186c97cf276c2b565e6ab0863ff40fe5a0252d8
+        zuul-launcher:
+          containers:
+            launcher:
+              # renovate: datasource=docker
+              # renovate: depName=quay.io/zuul-ci/zuul-launcher
+              imageTag: latest@sha256:6cac0b2ff4cca25e66e816b629e296fb48158bbd1ca3034d9eceaad6fa7d011b
+        zuul-web:
+          containers:
+            web:
+              # renovate: datasource=docker
+              # renovate: depName=quay.io/zuul-ci/zuul-web
+              imageTag: latest@sha256:902a5e24c3ecfd4349332d2d8715e57209b45ffcbad136a822a2b5e75e8e9210
+      # yamllint enable rule:line-length
   dependsOn:
     - name: gerrit
     - name: local-path-provisioner

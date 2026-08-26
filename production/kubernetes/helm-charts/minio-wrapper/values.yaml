@@ -52,11 +52,11 @@ minio:
   # Resources for terraform state operations
   resources:
     requests:
-      memory: 256Mi
-      ephemeral-storage: 50Mi
-      cpu: 100m
-    limits:
       memory: 512Mi
+      ephemeral-storage: 50Mi
+      cpu: 200m
+    limits:
+      memory: 1Gi
       ephemeral-storage: 2Gi
       cpu: 500m
 
