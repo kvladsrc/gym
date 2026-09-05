@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-grafana_namespace="${OBSERVABILITY_GRAFANA_NAMESPACE:-grafana}"
-grafana_target="${OBSERVABILITY_GRAFANA_TARGET:-deploy/grafana}"
+tool_namespace="${OBSERVABILITY_TOOL_NAMESPACE:-observability}"
+tool_target="${OBSERVABILITY_TOOL_TARGET:-statefulset/victoria-metrics}"
+remote_wget="${OBSERVABILITY_WGET:-/usr/bin/wget}"
 metrics_url="${OBSERVABILITY_METRICS_URL:-http://victoria-metrics.observability.svc.cluster.local:8428}"
 logs_url="${OBSERVABILITY_LOGS_URL:-http://victoria-logs.observability.svc.cluster.local:9428}"
 kubectl_bin="${KUBECTL:-kubectl}"
@@ -23,11 +24,12 @@ defaults:
   log START=1h, END=now, LIMIT=100, hit STEP=5m
 
 environment:
-  KUBECTL                         kubectl executable
-  OBSERVABILITY_GRAFANA_NAMESPACE  default: grafana
-  OBSERVABILITY_GRAFANA_TARGET     default: deploy/grafana
-  OBSERVABILITY_METRICS_URL        internal VictoriaMetrics URL
-  OBSERVABILITY_LOGS_URL           internal VictoriaLogs URL
+  KUBECTL                        kubectl executable
+  OBSERVABILITY_TOOL_NAMESPACE  default: observability
+  OBSERVABILITY_TOOL_TARGET     default: statefulset/victoria-metrics
+  OBSERVABILITY_WGET            default: /usr/bin/wget in the target
+  OBSERVABILITY_METRICS_URL     internal VictoriaMetrics URL
+  OBSERVABILITY_LOGS_URL        internal VictoriaLogs URL
 EOF
 }
 
@@ -36,9 +38,50 @@ if ! command -v "$kubectl_bin" >/dev/null 2>&1; then
     exit 127
 fi
 
-cluster_curl() {
-    "$kubectl_bin" exec -n "$grafana_namespace" "$grafana_target" -- \
-        curl "$@"
+urlencode() {
+    local LC_ALL=C
+    local value=$1 encoded='' char hex i
+
+    for ((i = 0; i < ${#value}; i++)); do
+        char=${value:i:1}
+        case "$char" in
+        [a-zA-Z0-9.~_-]) encoded+=$char ;;
+        ' ') encoded+='+' ;;
+        *)
+            printf -v hex '%%%02X' "'$char"
+            encoded+=$hex
+            ;;
+        esac
+    done
+
+    printf '%s' "$encoded"
+}
+
+form_data() {
+    local data='' separator='' key value
+
+    while (($#)); do
+        key=$1
+        value=$2
+        shift 2
+        data+="${separator}$(urlencode "$key")=$(urlencode "$value")"
+        separator='&'
+    done
+
+    printf '%s' "$data"
+}
+
+cluster_get() {
+    "$kubectl_bin" exec -n "$tool_namespace" "$tool_target" -- \
+        "$remote_wget" -qO- "$1"
+}
+
+cluster_post() {
+    local url=$1
+    shift
+
+    "$kubectl_bin" exec -n "$tool_namespace" "$tool_target" -- \
+        "$remote_wget" -qO- --post-data "$(form_data "$@")" "$url"
 }
 
 validate_limit() {
@@ -64,9 +107,9 @@ health)
         exit 2
     }
     printf 'VictoriaMetrics: '
-    cluster_curl -fsS "${metrics_url}/health"
+    cluster_get "${metrics_url}/health"
     printf '\nVictoriaLogs: '
-    cluster_curl -fsS "${logs_url}/health"
+    cluster_get "${logs_url}/health"
     printf '\n'
     ;;
 metrics)
@@ -82,20 +125,17 @@ metrics)
             usage
             exit 2
         }
-        args=(-fsS -G "${metrics_url}/api/v1/query" --data-urlencode "query=$1")
-        [[ $# -eq 1 ]] || args+=(--data-urlencode "time=$2")
-        cluster_curl "${args[@]}"
+        args=(query "$1")
+        [[ $# -eq 1 ]] || args+=(time "$2")
+        cluster_post "${metrics_url}/api/v1/query" "${args[@]}"
         ;;
     range)
         [[ $# -eq 4 ]] || {
             usage
             exit 2
         }
-        cluster_curl -fsS -G "${metrics_url}/api/v1/query_range" \
-            --data-urlencode "query=$1" \
-            --data-urlencode "start=$2" \
-            --data-urlencode "end=$3" \
-            --data-urlencode "step=$4"
+        cluster_post "${metrics_url}/api/v1/query_range" \
+            query "$1" start "$2" end "$3" step "$4"
         ;;
     labels)
         [[ $# -le 1 ]] || {
@@ -103,13 +143,13 @@ metrics)
             exit 2
         }
         if [[ $# -eq 0 ]]; then
-            cluster_curl -fsS "${metrics_url}/api/v1/labels"
+            cluster_get "${metrics_url}/api/v1/labels"
         else
             [[ $1 =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]] || {
                 echo "invalid Prometheus label name: $1" >&2
                 exit 2
             }
-            cluster_curl -fsS "${metrics_url}/api/v1/label/$1/values"
+            cluster_get "${metrics_url}/api/v1/label/$1/values"
         fi
         ;;
     *)
@@ -136,32 +176,24 @@ logs)
         end=${3:-now}
         limit=${4:-100}
         validate_limit "$limit"
-        cluster_curl -fsS -G "${logs_url}/select/logsql/query" \
-            --data-urlencode "query=$query" \
-            --data-urlencode "start=$start" \
-            --data-urlencode "end=$end" \
-            --data-urlencode "limit=$limit"
+        cluster_post "${logs_url}/select/logsql/query" \
+            query "$query" start "$start" end "$end" limit "$limit"
         ;;
     hits)
         [[ $# -ge 1 && $# -le 4 ]] || {
             usage
             exit 2
         }
-        cluster_curl -fsS -G "${logs_url}/select/logsql/hits" \
-            --data-urlencode "query=$1" \
-            --data-urlencode "start=${2:-1h}" \
-            --data-urlencode "end=${3:-now}" \
-            --data-urlencode "step=${4:-5m}"
+        cluster_post "${logs_url}/select/logsql/hits" \
+            query "$1" start "${2:-1h}" end "${3:-now}" step "${4:-5m}"
         ;;
     fields)
         [[ $# -ge 1 && $# -le 3 ]] || {
             usage
             exit 2
         }
-        cluster_curl -fsS -G "${logs_url}/select/logsql/field_names" \
-            --data-urlencode "query=$1" \
-            --data-urlencode "start=${2:-1h}" \
-            --data-urlencode "end=${3:-now}"
+        cluster_post "${logs_url}/select/logsql/field_names" \
+            query "$1" start "${2:-1h}" end "${3:-now}"
         ;;
     values)
         [[ $# -ge 2 && $# -le 5 ]] || {
@@ -170,12 +202,9 @@ logs)
         }
         limit=${5:-100}
         validate_limit "$limit"
-        cluster_curl -fsS -G "${logs_url}/select/logsql/field_values" \
-            --data-urlencode "query=$1" \
-            --data-urlencode "field=$2" \
-            --data-urlencode "start=${3:-1h}" \
-            --data-urlencode "end=${4:-now}" \
-            --data-urlencode "limit=$limit"
+        cluster_post "${logs_url}/select/logsql/field_values" \
+            query "$1" field "$2" start "${3:-1h}" end "${4:-now}" \
+            limit "$limit"
         ;;
     *)
         usage

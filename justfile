@@ -6,6 +6,8 @@ mod cv
 mod local_llm
 mod neural_network
 mod presentations
+mod? vibe_jakubovich
+mod vibe_jakubovich_mvp
 mod talos "production/kubernetes/talos"
 mod zooreader "production/docker/zooreader"
 
@@ -56,3 +58,7 @@ sync-gym dest=gym_dir:
     @just cv build
     @just presentations backprop
     bash scripts/sync_gym.sh {{ dest }}
+
+# Exercise public sync in isolated fixtures, without changing ~/repos/gym
+sync-gym-check:
+    python3 scripts/test_sync_gym.py

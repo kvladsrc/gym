@@ -100,6 +100,10 @@ gerrit:
       name = Gerrit Code Review
       email = gerrit@example.com
       anonymousCoward = Unnamed User
+    # No SMTP relay is configured for this cluster. Avoid repeated attempts
+    # to connect to localhost:25 until mail delivery is provisioned.
+    [sendemail]
+      enable = false
     [container]
       javaOptions = -Xms200m
       javaOptions = -Xmx1536m

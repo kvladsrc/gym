@@ -159,15 +159,15 @@ in
     go
     golangci-lint
     gopls
+    godotMcp
     loccount
     podman
+    python311
     racket
     uv
   ];
 
   home.file = {
-    # Codex was configured imperatively before Home Manager took ownership.
-    ".codex/config.toml".force = true;
     ".config/blender/${lib.versions.majorMinor pkgs.blender.version}/scripts/addons/blender_mcp.py" = {
       source = blenderMcpAddon;
     };
@@ -316,48 +316,8 @@ in
 
   programs.home-manager.enable = true;
 
-  programs.codex = {
-    enable = true;
-    settings = {
-      model = "gpt-5.6-sol";
-      model_reasoning_effort = "high";
-      personality = "pragmatic";
-      approvals_reviewer = "user";
-
-      projects."/home/${user}/Dropbox/src".trust_level = "trusted";
-
-      notice."hide_gpt-5.1-codex-max_migration_prompt" = true;
-
-      tui.model_availability_nux = {
-        "gpt-5.5" = 4;
-        "gpt-5.6-sol" = 4;
-      };
-
-      mcp_servers = {
-        blender = {
-          command = "${pkgs.uv}/bin/uvx";
-          args = [
-            "--python"
-            "${pkgs.python311}/bin/python"
-            "blender-mcp==1.6.4"
-          ];
-          env = {
-            BLENDER_HOST = "127.0.0.1";
-            BLENDER_PORT = "9876";
-            DISABLE_TELEMETRY = "true";
-          };
-          startup_timeout_sec = 60;
-          tool_timeout_sec = 300;
-        };
-        godot = {
-          command = "${godotMcp}/bin/godot-mcp";
-          env.GODOT_PATH = "${godot}/bin/godot";
-          startup_timeout_sec = 60;
-          tool_timeout_sec = 300;
-        };
-      };
-    };
-  };
+  # Codex manages its mutable config.toml itself.
+  programs.codex.enable = true;
 
   programs.direnv = {
     enable = true;

@@ -68,6 +68,19 @@ cat error.txt | grep ERROR | summary | kharms
 # → Everything has vanished like smoke, the file exists no more.
 ```
 
+### Vibe Jakubovich
+
+[`vibe_jakubovich_mvp`](vibe_jakubovich_mvp) — An offline Godot remake of
+the DOS game «Поле чудес», with a 3D wheel and a dancing host.
+
+![Vibe Jakubovich: spinning wheel and dancing host][jakubovich-preview]
+
+[jakubovich-preview]: static/vibe_jakubovich.gif
+
+```sh
+nix develop -c just vibe_jakubovich_mvp run
+```
+
 ### Cothic
 
 [`cothic`](cothic) is a Godot 4.6 prototype that turns a real codebase
@@ -137,6 +150,8 @@ by LLMs. Notably:
   specs.
 - [`cothic`](cothic) is being developed with substantial LLM
   assistance.
+- [`vibe_jakubovich_mvp`](vibe_jakubovich_mvp) uses OpenAI-generated
+  studio and character art, with AI-assisted game code and music synthesis.
 
 ## Purpose
 

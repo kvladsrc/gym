@@ -204,6 +204,16 @@
               oxipng
             ];
           };
+
+          # CPU-only reference tooling; Unreal and GPU applications stay native.
+          vibe-jakubovich = graphicsPkgs.mkShell {
+            packages = with graphicsPkgs; [
+              ffmpeg
+              just
+              (python3.withPackages (ps: [ ps.pillow ]))
+              yt-dlp
+            ];
+          };
         };
       }
     );

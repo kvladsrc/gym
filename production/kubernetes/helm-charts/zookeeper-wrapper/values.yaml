@@ -37,7 +37,9 @@ zookeeper:
       memory: 768Mi
     limits:
       cpu: "1"
-      memory: 1Gi
+      # The 1Gi limit was reached on 2026-08-27 despite a 384MB JVM heap.
+      # Leave headroom for Netty buffers, TLS, and other native allocations.
+      memory: 1536Mi
   persistence:
     enabled: true
     size: 10Gi
