@@ -28,6 +28,48 @@ nxs:
               - get
               - list
               - watch
+          # The exporter fetches involved-object metadata before routing an
+          # event. Grant read access only to object kinds observed in the
+          # production event stream; Secret and ConfigMap data stay hidden.
+          - apiGroups:
+              - ""
+            resources:
+              - nodes
+              - pods
+            verbs:
+              - get
+          - apiGroups:
+              - batch
+            resources:
+              - cronjobs
+              - jobs
+            verbs:
+              - get
+          - apiGroups:
+              - image.toolkit.fluxcd.io
+            resources:
+              - imageupdateautomations
+            verbs:
+              - get
+          - apiGroups:
+              - infra.contrib.fluxcd.io
+            resources:
+              - terraforms
+            verbs:
+              - get
+          - apiGroups:
+              - kustomize.toolkit.fluxcd.io
+            resources:
+              - kustomizations
+            verbs:
+              - get
+          - apiGroups:
+              - source.toolkit.fluxcd.io
+            resources:
+              - gitrepositories
+              - helmcharts
+            verbs:
+              - get
 
   # Flux drops ConfigMaps rendered by the NXS template, so the wrapper owns them.
   wrapperConfigMaps:
@@ -72,6 +114,10 @@ nxs:
                   - receiver: ntfy
                     type: Warning
                     reason: CrashLoopBackOff
+                  - receiver: ntfy
+                    type: Warning
+                    kind: Node
+                    reason: EvictionThresholdMet
                   - receiver: ntfy
                     type: Warning
                     kind: Terraform

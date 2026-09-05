@@ -5,10 +5,10 @@ description: "Query and analyze production VictoriaMetrics and VictoriaLogs data
 
 # Production observability
 
-Use the bundled read-only helper for production metrics and logs. It runs a
-fixed `curl` command inside the Grafana pod against the internal VictoriaMetrics
-and VictoriaLogs services; it does not expose either database publicly or try
-to automate an Authentik browser session.
+Use the bundled read-only helper for production metrics and logs. It runs the
+fixed BusyBox `wget` from the VictoriaMetrics pod against the internal
+VictoriaMetrics and VictoriaLogs services; it does not expose either database
+publicly or try to automate an Authentik browser session.
 
 Run it from the repository Nix environment:
 
