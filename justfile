@@ -1,15 +1,15 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
 mod aimam
-mod cothic
+mod cothic "games/cothic"
 mod cv
 mod local_llm
 mod neural_network
 mod presentations
-mod? vibe_jakubovich
-mod vibe_jakubovich_mvp
+mod? vibe_jakubovich "games/vibe_jakubovich"
+mod vibe_jakubovich_mvp "games/vibe_jakubovich_mvp"
 mod talos "production/kubernetes/talos"
-mod zooreader "production/docker/zooreader"
+mod zooreader "games/zooreader"
 
 # Show all available commands
 default:

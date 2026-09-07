@@ -139,7 +139,7 @@ repos:
       - id: detect-secrets
         exclude: |
           (?x)
-          (^cothic/assets/)|
+          (^games/cothic/assets/)|
           (^production/kubernetes/helm-charts/.+/(secrets\.yaml|secrets\.mock\.yaml))|
           (^production/kubernetes/flux/secrets/.+\.yaml)|
           (^production/terraform/.+/secrets\.yaml)
@@ -169,7 +169,7 @@ repos:
 
   # ---------- Checkov ----------
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.3.15'
+    rev: '3.3.16'
     hooks:
       - id: checkov
 

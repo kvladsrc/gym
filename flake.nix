@@ -2,7 +2,7 @@
   description = "A flake that loads some packages";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     flake-utils.url = "github:numtide/flake-utils";
     yaac-another-awesome-cv = {
       url = "github:darwiin/yaac-another-awesome-cv/31dcdba2e0ead49edd665a7c601d60f555d20341";
@@ -130,7 +130,7 @@
           kubernetes-helm
           lcov
           nodejs
-          nodePackages.prettier
+          prettier
           openjdk21_headless
           opentofu
           perl

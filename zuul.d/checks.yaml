@@ -7,7 +7,7 @@
 - job:
     name: zooreader-javascript-check
     files:
-      - ^production/docker/zooreader/
+      - ^games/zooreader/
     post-run: production/playbooks/notify-ntfy-on-failure.yaml
     run: production/playbooks/zooreader-javascript-check.yaml
 
@@ -103,6 +103,7 @@
 - job:
     name: gdlint
     files:
-      - ^cothic/.*\.gd$
+      - ^games/cothic/.*\.gd$
+      - ^games/vibe_jakubovich_mvp/.*\.gd$
     post-run: production/playbooks/notify-ntfy-on-failure.yaml
     run: production/playbooks/gdlint.yaml

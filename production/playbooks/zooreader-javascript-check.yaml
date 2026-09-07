@@ -8,7 +8,7 @@
   tasks:
     - name: Find Zooreader JavaScript files
       ansible.builtin.find:
-        paths: "{{ repo_dir }}/production/docker/zooreader"
+        paths: "{{ repo_dir }}/games/zooreader"
         patterns:
           - "*.cjs"
           - "*.js"

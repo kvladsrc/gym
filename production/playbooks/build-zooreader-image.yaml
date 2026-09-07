@@ -6,7 +6,7 @@
     repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
     image_repo: registry.your.domain/zooreader
     image_tag: "rc-{{ zuul.commit_id }}"
-    image_build_context: "{{ repo_dir }}/production/docker/zooreader"
+    image_build_context: "{{ repo_dir }}/games/zooreader"
 
   tasks:
     - name: Build and push the Zooreader image
