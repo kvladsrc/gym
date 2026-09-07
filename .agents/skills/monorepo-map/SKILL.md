@@ -99,15 +99,14 @@ reviewed through Gerrit.
   CLIs. Each skill has `SKILL.md`; most also have `agents/openai.yaml`
   (Codex-only metadata). Claude Code loads them via the `.claude/skills`
   symlink.
-- `cothic/` - Godot 4.6 prototype that turns a repository into an explorable
-  isometric world. Main code is under `cothic/scripts/`; checks are in
-  `cothic/tools/`.
+- `games/` - small LLM-assisted games and model experiments; see
+  `games/README.md`. Cothic code is under `games/cothic/scripts/`, with
+  checks in `games/cothic/tools/`. Zooreader's application and Docker
+  context are in `games/zooreader/`; deployment stays in `production/`.
 - `cpp/` - C++ algorithm practice and competitive programming. `codeforces/`
   is contest solutions; `warmup/` is educational data structures and
   algorithms; other subdirectories are course/book/problem sets.
 - `pipellm/` - Go CLI around named LLM prompts and shell aliases.
-- `ripples_cli/` - Go text RPG engine with Gemini-powered dialogue over a
-  static world graph and dynamic event journal.
 - `cv/` - resume/CV sources and generated web/PDF output; build with
   `just cv build`.
 - `scripts/` - repository automation, including CV rendering, public repo sync,
@@ -130,7 +129,8 @@ reviewed through Gerrit.
   artifacts.
 - `production/terraform/` - Terraform root and modules for Cloudflare, MinIO,
   Authentik, PostgreSQL, and related production resources.
-- `production/docker/` - custom Docker image contexts, including Zooreader.
+- `production/docker/` - custom Docker image contexts (Zooreader's context
+  lives in `games/zooreader/`).
 - `production/playbooks/` - operational Ansible playbooks.
 
 When changing a production service, inspect both its Flux app wiring and its
@@ -162,8 +162,8 @@ Targeted recipes:
 ## Paths To Avoid By Default
 
 - VCS/build state: `.git/`, `.jj/`, `.cache/`, `bazel-*`.
-- Dependencies and generated state: `node_modules/`, `cothic/.godot/`,
-  `cothic/tmp/`, `production/terraform/.terraform/`,
+- Dependencies and generated state: `node_modules/`, `games/*/.godot/`,
+  `games/*/tmp/`, `games/zooreader/asset-work/`, `production/terraform/.terraform/`,
   `production/kubernetes/talos/_out/`.
 - Vendor charts: `production/kubernetes/helm-charts/vendor/`.
 - Large generated files such as `compile_commands.json` unless the task is

@@ -1,14 +1,10 @@
-@define-color frame #150032;
-@define-color frame_dark #0e0022;
-@define-color panel #534264;
-@define-color panel_dark #4c3a64;
-@define-color highlight #9676c1;
-@define-color shadow #301157;
-@define-color content #f5e595;
-@define-color text #f5e595;
-@define-color text_on_dark #f5e595;
-@define-color muted #a59e96;
-@define-color selected #fdc304;
-@define-color selected_dark #725a96;
-@define-color selected_text #150032;
-@define-color warning #d98275;
+/* Discordia: charcoal, warm paper, and a restrained golden-apple accent. */
+@define-color frame #1c1b20;
+@define-color panel #25242a;
+@define-color border #3b383f;
+@define-color text #d6d0c5;
+@define-color muted #aaa3a0;
+@define-color selected #353139;
+@define-color gold #b6a078;
+@define-color warning #c1a078;
+@define-color critical #cb9292;

@@ -1,52 +1,53 @@
-@define-color frame #150032;
-@define-color frame_dark #0e0022;
-@define-color panel #534264;
-@define-color highlight #9676c1;
-@define-color shadow #301157;
-@define-color text #f5e595;
-@define-color selected #fdc304;
-@define-color selected_text #150032;
-@define-color apple #dea90d;
+/* Keep the palette local: Home Manager installs this stylesheet as a symlink. */
+@define-color frame #1c1b20;
+@define-color panel #25242a;
+@define-color border #3b383f;
+@define-color text #d6d0c5;
+@define-color selected #353139;
+@define-color gold #b6a078;
 
 * {
   font-family: "Mononoki Nerd Font";
-  font-weight: 700;
+  font-weight: 400;
   font-size: 14px;
 }
 
 window {
-  padding: 7px;
+  opacity: 1;
   color: @text;
-  background-color: @frame;
-  border-top: 1px solid @highlight;
-  border-left: 1px solid @highlight;
-  border-right: 1px solid @frame_dark;
-  border-bottom: 1px solid @frame_dark;
+  background: @frame;
+  border: 1px solid @border;
+  border-radius: 0;
+}
+
+#outer-box {
+  padding: 9px;
+  background: @frame;
+}
+
+#scroll {
+  background: @frame;
 }
 
 #input {
-  margin: 0 0 7px;
-  padding: 5px 9px;
+  margin: 0 0 9px;
+  padding: 7px 9px;
   color: @text;
-  background-color: @panel;
-  border-top: 2px solid @apple;
-  border-left: 2px solid @apple;
-  border-right: 2px solid @shadow;
-  border-bottom: 2px solid @shadow;
+  background: @panel;
+  border: 1px solid @border;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 #input:focus {
+  border-color: @gold;
   box-shadow: none;
 }
 
 #inner-box {
   margin: 0;
-  padding: 1px;
-  background-color: @panel;
-  border-top: 1px solid @highlight;
-  border-left: 1px solid @highlight;
-  border-right: 1px solid @shadow;
-  border-bottom: 1px solid @shadow;
+  padding: 0;
+  background: @frame;
 }
 
 #img {
@@ -54,29 +55,21 @@ window {
 }
 
 #entry {
-  margin: 0 1px;
   padding: 5px 9px;
   color: @text;
-  background-color: @panel;
-  border-top: 1px solid @highlight;
-  border-left: 1px solid @highlight;
-  border-right: 1px solid @shadow;
-  border-bottom: 1px solid @shadow;
+  background: @frame;
+  border: none;
+  border-left: 2px solid @frame;
+  border-radius: 0;
 }
 
 #entry:selected {
-  color: @selected_text;
-  background-color: @selected;
-  border-top: 1px solid @shadow;
-  border-left: 1px solid @shadow;
-  border-right: 1px solid @highlight;
-  border-bottom: 1px solid @highlight;
+  background: @selected;
+  border-left-color: @gold;
+  outline: none;
 }
 
-#text {
-  color: @text;
-}
-
+#text,
 #text:selected {
-  color: @selected_text;
+  color: @text;
 }

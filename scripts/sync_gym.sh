@@ -16,11 +16,11 @@ DEST="${1:-"$HOME/repos/gym"}"
 # Directories to sync as-is (src_relative_path:dest_relative_path)
 DIRS=(
     ".agents:.agents"
-    "cothic:cothic"
     "cpp/ayncibla/:cpp/ayncibla"
     "cpp/codeforces:cpp/codeforces"
     "cpp/warmup:cpp/warmup"
     "cv:cv"
+    "games:games"
     "home-manager:home-manager"
     "lisp/sicp:lisp/sicp"
     "neural_network:neural_network"
@@ -32,9 +32,7 @@ DIRS=(
     "production/kubernetes/helm-charts:production/kubernetes/helm-charts"
     "production/playbooks:production/playbooks"
     "production/terraform:production/terraform"
-    "ripples_cli:ripples_cli"
     "static:static"
-    "vibe_jakubovich_mvp:vibe_jakubovich_mvp"
     "zuul.d:zuul.d"
 )
 
@@ -80,6 +78,23 @@ fi
 
 echo "Syncing $SRC -> $DEST"
 
+# Migrate previously exported games before syncing the new layout. Refuse to
+# overwrite a second copy: it may contain destination-only changes.
+LEGACY_GAMES=(cothic ripples_cli vibe_jakubovich_mvp production/docker/zooreader)
+for legacy in "${LEGACY_GAMES[@]}"; do
+    target="$DEST/games/${legacy##*/}"
+    if [[ -d "$SRC/games/${legacy##*/}" && -e "$DEST/$legacy" && -e $target ]]; then
+        echo "Both $DEST/$legacy and $target exist; reconcile them before syncing" >&2
+        exit 1
+    fi
+done
+for legacy in "${LEGACY_GAMES[@]}"; do
+    if [[ -d "$SRC/games/${legacy##*/}" && -d "$DEST/$legacy" ]]; then
+        mkdir -p "$DEST/games"
+        mv "$DEST/$legacy" "$DEST/games/${legacy##*/}"
+    fi
+done
+
 # Sync directories
 for entry in "${DIRS[@]}"; do
     src_rel="${entry%%:*}"
@@ -89,9 +104,9 @@ for entry in "${DIRS[@]}"; do
         echo "  dir  $src_rel -> $dest_rel"
         rsync_args=(-a --delete)
         case "$src_rel" in
-        vibe_jakubovich_mvp)
-            # Keep source/assets, not Godot caches or local captures/builds.
-            rsync_args+=(--filter=':- .gitignore')
+        games)
+            # Keep playable projects, not the Unreal draft or local build caches.
+            rsync_args+=(--exclude='/vibe_jakubovich/' --filter=':- .gitignore')
             ;;
         esac
         rsync "${rsync_args[@]}" "$SRC/$src_rel/" "$DEST/$dest_rel/"
@@ -123,6 +138,7 @@ find "$DEST" -type f \
     -not -path '*/.git/*' \
     -not \( \
     -name '*.gif' \
+    -o -name '*.glb' \
     -o -name '*.jpeg' \
     -o -name '*.jpg' \
     -o -name '*.pdf' \

@@ -34,14 +34,14 @@
     post-run: production/playbooks/notify-ntfy-on-failure.yaml
     run: production/playbooks/build-zooreader-image.yaml
     files:
-      - ^production/docker/zooreader/
+      - ^games/zooreader/
 
 - job:
     name: promote-zooreader-image
     post-run: production/playbooks/notify-ntfy-on-failure.yaml
     run: production/playbooks/promote-zooreader-image.yaml
     files:
-      - ^production/docker/zooreader/
+      - ^games/zooreader/
 
 - job:
     name: registry-retention

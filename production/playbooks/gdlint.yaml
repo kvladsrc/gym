@@ -10,7 +10,9 @@
       ansible.builtin.command:
         argv:
           - gdlint
-          - cothic/scripts/
+          - games/cothic/scripts/
+          - games/vibe_jakubovich_mvp/scripts/
+          - games/vibe_jakubovich_mvp/tools/
       args:
         chdir: "{{ repo_dir }}"
       changed_when: false

@@ -1,10 +1,10 @@
 font=Mononoki Nerd Font 12
-background-color=#1e1e2eee
-text-color=#f2e9e4
-border-color=#eda66c
-progress-color=over #eda66c
-border-size=2
-border-radius=6
+background-color=#1c1b20
+text-color=#d6d0c5
+border-color=#b6a078
+progress-color=over #353139
+border-size=1
+border-radius=0
 padding=12
 margin=12
 width=420
@@ -15,9 +15,9 @@ ignore-timeout=1
 anchor=top-right
 
 [urgency=low]
-border-color=#c6b2a7
+border-color=#3b383f
 default-timeout=4000
 
 [urgency=high]
-border-color=#f38ba8
+border-color=#cb9292
 default-timeout=0

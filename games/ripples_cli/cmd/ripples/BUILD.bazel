@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "ripples_lib",
+    srcs = ["main.go"],
+    importpath = "src/games/ripples_cli/cmd/ripples",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//games/ripples_cli/pkg/engine",
+        "//games/ripples_cli/pkg/llm",
+        "//games/ripples_cli/pkg/model",
+        "//games/ripples_cli/pkg/tui",
+        "//games/ripples_cli/pkg/world",
+        "@com_github_charmbracelet_bubbletea//:bubbletea",
+    ],
+)
+
+go_binary(
+    name = "ripples",
+    data = ["//games/ripples_cli/assets:world.dot"],
+    embed = [":ripples_lib"],
+    visibility = ["//visibility:public"],
+)
