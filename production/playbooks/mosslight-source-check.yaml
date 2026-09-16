@@ -1,0 +1,26 @@
+---
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  tasks:
+    - name: Check Mosslight source and asset metadata without Unity
+      ansible.builtin.command:
+        argv:
+          - python3
+          - games/mosslight/tools/check.py
+      args:
+        chdir: "{{ repo_dir }}"
+      changed_when: false
+
+    - name: Parse Mosslight launcher shell script
+      ansible.builtin.command:
+        argv:
+          - bash
+          - -n
+          - games/mosslight/tools/run.sh
+      args:
+        chdir: "{{ repo_dir }}"
+      changed_when: false

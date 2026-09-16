@@ -3,16 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zooreader - Pixel Game</title>
-    <!-- Load pdf.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <title>Zooreader · Read & roam</title>
     <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
     <div id="ui-container">
       <h1>Zooreader</h1>
-      <p>A minimalist PDF reader game.</p>
+      <p>A little adventure in the margins of your book.</p>
+      <p class="intro-help">
+        Open a PDF. Move with ← → or A / D, or use the wheel. Your hero handles
+        the jumps and battles.
+      </p>
 
       <div class="upload-wrapper" id="upload-wrapper">
         <input type="file" id="pdf-upload" accept="application/pdf" />
@@ -21,29 +23,70 @@
 
       <div id="controls" class="hidden">
         <div class="page-controls">
-          <button type="button" id="prev-page" class="btn btn--small">
+          <button
+            type="button"
+            id="prev-page"
+            aria-label="Previous page"
+            class="btn btn--small"
+          >
             &lt;
           </button>
           <div class="page-display">
-            <input type="number" id="page-num" value="1" min="1" /> /
+            <input
+              type="number"
+              id="page-num"
+              aria-label="Page number"
+              value="1"
+              min="1"
+            />
+            /
             <span id="page-count">--</span>
           </div>
-          <button type="button" id="next-page" class="btn btn--small">
+          <button
+            type="button"
+            id="next-page"
+            aria-label="Next page"
+            class="btn btn--small"
+          >
             &gt;
           </button>
-          <button type="button" id="zoom-out" class="btn btn--small">-</button>
+          <button
+            type="button"
+            id="zoom-out"
+            aria-label="Zoom out"
+            class="btn btn--small"
+          >
+            -
+          </button>
           <span id="zoom-value">100%</span>
-          <button type="button" id="zoom-in" class="btn btn--small">+</button>
-          <input
-            type="password"
-            id="openai-key"
-            class="openai-key"
-            placeholder="OpenAI API key"
-            autocomplete="off"
-          />
+          <button
+            type="button"
+            id="zoom-in"
+            aria-label="Zoom in"
+            class="btn btn--small"
+          >
+            +
+          </button>
+          <details class="speech-settings">
+            <summary>Hero comments</summary>
+            <label for="openai-key">OpenAI API key (optional)</label>
+            <input
+              type="password"
+              id="openai-key"
+              class="openai-key"
+              placeholder="OpenAI API key"
+              autocomplete="off"
+            />
+            <p>
+              With a key, occasional page excerpts are sent to OpenAI for a
+              short comment. Leave empty to read entirely locally.
+            </p>
+          </details>
         </div>
       </div>
-      <div id="loading" class="hidden">LOADING...</div>
+      <div id="loading" class="hidden" role="status" aria-live="polite">
+        Opening PDF…
+      </div>
     </div>
 
     <div id="game-container">
@@ -52,9 +95,6 @@
       <!-- Foregound game canvas -->
       <canvas id="game-canvas"></canvas>
     </div>
-
-    <!-- Hidden canvas to render full PDF pages -->
-    <canvas id="offscreen-pdf" class="hidden" style="display: none"></canvas>
 
     <script type="module" src="main.js"></script>
   </body>

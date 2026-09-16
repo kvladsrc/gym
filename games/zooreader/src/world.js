@@ -205,9 +205,9 @@ export function terrainGroundAtX(terrain, x, gameInfo) {
  */
 export function createPageWorld(pageNum, gameInfo) {
   const seed = Math.imul(pageNum, 0x9e3779b1) >>> 0;
-  const numCrawlers = 2 + ((seed >> 2) % 3);
-  const numFlyers = 1 + ((seed >> 6) % 2);
-  const terrainTheme = TERRAIN_THEMES[(seed >> 10) % TERRAIN_THEMES.length];
+  const numCrawlers = 2 + ((seed >>> 2) % 3);
+  const numFlyers = 1 + ((seed >>> 6) % 2);
+  const terrainTheme = TERRAIN_THEMES[(seed >>> 10) % TERRAIN_THEMES.length];
   const terrain = createTerrain(seed, gameInfo);
   const enemies = [];
 
@@ -218,9 +218,10 @@ export function createPageWorld(pageNum, gameInfo) {
     const terrainGround = terrainGroundAtX(terrain, enemyX, gameInfo);
     if (terrainGround.isGap) continue;
     const bounds = solidRunBounds(terrain, segment);
+    if (bounds.maxX - bounds.minX < LAYOUT.CRAWLER_WIDTH) continue;
     enemies.push({
       type: "crawler",
-      x: enemyX,
+      x: clamp(enemyX, bounds.minX, bounds.maxX - LAYOUT.CRAWLER_WIDTH),
       y: terrainGround.groundY - LAYOUT.CRAWLER_HEIGHT,
       width: LAYOUT.CRAWLER_WIDTH,
       height: LAYOUT.CRAWLER_HEIGHT,

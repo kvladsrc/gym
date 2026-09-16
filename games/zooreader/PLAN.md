@@ -1,7 +1,8 @@
 # Zooreader Application Plan
 
-Temporary working plan for turning the current Zooreader proof of concept into
-a small, usable application.
+Historical product plan for turning the Zooreader proof of concept into
+a small application. See [README.md](README.md) for current behavior and
+[REVIEW.md](REVIEW.md) for the September 2026 implementation and follow-ups.
 
 ## Current State
 

@@ -16,7 +16,7 @@
   (use-package almost-mono-themes
     :ensure t)
 
-  (load-theme 'ef-winter t))
+  (load-theme 'ef-elea-dark t))
 
 (use-package guru-mode
   :ensure t

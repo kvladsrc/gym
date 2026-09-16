@@ -96,7 +96,7 @@ body {
   display: none;
 }
 
-#ui-container.minimized #upload-wrapper {
+#ui-container.minimized .intro-help {
   display: none;
 }
 
@@ -248,5 +248,90 @@ p {
 @keyframes blink {
   50% {
     opacity: 0;
+  }
+}
+
+/* A compact reader toolbar; settings stay out of the page until opened. */
+:root {
+  --text-main: #243c3b;
+}
+#ui-container {
+  border-color: #243c3b;
+  box-shadow: 6px 6px 0 #d9ddce;
+  border-radius: 8px;
+  width: min(520px, calc(100% - 32px));
+}
+#ui-container.minimized {
+  width: auto;
+  max-width: calc(100% - 20px);
+  flex-wrap: wrap;
+  background: #fffffff2;
+  border: 1px solid #d9ddce;
+  border-radius: 6px;
+  padding: 6px;
+}
+#ui-container.minimized .upload-wrapper .btn {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+.page-controls {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.btn {
+  border-color: #243c3b;
+  color: #243c3b;
+  border-radius: 3px;
+}
+.btn:hover {
+  background: #243c3b;
+}
+.btn:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #c98b3b;
+  outline-offset: 3px;
+}
+.upload-wrapper:focus-within {
+  outline: 3px solid #c98b3b;
+  outline-offset: 3px;
+}
+.intro-help {
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: normal;
+}
+.speech-settings {
+  position: relative;
+  font-size: 12px;
+  text-align: left;
+}
+.speech-settings summary {
+  cursor: pointer;
+}
+.speech-settings[open] {
+  padding: 8px;
+  max-width: 260px;
+}
+.speech-settings label {
+  display: block;
+  margin-top: 12px;
+}
+.speech-settings input {
+  width: 100%;
+  margin: 8px 0;
+}
+.speech-settings p {
+  font-weight: normal;
+  line-height: 1.5;
+  margin: 0;
+}
+#loading {
+  animation: none;
+  font-size: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
   }
 }

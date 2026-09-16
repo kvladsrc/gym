@@ -12,6 +12,7 @@ COPY nginx.conf /etc/nginx/conf.d/
 COPY index.html style.css main.js /usr/share/nginx/html/
 COPY assets/ /usr/share/nginx/html/assets/
 COPY src/ /usr/share/nginx/html/src/
+COPY vendor/ /usr/share/nginx/html/vendor/
 
 # Add healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
