@@ -16,6 +16,18 @@ check-assets:
 test-assets:
     node --test scripts/assets.test.mjs
 
+# Regression tests for world generation, rendering and input.
+test:
+    node --test scripts/runtime.test.mjs
+
+# Real-browser smoke test; set CHROME_BIN if Chrome is not on PATH.
+smoke:
+    node scripts/smoke.mjs
+
+# Pack the reviewed built-in imagegen source set into runtime PNGs.
+import-art source="asset-work/refresh-2026-09":
+    node scripts/import-art.mjs {{ source }}
+
 # Generate the next hero concept and save it as the active identity reference.
 asset-hero-concept:
     node scripts/assets.mjs hero-concept

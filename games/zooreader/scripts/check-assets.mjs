@@ -18,8 +18,8 @@ const expectedAssets = [
   ["assets/player-flamethrower.png", 96, 96],
   ["assets/player-pistol.png", 96, 96],
   ["assets/player-knife.png", 96, 96],
-  ["assets/leech-crawler.png", 512, 64],
-  ["assets/gnat-flyer.png", 512, 64],
+  ["assets/leech-crawler.png", 512, 64, 4],
+  ["assets/gnat-flyer.png", 256, 64, 4],
   ["assets/grenade.png", 24, 24],
   ["assets/block-desert.png", 64, 64],
   ["assets/block-grass.png", 64, 64],
@@ -48,6 +48,8 @@ function alphaMetrics(path, width, height, offsetX = 0) {
     "magick",
     [
       path,
+      "-alpha",
+      "on",
       "-crop",
       `${width}x${height}+${offsetX}+0`,
       "+repage",
@@ -162,11 +164,9 @@ for (const [
       );
       failed = true;
     }
+    const offsetX = frameIndex * frameWidth;
+    frameHashes.push(framePixelHash(path, frameWidth, expectedHeight, offsetX));
     if (path.startsWith("assets/player")) {
-      const offsetX = frameIndex * frameWidth;
-      frameHashes.push(
-        framePixelHash(path, frameWidth, expectedHeight, offsetX),
-      );
       const colors = uniqueColors(path, frameWidth, expectedHeight, offsetX);
       if (colors > MAX_HERO_COLORS) {
         console.error(

@@ -24,6 +24,30 @@ let
     }
   );
   godot = config.lib.nixGL.wrap pkgs.godotPackages_4_6.godot;
+  unityCli = import ./packages/unity-cli.nix { inherit pkgs; };
+  blenderMcp = pkgs.writeShellApplication {
+    name = "blender-mcp";
+    runtimeInputs = [ pkgs.uv pkgs.python311 ];
+    text = ''
+      export DISABLE_TELEMETRY=true
+      export BLENDER_HOST=127.0.0.1 BLENDER_PORT=9876
+      exec uvx --python ${pkgs.python311}/bin/python3.11 \
+        --with 'mcp==1.30.0' 'blender-mcp==1.6.4' "$@"
+    '';
+  };
+  unityhub = config.lib.nixGL.wrap (
+    pkgs.unityhub.override {
+      # Unity 6.6's shader compiler needs libtinfo.so.6 inside the FHS env.
+      extraLibs = pkgs: [
+        # A separate libtinfo SONAME is needed for the FHS ldconfig cache.
+        (pkgs.ncurses.override {
+          withTermlib = true;
+          unicodeSupport = false;
+        })
+      ];
+      extraPkgs = pkgs: [ pkgs.which ];
+    }
+  );
   godotMcp = pkgs.writeShellApplication {
     name = "godot-mcp";
     runtimeInputs = [ pkgs.nodejs ];
@@ -99,7 +123,7 @@ in
     google-chrome
     graphviz
     mg
-    nautilus
+    nemo-with-extensions
     pandoc
     rclone
     texliveTeTeX
@@ -144,6 +168,7 @@ in
     (config.lib.nixGL.wrap kooha)
     (config.lib.nixGL.wrap niri)
     (config.lib.nixGL.wrap ryubing)
+    unityhub
     (config.lib.nixGL.wrap zeal)
 
     # Password management
@@ -151,6 +176,8 @@ in
     pass
 
     # Development
+    blenderMcp
+    unityCli
     clang-tools
     claude-code
     cloc
@@ -208,6 +235,24 @@ in
       recursive = true;
     };
   };
+
+  # Make the login callback discoverable even without Nix in XDG_DATA_DIRS.
+  # Use bin/unityhub so browser callbacks also go through the nixGL wrapper.
+  xdg.dataFile."applications/unityhub.desktop".text = ''
+    [Desktop Entry]
+    Name=Unity Hub
+    Exec=${unityhub}/bin/unityhub %U
+    Terminal=false
+    Type=Application
+    Icon=unityhub
+    Categories=Development;
+    MimeType=x-scheme-handler/unityhub;
+  '';
+
+  home.activation.registerUnityHub = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+    run ${pkgs.desktop-file-utils}/bin/update-desktop-database ${lib.escapeShellArg "${config.xdg.dataHome}/applications"}
+    run ${pkgs.xdg-utils}/bin/xdg-mime default unityhub.desktop x-scheme-handler/unityhub
+  '';
 
   home.sessionVariables = {
     EDITOR = "mg";

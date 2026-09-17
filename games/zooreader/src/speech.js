@@ -43,9 +43,10 @@ function extractResponseText(data) {
  * @param {string} pageText
  * @returns {Promise<string>}
  */
-async function requestHeroLine(apiKey, pageText) {
+async function requestHeroLine(apiKey, pageText, signal) {
   const response = await fetch(OPENAI_API_URL, {
     method: "POST",
+    signal,
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
@@ -72,8 +73,7 @@ async function requestHeroLine(apiKey, pageText) {
   });
 
   if (!response.ok) {
-    const details = await response.text();
-    throw new Error(`OpenAI request failed: ${response.status} ${details}`);
+    throw new Error(`OpenAI request failed: ${response.status}`);
   }
 
   return extractResponseText(await response.json());
@@ -92,10 +92,39 @@ export class HeroSpeech {
     this.inFlight = false;
     this.requestedPages = new Set();
 
-    this.keyInput.value = sessionStorage.getItem(STORAGE_KEY) || "";
+    this.controller = null;
+    this.page = null;
+    try {
+      this.keyInput.value = sessionStorage.getItem(STORAGE_KEY) || "";
+    } catch {
+      /* Storage may be disabled. */
+    }
     this.keyInput.addEventListener("change", () => {
-      sessionStorage.setItem(STORAGE_KEY, this.keyInput.value.trim());
+      this.resetDocument();
+      try {
+        sessionStorage.setItem(STORAGE_KEY, this.keyInput.value.trim());
+      } catch {
+        /* Keep the key in memory. */
+      }
     });
+  }
+
+  enabled() {
+    return Boolean(this.keyInput.value.trim());
+  }
+
+  setPage(pageNum) {
+    if (this.page === pageNum) return;
+    this.controller?.abort();
+    this.controller = null;
+    this.inFlight = false;
+    this.visible = null;
+    this.page = pageNum;
+  }
+
+  resetDocument() {
+    this.setPage(null);
+    this.requestedPages.clear();
   }
 
   /**
@@ -114,19 +143,31 @@ export class HeroSpeech {
     this.requestedPages.add(pageNum);
     this.inFlight = true;
 
-    requestHeroLine(apiKey, pageText)
+    const controller = new AbortController();
+    this.controller = controller;
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    requestHeroLine(apiKey, pageText, controller.signal)
       .then((text) => {
-        if (!text) return;
+        if (
+          !text ||
+          this.controller !== controller ||
+          controller.signal.aborted
+        )
+          return;
         this.visible = {
           text,
           expiresAt: performance.now() + LAYOUT.SPEECH_VISIBLE_MS,
         };
       })
       .catch((err) => {
-        console.warn(err);
+        if (!controller.signal.aborted) console.warn(err);
       })
       .finally(() => {
-        this.inFlight = false;
+        clearTimeout(timeout);
+        if (this.controller === controller) {
+          this.controller = null;
+          this.inFlight = false;
+        }
       });
   }
 

@@ -10,8 +10,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 APP_DIR="games/zooreader"
 
 cd "$ROOT"
-mapfile -t JS_FILES < <(find "$APP_DIR" -name '*.js' | sort)
-mapfile -t MJS_FILES < <(find "$APP_DIR" -name '*.mjs' | sort)
+mapfile -t JS_FILES < <(find "$APP_DIR/src" -name '*.js' | sort)
+JS_FILES+=("$APP_DIR/main.js")
+mapfile -t MJS_FILES < <(find "$APP_DIR/scripts" -name '*.mjs' | sort)
 mapfile -t PNG_FILES < <(find "$APP_DIR/assets" -name '*.png' | sort)
 mapfile -t SH_FILES < <(find "$APP_DIR/scripts" -name '*.sh' | sort)
 
@@ -19,6 +20,8 @@ FILES=(
     "${APP_DIR}/Dockerfile"
     "${APP_DIR}/ASSET_PIPELINE.md"
     "${APP_DIR}/PLAN.md"
+    "${APP_DIR}/README.md"
+    "${APP_DIR}/REVIEW.md"
     "${APP_DIR}/index.html"
     "${APP_DIR}/nginx.conf"
     "${APP_DIR}/style.css"
@@ -44,8 +47,8 @@ for js_file in "${MJS_FILES[@]}"; do
     node --check "$js_file"
 done
 
-echo "-> Testing asset workflow"
-node --test "${APP_DIR}/scripts/assets.test.mjs"
+echo "-> Testing asset workflow and runtime regressions"
+node --test "${APP_DIR}/scripts/"*.test.mjs
 
 echo "-> Checking asset contract"
 bash "${APP_DIR}/scripts/check-assets.sh"

@@ -68,7 +68,9 @@ repos:
     rev: v1.4.0
     hooks:
       - id: clang-format
+        exclude_types: [c#]
       - id: cppcheck
+        exclude_types: [c#]
         args:
           - --language=c++
           - --check-level=exhaustive
@@ -80,6 +82,7 @@ repos:
           - --suppress=constParameterCallback
           - --enable=style
       - id: cpplint
+        exclude_types: [c#]
         args:
           - --filter=-legal/copyright,-build/header_guard,-build/include_order,-build/c++17
 
@@ -137,8 +140,10 @@ repos:
     rev: v1.5.0
     hooks:
       - id: detect-secrets
+        # Unity asset identifiers are public references, not credentials.
         exclude: |
           (?x)
+          (^games/mosslight/unity/Assets/.*\.meta$)|
           (^games/cothic/assets/)|
           (^production/kubernetes/helm-charts/.+/(secrets\.yaml|secrets\.mock\.yaml))|
           (^production/kubernetes/flux/secrets/.+\.yaml)|
@@ -169,7 +174,7 @@ repos:
 
   # ---------- Checkov ----------
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.3.16'
+    rev: '3.3.17'
     hooks:
       - id: checkov
 

@@ -221,7 +221,7 @@ binds {
     // Custom
     Mod+Shift+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty"; }
     Mod+P hotkey-overlay-title="Run an Application: wofi" { spawn "wofi" "--show" "drun" "--allow-images"; }
-    Mod+U hotkey-overlay-title="Open Files: Nautilus" { spawn "nautilus"; }
+    Mod+U hotkey-overlay-title="Open Files: Nemo" { spawn "nemo"; }
     Mod+B hotkey-overlay-title="Toggle Waybar" { spawn "pkill" "-SIGUSR1" "waybar"; }
     Mod+V hotkey-overlay-title="Clipboard History" { spawn-sh "cliphist list | wofi --dmenu --pre-display-cmd \"echo '%s' | cut -f 2\" | cliphist decode | wl-copy"; }
 }

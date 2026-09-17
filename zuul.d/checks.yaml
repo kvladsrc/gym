@@ -12,6 +12,14 @@
     run: production/playbooks/zooreader-javascript-check.yaml
 
 - job:
+    name: mosslight-source-check
+    files:
+      - ^games/mosslight/
+      - ^production/playbooks/mosslight-source-check\.yaml$
+    post-run: production/playbooks/notify-ntfy-on-failure.yaml
+    run: production/playbooks/mosslight-source-check.yaml
+
+- job:
     name: bazel-test-blog-engine
     files:
       - ^go\.(mod|sum)$

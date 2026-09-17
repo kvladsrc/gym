@@ -3,6 +3,12 @@
 Small games created with LLM assistance, largely to explore and test models.
 Run the commands below from the repository root.
 
+## Mosslight
+
+[`mosslight`](mosslight) — Unity 3D prototype with a Blender-generated floating
+garden and robot. Collect five lights and return to the gate. Open the project
+manually in Unity Hub; see its README for MCP, local builds and lightweight checks.
+
 ## Vibe Jakubovich
 
 [`vibe_jakubovich_mvp`](vibe_jakubovich_mvp) — An offline Godot remake of
