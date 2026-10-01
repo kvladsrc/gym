@@ -1,0 +1,84 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Each GPU server is its own project with its own justfile and environment;
+# these recipes only dispatch to them. `just <model>` starts the server,
+# extra arguments go to it (e.g. `just flux --port 9200`).
+
+servers := "sdxl flux triposr xtts stable_audio llm wan"
+
+# Show the available commands
+default:
+    @just --justfile {{ source_file() }} --list
+
+# SDXL base 1.0: images (port 9101)
+[positional-arguments]
+sdxl *args:
+    just --justfile sdxl/justfile serve "$@"
+
+# FLUX.1-schnell Q8: images (port 9104; needs HF_TOKEN)
+[positional-arguments]
+flux *args:
+    just --justfile flux/justfile serve "$@"
+
+# TripoSR: image to 3D (port 9102)
+[positional-arguments]
+triposr *args:
+    just --justfile triposr/justfile serve "$@"
+
+# XTTS-v2: speech (port 9103)
+[positional-arguments]
+xtts *args:
+    just --justfile xtts/justfile serve "$@"
+
+# Stable Audio Open 1.0: sounds and music (port 9105; needs HF_TOKEN)
+[positional-arguments]
+stable_audio *args:
+    just --justfile stable_audio/justfile serve "$@"
+
+alias stable-audio := stable_audio
+
+# Gemma 4 12B: text, Russian included (port 9106)
+[positional-arguments]
+gemma *args:
+    just --justfile llm/justfile serve --model gemma-4-12b "$@"
+
+# Qwen3.8 27B: text, more inventive, slower (port 9107)
+[positional-arguments]
+qwen *args:
+    just --justfile llm/justfile serve --model qwen3.8-27b --port 9107 "$@"
+
+# Wan2.2 TI2V-5B: video from a first frame (port 9108)
+[positional-arguments]
+wan *args:
+    just --justfile wan/justfile serve "$@"
+
+# GPU-free fake server for tests (port 9100)
+[positional-arguments]
+fake *args:
+    cd .. && uv run fake-model-server "$@"
+
+# Create the environment of one server, or of all of them
+setup model="all":
+    @just --justfile {{ source_file() }} _each setup {{ model }}
+
+# Report device and downloaded weights of one server, or of all of them
+doctor model="all":
+    @just --justfile {{ source_file() }} _each doctor {{ model }}
+
+# Unit tests (no GPU) of one server, or of all of them
+test model="all":
+    @just --justfile {{ source_file() }} _each test {{ model }}
+
+[private]
+_each recipe model:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ "{{ model }}" = all ]; then models="{{ servers }}"; else models="{{ model }}"; fi
+    for model in $models; do
+        if [ ! -f "$model/justfile" ]; then
+            echo "unknown model server: $model (one of: {{ servers }})" >&2
+            exit 1
+        fi
+        echo "== $model"
+        just --justfile "$model/justfile" {{ recipe }}
+    done

@@ -1,0 +1,31 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Heavy files live outside the Dropbox-synced working copy.
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/xtts"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+
+# PyTorch wheels need the C++ runtime and the host NVIDIA driver on the library path.
+gpu_shell := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Create the Python environment (weights download on first start, ~2 GB)
+setup:
+    {{ gpu_shell }} uv sync --extra test
+
+# Report PyTorch, the CUDA device and whether the weights are downloaded
+doctor:
+    {{ gpu_shell }} uv run python -m xtts_model_server.doctor
+
+# Serve on 127.0.0.1:9103 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run xtts-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run pytest -q tests

@@ -1,0 +1,16 @@
+[project]
+name = "model-server-sdk"
+version = "1.4.0"
+description = "Implements the asset studio model-server contract v1."
+requires-python = ">=3.11"
+dependencies = ["fastapi>=0.115", "pydantic>=2.7", "uvicorn>=0.30"]
+
+[project.optional-dependencies]
+# model_server_sdk.images: helpers for image model servers.
+images = ["Pillow>=10"]
+# model_server_sdk.video: a bundled ffmpeg for systems without one.
+video = ["imageio-ffmpeg>=0.5"]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

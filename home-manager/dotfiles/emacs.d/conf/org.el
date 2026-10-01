@@ -3,7 +3,6 @@
 ;;; Code:
 
 (use-package org
-  :ensure t
   :config
   (setq org-agenda-files '("~/plain/org-roam/20230128124036-optional_notes.org"
                            "~/plain/org-roam/20230301211221-computer.org"
@@ -16,8 +15,7 @@
 (defvar buffer-to-message "*scratch*")
 (defvar org-roam-db-location (format "~/.emacs.d/%s-org-roam.db" (system-name)))
 
-(use-package org-roam
-  :ensure t)
+(use-package org-roam)
 
 (defun message-to-buffer (message-to-send)
   "Send MESSAGE-TO-SEND to buffer-to-message."
@@ -30,7 +28,6 @@
   (message-to-buffer (format ";; Directory %s do not exist." org-roam-directory)))
 
 (use-package org-roam-ui
-  :ensure t
   :after org-roam
   ;; normally we'd recommend hooking orui after org-roam, but since org-roam does not have
   ;; a hookable mode anymore, you're advised to pick something yourself

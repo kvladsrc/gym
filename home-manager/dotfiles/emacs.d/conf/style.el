@@ -10,21 +10,15 @@
                       :weight 'normal
                       :width 'normal)
 
-  (use-package ef-themes
-    :ensure t)
-
-  (use-package almost-mono-themes
-    :ensure t)
+  (use-package ef-themes)
 
   (load-theme 'ef-elea-dark t))
 
 (use-package guru-mode
-  :ensure t
   :config
   (guru-global-mode 1))
 
 (use-package xclip
-  :ensure t
   :config
   (xclip-mode 1))
 

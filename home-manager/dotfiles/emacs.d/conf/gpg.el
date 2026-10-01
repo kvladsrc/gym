@@ -2,8 +2,7 @@
 ;;; Commentary:
 ;;; Code:
 
-(use-package password-store
-  :ensure t)
+(use-package password-store)
 
 (use-package epa-file
   :ensure nil

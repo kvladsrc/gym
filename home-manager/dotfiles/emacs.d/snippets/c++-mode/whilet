@@ -2,8 +2,8 @@
 # name: whilet
 # key: wt
 # --
-int t = 0;
-std::cin >> t;
-while ((t--) != 0) {
-
+int ${1:t} = 0;
+std::cin >> $1;
+while (($1--) != 0) {
+  $0
 }

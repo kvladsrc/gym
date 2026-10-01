@@ -1,0 +1,37 @@
+[project]
+name = "stable-audio-model-server"
+version = "0.1.0"
+description = "Sound effects model server for the asset studio (Stable Audio Open 1.0: text-to-audio, audio-to-audio)."
+# Same PyTorch 2.5.1 / CUDA 12.4 build as the TripoSR server: known to work here.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.5.1",
+  "diffusers==0.40.0",
+  "transformers==5.17.0",
+  "safetensors==0.8.0",
+  "sentencepiece>=0.2",
+  "torchsde==0.2.6",
+  "soundfile>=0.13",
+  "soxr>=0.5",
+  "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+stable-audio-model-server = "stable_audio_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu124" }
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

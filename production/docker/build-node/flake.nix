@@ -42,6 +42,13 @@
           skopeo
         ];
 
+        # Only `python3.11`, for the asset studio's SDK check: the whole package
+        # would win `python3` over python314 in the join below.
+        python311Only = pkgs.runCommand "python3.11" { } ''
+          mkdir -p $out/bin
+          ln -s ${pkgs.python311}/bin/python3.11 $out/bin/python3.11
+        '';
+
         gcov = pkgs.runCommand "gcov" { } ''
           mkdir -p $out/bin
           ln -s ${pkgs.gcc14.cc}/bin/gcov $out/bin/gcov
@@ -68,6 +75,7 @@
           golint
           gotools
           haskell.compiler.ghc984Binary
+          just
           kubernetes-helm
           lcov
           nodejs
@@ -75,9 +83,11 @@
           opentofu
           perl
           pre-commit
+          python311Only
           renovate
           tflint
           shfmt
+          uv
         ];
       in
       {

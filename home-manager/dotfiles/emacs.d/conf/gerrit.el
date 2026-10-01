@@ -3,7 +3,6 @@
 ;;; Code:
 
 (use-package gerrit
-  :ensure t
   :custom
   (gerrit-host "review.your.domain")
   :config

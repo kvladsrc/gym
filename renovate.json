@@ -28,8 +28,9 @@
         "/production/kubernetes/flux/apps/zuul/helmrelease\\.yaml$/"
       ],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>\\S+)\\s+# renovate: depName=(?<depName>\\S+)\\s+imageTag: \\s*(?<currentValue>[^@\\s]+)@(?<currentDigest>sha256:[a-f0-9]+)"
-      ]
+        "# renovate: datasource=(?<datasource>\\S+)\\s+# renovate: depName=(?<depName>\\S+)\\s+imageTag: \\s*(?<currentValue>\\S+)"
+      ],
+      "versioningTemplate": "docker"
     }
   ],
   "packageRules": [

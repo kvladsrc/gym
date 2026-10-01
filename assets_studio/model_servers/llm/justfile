@@ -1,0 +1,30 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Heavy files live outside the Dropbox-synced working copy.
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/llm"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+export HF_TOKEN := env("HF_TOKEN", env("HUGGINGFACE_TOKEN", ""))
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Create the Python environment and install the pinned llama.cpp build (~0.8 GB)
+setup:
+    uv sync --extra test
+    uv run python -m llm_model_server.runtime
+
+# Report the llama.cpp build, the GPU it sees and which models are downloaded
+doctor:
+    uv run python -m llm_model_server.doctor
+
+# Serve on 127.0.0.1:9106 (--model gemma-4-12b | qwen3.8-27b; --port to override)
+[positional-arguments]
+serve *args:
+    uv run llm-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    uv run pytest -q tests

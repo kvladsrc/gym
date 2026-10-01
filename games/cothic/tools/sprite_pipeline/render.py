@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Render procedural eight-direction character animation frames in Blender."""
 
 from __future__ import annotations
@@ -35,7 +34,9 @@ def clear_scene() -> None:
     bpy.ops.object.delete(use_global=False)
 
 
-def import_character(model_path: Path) -> tuple[bpy.types.Object, bpy.types.Object, list]:
+def import_character(
+    model_path: Path,
+) -> tuple[bpy.types.Object, bpy.types.Object, list]:
     """Import the GLB and parent its roots to one rotation pivot."""
     bpy.ops.import_scene.gltf(filepath=str(model_path))
     imported_objects = list(bpy.context.scene.objects)
@@ -177,9 +178,13 @@ def render_animation(
     frame_count = int(config["frames"][animation])
     output_root = project_root / "tmp/sprites" / config["name"] / animation
     base_location = pivot.location.copy()
-    base_matrices = {bone.name: bone.matrix_basis.copy() for bone in armature.pose.bones}
+    base_matrices = {
+        bone.name: bone.matrix_basis.copy() for bone in armature.pose.bones
+    }
 
-    for direction_index, (direction_name, angle_degrees) in enumerate(config["directions"]):
+    for direction_index, (direction_name, angle_degrees) in enumerate(
+        config["directions"]
+    ):
         direction_dir = output_root / f"{direction_index:02d}_{direction_name}"
         direction_dir.mkdir(parents=True, exist_ok=True)
         for frame_index in range(frame_count):
@@ -188,7 +193,9 @@ def render_animation(
             pivot.location = base_location + Vector((0.0, 0.0, bob))
             pivot.rotation_euler.z = math.radians(angle_degrees)
             bpy.context.view_layer.update()
-            bpy.context.scene.render.filepath = str(direction_dir / f"frame_{frame_index:02d}.png")
+            bpy.context.scene.render.filepath = str(
+                direction_dir / f"frame_{frame_index:02d}.png"
+            )
             bpy.ops.render.render(write_still=True)
 
     print(f"Rendered {animation} frames to {output_root}")

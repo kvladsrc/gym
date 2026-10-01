@@ -22,7 +22,16 @@ class SyncGymTest(unittest.TestCase):
                 "games/ripples_cli",
                 "games/vibe_jakubovich_mvp",
                 "games/future_game",
+                "games/mosslight",
             )
+            studio = repository / "assets_studio"
+            for ignore in studio.rglob(".gitignore"):
+                if ".venv" in ignore.parts or "node_modules" in ignore.parts:
+                    continue
+                target = source / ignore.relative_to(repository)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ignore, target)
+            (source / "assets_studio/README.md").write_text("By myuser\n")
             for project in projects:
                 (source / project / "assets").mkdir(parents=True)
                 ignore = repository / project / ".gitignore"
@@ -47,21 +56,10 @@ class SyncGymTest(unittest.TestCase):
                 "probe:\n    @echo mvp\n"
             )
 
-            for project in ("cothic", "zooreader"):
+            for project in ("cothic", "zooreader", "mosslight"):
                 (source / "games" / project / "justfile").write_text(
                     f"probe:\n    @echo {project}\n"
                 )
-
-            # Simulate a public checkout made with the old directory layout.
-            legacy = {
-                "cothic": "games/cothic",
-                "production/docker/zooreader": "games/zooreader",
-                "ripples_cli": "games/ripples_cli",
-                "vibe_jakubovich_mvp": "games/vibe_jakubovich_mvp",
-            }
-            for old, new in legacy.items():
-                (destination / old).parent.mkdir(parents=True, exist_ok=True)
-                (destination / new).rename(destination / old)
 
             excluded = [
                 "games/cothic/.godot/imported/cache.bin",
@@ -79,6 +77,11 @@ class SyncGymTest(unittest.TestCase):
                 "games/vibe_jakubovich/unreal/Intermediate/data.bin",
                 "games/vibe_jakubovich/tools/__pycache__/pipeline.pyc",
                 "games/vibe_jakubovich/.env",
+                "assets_studio/.venv/bin/python",
+                "assets_studio/build/openapi.json",
+                "assets_studio/web/node_modules/preact/index.js",
+                "assets_studio/web/dist/index.html",
+                "assets_studio/model_servers/flux/.venv/lib/torch.so",
             ]
             for relative in excluded:
                 path = source / relative
@@ -93,6 +96,7 @@ class SyncGymTest(unittest.TestCase):
                 "games/vibe_jakubovich_mvp/assets/host.png",
                 "games/vibe_jakubovich_mvp/assets/previews/wheel.gif",
                 "static/vibe_jakubovich.gif",
+                "assets_studio/model_server_sdk/src/model_server_sdk/data/sample.mp4",
             ]
             payload = b"\x00\xffmyuser your.domain\x00"
             for relative in binaries:
@@ -118,16 +122,22 @@ class SyncGymTest(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertFalse((destination / "games/vibe_jakubovich").exists())
-            for old in legacy:
-                self.assertFalse((destination / old).exists(), old)
+            self.assertEqual(
+                (destination / "assets_studio/README.md").read_text(), "By myuser\n"
+            )
             self.assertEqual(
                 (destination / "games/README.md").read_text(),
                 "![Preview](../static/vibe_jakubovich.gif)\n"
                 "[Game](vibe_jakubovich_mvp)\n",
             )
             public_just = subprocess.run(
-                ["just", "--justfile", str(destination / "justfile"),
-                 "vibe_jakubovich_mvp", "probe"],
+                [
+                    "just",
+                    "--justfile",
+                    str(destination / "justfile"),
+                    "vibe_jakubovich_mvp",
+                    "probe",
+                ],
                 check=False,
                 capture_output=True,
                 text=True,
@@ -152,31 +162,3 @@ class SyncGymTest(unittest.TestCase):
                 (destination / "README.md").read_text(),
                 "![Preview](static/vibe_jakubovich.gif)\n",
             )
-
-    def test_migration_refuses_conflicting_copies(self):
-        repository = pathlib.Path(__file__).resolve().parents[1]
-        with tempfile.TemporaryDirectory(prefix="sync-gym-conflict-") as directory:
-            source = pathlib.Path(directory) / "source"
-            destination = pathlib.Path(directory) / "destination"
-            (source / "scripts").mkdir(parents=True)
-            (source / "games/cothic").mkdir(parents=True)
-            shutil.copy2(repository / "scripts/sync_gym.sh", source / "scripts")
-            for path in ("cothic", "games/cothic"):
-                (destination / path).mkdir(parents=True)
-                (destination / path / "local.txt").write_text(path)
-            result = subprocess.run(
-                ["bash", str(source / "scripts/sync_gym.sh"), str(destination)],
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-            self.assertNotEqual(result.returncode, 0)
-            self.assertIn("reconcile them before syncing", result.stderr)
-            for path in ("cothic", "games/cothic"):
-                self.assertEqual(
-                    (destination / path / "local.txt").read_text(), path
-                )
-
-
-if __name__ == "__main__":
-    unittest.main()

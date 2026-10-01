@@ -1,9 +1,8 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
+mod assets_studio
 mod cothic "games/cothic"
 mod cv
-mod local_llm
-mod mosslight "games/mosslight"
 mod neural_network
 mod presentations
 mod talos "production/kubernetes/talos"
@@ -18,6 +17,14 @@ default:
 # Run pre-commit on all files
 lint:
     pre-commit run --all-files --show-diff-on-failure
+
+# Build and check the Emacs configuration without activating Home Manager
+emacs-check:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    nix_bin=$(command -v nix || printf '%s' /nix/var/nix/profiles/default/bin/nix)
+    emacs_package=$("$nix_bin" build --no-link --print-out-paths ./home-manager#homeConfigurations.myuser.config.programs.emacs.finalPackage)
+    "$emacs_package/bin/emacs" --batch -q -l home-manager/tests/emacs-config.el
 
 # Auto-fix formatting via pre-commit hooks
 fmt:

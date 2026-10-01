@@ -1,0 +1,28 @@
+---
+# The asset studio's GPU-free check: studio, SDK and fake model server
+# (lint, types, tests, web UI build and lint). Model servers need CUDA and
+# are tested on the developer's machine only. Without Chrome and ffmpeg on
+# the build node, the browser walkthrough and media conversion tests skip.
+- hosts: all
+  gather_facts: false
+
+  vars:
+    repo_dir: "{{ ansible_env.HOME }}/{{ zuul.project.src_dir }}"
+
+  environment:
+    # Use the build node's Pythons (3.14 for the workspace, 3.11 for the
+    # SDK check) rather than downloading interpreters.
+    UV_PYTHON_DOWNLOADS: never
+
+  tasks:
+    - name: Install the web UI dependencies
+      ansible.builtin.command:
+        argv: [just, assets_studio, web-install]
+        chdir: "{{ repo_dir }}"
+      changed_when: false
+
+    - name: Run the asset studio check
+      ansible.builtin.command:
+        argv: [just, assets_studio, check]
+        chdir: "{{ repo_dir }}"
+      changed_when: false
