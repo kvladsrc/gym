@@ -1,0 +1,42 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Heavy files live outside the Dropbox-synced working copy.
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+source := cache / "triposr-source"
+# Single source of truth for the pinned TripoSR revision: server.py.
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/triposr_model_server/server.py`
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/triposr"
+export TRIPOSR_SOURCE := source
+export U2NET_HOME := cache / "u2net"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+
+# PyTorch wheels need the C++ runtime and the host NVIDIA driver on the library path.
+gpu_shell := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned TripoSR source and create the Python environment
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then \
+        git clone --no-checkout https://github.com/VAST-AI-Research/TripoSR.git "{{ source }}"; \
+    fi
+    git -C "{{ source }}" cat-file -e "{{ revision }}^{commit}" 2>/dev/null \
+        || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ gpu_shell }} uv sync --extra test
+
+# Report the environment: PyTorch, CUDA device, TripoSR source revision
+doctor:
+    {{ gpu_shell }} uv run python -m triposr_model_server.doctor
+
+# Serve on 127.0.0.1:9102 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run triposr-model-server "$@"
+
+# Unit tests for mesh post-processing (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run pytest -q tests

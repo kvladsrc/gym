@@ -1,0 +1,73 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Model servers: `just model_servers <model>` (see model_servers/justfile)
+mod model_servers
+
+# Show the available commands
+default:
+    @just --justfile {{ source_file() }} --list
+
+# Create or refresh the workspace environment in .venv
+sync:
+    uv sync
+
+# Format the code and apply safe lint fixes
+fmt:
+    uv run ruff format .
+    uv run ruff check --fix .
+
+# Formatting, lint, strict type checking and tests (no GPU needed)
+check:
+    uv run ruff format --check .
+    uv run ruff check .
+    uv run pyright
+    uv run lint-imports
+    @just --justfile {{ source_file() }} web-build  # the browser walkthrough tests the current UI
+    uv run pytest -q
+    @just --justfile {{ source_file() }} check-sdk-py311
+    @just --justfile {{ source_file() }} web-check
+
+# SDK tests on Python 3.11, the oldest version model servers may pin
+check-sdk-py311:
+    uv run -q --isolated --no-project --python 3.11 --with-editable ./model_server_sdk \
+        --with pytest --with httpx2 pytest -q tests/test_sdk.py
+
+# Run the tests; extra arguments go to pytest
+[positional-arguments]
+test *args:
+    uv run pytest "$@"
+
+# Install web UI dependencies (node_modules)
+web-install:
+    cd web && npm ci --no-audit --no-fund
+
+# Regenerate the web UI's API types from the OpenAPI document
+web-types:
+    uv run python -m studio.api.export_openapi build/openapi.json
+    cd web && npm run --silent api-types
+
+# Build the web UI into web/dist (served by the studio at /)
+web-build:
+    cd web && npm run --silent build
+
+# Web UI type check and lint; fails if src/api/schema.ts is stale (run web-types)
+web-check:
+    uv run python -m studio.api.export_openapi build/openapi.json
+    cd web && npx openapi-typescript ../build/openapi.json -o ../build/schema.check.ts --silent
+    cmp -s build/schema.check.ts web/src/api/schema.ts || (echo "web/src/api/schema.ts is stale: run just web-types" >&2 && exit 1)
+    cd web && npm run --silent typecheck && npm run --silent lint
+
+# Start the studio on http://127.0.0.1:9000 (config: ~/.config/assets-studio/studio.toml)
+[positional-arguments]
+studio *args:
+    uv run python -m studio "$@"
+
+# Start the GPU-free fake model server (default port 9100)
+[positional-arguments]
+fake-server *args:
+    uv run fake-model-server "$@"
+
+# Check a running model server against contract v1
+[positional-arguments]
+check-server url *args:
+    uv run python -m model_server_sdk.check "$@"

@@ -2,5 +2,6 @@
 # name: pref_sum
 # key: ps
 # --
-vector<int64_t> pref_sum(n + 1);
-pref_sum.front() = 0;
+vector<int64_t> ${1:pref_sum}(${2:n} + 1);
+$1.front() = 0;
+$0

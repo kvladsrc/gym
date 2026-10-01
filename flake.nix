@@ -33,6 +33,27 @@
           config.cudaSupport = false;
         };
 
+        # Python 3.11 + uv for PyTorch CUDA wheels. The wheels bring the CUDA
+        # runtime but need the C++ runtime and the host NVIDIA driver.
+        pytorchCudaShell = graphicsPkgs.mkShell {
+          packages = with graphicsPkgs; [
+            bash
+            git
+            just
+            python311
+            uv
+          ];
+          LD_LIBRARY_PATH = graphicsPkgs.lib.makeLibraryPath [
+            graphicsPkgs.stdenv.cc.cc.lib
+            graphicsPkgs.zlib
+            graphicsPkgs.libglvnd
+          ];
+          shellHook = ''
+            # Host NVIDIA driver on NixOS or Gentoo.
+            export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/run/opengl-driver/lib:/usr/lib64"
+          '';
+        };
+
         helm-plugins-dir = pkgs.symlinkJoin {
           name = "helm-plugins";
           paths = with pkgs.kubernetes-helmPlugins; [
@@ -191,6 +212,9 @@
               export KUBECONFIG="/home/myuser/talos/kubeconfig"
             '';
           };
+
+          # Model servers of assets_studio; each keeps its own uv environment.
+          assets-studio-gpu = pytorchCudaShell;
 
           cothic-assets = graphicsPkgs.mkShell {
             packages = with graphicsPkgs; [

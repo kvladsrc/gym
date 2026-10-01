@@ -12,12 +12,11 @@
     run: production/playbooks/zooreader-javascript-check.yaml
 
 - job:
-    name: mosslight-source-check
+    name: assets-studio-check
     files:
-      - ^games/mosslight/
-      - ^production/playbooks/mosslight-source-check\.yaml$
+      - ^assets_studio/
     post-run: production/playbooks/notify-ntfy-on-failure.yaml
-    run: production/playbooks/mosslight-source-check.yaml
+    run: production/playbooks/assets-studio-check.yaml
 
 - job:
     name: bazel-test-blog-engine

@@ -2,7 +2,6 @@
 ;;; Commentary:
 
 ;;; Code:
-(use-package magit
-  :ensure t)
+(use-package magit)
 
 ;;; magit.el ends here

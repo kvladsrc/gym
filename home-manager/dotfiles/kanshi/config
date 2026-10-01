@@ -1,10 +1,9 @@
 profile undocked {
   output eDP-1 enable
-  exec hyprctl dispatch dpms on eDP-1
 }
 
 profile docked {
-  output DP-1 enable
+  output HDMI-A-1 enable
   output eDP-1 disable
 }
 
@@ -13,7 +12,7 @@ profile portrait {
   output $INTERNAL disable
 }
 
-output "DP-1" {
+output "HDMI-A-1" {
   mode 1920x1080@60.00
   position 1600,0
   scale 1.00
@@ -30,5 +29,4 @@ output "eDP-1" {
 profile dual {
   output $HOME_1 enable
   output $INTERNAL enable
-  exec hyprctl dispatch dpms on eDP-1
 }

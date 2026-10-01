@@ -16,6 +16,7 @@ DEST="${1:-"$HOME/repos/gym"}"
 # Directories to sync as-is (src_relative_path:dest_relative_path)
 DIRS=(
     ".agents:.agents"
+    "assets_studio:assets_studio"
     "cpp/ayncibla/:cpp/ayncibla"
     "cpp/codeforces:cpp/codeforces"
     "cpp/warmup:cpp/warmup"
@@ -78,23 +79,6 @@ fi
 
 echo "Syncing $SRC -> $DEST"
 
-# Migrate previously exported games before syncing the new layout. Refuse to
-# overwrite a second copy: it may contain destination-only changes.
-LEGACY_GAMES=(cothic ripples_cli vibe_jakubovich_mvp production/docker/zooreader)
-for legacy in "${LEGACY_GAMES[@]}"; do
-    target="$DEST/games/${legacy##*/}"
-    if [[ -d "$SRC/games/${legacy##*/}" && -e "$DEST/$legacy" && -e $target ]]; then
-        echo "Both $DEST/$legacy and $target exist; reconcile them before syncing" >&2
-        exit 1
-    fi
-done
-for legacy in "${LEGACY_GAMES[@]}"; do
-    if [[ -d "$SRC/games/${legacy##*/}" && -d "$DEST/$legacy" ]]; then
-        mkdir -p "$DEST/games"
-        mv "$DEST/$legacy" "$DEST/games/${legacy##*/}"
-    fi
-done
-
 # Sync directories
 for entry in "${DIRS[@]}"; do
     src_rel="${entry%%:*}"
@@ -104,8 +88,12 @@ for entry in "${DIRS[@]}"; do
         echo "  dir  $src_rel -> $dest_rel"
         rsync_args=(-a --delete)
         case "$src_rel" in
+        assets_studio)
+            # Only tracked files: no environments, models, builds or node_modules.
+            rsync_args+=(--filter=':- .gitignore')
+            ;;
         games)
-            # Keep playable projects, not the Unreal draft or local build caches.
+            # Keep the private Unreal draft and build caches local.
             rsync_args+=(--exclude='/vibe_jakubovich/' --filter=':- .gitignore')
             ;;
         esac
@@ -141,6 +129,7 @@ find "$DEST" -type f \
     -o -name '*.glb' \
     -o -name '*.jpeg' \
     -o -name '*.jpg' \
+    -o -name '*.mp4' \
     -o -name '*.pdf' \
     -o -name '*.png' \
     -o -name '*.wav' \

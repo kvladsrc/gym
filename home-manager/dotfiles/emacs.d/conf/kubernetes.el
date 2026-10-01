@@ -3,7 +3,6 @@
 ;;; Code:
 
 (use-package kubernetes
-  :ensure t
   :commands (kubernetes-overview)
   :config
   ;; реже опрашивать API, чтобы не шуметь на кластере

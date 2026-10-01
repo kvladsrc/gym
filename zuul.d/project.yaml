@@ -8,7 +8,7 @@
       jobs:
         - pre-submit-check
         - zooreader-javascript-check
-        - mosslight-source-check
+        - assets-studio-check
         - go-check
         - bazel-test-blog-engine
         - bazel-test-registry-retention

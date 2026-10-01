@@ -1,0 +1,16 @@
+[project]
+name = "assets-studio"
+version = "0.1.0"
+description = "Local studio for generating game assets with locally served models."
+requires-python = ">=3.12"
+dependencies = ["model-server-sdk", "httpx2>=2.13", "pillow>=11", "fastapi>=0.115", "uvicorn>=0.30", "mcp>=2.2"]
+
+[tool.uv.sources]
+model-server-sdk = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/studio"]

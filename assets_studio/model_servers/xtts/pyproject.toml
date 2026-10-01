@@ -1,0 +1,36 @@
+[project]
+name = "xtts-model-server"
+version = "0.1.0"
+description = "Text-to-speech model server for the asset studio (XTTS-v2: Russian and 16 more languages, voice cloning)."
+# Same PyTorch 2.5.1 / CUDA 12.4 build as the other GPU servers.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.5.1",
+  "torchaudio==2.5.1",
+  "coqui-tts==0.27.5",
+  # XTTS uses transformers internals removed in 5.x.
+  "transformers==4.57.6",
+  # Splits texts longer than ~180-250 characters into sentences (not a coqui dependency).
+  "spacy==3.8.16",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+xtts-model-server = "xtts_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu124" }
+torchaudio = { index = "pytorch-cu124" }
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

@@ -2,9 +2,10 @@
 # name: nvector
 # key: nv
 # --
-size_t n = 0;
-std::cin >> n;
-vector<int> a(n);
-for (auto &i : a) {
-  std::cin >> i;
+size_t ${1:n} = 0;
+std::cin >> $1;
+vector<${2:int}> ${3:a}($1);
+for (auto &${4:i} : $3) {
+  std::cin >> $4;
 }
+$0

@@ -34,7 +34,7 @@ repos:
 
   # ---------- Bazel files ----------
   - repo: https://github.com/keith/pre-commit-buildifier
-    rev: 8.5.1
+    rev: 10.0.1
     hooks:
       - id: buildifier
         args:
@@ -86,6 +86,15 @@ repos:
         args:
           - --filter=-legal/copyright,-build/header_guard,-build/include_order,-build/c++17
 
+  # ---------- Python ----------
+  # Ruff takes each file's settings from its nearest pyproject.toml.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.9
+    hooks:
+      - id: ruff-check
+      - id: ruff-format
+        args: [--check]
+
   # ---------- Documentation & markup ----------
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.49.1
@@ -97,6 +106,9 @@ repos:
     hooks:
       - id: prettier
         files: "\\.(cjs|js|jsx|mjs|ts|tsx|json|css|scss|html)$"
+        # Generated from the studio's OpenAPI; `just assets_studio web-check`
+        # compares it byte for byte with a fresh generation.
+        exclude: ^assets_studio/web/src/api/schema\.ts$
 
   # ---------- LaTeX ----------
   - repo: https://github.com/WGUNDERWOOD/tex-fmt
@@ -140,10 +152,9 @@ repos:
     rev: v1.5.0
     hooks:
       - id: detect-secrets
-        # Unity asset identifiers are public references, not credentials.
+        # Unity asset identifiers and the generated model hash are public references.
         exclude: |
           (?x)
-          (^games/mosslight/unity/Assets/.*\.meta$)|
           (^games/cothic/assets/)|
           (^production/kubernetes/helm-charts/.+/(secrets\.yaml|secrets\.mock\.yaml))|
           (^production/kubernetes/flux/secrets/.+\.yaml)|
@@ -174,13 +185,13 @@ repos:
 
   # ---------- Checkov ----------
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.3.17'
+    rev: '3.3.22'
     hooks:
       - id: checkov
 
   # ---------- Ansible ----------
   - repo: https://github.com/ansible/ansible-lint
-    rev: v26.8.0
+    rev: v26.9.0
     hooks:
       - id: ansible-lint
         args: [--profile, min, production/playbooks]

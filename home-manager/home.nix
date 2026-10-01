@@ -8,10 +8,42 @@
 let
   user = "myuser";
   version = "26.05";
+
+  # HDMI is wired to NVIDIA; eDP/USB-C use AMD. Keep these userspace
+  # libraries in sync with Gentoo's loaded NVIDIA kernel driver.
+  nvidiaLibraries = (
+    pkgs.linuxPackages.nvidiaPackages.mkDriver {
+      version = "595.99.02";
+      sha256_64bit = "sha256-6HR3lYv3YwcFSTJL1a1slI66btIQ5EAFs+/4SUD24ew="; # pragma: allowlist secret
+      useSettings = false;
+      usePersistenced = false;
+    }
+  ).override {
+    libsOnly = true;
+    acceptLicense = true;
+  };
+
+  niriWithHybridGraphics = config.lib.nixGL.wrap (
+    pkgs.symlinkJoin {
+      name = "niri-hybrid-${pkgs.niri.version}";
+      paths = [ pkgs.niri ];
+      nativeBuildInputs = [ pkgs.makeWrapper ];
+      postBuild = ''
+        wrapProgram "$out/bin/niri" \
+          --prefix __EGL_VENDOR_LIBRARY_FILENAMES : ${nvidiaLibraries}/share/glvnd/egl_vendor.d/10_nvidia.json \
+          --prefix GBM_BACKENDS_PATH : ${nvidiaLibraries}/lib/gbm \
+          --prefix __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS : ${pkgs.egl-gbm}/share/egl/egl_external_platform.d \
+          --prefix LD_LIBRARY_PATH : ${nvidiaLibraries}/lib
+      '';
+    }
+  );
+
+  # Blender + MCP
   blenderMcpAddon = pkgs.fetchurl {
     url = "https://raw.githubusercontent.com/ahujasid/blender-mcp/da4e16d2069ce5154eaa2535bf995e843caf5c73/addon.py";
     hash = "sha256-ymlVu1hNeOIp8CCoudcBFECtxulNqwrI4BqyeU2xncA="; # pragma: allowlist secret
   };
+
   blenderWithMcp = config.lib.nixGL.wrap (
     pkgs.symlinkJoin {
       name = "blender-with-mcp-${pkgs.blender.version}";
@@ -23,8 +55,7 @@ let
       '';
     }
   );
-  godot = config.lib.nixGL.wrap pkgs.godotPackages_4_6.godot;
-  unityCli = import ./packages/unity-cli.nix { inherit pkgs; };
+
   blenderMcp = pkgs.writeShellApplication {
     name = "blender-mcp";
     runtimeInputs = [ pkgs.uv pkgs.python311 ];
@@ -35,6 +66,21 @@ let
         --with 'mcp==1.30.0' 'blender-mcp==1.6.4' "$@"
     '';
   };
+
+  # Godot + MCP
+  godot = config.lib.nixGL.wrap pkgs.godotPackages_4_6.godot;
+
+  godotMcp = pkgs.writeShellApplication {
+    name = "godot-mcp";
+    runtimeInputs = [ pkgs.nodejs ];
+    text = ''
+      exec npx -y @coding-solo/godot-mcp@0.1.1
+    '';
+  };
+
+  # Unity + MCP
+  unityCli = import ./packages/unity-cli.nix { inherit pkgs; };
+
   unityhub = config.lib.nixGL.wrap (
     pkgs.unityhub.override {
       # Unity 6.6's shader compiler needs libtinfo.so.6 inside the FHS env.
@@ -48,13 +94,6 @@ let
       extraPkgs = pkgs: [ pkgs.which ];
     }
   );
-  godotMcp = pkgs.writeShellApplication {
-    name = "godot-mcp";
-    runtimeInputs = [ pkgs.nodejs ];
-    text = ''
-      exec npx -y @coding-solo/godot-mcp@0.1.1
-    '';
-  };
 in
 {
   home.username = user;
@@ -110,7 +149,6 @@ in
 
   home.packages = with pkgs; [
     # Apps
-    aider-chat
     amberol
     baobab
     dig
@@ -123,6 +161,7 @@ in
     google-chrome
     graphviz
     mg
+    nautilus
     nemo-with-extensions
     pandoc
     rclone
@@ -158,18 +197,18 @@ in
 
     # GPU enabled.
     (config.lib.nixGL.wrap blockbench)
-    blenderWithMcp
     (config.lib.nixGL.wrap celestia)
     (config.lib.nixGL.wrap easyeffects)
     (config.lib.nixGL.wrap f3d)
     (config.lib.nixGL.wrap gamescope)
-    godot
     (config.lib.nixGL.wrap gthumb)
     (config.lib.nixGL.wrap kooha)
-    (config.lib.nixGL.wrap niri)
     (config.lib.nixGL.wrap ryubing)
-    unityhub
     (config.lib.nixGL.wrap zeal)
+    blenderWithMcp
+    godot
+    niriWithHybridGraphics
+    unityhub
 
     # Password management
     gnupg
@@ -177,20 +216,22 @@ in
 
     # Development
     blenderMcp
-    unityCli
     clang-tools
     claude-code
     cloc
     delta
-    emacs-pgtk
     go
+    godotMcp
     golangci-lint
     gopls
-    godotMcp
+    gotools # goimports, used by go-mode
     loccount
     podman
     python311
     racket
+    ripgrep # consult-ripgrep
+    rust-analyzer
+    unityCli
     uv
   ];
 
@@ -201,15 +242,6 @@ in
     ".config/niri" = {
       source = dotfiles/niri;
       recursive = true;
-    };
-    ".config/xdg-desktop-portal/niri-portals.conf" = {
-      text = ''
-        [preferred]
-        default=gnome;gtk;
-        org.freedesktop.impl.portal.Access=gtk;
-        org.freedesktop.impl.portal.Notification=gtk;
-        org.freedesktop.impl.portal.Secret=gnome-keyring;
-      '';
     };
     ".config/kanshi" = {
       source = dotfiles/kanshi;
@@ -364,6 +396,70 @@ in
   # Codex manages its mutable config.toml itself.
   programs.codex.enable = true;
 
+  programs.emacs = {
+    enable = true;
+    package = pkgs.emacs-pgtk;
+    extraPackages =
+      epkgs: with epkgs; [
+        avy
+        bazel
+        bats-mode
+        cape
+        cargo
+        consult
+        corfu
+        corfu-terminal
+        crystal-mode
+        diredfl
+        dirvish
+        docker-compose-mode
+        dockerfile-mode
+        ef-themes
+        embark
+        embark-consult
+        envrc
+        flycheck
+        flycheck-eglot
+        flycheck-languagetool
+        flycheck-yamllint
+        gdscript-mode
+        gerrit
+        go-mode
+        godoctor
+        google-c-style
+        guru-mode
+        jenkinsfile-mode
+        json-mode
+        julia-mode
+        just-mode
+        kdl-mode
+        kubernetes
+        magit
+        marginalia
+        nix-mode
+        orderless
+        org-roam
+        org-roam-ui
+        password-store
+        pdf-tools
+        projectile
+        rust-mode
+        terraform-mode
+        treemacs
+        treemacs-magit
+        treemacs-projectile
+        treemacs-tab-bar
+        undo-tree
+        vertico
+        web-mode
+        wgrep
+        xclip
+        yaml-mode
+        yasnippet
+        yasnippet-snippets
+      ];
+  };
+
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
@@ -372,40 +468,5 @@ in
   programs.yazi = {
     enable = true;
     enableBashIntegration = true;
-  };
-
-  programs.zed-editor = {
-    enable = true;
-    package = config.lib.nixGL.wrapOffload pkgs.zed-editor;
-    extensions = [
-      "nix"
-      "toml"
-      "rust"
-    ];
-    extraPackages = [
-      pkgs.go
-      pkgs.nil
-      pkgs.nixd
-    ];
-    userSettings = {
-      buffer_font_family = "Mononoki Nerd Font Mono";
-      ui_font_family = "Mononoki Nerd Font Mono";
-      ui_font_size = 19.0;
-      buffer_font_size = 19.0;
-      theme = {
-        dark = "Monosami Dark";
-        light = "Monosami Light";
-        mode = "dark";
-      };
-      hour_format = "hour24";
-
-      agent_servers = {
-        "Kimi CLI" = {
-          command = "kimi";
-          args = [ "--acp" ];
-          env = { };
-        };
-      };
-    };
   };
 }

@@ -1,0 +1,59 @@
+# Copy to ~/.config/assets-studio/studio.toml, then start model servers from model_servers/:
+#   just sdxl          (images, port 9101)
+#   just flux          (images, port 9104; needs HF_TOKEN)
+#   just triposr       (3D, port 9102)
+#   just xtts          (speech, port 9103)
+#   just stable_audio  (sounds and music, port 9105; needs HF_TOKEN)
+#   just gemma         (text, Gemma 4 12B, port 9106)
+#   just qwen          (text, Qwen3.8 27B, port 9107)
+#   just wan           (video from a first frame, Wan2.2, port 9108)
+# SDXL and TripoSR together do not fit into 8 GB; XTTS (~2 GB) fits beside either.
+# FLUX (~5 GB peak) runs alone or beside XTTS; Stable Audio (6.4 GB peak) runs alone.
+# The text models fill the card and spill into RAM: run them alone. So does Wan.
+#
+# The studio sorts the servers' tasks into sections by what they produce
+# (images, 3D, sound, text, video) and lets you pick the model inside a
+# section (docs/adr/0004-sections-and-deletion.md). `title` is optional: by
+# default the model's own name. Keep ids stable: jobs refer to them.
+# No timeout_s for slow models: a studio timeout would only abandon a
+# generation the server keeps running.
+
+[[servers]]
+id = "image"
+title = "SDXL"
+url = "http://127.0.0.1:9101"
+
+[[servers]]
+id = "flux"
+title = "FLUX"
+url = "http://127.0.0.1:9104"
+
+[[servers]]
+id = "mesh"
+title = "TripoSR"
+url = "http://127.0.0.1:9102"
+
+[[servers]]
+id = "voice"
+title = "XTTS"
+url = "http://127.0.0.1:9103"
+
+[[servers]]
+id = "sound"
+title = "Stable Audio"
+url = "http://127.0.0.1:9105"
+
+[[servers]]
+id = "gemma"
+title = "Gemma 4"
+url = "http://127.0.0.1:9106"
+
+[[servers]]
+id = "qwen"
+title = "Qwen3.8"
+url = "http://127.0.0.1:9107"
+
+[[servers]]
+id = "video"
+title = "Wan 2.2"
+url = "http://127.0.0.1:9108"

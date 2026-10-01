@@ -1,0 +1,23 @@
+[project]
+name = "llm-model-server"
+version = "0.1.0"
+description = "Text generation model server for the asset studio (GGUF models through a pinned llama.cpp server)."
+# No PyTorch: the model runs in llama.cpp's own server, started as a child process.
+requires-python = ">=3.11"
+dependencies = [
+  "model-server-sdk",
+  "huggingface_hub[hf_xet]>=1.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+llm-model-server = "llm_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

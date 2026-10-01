@@ -1,0 +1,16 @@
+[project]
+name = "fake-model-server"
+version = "1.0.0"
+description = "Deterministic GPU-free model server for testing the asset studio."
+requires-python = ">=3.12"
+dependencies = ["model-server-sdk"]
+
+[project.scripts]
+fake-model-server = "fake_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { workspace = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

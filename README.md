@@ -68,6 +68,14 @@ cat error.txt | grep ERROR | summary | kharms
 # → Everything has vanished like smoke, the file exists no more.
 ```
 
+### Asset Studio
+
+[`assets_studio`](assets_studio) — A local studio for making game assets
+with generative models on a single 8 GB GPU: images, 3D models, speech,
+sounds, text and short videos. Each model runs as its own server behind
+a common HTTP contract; the studio queues jobs and keeps the results
+with their lineage, for people in a web UI and for agents over MCP.
+
 ### Games
 
 [`games`](games/README.md) — Small games created with LLM assistance,
@@ -83,6 +91,7 @@ by LLMs. Notably:
   GoogleTest.
 - [`pipellm`](pipellm) heavily generated based on the project's design
   specs.
+- [`assets_studio`](assets_studio) was written with Claude Code.
 
 ## Purpose
 

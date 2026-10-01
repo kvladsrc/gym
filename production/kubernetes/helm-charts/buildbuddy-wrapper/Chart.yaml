@@ -3,8 +3,8 @@ apiVersion: v2
 name: buildbuddy-wrapper
 description: "Wrapper chart: buildbuddy"
 type: application
-version: 0.44.0
+version: 0.48.0
 dependencies:
   - name: buildbuddy
-    version: 0.0.438
+    version: 0.0.443
     repository: "https://buildbuddy-io.github.io/buildbuddy-helm/"

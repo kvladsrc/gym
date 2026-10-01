@@ -1,0 +1,78 @@
+[project]
+name = "assets-studio-workspace"
+version = "0.1.0"
+description = "Workspace root: shared tooling and tests for the asset studio."
+requires-python = ">=3.12"
+dependencies = ["assets-studio", "model-server-sdk", "fake-model-server"]
+
+[dependency-groups]
+dev = ["httpx2>=2.13", "import-linter>=2.1", "pyright[nodejs]>=1.1.400", "pytest>=8.3", "ruff>=0.11"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+assets-studio = { workspace = true }
+model-server-sdk = { workspace = true }
+fake-model-server = { workspace = true }
+
+[tool.uv.workspace]
+# Real model servers are standalone projects with their own lock files:
+# their heavy dependencies (PyTorch, CUDA) must not leak into this workspace.
+members = ["studio", "model_server_sdk", "model_servers/fake"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "PT", "ANN", "S"]
+# RUF001-003: user-facing strings are in Russian.
+ignore = ["S101", "ANN401", "RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["ANN", "S"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+addopts = "-ra"
+
+[tool.pyright]
+include = ["studio/src", "model_server_sdk/src", "model_servers/fake/src", "tests"]
+typeCheckingMode = "strict"
+pythonVersion = "3.12"
+executionEnvironments = [
+  { root = "model_server_sdk/src", pythonVersion = "3.11" },
+  { root = "tests", extraPaths = ["tests"], reportPrivateUsage = false },
+]
+
+[tool.importlinter]
+root_packages = ["studio"]
+
+[[tool.importlinter.contracts]]
+name = "Studio layers: api/mcp -> core -> services -> dispatch -> storage -> domain"
+type = "layers"
+layers = [
+  "studio.__main__",
+  # The API mounts the MCP endpoint, and MCP tools reuse the API schemas.
+  "studio.api : studio.mcp",
+  "studio.core",
+  "studio.services",
+  "studio.dispatch",
+  "studio.storage",
+  "studio.domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "The domain model has no dependencies inside the studio"
+type = "forbidden"
+source_modules = ["studio.domain"]
+forbidden_modules = ["studio.config", "studio.media", "studio.storage", "studio.dispatch", "studio.services", "studio.core"]
+
+[[tool.importlinter.contracts]]
+name = "The API and MCP use services, not storage or dispatch internals"
+type = "forbidden"
+source_modules = ["studio.api", "studio.mcp"]
+forbidden_modules = ["studio.storage", "studio.dispatch"]
+allow_indirect_imports = true

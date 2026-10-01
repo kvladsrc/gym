@@ -1,0 +1,42 @@
+[project]
+name = "triposr-model-server"
+version = "0.1.0"
+description = "Image-to-3D model server for the asset studio, based on TripoSR (MIT)."
+# The pinned PyTorch 2.5.1 / CUDA 12.4 build is known to work on this laptop.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.5.1",
+  "torchvision==0.20.1",
+  # TripoSR inference dependencies, pinned to the versions verified earlier.
+  "numpy==1.26.4",
+  "omegaconf==2.3.0",
+  "Pillow==10.1.0",
+  "einops==0.7.0",
+  "transformers==4.35.0",
+  "huggingface-hub==0.17.3",
+  "trimesh==4.0.5",
+  "rembg==2.0.57",
+  "onnxruntime==1.20.1",
+  "scikit-image==0.24.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+triposr-model-server = "triposr_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu124" }
+torchvision = { index = "pytorch-cu124" }
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

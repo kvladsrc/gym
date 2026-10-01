@@ -1,4 +1,4 @@
-;;; package --- Summary
+;;; ide.el --- Programming tools -*- lexical-binding: t; -*-
 ;;; Commentary:
 ;;; Code:
 
@@ -8,32 +8,21 @@
 
 ;; Общие настройки
 (setq-default indent-tabs-mode nil)           ; Использовать пробелы вместо табов
-(setq c-default-style "linux"
-      c-basic-offset 4)
 
-(use-package google-c-style
-  :ensure t)
+(use-package google-c-style)
 
 (use-package web-mode
-  :ensure t
   :mode ("\\.tpl\\'" . web-mode)
-  :config
-  (add-hook 'web-mode-hook
-            (lambda ()
-              (when (string-match "\\.tpl\\'" (buffer-file-name))
-                (setq web-mode-engine "go")))))
+  :custom
+  (web-mode-engines-alist '(("go" . "\\.tpl\\'"))))
 
-(use-package terraform-mode
-  :ensure t)
+(use-package terraform-mode)
 
-(use-package gdscript-mode
-  :ensure t)
+(use-package gdscript-mode)
 
-(use-package kdl-mode
-  :ensure t)
+(use-package kdl-mode)
 
-(use-package just-mode
-  :ensure t)
+(use-package just-mode)
 
 (use-package eldoc
   :init
@@ -41,108 +30,93 @@
 
 ;; Which-key для подсказок по клавишам
 (use-package which-key
-  :ensure t
   :config
   (which-key-mode))
 
 ;; Yasnippet для сниппетов
 (use-package yasnippet
-  :ensure t
   :hook (prog-mode . yas-minor-mode)
   :config
   (yas-reload-all))
 
 (use-package yasnippet-snippets
-  :ensure t
   :after yasnippet)
 
-;; Настройка Eglot
+;; Eglot owns language-server connections; Flycheck displays diagnostics below.
 (use-package eglot
-  :hook ((c-mode          . eglot-ensure)
-         (c++-mode        . eglot-ensure)
-         (rust-mode       . eglot-ensure)
-         (go-mode         . eglot-ensure))
+  :hook ((c-mode . eglot-ensure)
+         (c++-mode . eglot-ensure))
+  :bind (:map eglot-mode-map
+              ("C-c e r" . eglot-rename)
+              ("C-c e a" . eglot-code-actions)
+              ("C-c e f" . eglot-format-buffer)
+              ("C-c e o" . eglot-code-action-organize-imports))
   :config
-  ;; Настройка серверов LSP
   (add-to-list 'eglot-server-programs
-               '((c++-mode c-mode) . ("clangd" "--clang-tidy")))
-  ;; Настройка префикса для команд eglot
-  (define-key eglot-mode-map (kbd "C-c e") 'eglot-command-map))
+               '((c++-mode c-mode) . ("clangd" "--clang-tidy"))))
 
-;; Настройка для C/C++
+(defun my-eglot-format-before-save ()
+  "Format only buffers managed by a server that supports formatting."
+  (when (and (eglot-managed-p)
+             (eglot-server-capable :documentFormattingProvider))
+    (eglot-format-buffer)))
+
+(defun my-c++-setup ()
+  "Enable buffer-local formatting for C++."
+  (add-hook 'before-save-hook #'my-eglot-format-before-save nil t))
+
+;; Keep the existing Google indentation; project .clang-format owns formatting.
 (use-package cc-mode
-  :ensure nil  ; Встроенный пакет
   :mode ("\\.tpp\\'" . c++-mode)
   :hook ((c-mode-common . google-set-c-style)
-         (c-mode-common . google-make-newline-indent))
-  :config
-  ;; Функция форматирования перед сохранением
-  (defun my-c++-mode-before-save-hook ()
-    (when (eq major-mode 'c++-mode)
-      (eglot-format-buffer)))
-  (add-hook 'c++-mode-hook
-            (lambda ()
-              (add-hook 'before-save-hook #'my-c++-mode-before-save-hook nil t))))
+         (c++-mode . my-c++-setup)))
 
 ;; Настройка для Rust
 (use-package rust-mode
-  :ensure t
   :hook (rust-mode . eglot-ensure))
 
 (use-package cargo
-  :ensure t
   :hook (rust-mode . cargo-minor-mode))
 
 (use-package flycheck-eglot
-  :ensure t
   :after (flycheck eglot)
   :config
   (global-flycheck-eglot-mode 1))
 
 ;; Настройка для Go
 (use-package go-mode
-  :ensure t
+  :preface
+  (defun my-go-setup ()
+    "Enable Go formatting only in this buffer."
+    (add-hook 'before-save-hook #'gofmt-before-save nil t))
   :hook ((go-mode . eglot-ensure)
-         (before-save . gofmt-before-save))
+         (go-mode . my-go-setup))
   :config
   (setq gofmt-command "goimports"))
 
 (use-package godoctor
-  :ensure t
   :after go-mode
   :config
   (setq godoctor-executable (executable-find "godoctor")))
 
-;; Дополнительные настройки
-(add-hook 'c-mode-common-hook 'google-set-c-style)
+(use-package yaml-mode)
 
-(use-package yaml-mode
-  :ensure t)
+(use-package docker-compose-mode)
 
-(use-package docker-compose-mode
-  :ensure t)
+(use-package dockerfile-mode)
 
-(use-package dockerfile-mode
-  :ensure t)
-
-(use-package jenkinsfile-mode
-  :ensure t)
+(use-package jenkinsfile-mode)
 
 (use-package json-mode
-  :ensure t
   :config
   (setq js-indent-level 2))
 
-(use-package crystal-mode
-  :ensure t)
+(use-package crystal-mode)
 
-(use-package julia-mode
-  :ensure t)
+(use-package julia-mode)
 
-(use-package bats-mode
-  :ensure t)
+(use-package bats-mode)
 
-(use-package bazel
-  :ensure t)
+(use-package bazel)
 
 ;;; ide.el ends here
