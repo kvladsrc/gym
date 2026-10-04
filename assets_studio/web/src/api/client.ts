@@ -45,16 +45,36 @@ export const api = {
     request<Job>("POST", "/api/jobs", json(body), "application/json"),
   cancelJob: (id: string) => request<Job>("POST", `/api/jobs/${id}/cancel`),
   retryJob: (id: string) => request<Job>("POST", `/api/jobs/${id}/retry`),
-  assets: (query: { kind?: string; favorite?: boolean; limit?: number }) => {
+  deleteJob: (id: string) => request<Job>("DELETE", `/api/jobs/${id}`),
+  assets: (query: {
+    kind?: string;
+    favorite?: boolean;
+    tags?: string[];
+    minRating?: number;
+    unrated?: boolean;
+    limit?: number;
+  }) => {
     const params = new URLSearchParams();
     if (query.kind) params.set("kind", query.kind);
     if (query.favorite !== undefined)
       params.set("favorite", String(query.favorite));
+    for (const tag of query.tags ?? []) params.append("tag", tag);
+    if (query.minRating !== undefined)
+      params.set("min_rating", String(query.minRating));
+    if (query.unrated) params.set("unrated", "true");
     params.set("limit", String(query.limit ?? 300));
     return request<Asset[]>("GET", `/api/assets?${params.toString()}`);
   },
   asset: (id: string) => request<Asset>("GET", `/api/assets/${id}`),
-  updateAsset: (id: string, body: { title?: string; favorite?: boolean }) =>
+  updateAsset: (
+    id: string,
+    body: {
+      title?: string;
+      favorite?: boolean;
+      rating?: number | null;
+      tags?: string[];
+    },
+  ) =>
     request<Asset>(
       "PATCH",
       `/api/assets/${id}`,

@@ -171,7 +171,10 @@ def test_server_crash_fails_the_job_and_retry_creates_a_new_one(tmp_path: Path) 
         assert retry.prompt == "мох"
         original = studio.generation.job(job.id)
         assert original is not None
-        assert original.status == JobStatus.FAILED  # history is kept
+        assert original.status == JobStatus.FAILED  # kept for the retry chain
+        # ...but replaced in the history by its retry.
+        assert original.deleted_at is not None
+        assert job.id not in [j.id for j in studio.generation.jobs()]
 
 
 def test_busy_server_does_not_spend_retries(tmp_path: Path) -> None:
@@ -192,6 +195,26 @@ def test_busy_server_does_not_spend_retries(tmp_path: Path) -> None:
         done = wait_for(studio, job.id, JobStatus.SUCCEEDED)
         assert done.retryable_failures == 0
         assert len(calls) == 6
+
+
+def test_a_server_failing_mid_request_is_retried(tmp_path: Path) -> None:
+    """A bare 500 (no contract body) is what a server stopped while
+    generating answers: retried, not a final failure."""
+    calls: list[int] = []
+
+    def stopped_once(status: int, body: Any) -> tuple[int, Any]:
+        calls.append(status)
+        return (500, "Internal Server Error") if len(calls) == 1 else (status, body)
+
+    with (
+        _proxy(stopped_once) as app,
+        live_server(app) as url,
+        running_studio(tmp_path, model_server("image", url)) as studio,
+    ):
+        job = studio.generation.submit("image", "text-to-image", prompt="мох")
+        done = wait_for(studio, job.id, JobStatus.SUCCEEDED)
+        assert done.retryable_failures == 1
+        assert len(calls) == 2
 
 
 def test_retryable_errors_fail_after_three_attempts(tmp_path: Path) -> None:
@@ -249,6 +272,26 @@ def test_chain_across_two_servers_records_lineage(tmp_path: Path) -> None:
         assert done.model_snapshot is not None
         assert done.model_snapshot["id"] == "meshes"
         assert studio.library.parents(done.outputs[0]) == [(source.outputs[1], "input")]
+        # Generated assets are tagged with where they came from (ADR-007).
+        mesh = studio.library.asset(done.outputs[0])
+        assert mesh is not None
+        assert mesh.tags == ("model:meshes", "server:mesh", "task:image-to-3d")
+
+
+def test_a_rig_of_a_generated_mesh_is_stored_as_fbx(tmp_path: Path) -> None:
+    with (
+        live_server(create_app(FakeModelServer())) as url,
+        running_studio(tmp_path, model_server("fake", url)) as studio,
+    ):
+        mesh = studio.generation.submit("fake", "text-to-3d", prompt="рыцарь")
+        rig = studio.generation.submit(
+            "fake", "3d-to-rig", dependencies={"mesh": Dependency(mesh.id)}
+        )
+        done = wait_for(studio, rig.id, JobStatus.SUCCEEDED)
+        asset = studio.library.asset(done.outputs[0])
+        assert asset is not None
+        assert (asset.kind, asset.mime) == ("mesh", "model/x-fbx")
+        assert len(list((tmp_path / "blobs").rglob("*.fbx"))) == 1
 
 
 def test_failed_dependency_fails_dependents_transitively(tmp_path: Path) -> None:
@@ -354,6 +397,29 @@ def test_cancel_only_before_sending(tmp_path: Path) -> None:
         assert studio.generation.job(queued.id).status == JobStatus.CANCELLED  # pyright: ignore[reportOptionalMemberAccess]
         with pytest.raises(JobStateError):
             studio.generation.retry(slow.id)
+
+
+def test_only_failed_or_cancelled_jobs_are_deleted(tmp_path: Path) -> None:
+    with (
+        live_server(create_app(FakeModelServer())) as url,
+        running_studio(tmp_path, model_server("fake", url)) as studio,
+    ):
+        done = studio.generation.submit("fake", "text-to-image", prompt="x")
+        failed = studio.generation.submit(
+            "fake", "text-to-image", prompt="y", params={"fail": "generation"}
+        )
+        wait_for(studio, done.id, JobStatus.SUCCEEDED)
+        wait_for(studio, failed.id, JobStatus.FAILED)
+        with pytest.raises(JobStateError, match="succeeded"):
+            studio.generation.delete(done.id)
+        deleted = studio.generation.delete(failed.id)
+        assert deleted.deleted_at is not None
+        assert deleted.version > failed.version  # the UI's newer state wins
+        assert [job.id for job in studio.generation.jobs()] == [done.id]
+        # Still reachable by id: retries and dependents refer to it.
+        assert studio.generation.job(failed.id) == deleted
+        with pytest.raises(JobStateError, match="already deleted"):
+            studio.generation.delete(failed.id)
 
 
 def test_submit_validation(tmp_path: Path) -> None:
@@ -706,6 +772,9 @@ def test_import_detects_format_and_deduplicates_files(tmp_path: Path) -> None:
         assert first.title == "красный"
         glb = studio.library.import_bytes(media.encode_glb(*media.tetrahedron()))
         assert (glb.kind, glb.mime) == ("mesh", "model/gltf-binary")
+        fbx = studio.library.import_bytes(media.FBX_MAGIC + b"\x34\x1d\x00\x00" + b"\0" * 64)
+        assert (fbx.kind, fbx.mime) == ("mesh", "model/x-fbx")
+        assert len(list((tmp_path / "blobs").rglob("*.fbx"))) == 1
         with pytest.raises(ImportError_, match="unsupported file format"):
             studio.library.import_bytes(b"\x00\x01 binary garbage")
 

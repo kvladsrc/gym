@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Студия ассетов</title>
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // The remembered theme before the first paint (see src/state/theme.ts).
+      try {
+        const theme = localStorage.getItem("assets-studio.theme");
+        if (theme === "light" || theme === "dark")
+          document.documentElement.dataset.theme = theme;
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="app"></div>

@@ -24,7 +24,6 @@ from PIL import Image, ImageOps
 from pydantic import BaseModel, ConfigDict, Field
 
 from model_server_sdk import (
-    PRIMARY,
     GenerationError,
     InputSpec,
     Job,
@@ -35,6 +34,7 @@ from model_server_sdk import (
     TaskSpec,
     is_out_of_memory,
     offload,
+    ui,
 )
 
 logger = logging.getLogger("wan_model_server")
@@ -83,16 +83,32 @@ class Params(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     seconds: float = Field(
-        default=5.0, ge=1.0, le=5.0, description="Длительность, с", json_schema_extra=PRIMARY
+        default=5.0,
+        ge=1.0,
+        le=5.0,
+        description="Duration, s",
+        json_schema_extra=ui(ru="Длительность, с", primary=True),
     )
     size: Size = Field(
         default="720p",
-        description="Размер (480p — быстрее, черновик)",
-        json_schema_extra=PRIMARY,
+        description="Size (480p: faster, a draft)",
+        json_schema_extra=ui(ru="Размер (480p — быстрее, черновик)", primary=True),
     )
-    steps: int = Field(default=50, ge=10, le=100, description="Шаги")
-    guidance: float = Field(default=5.0, ge=1, le=10, description="Следование описанию")
-    negative_prompt: str = Field(default=DEFAULT_NEGATIVE, description="Чего избегать")
+    steps: int = Field(
+        default=50, ge=10, le=100, description="Steps", json_schema_extra=ui(ru="Шаги")
+    )
+    guidance: float = Field(
+        default=5.0,
+        ge=1,
+        le=10,
+        description="Prompt adherence",
+        json_schema_extra=ui(ru="Следование описанию"),
+    )
+    negative_prompt: str = Field(
+        default=DEFAULT_NEGATIVE,
+        description="What to avoid",
+        json_schema_extra=ui(ru="Чего избегать"),
+    )
 
 
 TASK = TaskSpec(
@@ -104,7 +120,8 @@ TASK = TaskSpec(
         InputSpec(
             role="image",
             mime=["image/png", "image/jpeg", "image/webp"],
-            description="Первый кадр",
+            description="First frame",
+            labels={"ru": "Первый кадр"},
         ),
     ),
 )

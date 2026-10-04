@@ -141,6 +141,14 @@ def test_undecodable_audio_is_rejected() -> None:
         to_canonical(b"fLaC" + b"\x00" * 64, "audio/flac")
 
 
+def test_fbx_is_a_mesh_that_is_not_converted_to_glb() -> None:
+    fbx = media.FBX_MAGIC + b"\x34\x1d\x00\x00" + b"\0" * 64
+    assert detect_mime(fbx) == "model/x-fbx"
+    # A server that takes GLB cannot be fed a rigged FBX (ADR-006).
+    with pytest.raises(UnsupportedMedia, match="no conversion from model/x-fbx"):
+        to_canonical(fbx, "model/x-fbx")
+
+
 def test_canonical_formats_pass_through() -> None:
     text = "строка\n".encode()
     assert to_canonical(text, "text/plain") == (text, "text/plain")
@@ -172,11 +180,13 @@ def test_upgrade_keeps_assets_tags_and_references(tmp_path: Path) -> None:
 
     database = Database(path)
     connection = database.connection
-    assert database.schema_version == 4
+    assert database.schema_version == 7
     assert connection.execute("SELECT tag FROM asset_tags").fetchall()[0][0] == "мох"
     assert connection.execute("SELECT asset_id FROM job_inputs").fetchall()[0][0] == "a1"
     assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
     assert connection.execute("PRAGMA foreign_keys").fetchone()[0] == 1
+    # 0005: an upgraded job is not deleted.
+    assert connection.execute("SELECT deleted_at FROM jobs").fetchall()[0][0] is None
     connection.execute(
         "INSERT INTO assets (id, kind, blob_sha256, mime, size_bytes, origin, created_at) "
         "VALUES ('a2', 'video', 'y', 'video/mp4', 1, 'generated', '2026-01-02')"

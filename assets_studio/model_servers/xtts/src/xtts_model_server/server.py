@@ -17,7 +17,6 @@ import soundfile
 from pydantic import BaseModel, ConfigDict, Field
 
 from model_server_sdk import (
-    PRIMARY,
     GenerationError,
     InputSpec,
     InvalidInput,
@@ -28,6 +27,7 @@ from model_server_sdk import (
     Output,
     TaskSpec,
     is_out_of_memory,
+    ui,
 )
 
 logger = logging.getLogger("xtts_model_server")
@@ -62,14 +62,24 @@ Speaker = Literal[
 class Params(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    language: Language = Field(default="ru", description="Язык", json_schema_extra=PRIMARY)
+    language: Language = Field(
+        default="ru", description="Language", json_schema_extra=ui(ru="Язык", primary=True)
+    )
     speaker: Speaker = Field(
         default="Claribel Dervla",
-        description="Голос (если не задан образец голоса)",
-        json_schema_extra=PRIMARY,
+        description="Voice (when no voice sample is given)",
+        json_schema_extra=ui(ru="Голос (если не задан образец голоса)", primary=True),
     )
-    temperature: float = Field(default=0.75, ge=0.1, le=1.0, description="Вариативность")
-    speed: float = Field(default=1.0, ge=0.5, le=2.0, description="Скорость")
+    temperature: float = Field(
+        default=0.75,
+        ge=0.1,
+        le=1.0,
+        description="Variability",
+        json_schema_extra=ui(ru="Вариативность"),
+    )
+    speed: float = Field(
+        default=1.0, ge=0.5, le=2.0, description="Speed", json_schema_extra=ui(ru="Скорость")
+    )
 
 
 TASK = TaskSpec(
@@ -81,7 +91,8 @@ TASK = TaskSpec(
             role="voice",
             mime=["audio/wav"],
             required=False,
-            description="Образец голоса: не меньше 3 с чистой речи, учитываются первые 30 с",
+            description="Voice sample: at least 3 s of clean speech; the first 30 s are used",
+            labels={"ru": "Образец голоса: не меньше 3 с чистой речи, учитываются первые 30 с"},
         ),
     ),
 )

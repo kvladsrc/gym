@@ -3,7 +3,7 @@
 import { useState } from "preact/hooks";
 
 import { api } from "../api/client";
-import { taskLabel } from "../format";
+import { promptLabel, taskLabel } from "../format";
 import {
   chooseServer,
   chooseTask,
@@ -15,6 +15,7 @@ import { type Section, serversFor } from "../state/sections";
 import { assetById, mergeJob } from "../state/store";
 import { InputPicker } from "./InputPicker";
 import { invalidParams, isPrimary, ParamsForm, properties } from "./ParamsForm";
+import { has, t } from "../i18n";
 
 const SEED_LIMIT = 2 ** 32;
 const MAX_SEGMENTS = 6;
@@ -26,12 +27,9 @@ function parseSeed(text: string): number | null | undefined {
   return seed < SEED_LIMIT ? seed : undefined;
 }
 
-const STATE_TITLES: Record<string, string> = {
-  ready: "готова",
-  busy: "занята",
-  loading: "загружается",
-  error: "ошибка загрузки",
-  unavailable: "не запущена",
+const modelState = (state: string) => {
+  const key = `model.${state}`;
+  return has(key) ? t(key) : state;
 };
 
 export function GenerationForm({
@@ -47,11 +45,7 @@ export function GenerationForm({
   const [error, setError] = useState<string | null>(null);
 
   if (!target) {
-    return (
-      <p class="hint">
-        Задачи этой модели станут известны, когда её сервер будет запущен.
-      </p>
-    );
+    return <p class="hint">{t("form.unknownTasks")}</p>;
   }
   const { task, server } = target;
   const models = serversFor(section, task.task);
@@ -112,7 +106,7 @@ export function GenerationForm({
   return (
     <>
       {section.tasks.length > 1 && (
-        <div class="tasks" role="group" aria-label="Задача">
+        <div class="tasks" role="group" aria-label={t("form.task")}>
           {section.tasks.map((name) => (
             <button
               key={name}
@@ -126,7 +120,7 @@ export function GenerationForm({
         </div>
       )}
       <div class="field">
-        <span id={`model-${section.id}`}>Модель</span>
+        <span id={`model-${section.id}`}>{t("form.model")}</span>
         <div
           class="models"
           role="group"
@@ -139,7 +133,7 @@ export function GenerationForm({
                 key={model.id}
                 class={active ? "active" : ""}
                 aria-pressed={active}
-                title={`${model.title}: ${STATE_TITLES[model.state] ?? model.state}`}
+                title={`${model.title}: ${modelState(model.state)}`}
                 onClick={() => chooseServer(section, model.id)}
               >
                 <span class={`dot ${model.state}`} />
@@ -169,11 +163,12 @@ export function GenerationForm({
       {task.prompt !== "none" && (
         <label class="field">
           <span>
-            Описание{task.prompt === "optional" ? " (необязательно)" : ""}
+            {promptLabel(task.task)}
+            {task.prompt === "optional" ? t("optional") : ""}
           </span>
           <textarea
             value={draft.prompt}
-            placeholder="Что сгенерировать"
+            placeholder={t("prompt.placeholder")}
             onInput={(event) =>
               updateDraft(section, { prompt: event.currentTarget.value })
             }
@@ -197,7 +192,7 @@ export function GenerationForm({
       )}
       {task.max_count > 1 && (
         <div class="field">
-          <span id={`count-${section.id}`}>Варианты</span>
+          <span id={`count-${section.id}`}>{t("form.count")}</span>
           {task.max_count <= MAX_SEGMENTS ? (
             <div
               class="segmented"
@@ -241,7 +236,7 @@ export function GenerationForm({
           if (open !== draft.advanced) updateDraft(section, { advanced: open });
         }}
       >
-        <summary>Дополнительно</summary>
+        <summary>{t("form.advanced")}</summary>
         <div class="fields">
           <ParamsForm
             schema={task.params_schema}
@@ -251,7 +246,7 @@ export function GenerationForm({
             onChange={changeParams}
           />
           <label class="field">
-            <span>Seed (пусто — случайный)</span>
+            <span>{t("form.seed")}</span>
             <input
               type="text"
               inputMode="numeric"
@@ -264,7 +259,7 @@ export function GenerationForm({
             />
             {seed === undefined && (
               <span class="hint error">
-                Нужно целое число от 0 до {SEED_LIMIT - 1}
+                {t("form.seedInvalid", { max: SEED_LIMIT - 1 })}
               </span>
             )}
           </label>
@@ -275,11 +270,9 @@ export function GenerationForm({
         disabled={blocked || sending}
         onClick={() => void submit()}
       >
-        {sending ? "Отправка…" : "Сгенерировать"}
+        {sending ? t("form.sending") : t("form.send")}
       </button>
-      {advancedInvalid && (
-        <p class="hint error">Исправьте значения в «Дополнительно».</p>
-      )}
+      {advancedInvalid && <p class="hint error">{t("form.fixAdvanced")}</p>}
       {error && (
         <p class="hint error" role="alert">
           {error}

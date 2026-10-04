@@ -93,8 +93,9 @@ for entry in "${DIRS[@]}"; do
             rsync_args+=(--filter=':- .gitignore')
             ;;
         games)
-            # Keep the private Unreal draft and build caches local.
-            rsync_args+=(--exclude='/vibe_jakubovich/' --filter=':- .gitignore')
+            # Keep the private Unreal draft, the soulslike test level and
+            # build caches local.
+            rsync_args+=(--exclude='/vibe_jakubovich/' --exclude='/soulslike/' --filter=':- .gitignore')
             ;;
         esac
         rsync "${rsync_args[@]}" "$SRC/$src_rel/" "$DEST/$dest_rel/"

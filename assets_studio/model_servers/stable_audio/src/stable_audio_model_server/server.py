@@ -21,7 +21,6 @@ import soundfile
 from pydantic import BaseModel, ConfigDict, Field
 
 from model_server_sdk import (
-    PRIMARY,
     GenerationError,
     InputSpec,
     InvalidInput,
@@ -32,6 +31,7 @@ from model_server_sdk import (
     Output,
     TaskSpec,
     is_out_of_memory,
+    ui,
 )
 
 logger = logging.getLogger("stable_audio_model_server")
@@ -68,9 +68,21 @@ SIGMA_CAP = 40.0
 class Common(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    steps: int = Field(default=100, ge=10, le=250, description="Шаги")
-    guidance: float = Field(default=7.0, ge=1, le=15, description="Следование описанию")
-    negative_prompt: str = Field(default="Low quality.", description="Чего избегать")
+    steps: int = Field(
+        default=100, ge=10, le=250, description="Steps", json_schema_extra=ui(ru="Шаги")
+    )
+    guidance: float = Field(
+        default=7.0,
+        ge=1,
+        le=15,
+        description="Prompt adherence",
+        json_schema_extra=ui(ru="Следование описанию"),
+    )
+    negative_prompt: str = Field(
+        default="Low quality.",
+        description="What to avoid",
+        json_schema_extra=ui(ru="Чего избегать"),
+    )
 
 
 class TextToAudioParams(Common):
@@ -78,11 +90,15 @@ class TextToAudioParams(Common):
         default=10.0,
         ge=0.5,
         le=MAX_SECONDS,
-        description="Длительность, с",
-        json_schema_extra=PRIMARY,
+        description="Duration, s",
+        json_schema_extra=ui(ru="Длительность, с", primary=True),
     )
     # The model's loudness varies from -40 to 0 dBFS (and clips) between sounds.
-    normalize: bool = Field(default=True, description="Выровнять громкость (пик −1 дБ)")
+    normalize: bool = Field(
+        default=True,
+        description="Normalize loudness (peak −1 dB)",
+        json_schema_extra=ui(ru="Выровнять громкость (пик −1 дБ)"),
+    )
 
 
 class AudioToAudioParams(Common):
@@ -90,11 +106,17 @@ class AudioToAudioParams(Common):
         default=0.5,
         ge=0.05,
         le=1,
-        description="Сила изменения (1 — исходный звук почти не учитывается)",
-        json_schema_extra=PRIMARY,
+        description="Change strength (1: the source sound is almost ignored)",
+        json_schema_extra=ui(
+            ru="Сила изменения (1 — исходный звук почти не учитывается)", primary=True
+        ),
     )
     # Evolution keeps the level of the sound it mutates.
-    normalize: bool = Field(default=True, description="Громкость как у исходного звука")
+    normalize: bool = Field(
+        default=True,
+        description="Match the source sound's loudness",
+        json_schema_extra=ui(ru="Громкость как у исходного звука"),
+    )
 
 
 TASKS = (
@@ -108,7 +130,8 @@ TASKS = (
             InputSpec(
                 role="audio",
                 mime=["audio/wav"],
-                description="Исходный звук; учитываются первые 47 с",
+                description="Source sound; the first 47 s are used",
+                labels={"ru": "Исходный звук; учитываются первые 47 с"},
             ),
         ),
     ),

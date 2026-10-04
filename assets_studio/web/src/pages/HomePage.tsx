@@ -1,17 +1,15 @@
 import { hrefSection } from "../state/router";
 import { sections, unseenServers } from "../state/sections";
 import { loaded, servers } from "../state/store";
+import { t } from "../i18n";
 
 /** Servers that never answered: their tasks, and so their sections, are unknown. */
 function Unseen() {
   if (!unseenServers.value.length) return null;
   return (
     <div class="empty-page">
-      <h2>Ещё не запускались</h2>
-      <p>
-        Задачи этих моделей станут известны, когда их сервер ответит хотя бы
-        раз:
-      </p>
+      <h2>{t("home.unseenTitle")}</h2>
+      <p>{t("home.unseenText")}</p>
       <ul class="unseen">
         {unseenServers.value.map((server) => (
           <li key={server.id}>
@@ -40,13 +38,13 @@ export function HomePage() {
   if (servers.value.length) return <Unseen />;
   return (
     <div class="empty-page">
-      <h2>Моделей пока нет</h2>
+      <h2>{t("home.emptyTitle")}</h2>
       <p>
-        Опишите серверы моделей в{" "}
-        <code>~/.config/assets-studio/studio.toml</code>, например:
+        {t("home.emptyBefore")} <code>~/.config/assets-studio/studio.toml</code>
+        {t("home.emptyExample")}
       </p>
       <pre>{`[[servers]]\nid = "flux"\nurl = "http://127.0.0.1:9104"`}</pre>
-      <p>и перезапустите студию.</p>
+      <p>{t("home.emptyAfter")}</p>
     </div>
   );
 }

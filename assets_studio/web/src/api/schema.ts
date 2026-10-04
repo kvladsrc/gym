@@ -50,7 +50,11 @@ export interface paths {
         get: operations["get_job_api_jobs__job_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Job
+         * @description Remove a failed or cancelled job from the history.
+         */
+        delete: operations["delete_job_api_jobs__job_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -118,7 +122,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Assets */
+        /**
+         * List Assets
+         * @description Assets matching all filters; ``tag`` may repeat (all must match).
+         */
         get: operations["list_assets_api_assets_get"];
         put?: never;
         /**
@@ -264,6 +271,10 @@ export interface components {
             };
             /** Deleted At */
             deleted_at: string | null;
+            /** Rating */
+            rating: number | null;
+            /** Tags */
+            tags: string[];
             /** File Url */
             file_url: string;
         };
@@ -273,6 +284,10 @@ export interface components {
             title?: string | null;
             /** Favorite */
             favorite?: boolean | null;
+            /** Rating */
+            rating?: number | null;
+            /** Tags */
+            tags?: string[] | null;
         };
         /** DependencyIn */
         DependencyIn: {
@@ -316,6 +331,10 @@ export interface components {
             required: boolean;
             /** Description */
             description?: string | null;
+            /** Labels */
+            labels?: {
+                [key: string]: string;
+            } | null;
         };
         /** JobCreate */
         JobCreate: {
@@ -407,6 +426,8 @@ export interface components {
             started_at: string | null;
             /** Finished At */
             finished_at: string | null;
+            /** Deleted At */
+            deleted_at: string | null;
         };
         /**
          * JobStatus
@@ -614,6 +635,37 @@ export interface operations {
             };
         };
     };
+    delete_job_api_jobs__job_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     wait_job_api_jobs__job_id__wait_post: {
         parameters: {
             query?: {
@@ -714,6 +766,9 @@ export interface operations {
             query?: {
                 kind?: components["schemas"]["AssetKind"] | null;
                 favorite?: boolean | null;
+                tag?: string[] | null;
+                min_rating?: number | null;
+                unrated?: boolean;
                 limit?: number;
             };
             header?: never;

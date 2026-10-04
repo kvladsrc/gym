@@ -3,7 +3,8 @@
 import { computed } from "@preact/signals";
 
 import type { Job, Server, Task } from "../api/client";
-import { jobs, servers } from "./store";
+import { assetById, jobs, servers } from "./store";
+import { type Key, t } from "../i18n";
 
 export interface Section {
   id: string;
@@ -14,12 +15,12 @@ export interface Section {
   servers: Server[];
 }
 
-const SECTIONS: [string, string][] = [
-  ["image", "Картинки"],
-  ["mesh", "3D"],
-  ["audio", "Звук"],
-  ["text", "Текст"],
-  ["video", "Видео"],
+const SECTIONS: [string, Key][] = [
+  ["image", "section.image"],
+  ["mesh", "section.mesh"],
+  ["audio", "section.audio"],
+  ["text", "section.text"],
+  ["video", "section.video"],
 ];
 
 const MIME_KINDS: Record<string, string> = {
@@ -37,7 +38,7 @@ export function sectionOfTask(task: Task): string | undefined {
 }
 
 export const sections = computed<Section[]>(() =>
-  SECTIONS.flatMap(([id, title]) => {
+  SECTIONS.flatMap(([id, titleKey]) => {
     const tasks: string[] = [];
     const members: Server[] = [];
     for (const server of servers.value) {
@@ -46,7 +47,9 @@ export const sections = computed<Section[]>(() =>
       for (const task of here)
         if (!tasks.includes(task.task)) tasks.push(task.task);
     }
-    return tasks.length ? [{ id, title, tasks, servers: members }] : [];
+    return tasks.length
+      ? [{ id, title: t(titleKey), tasks, servers: members }]
+      : [];
   }),
 );
 
@@ -105,8 +108,21 @@ export function sectionOfJob(job: Job): string | undefined {
   return result ? RESULTS[result] : undefined;
 }
 
-/** Jobs of a section, newest first (ids are time-ordered). */
+/** A job with results, every one of them deleted from the library. Results not
+ * loaded yet count as kept; checking stops at the first kept one, so only the
+ * results after deleted ones are loaded. */
+export const allResultsDeleted = (job: Job) =>
+  job.outputs.length > 0 &&
+  job.outputs.every((id) => assetById(id)?.deleted_at);
+
+/** Jobs of a section, newest first (ids are time-ordered); deleted jobs and
+ * jobs whose results were all deleted are left out. */
 export const jobsOfSection = (sectionId: string) =>
   [...jobs.value.values()]
-    .filter((job) => sectionOfJob(job) === sectionId)
+    .filter(
+      (job) =>
+        sectionOfJob(job) === sectionId &&
+        !job.deleted_at &&
+        !allResultsDeleted(job),
+    )
     .sort((a, b) => (a.id < b.id ? 1 : -1));

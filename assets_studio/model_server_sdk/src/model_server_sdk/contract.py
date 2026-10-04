@@ -11,7 +11,7 @@ fields.
 """
 
 from enum import StrEnum
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, cast
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -42,6 +42,12 @@ class KnownTask(StrEnum):
     TEXT_TO_TEXT = "text-to-text"
     IMAGE_TO_VIDEO = "image-to-video"
     TEXT_TO_3D = "text-to-3d"
+    # The prompt is the lyrics; the style is a parameter.
+    TEXT_TO_SONG = "text-to-song"
+    # A character mesh (GLB) to a rigged one: skeleton and skin weights (FBX).
+    RIG_3D = "3d-to-rig"
+    # A mesh and the image it was made from to the mesh with a texture.
+    PAINT_3D = "3d-paint"
 
 
 class _Request(BaseModel):
@@ -65,6 +71,8 @@ class InputSpec(_Response):
     mime: list[MimePattern] = Field(min_length=1)
     required: bool = True
     description: str | None = None
+    # The description in other languages, for the studio's interface (ADR-005).
+    labels: dict[str, str] | None = None
 
 
 class TaskInfo(_Response):
@@ -140,11 +148,33 @@ CANONICAL_MIME = {
 }
 
 # Marks a parameter the studio shows up front rather than under "advanced"
-# (ADR-003): ``Field(..., json_schema_extra=PRIMARY)``.
+# (ADR-003): ``Field(..., json_schema_extra=PRIMARY)``. See also ui().
 PRIMARY: dict[str, Any] = {"x-primary": True}
+
+
+def ui(*, primary: bool = False, **labels: str) -> dict[str, Any]:
+    """``json_schema_extra`` for a parameter: its label in other languages
+    for the studio's interface (ADR-005), the ``description`` being the
+    English one, and whether it is shown up front (ADR-003).
+
+    ``Field(default=40, description="Steps", json_schema_extra=ui(ru="Шаги"))``
+    """
+    extra: dict[str, Any] = {"x-labels": dict(labels)} if labels else {}
+    if primary:
+        extra.update(PRIMARY)
+    return extra
+
 
 _SCALAR_TYPES = {"string", "number", "integer", "boolean"}
 _COMPOSITE_KEYWORDS = ("$ref", "anyOf", "allOf", "oneOf", "items", "properties")
+
+
+def _is_labels(value: object) -> bool:
+    """Whether ``value`` maps language codes to texts (ADR-005)."""
+    if not isinstance(value, dict):
+        return False
+    items = cast(dict[object, object], value).items()
+    return all(isinstance(key, str) and isinstance(text, str) for key, text in items)
 
 
 def params_schema_problems(schema: dict[str, Any]) -> list[str]:
@@ -165,6 +195,8 @@ def params_schema_problems(schema: dict[str, Any]) -> list[str]:
             problems.append(f"{name}: not a flat scalar ({', '.join(composite)})")
         elif prop.get("type") not in _SCALAR_TYPES and "enum" not in prop:
             problems.append(f"{name}: type {prop.get('type')!r} is not a scalar")
+        if "x-labels" in prop and not _is_labels(prop["x-labels"]):
+            problems.append(f"{name}: x-labels must map language codes to strings")
     return problems
 
 

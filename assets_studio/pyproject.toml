@@ -35,16 +35,16 @@ ignore = ["S101", "ANN401", "RUF001", "RUF002", "RUF003"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["tests"]
+pythonpath = ["tests", "launcher"]
 addopts = "-ra"
 
 [tool.pyright]
-include = ["studio/src", "model_server_sdk/src", "model_servers/fake/src", "tests"]
+include = ["studio/src", "model_server_sdk/src", "model_servers/fake/src", "launcher", "tests"]
 typeCheckingMode = "strict"
 pythonVersion = "3.12"
 executionEnvironments = [
   { root = "model_server_sdk/src", pythonVersion = "3.11" },
-  { root = "tests", extraPaths = ["tests"], reportPrivateUsage = false },
+  { root = "tests", extraPaths = ["tests", "launcher"], reportPrivateUsage = false },
 ]
 
 [tool.importlinter]

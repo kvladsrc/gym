@@ -1,0 +1,35 @@
+[project]
+name = "yue2-model-server"
+version = "0.1.0"
+description = "Song model server for the asset studio (YuE2-3B: songs with vocals from lyrics and a style; AR and NAR halves take turns on an 8 GB GPU)."
+# The versions yue2-infer pins; its authors test on Python 3.12.
+requires-python = "==3.12.*"
+dependencies = [
+  "model-server-sdk",
+  "yue2-infer @ git+https://github.com/multimodal-art-projection/YuE@18a07bb628f070c2eede44c3143834818e856a73",
+  "torch==2.10.0",
+  "numpy==2.2.6",
+  "soundfile==0.13.1",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+yue2-model-server = "yue2_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true

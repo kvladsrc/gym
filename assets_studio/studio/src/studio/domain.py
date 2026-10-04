@@ -43,7 +43,8 @@ StudioErrorCode = Literal[
 # A job fails after this many consecutive retryable errors ("busy" does not count).
 MAX_RETRYABLE_FAILURES = 3
 
-# Formats the studio stores, all playable in the browser. Each kind has a
+# Formats the studio stores, all playable in the browser except FBX (rigged
+# characters for game engines, ADR-006). Each kind has a
 # canonical format that every model server accepts (ADR-001, ADR-003); others
 # are converted before sending. Content detection tries them in this order:
 # plain text last, as almost any header without NUL bytes would pass it.
@@ -55,6 +56,7 @@ MIME_KINDS: dict[str, AssetKind] = {
     "audio/flac": AssetKind.AUDIO,
     "audio/ogg": AssetKind.AUDIO,
     "model/gltf-binary": AssetKind.MESH,
+    "model/x-fbx": AssetKind.MESH,
     "video/mp4": AssetKind.VIDEO,
     "video/webm": AssetKind.VIDEO,
     "audio/mpeg": AssetKind.AUDIO,  # a weak signature (a sync word): late
@@ -69,6 +71,7 @@ FILE_EXTENSIONS: dict[str, str] = {
     "audio/ogg": ".ogg",
     "audio/mpeg": ".mp3",
     "model/gltf-binary": ".glb",
+    "model/x-fbx": ".fbx",
     "video/mp4": ".mp4",
     "video/webm": ".webm",
     "text/plain": ".txt",
@@ -114,6 +117,8 @@ class Asset:
     meta: dict[str, Any] = field(default_factory=dict[str, Any])
     # Deleted assets leave the library; jobs and lineage still refer to them.
     deleted_at: str | None = None
+    rating: int | None = None  # 0-5, None: not rated (ADR-007)
+    tags: tuple[str, ...] = ()  # sorted
 
 
 @dataclass(frozen=True)
@@ -149,3 +154,4 @@ class Job:
     retry_of: str | None = None
     started_at: str | None = None
     finished_at: str | None = None
+    deleted_at: str | None = None  # gone from the history (ADR-004)

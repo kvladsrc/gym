@@ -71,6 +71,32 @@ def test_transparency_becomes_white(mode: str) -> None:
     assert open_image(encode(image)).getpixel((0, 0)) == (255, 255, 255)
 
 
+@pytest.mark.parametrize("mode", ["RGBA", "LA"])
+def test_transparency_is_kept_on_request(mode: str) -> None:
+    image = Image.new(mode, (4, 4), 0)
+    kept = open_image(encode(image), keep_alpha=True)
+    assert kept.mode == "RGBA"
+    assert kept.getchannel("A").getpixel((0, 0)) == 0
+
+
+def test_palette_transparency_is_kept_on_request() -> None:
+    image = Image.new("P", (4, 4), 0)
+    image.putpalette([0, 0, 0] * 256)
+    kept = open_image(encode(image, transparency=0), keep_alpha=True)
+    assert kept.mode == "RGBA"
+    assert kept.getchannel("A").getpixel((0, 0)) == 0
+
+
+def test_opaque_images_stay_rgb_when_alpha_is_kept() -> None:
+    assert open_image(encode(Image.new("RGB", (4, 4))), keep_alpha=True).mode == "RGB"
+
+
+def test_prepared_input_keeps_alpha_on_request() -> None:
+    prepared = prepare_input(encode(Image.new("RGBA", (300, 200), 0)), keep_alpha=True)
+    assert prepared.mode == "RGBA"
+    assert prepared.size == fit_input(300, 200)
+
+
 def test_palette_transparency_becomes_white() -> None:
     image = Image.new("P", (4, 4), 0)
     image.putpalette([0, 0, 0] * 256)

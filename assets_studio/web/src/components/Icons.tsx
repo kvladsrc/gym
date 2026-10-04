@@ -1,4 +1,5 @@
 // Small inline icons for asset kinds without a bitmap thumbnail.
+import { t } from "../i18n";
 export const CubeIcon = () => (
   <svg
     width="24"
@@ -61,7 +62,7 @@ export const TrashIcon = () => (
     fill="none"
     stroke="currentColor"
     stroke-width="1.5"
-    aria-label="Удалено"
+    aria-label={t("asset.removedIcon")}
   >
     <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
   </svg>

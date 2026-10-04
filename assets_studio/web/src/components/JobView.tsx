@@ -7,6 +7,7 @@ import { assetById, attempt, isPending, mergeJob } from "../state/store";
 import { AssetActions } from "./AssetActions";
 import { AssetPreview } from "./AssetPreview";
 import { AssetThumb } from "./AssetThumb";
+import { t } from "../i18n";
 
 function useNow(active: boolean) {
   const [now, setNow] = useState(Date.now());
@@ -24,14 +25,14 @@ function Progress({ job, server }: { job: Job; server: Server | undefined }) {
   const elapsed = duration((now - new Date(since).getTime()) / 1000);
   const text =
     job.status === "running"
-      ? `Генерация… ${elapsed}`
+      ? t("job.generating", { elapsed })
       : job.status === "waiting_model"
         ? server?.state === "unavailable"
-          ? `Ждёт запуска модели ${server.title}: ${server.url}`
-          : "Ждёт, пока модель освободится"
+          ? t("job.waitingStart", { model: server.title, url: server.url })
+          : t("job.waitingFree")
         : Object.keys(job.dependencies).length
-          ? "Ждёт результата предыдущего задания"
-          : "В очереди";
+          ? t("job.waitingInput")
+          : t("status.queued");
   return (
     <div class="placeholder">
       <div class="row" style={{ justifyContent: "center" }}>
@@ -80,7 +81,7 @@ export function JobView({
           {isPending(job) ? (
             <Progress job={job} server={server} />
           ) : asset?.deleted_at ? (
-            <div class="placeholder">Удалено из библиотеки.</div>
+            <div class="placeholder">{t("job.deleted")}</div>
           ) : asset ? (
             <AssetPreview key={asset.id} asset={asset} />
           ) : (
@@ -95,7 +96,7 @@ export function JobView({
             <button
               key={id}
               class={`thumb${index === selected ? " selected" : ""}`}
-              aria-label={`Вариант ${index + 1}`}
+              aria-label={t("job.variant", { n: index + 1 })}
               aria-pressed={index === selected}
               onClick={() => setSelected(index)}
             >
@@ -116,7 +117,7 @@ export function JobView({
               )
             }
           >
-            Отменить
+            {t("job.cancel")}
           </button>
         )}
         {(job.status === "failed" || job.status === "cancelled") && (
@@ -130,7 +131,19 @@ export function JobView({
               })
             }
           >
-            Повторить
+            {t("job.retry")}
+          </button>
+        )}
+        {(job.status === "failed" || job.status === "cancelled") && (
+          <button
+            class="button small"
+            onClick={() =>
+              void attempt(() => api.deleteJob(job.id)).then(
+                (done) => done && mergeJob(done),
+              )
+            }
+          >
+            {t("job.delete")}
           </button>
         )}
         <span class="hint">

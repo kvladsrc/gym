@@ -1,37 +1,28 @@
-// Russian labels and small formatting helpers.
+// Labels for names that come from data, and small formatting helpers.
 import type { Asset, InputSpec, Job } from "./api/client";
+import { has, language, t } from "./i18n";
 
-const TASKS: Record<string, string> = {
-  "text-to-image": "Текст → картинка",
-  "image-to-image": "Картинка → картинка",
-  "image-to-3d": "Картинка → 3D",
-  "text-to-speech": "Текст → речь",
-  "text-to-audio": "Текст → звук",
-  "audio-to-audio": "Звук → звук",
-  "text-to-text": "Текст → текст",
-  "image-to-video": "Картинка → видео",
-  "text-to-3d": "Текст → 3D",
+/** A task's label; a task the interface does not know shows its name. */
+export const taskLabel = (task: string) => {
+  const key = `task.${task}`;
+  return has(key) ? t(key) : task;
 };
-export const taskLabel = (task: string) => TASKS[task] ?? task;
 
-const STATUSES: Record<string, string> = {
-  queued: "В очереди",
-  waiting_model: "Ждёт модель",
-  running: "Генерация",
-  succeeded: "Готово",
-  failed: "Ошибка",
-  cancelled: "Отменено",
+/** What the prompt field holds: a description, or e.g. the lyrics. */
+export const promptLabel = (task: string) => {
+  const key = `prompt.${task}`;
+  return has(key) ? t(key) : t("prompt.description");
 };
-export const statusLabel = (job: Job) => STATUSES[job.status] ?? job.status;
 
-const KINDS: Record<string, string> = {
-  image: "Картинка",
-  mesh: "3D",
-  audio: "Звук",
-  text: "Текст",
-  video: "Видео",
+export const statusLabel = (job: Job) => {
+  const key = `status.${job.status}`;
+  return has(key) ? t(key) : job.status;
 };
-export const kindLabel = (kind: string) => KINDS[kind] ?? kind;
+
+export const kindLabel = (kind: string) => {
+  const key = `kind.${kind}`;
+  return has(key) ? t(key) : kind;
+};
 
 /** Asset kind accepted by an input, judged by its MIME patterns. */
 export function inputKind(spec: InputSpec): string | null {
@@ -52,7 +43,7 @@ export function inputKind(spec: InputSpec): string | null {
 const STORABLE: Record<string, string> = {
   image: "image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp",
   audio: "audio/wav,audio/flac,audio/ogg,audio/mpeg,.wav,.flac,.ogg,.oga,.mp3",
-  mesh: "model/gltf-binary,.glb",
+  mesh: "model/gltf-binary,model/x-fbx,.glb,.fbx",
   video: "video/mp4,video/webm,.mp4,.webm",
   text: "text/plain,.txt",
 };
@@ -68,7 +59,7 @@ export function assetName(asset: Asset) {
 }
 
 export function time(iso: string) {
-  return new Date(iso).toLocaleString("ru-RU", {
+  return new Date(iso).toLocaleString(language.value, {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
@@ -78,12 +69,19 @@ export function time(iso: string) {
 
 export function duration(seconds: number) {
   return seconds < 60
-    ? `${Math.round(seconds)} с`
-    : `${Math.floor(seconds / 60)} мин ${Math.round(seconds % 60)} с`;
+    ? t("unit.seconds", { s: Math.round(seconds) })
+    : t("unit.minutes", {
+        m: Math.floor(seconds / 60),
+        s: Math.round(seconds % 60),
+      });
 }
 
 export function bytes(size: number) {
   return size < 1024 * 1024
-    ? `${Math.round(size / 1024)} КБ`
-    : `${(size / 1024 / 1024).toFixed(1)} МБ`;
+    ? t("unit.kb", { n: Math.round(size / 1024) })
+    : t("unit.mb", {
+        n: (size / 1024 / 1024).toLocaleString(language.value, {
+          maximumFractionDigits: 1,
+        }),
+      });
 }

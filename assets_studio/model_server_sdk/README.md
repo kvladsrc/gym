@@ -135,6 +135,39 @@ def main() -> None:
   `yuv420p`, `+faststart`): сервер кодирует его сам, студия проигрывает без
   перекодирования. `media.SAMPLE_MP4` — образец такого ролика.
 
+### Подписи на двух языках, прозрачность, песни (ADR-005, SDK 1.5.0)
+
+- `description` параметра — по-английски (его читают агенты и английский
+  интерфейс), подпись для русского интерфейса — в `ui()`, там же пометка
+  основного параметра:
+
+  ```python
+  from model_server_sdk import ui
+
+  steps: int = Field(
+      default=40,
+      description="Steps",
+      json_schema_extra=ui(ru="Шаги"),
+  )
+  size: str = Field(
+      default="1K",
+      description="Size",
+      json_schema_extra=ui(ru="Размер", primary=True),
+  )
+  ```
+
+  У входа — `InputSpec(..., description="First frame", labels={"ru": "Первый кадр"})`.
+- `images.open_image(data, keep_alpha=True)` / `prepare_input(...,
+  keep_alpha=True)` — картинка с прозрачностью остаётся RGBA (для моделей,
+  которые сами читают альфу, как Qwen-Image).
+- Новая известная задача `text-to-song`: описание — текст песни, стиль —
+  параметр.
+
+### Скелет персонажа (ADR-006, SDK 1.6.0)
+
+- Вид файла `model/x-fbx` (двоичный FBX, `media.FBX_MAGIC`) и известная
+  задача `3d-to-rig`: GLB-сетка персонажа → FBX со скелетом и весами.
+
 ### Видео и большие модели (SDK 1.4.0)
 
 - `model_server_sdk.video.encode_mp4(frames, width=, height=, fps=)` —

@@ -4,6 +4,7 @@ import { statusLabel, taskLabel } from "../format";
 import { assetById, isPending } from "../state/store";
 import { AssetThumb } from "./AssetThumb";
 import { AlertIcon } from "./Icons";
+import { t } from "../i18n";
 
 export function HistoryStrip({
   jobs,
@@ -17,7 +18,7 @@ export function HistoryStrip({
   if (!jobs.length)
     return (
       <div class="history">
-        <span class="hint">История этого раздела появится здесь.</span>
+        <span class="hint">{t("history.empty")}</span>
       </div>
     );
   return (

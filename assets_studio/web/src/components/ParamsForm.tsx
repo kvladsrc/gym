@@ -1,6 +1,7 @@
 // A form generated from a task's JSON Schema of parameters (ADR-001: a flat
 // object of scalars or enumerations, each with a default). Parameters marked
 // "x-primary" (ADR-003) are shown up front, the rest under "advanced".
+import { localized, t } from "../i18n";
 type Schema = Record<string, unknown>;
 export type Params = Record<string, unknown>;
 
@@ -15,6 +16,7 @@ interface Property {
   exclusiveMinimum?: number;
   exclusiveMaximum?: number;
   "x-primary"?: boolean;
+  "x-labels"?: Record<string, string>;
 }
 
 export const isPrimary = (prop: Property) => prop["x-primary"] === true;
@@ -50,17 +52,18 @@ export function parseNumber(text: string, prop: Property): number | null {
 function range(prop: Property) {
   const low =
     prop.minimum !== undefined
-      ? `от ${prop.minimum}`
+      ? t("params.from", { n: prop.minimum })
       : prop.exclusiveMinimum !== undefined
-        ? `больше ${prop.exclusiveMinimum}`
+        ? t("params.above", { n: prop.exclusiveMinimum })
         : "";
   const high =
     prop.maximum !== undefined
-      ? `до ${prop.maximum}`
+      ? t("params.to", { n: prop.maximum })
       : prop.exclusiveMaximum !== undefined
-        ? `меньше ${prop.exclusiveMaximum}`
+        ? t("params.below", { n: prop.exclusiveMaximum })
         : "";
-  const kind = prop.type === "integer" ? "целое число" : "число";
+  const kind =
+    prop.type === "integer" ? t("params.integer") : t("params.number");
   return [kind, low, high].filter(Boolean).join(" ");
 }
 
@@ -102,7 +105,11 @@ function NumberField({
         value={text}
         onInput={(event) => onInput(event.currentTarget.value)}
       />
-      {!valid && <span class="hint error">Нужно {range(prop)}</span>}
+      {!valid && (
+        <span class="hint error">
+          {t("params.needed", { range: range(prop) })}
+        </span>
+      )}
     </label>
   );
 }
@@ -122,7 +129,10 @@ function Field({
   onChange: (value: unknown) => void;
   onText: (text: string) => void;
 }) {
-  const label = prop.description ?? prop.title ?? name;
+  const label = localized(
+    prop["x-labels"],
+    prop.description ?? prop.title ?? name,
+  );
   if (prop.enum) {
     return (
       <label class="field">

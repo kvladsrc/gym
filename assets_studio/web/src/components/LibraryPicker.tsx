@@ -5,6 +5,7 @@ import { api, type Asset } from "../api/client";
 import { kindLabel } from "../format";
 import { attempt, putAssets } from "../state/store";
 import { AssetCard } from "./AssetCard";
+import { t } from "../i18n";
 
 export function LibraryPicker({
   kind,
@@ -41,7 +42,7 @@ export function LibraryPicker({
     [],
   );
 
-  const title = `Библиотека · ${kindLabel(kind)}`;
+  const title = t("picker.title", { kind: kindLabel(kind) });
   return (
     <div
       class="overlay"
@@ -65,13 +66,13 @@ export function LibraryPicker({
         <div class="row">
           <h3 style={{ flex: 1 }}>{title}</h3>
           <button class="button small" onClick={onClose}>
-            Закрыть
+            {t("viewer.close")}
           </button>
         </div>
         {items === null ? (
           <span class="spinner" />
         ) : items.length === 0 ? (
-          <p class="hint">В библиотеке пока нет файлов этого вида.</p>
+          <p class="hint">{t("picker.empty")}</p>
         ) : (
           <div class="grid">
             {items.map((asset) => (

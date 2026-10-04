@@ -2,7 +2,7 @@
 name = "wan-model-server"
 version = "0.1.0"
 description = "Image-to-video model server for the asset studio (Wan2.2 TI2V-5B, GGUF Q8 transformer on the GPU)."
-# Same PyTorch 2.5.1 / CUDA 12.4 build as the TripoSR server: known to work here.
+# The PyTorch 2.5.1 / CUDA 12.4 build known to work on this machine.
 requires-python = "==3.11.*"
 dependencies = [
   "model-server-sdk[images,video]",

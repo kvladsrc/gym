@@ -77,6 +77,8 @@ class SyncGymTest(unittest.TestCase):
                 "games/vibe_jakubovich/unreal/Intermediate/data.bin",
                 "games/vibe_jakubovich/tools/__pycache__/pipeline.pyc",
                 "games/vibe_jakubovich/.env",
+                "games/soulslike/DESIGN.md",
+                "games/soulslike/unity/soulslike/Assets/Soulslike/Scripts/Hud.cs",
                 "assets_studio/.venv/bin/python",
                 "assets_studio/build/openapi.json",
                 "assets_studio/web/node_modules/preact/index.js",
@@ -122,6 +124,7 @@ class SyncGymTest(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertFalse((destination / "games/vibe_jakubovich").exists())
+            self.assertFalse((destination / "games/soulslike").exists())
             self.assertEqual(
                 (destination / "assets_studio/README.md").read_text(), "By myuser\n"
             )

@@ -377,7 +377,7 @@ wheels = [
 
 [[package]]
 name = "model-server-sdk"
-version = "1.4.0"
+version = "1.5.0"
 source = { editable = "../../model_server_sdk" }
 dependencies = [
     { name = "fastapi" },

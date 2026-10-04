@@ -1,15 +1,18 @@
 # Copy to ~/.config/assets-studio/studio.toml, then start model servers from model_servers/:
-#   just sdxl          (images, port 9101)
 #   just flux          (images, port 9104; needs HF_TOKEN)
-#   just triposr       (3D, port 9102)
 #   just xtts          (speech, port 9103)
 #   just stable_audio  (sounds and music, port 9105; needs HF_TOKEN)
 #   just gemma         (text, Gemma 4 12B, port 9106)
 #   just qwen          (text, Qwen3.8 27B, port 9107)
 #   just wan           (video from a first frame, Wan2.2, port 9108)
-# SDXL and TripoSR together do not fit into 8 GB; XTTS (~2 GB) fits beside either.
+#   just qwen_image    (images with transparency, editing; Qwen-Image 2.1, port 9109)
+#   just yue2          (songs with vocals from lyrics; YuE2, port 9110)
+#   just hunyuan3d     (3D shape; Hunyuan3D-2mini, port 9112)
+#   just mia           (Mixamo skeleton for a character; Make-It-Animatable, port 9113)
+#   just hunyuan_paint (paint a mesh from its image; Hunyuan3D-Paint, port 9114)
 # FLUX (~5 GB peak) runs alone or beside XTTS; Stable Audio (6.4 GB peak) runs alone.
 # The text models fill the card and spill into RAM: run them alone. So does Wan.
+# Qwen-Image and YuE2 also take the whole card: run them alone.
 #
 # The studio sorts the servers' tasks into sections by what they produce
 # (images, 3D, sound, text, video) and lets you pick the model inside a
@@ -19,19 +22,9 @@
 # generation the server keeps running.
 
 [[servers]]
-id = "image"
-title = "SDXL"
-url = "http://127.0.0.1:9101"
-
-[[servers]]
 id = "flux"
 title = "FLUX"
 url = "http://127.0.0.1:9104"
-
-[[servers]]
-id = "mesh"
-title = "TripoSR"
-url = "http://127.0.0.1:9102"
 
 [[servers]]
 id = "voice"
@@ -57,3 +50,28 @@ url = "http://127.0.0.1:9107"
 id = "video"
 title = "Wan 2.2"
 url = "http://127.0.0.1:9108"
+
+[[servers]]
+id = "qwen_image"
+title = "Qwen-Image 2.1"
+url = "http://127.0.0.1:9109"
+
+[[servers]]
+id = "song"
+title = "YuE2"
+url = "http://127.0.0.1:9110"
+
+[[servers]]
+id = "hunyuan3d"
+title = "Hunyuan3D-2mini"
+url = "http://127.0.0.1:9112"
+
+[[servers]]
+id = "rig"
+title = "Make-It-Animatable"
+url = "http://127.0.0.1:9113"
+
+[[servers]]
+id = "paint"
+title = "Hunyuan3D-Paint"
+url = "http://127.0.0.1:9114"

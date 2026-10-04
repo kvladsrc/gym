@@ -54,6 +54,22 @@
           '';
         };
 
+        # The GPU shell plus the CUDA toolkit, to build native CUDA modules of
+        # model servers (Hunyuan3D-Paint's rasterizer). nvcc needs a host
+        # compiler it supports: CUDA's own backend stdenv, not the newest gcc.
+        cudaBuildShell =
+          let
+            cuda = graphicsPkgs.cudaPackages;
+          in
+          pytorchCudaShell.overrideAttrs (old: {
+            nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ cuda.cudatoolkit ];
+            CUDA_HOME = "${cuda.cudatoolkit}";
+            CUDAHOSTCXX = "${cuda.backendStdenv.cc}/bin/c++";
+            NVCC_CCBIN = "${cuda.backendStdenv.cc}/bin/c++";
+            CC = "${cuda.backendStdenv.cc}/bin/cc";
+            CXX = "${cuda.backendStdenv.cc}/bin/c++";
+          });
+
         helm-plugins-dir = pkgs.symlinkJoin {
           name = "helm-plugins";
           paths = with pkgs.kubernetes-helmPlugins; [
@@ -215,6 +231,7 @@
 
           # Model servers of assets_studio; each keeps its own uv environment.
           assets-studio-gpu = pytorchCudaShell;
+          assets-studio-cuda = cudaBuildShell;
 
           cothic-assets = graphicsPkgs.mkShell {
             packages = with graphicsPkgs; [
