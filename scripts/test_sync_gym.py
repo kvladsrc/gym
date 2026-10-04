@@ -20,7 +20,6 @@ class SyncGymTest(unittest.TestCase):
                 "games/cothic",
                 "games/zooreader",
                 "games/ripples_cli",
-                "games/vibe_jakubovich_mvp",
                 "games/future_game",
                 "games/mosslight",
             )
@@ -52,10 +51,6 @@ class SyncGymTest(unittest.TestCase):
                 if line.startswith("mod") and '"games/' in line
             ]
             (source / "justfile").write_text("\n".join(game_modules) + "\n")
-            (source / "games/vibe_jakubovich_mvp/justfile").write_text(
-                "probe:\n    @echo mvp\n"
-            )
-
             for project in ("cothic", "zooreader", "mosslight"):
                 (source / "games" / project / "justfile").write_text(
                     f"probe:\n    @echo {project}\n"
@@ -67,9 +62,6 @@ class SyncGymTest(unittest.TestCase):
                 "games/cothic/build/game.pck",
                 "games/zooreader/asset-work/concept.png",
                 "games/future_game/build/output.bin",
-                "games/vibe_jakubovich_mvp/.godot/imported/cache.bin",
-                "games/vibe_jakubovich_mvp/build/game.pck",
-                "games/vibe_jakubovich_mvp/tmp/frame.png",
                 "games/vibe_jakubovich/references/media/episode.mp4",
                 "games/vibe_jakubovich/references/frames/frame.png",
                 "games/vibe_jakubovich/art/work/model.blend",
@@ -92,12 +84,12 @@ class SyncGymTest(unittest.TestCase):
 
             binaries = [
                 "games/cothic/assets/hero.glb",
-                "games/vibe_jakubovich_mvp/assets/spin.wav",
-                "games/vibe_jakubovich_mvp/assets/font.ttf",
-                "games/vibe_jakubovich_mvp/assets/font.otf",
-                "games/vibe_jakubovich_mvp/assets/host.png",
-                "games/vibe_jakubovich_mvp/assets/previews/wheel.gif",
-                "static/vibe_jakubovich.gif",
+                "games/cothic/assets/spin.wav",
+                "games/cothic/assets/font.ttf",
+                "games/cothic/assets/font.otf",
+                "games/zooreader/assets/host.png",
+                "games/zooreader/assets/previews/wheel.gif",
+                "static/zooreader.gif",
                 "assets_studio/model_server_sdk/src/model_server_sdk/data/sample.mp4",
             ]
             payload = b"\x00\xffmyuser your.domain\x00"
@@ -106,14 +98,12 @@ class SyncGymTest(unittest.TestCase):
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(payload)
             (source / "README.md").write_text(
-                "![Preview](static/"
-                "vibe_jakubovich.gif)\n",
+                "![Preview](static/zooreader.gif)\n",
                 encoding="utf-8",
             )
 
             (source / "games/README.md").write_text(
-                "![Preview](../static/vibe_jakubovich.gif)\n"
-                "[Game](vibe_jakubovich_mvp)\n"
+                "![Preview](../static/zooreader.gif)\n[Game](zooreader)\n"
             )
 
             result = subprocess.run(
@@ -130,15 +120,14 @@ class SyncGymTest(unittest.TestCase):
             )
             self.assertEqual(
                 (destination / "games/README.md").read_text(),
-                "![Preview](../static/vibe_jakubovich.gif)\n"
-                "[Game](vibe_jakubovich_mvp)\n",
+                "![Preview](../static/zooreader.gif)\n[Game](zooreader)\n",
             )
             public_just = subprocess.run(
                 [
                     "just",
                     "--justfile",
                     str(destination / "justfile"),
-                    "vibe_jakubovich_mvp",
+                    "cothic",
                     "probe",
                 ],
                 check=False,
@@ -146,7 +135,7 @@ class SyncGymTest(unittest.TestCase):
                 text=True,
             )
             self.assertEqual(public_just.returncode, 0, public_just.stderr)
-            self.assertEqual(public_just.stdout.strip(), "mvp")
+            self.assertEqual(public_just.stdout.strip(), "cothic")
             for project in projects:
                 with self.subTest(project=project):
                     self.assertEqual(
@@ -163,5 +152,5 @@ class SyncGymTest(unittest.TestCase):
                     self.assertEqual((destination / relative).read_bytes(), payload)
             self.assertEqual(
                 (destination / "README.md").read_text(),
-                "![Preview](static/vibe_jakubovich.gif)\n",
+                "![Preview](static/zooreader.gif)\n",
             )
