@@ -1,0 +1,73 @@
+[project]
+name = "mia-model-server"
+version = "0.1.0"
+description = "Rigging server for the asset studio: Make-It-Animatable v2 puts a Mixamo skeleton into a character mesh."
+# Make-It-Animatable v2 pins PyTorch 2.8 / CUDA 12.9 and bpy 4.3 (Python 3.11 only).
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  # requirements.txt of the v2 branch, without training and Gaussian-splat extras.
+  "einops",
+  "timm",
+  "torch-cluster==1.6.3+pt28cu129",
+  "PyMCubes",
+  "bpy==4.3.0",
+  "gradio>=5.50.0",
+  "spaces",
+  "matplotlib",
+  "numpy~=1.26.4",
+  "plyfile",
+  "potpourri3d",
+  "shapely",
+  "tqdm",
+  "trimesh[easy]",
+  "pytorch3d==0.7.8+pt2.8.0cu129",
+  "xformers==0.0.32.post2",
+  "accelerate<1.10",
+  "diffusers",
+  "huggingface_hub",
+  "scikit-image",
+  "omegaconf",
+  "pyyaml",
+  "safetensors",
+  "transformers==4.46.0",
+  "pymeshlab~=2023.12.post3",
+  "opencv-contrib-python",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+mia-model-server = "mia_model_server.__main__:main"
+
+[tool.uv]
+find-links = ["https://data.pyg.org/whl/torch-2.8.0+cu129.html"]
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+bpy = { index = "blender" }
+pytorch3d = { index = "pytorch3d" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[[tool.uv.index]]
+name = "blender"
+url = "https://download.blender.org/pypi/"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch3d"
+url = "https://miropsota.github.io/torch_packages_builder"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

@@ -16,7 +16,11 @@ exclude: |
   (?:^|/)third_party/|
   (.*_gtest\.cc$)|
   (^third_party/)|
-  (^node_modules/)
+  (^node_modules/)|
+  # Unity's serialised files: rewritten by the editor on save (trailing
+  # spaces, no final newline) and full of GUIDs that look like secrets.
+  (^games/soulslike/unity/soulslike/(ProjectSettings/|Packages/packages-lock\.json$|.*\.(meta|asset|inputactions)$))|
+  (^animations/mixamo/.*\.meta$)
 
 repos:
   # TODO(myuser): Uncommend ASAP
@@ -51,7 +55,8 @@ repos:
         exclude: |
           (?x)
           (^static/)|
-          (assets/)
+          (assets/)|
+          (^animations/mixamo/)
       - id: check-json
       - id: check-merge-conflict
       - id: check-toml

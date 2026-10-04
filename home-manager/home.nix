@@ -171,6 +171,7 @@ in
     usbutils
     xorg.xlsclients
     xournalpp
+    yt-dlp
 
     # Wayland & DE
     adw-gtk3
@@ -242,6 +243,12 @@ in
     ".config/niri" = {
       source = dotfiles/niri;
       recursive = true;
+    };
+    # The portal is the system's (/usr), so it never sees niri's own
+    # niri-portals.conf in the Nix store; without it no backend serves
+    # ScreenCast under niri, and screen recorders (Kooha, OBS) get nothing.
+    ".config/xdg-desktop-portal/niri-portals.conf" = {
+      source = "${pkgs.niri}/share/xdg-desktop-portal/niri-portals.conf";
     };
     ".config/kanshi" = {
       source = dotfiles/kanshi;

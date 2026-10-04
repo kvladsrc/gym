@@ -25,6 +25,7 @@ from model_server_sdk import (
     Output,
     TaskSpec,
     create_app,
+    ui,
 )
 
 
@@ -34,6 +35,10 @@ class EchoParams(BaseModel):
 
 class NoDefaultParams(BaseModel):
     size: int
+
+
+class BadLabelParams(BaseModel):
+    steps: int = Field(default=4, json_schema_extra={"x-labels": {"ru": 4}})
 
 
 class FactoryDefaultParams(BaseModel):
@@ -374,6 +379,7 @@ def test_server_must_declare_model_and_tasks() -> None:
         (EchoParams, (InputSpec(role="a", mime=["image/jpeg"]),), 1, "a: must accept image/png"),
         (EchoParams, (InputSpec(role="a", mime=["audio/mpeg"]),), 1, "a: must accept audio/wav"),
         (EchoParams, (), 0, "max_count"),
+        (BadLabelParams, (), 1, "x-labels must map language codes to strings"),
     ],
 )
 def test_invalid_declarations_fail_at_startup(
@@ -381,6 +387,23 @@ def test_invalid_declarations_fail_at_startup(
 ) -> None:
     with pytest.raises(TypeError, match=fragment):
         TaskSpec("bad", params, ("text/plain",), inputs=inputs, max_count=max_count)
+
+
+def test_ui_labels_and_primary_reach_the_schema() -> None:
+    class Labelled(BaseModel):
+        steps: int = Field(default=4, description="Steps", json_schema_extra=ui(ru="Шаги"))
+        size: int = Field(
+            default=1, description="Size", json_schema_extra=ui(ru="Размер", primary=True)
+        )
+        plain: int = Field(default=0, json_schema_extra=ui(primary=True))
+
+    TaskSpec("ok", Labelled, ("text/plain",))
+    properties = Labelled.model_json_schema()["properties"]
+    assert properties["steps"]["x-labels"] == {"ru": "Шаги"}
+    assert "x-primary" not in properties["steps"]
+    assert properties["size"]["x-labels"] == {"ru": "Размер"}
+    assert properties["size"]["x-primary"] is True
+    assert "x-labels" not in properties["plain"]
 
 
 def test_valid_declarations() -> None:

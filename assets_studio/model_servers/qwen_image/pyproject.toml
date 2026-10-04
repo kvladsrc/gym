@@ -1,0 +1,40 @@
+[project]
+name = "qwen-image-model-server"
+version = "0.1.0"
+description = "Image model server for the asset studio (Qwen-Image 2.1: text-to-image and editing with transparency; GGUF Q8, blocks offloaded to disk on 8 GB)."
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk[images]",
+  # diffusers has Qwen-Image 2.1 only on main so far (no release); this
+  # commit includes the fixes after it landed. The pipeline needs torch 2.6+.
+  "diffusers @ git+https://github.com/huggingface/diffusers@578c9b2c6636ab2424a0e56186268b83623656b2",
+  "torch==2.9.1",
+  "torchvision==0.24.1",
+  "transformers==5.17.0",
+  "accelerate==1.15.0",
+  "safetensors==0.8.0",
+  "gguf==0.19.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+qwen-image-model-server = "qwen_image_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true

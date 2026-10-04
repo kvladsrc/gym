@@ -1,6 +1,6 @@
 """Request and response bodies of the HTTP API (also used by the MCP tools)."""
 
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from model_server_sdk.contract import ModelInfo, TaskInfo
 from pydantic import BaseModel, ConfigDict, Field
@@ -40,6 +40,10 @@ class AssetUpdate(BaseModel):
 
     title: str | None = None
     favorite: bool | None = None
+    # 0-5; an explicit null clears the rating (ADR-007).
+    rating: Annotated[int, Field(ge=0, le=5)] | None = None
+    # Replaces all tags, e.g. ["style:cartoon", "model:hunyuan3d"].
+    tags: list[str] | None = None
 
 
 class ImportUrl(BaseModel):
@@ -82,6 +86,9 @@ class JobOut(BaseModel):
     retry_of: str | None
     started_at: str | None
     finished_at: str | None
+    # Set when a failed or cancelled job was deleted: it is gone from the
+    # history, retries and dependents still refer to it (ADR-004).
+    deleted_at: str | None
 
     @classmethod
     def of(cls, job: Job) -> "JobOut":
@@ -105,6 +112,8 @@ class AssetOut(BaseModel):
     # Set when the asset was deleted: it is gone from the library, but jobs
     # and lineage still show where it was (ADR-004).
     deleted_at: str | None
+    rating: int | None
+    tags: list[str]
     file_url: str
 
     @classmethod

@@ -6,6 +6,7 @@ import { acceptFor, assetName, inputKind, kindLabel } from "../format";
 import { assetById, attempt, putAsset } from "../state/store";
 import { AssetThumb } from "./AssetThumb";
 import { LibraryPicker } from "./LibraryPicker";
+import { localized, t } from "../i18n";
 
 export function InputPicker({
   spec,
@@ -45,8 +46,11 @@ export function InputPicker({
   return (
     <div class="field">
       <span>
-        {spec.description ?? (kind ? kindLabel(kind) : spec.role)}
-        {spec.required ? "" : " (необязательно)"}
+        {localized(
+          spec.labels,
+          spec.description ?? (kind ? kindLabel(kind) : spec.role),
+        )}
+        {spec.required ? "" : t("optional")}
       </span>
       <div
         class={`dropzone${over ? " over" : ""}`}
@@ -70,17 +74,17 @@ export function InputPicker({
             <div style={{ flex: 1, minWidth: 0 }}>
               <div class="card-name">{asset ? assetName(asset) : "…"}</div>
               <button class="button small" onClick={() => onChange(null)}>
-                Убрать
+                {t("input.remove")}
               </button>
             </div>
           </>
         ) : (
-          <span class="empty">Перетащите файл сюда или выберите ниже</span>
+          <span class="empty">{t("input.drop")}</span>
         )}
       </div>
       <div class="row">
         <button class="button small" onClick={() => fileInput.current?.click()}>
-          Файл…
+          {t("input.file")}
         </button>
         <input
           ref={fileInput}
@@ -95,15 +99,15 @@ export function InputPicker({
         />
         {kind && (
           <button class="button small" onClick={() => setPicking(true)}>
-            Из библиотеки
+            {t("input.library")}
           </button>
         )}
       </div>
       <div class="row">
         <input
           type="url"
-          aria-label="Ссылка на файл"
-          placeholder="или ссылка https://…"
+          aria-label={t("input.url")}
+          placeholder={t("input.urlPlaceholder")}
           value={url}
           onInput={(event) => setUrl(event.currentTarget.value)}
         />
@@ -112,7 +116,7 @@ export function InputPicker({
           disabled={!url.trim()}
           onClick={() => void fromUrl()}
         >
-          Загрузить
+          {t("input.upload")}
         </button>
       </div>
       {picking && kind && (

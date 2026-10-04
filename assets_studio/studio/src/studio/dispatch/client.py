@@ -73,9 +73,13 @@ class ModelClient:
         try:
             detail = ErrorResponse.model_validate(response.json()).error
         except (ValueError, ValidationError):
+            # A 5xx without the contract's error body is the server failing
+            # mid-request, typically stopped while generating (the launcher,
+            # Ctrl+C): retried like any retryable error, at most a few times.
+            server_failed = response.status_code >= 500
             raise GenerateFailure(
-                "invalid_response",
+                "server_error" if server_failed else "invalid_response",
                 f"HTTP {response.status_code}: {response.text[:300]}",
-                retryable=False,
+                retryable=server_failed,
             ) from None
         raise GenerateFailure(detail.code, detail.message, retryable=detail.retryable)

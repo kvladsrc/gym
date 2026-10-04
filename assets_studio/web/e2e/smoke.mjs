@@ -18,7 +18,12 @@ const browser = await chromium.launch({
   executablePath: process.env.CHROME ?? "google-chrome",
   args: ["--no-sandbox", "--use-gl=swiftshader", "--enable-unsafe-swiftshader"],
 });
-const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+// Russian, as the walkthrough's steps read the interface (the English one is
+// checked in a step of its own); Russian parameter labels come in x-labels.
+const page = await browser.newPage({
+  viewport: { width: 1280, height: 800 },
+  locale: "ru-RU",
+});
 const problems = [];
 page.on("console", (message) => {
   // Failed requests are reported with their URL by the response listener.
@@ -336,11 +341,15 @@ await step("a failed job and its retry", async () => {
   await page.locator(".error-box").getByText("generation_failed").waitFor();
   const before = await history.count();
   await page.getByRole("button", { name: "Повторить" }).click();
+  // The retry replaces the failed job in the history (ADR-004).
   await page.waitForFunction(
     (count) =>
       document.querySelectorAll(".history .thumb").length === count &&
-      document.querySelector(".history .thumb")?.classList.contains("selected"),
-    before + 1,
+      document
+        .querySelector(".history .thumb")
+        ?.classList.contains("selected") &&
+      !document.querySelector(".error-box"),
+    before,
   );
   await page.screenshot({ path: join(screens, "6-failed.png") });
   await page.getByLabel("Имитация ошибки").selectOption("none");
@@ -369,6 +378,18 @@ await step("library lists results and shows details", async () => {
     .locator(".details")
     .getByRole("button", { name: "Убрать из избранного" })
     .waitFor();
+  // Tags are chips: add one, then filter the library by clicking it.
+  const details = page.locator(".details");
+  await details.getByRole("button", { name: "+ Тег" }).click();
+  await details.getByRole("textbox", { name: "+ Тег" }).fill("Style:Cartoon");
+  await details.getByRole("textbox", { name: "+ Тег" }).press("Enter");
+  await details
+    .getByRole("button", { name: "style:cartoon", exact: true })
+    .click();
+  await page
+    .locator(".filters")
+    .getByRole("button", { name: "Убрать тег style:cartoon" })
+    .click();
   await page.getByRole("button", { name: "★ Избранное" }).click();
   await page.waitForFunction(
     () => document.querySelectorAll(".grid .card").length === 1,
@@ -399,6 +420,88 @@ await step("delete an asset from the library", async () => {
     before - 1,
   );
   await page.locator(".details").waitFor({ state: "detached" });
+});
+
+await step(
+  "a job whose results are all deleted leaves the history",
+  async () => {
+    await openSection("Звук");
+    await history.first().waitFor();
+    const before = await history.count();
+    await history.first().click();
+    const stage = page.locator(".stage");
+    await stage.getByRole("button", { name: "Удалить" }).click();
+    await stage.getByRole("button", { name: "Точно удалить?" }).click();
+    await page.waitForFunction(
+      (count) => document.querySelectorAll(".history .thumb").length === count,
+      before - 1,
+    );
+    // The stage moved on to a job that still has its result.
+    await stage.getByRole("button", { name: "Слушать" }).waitFor();
+  },
+);
+
+await step("dark theme: chosen, applied and remembered", async () => {
+  const background = () =>
+    page.evaluate(
+      () => window.getComputedStyle(document.documentElement).backgroundColor,
+    );
+  const theme = page.locator("button.theme");
+  while ((await theme.textContent()) !== "Тема: тёмная") await theme.click();
+  if ((await background()) !== "rgb(21, 24, 29)")
+    throw new Error(`dark background expected, got ${await background()}`);
+  await openSection("Картинки");
+  await page.screenshot({ path: join(screens, "10-dark-section.png") });
+  await page.getByRole("link", { name: "Библиотека" }).click();
+  await page.locator(".grid .card").first().waitFor();
+  await page.screenshot({ path: join(screens, "11-dark-library.png") });
+  await page.reload();
+  await page.locator("button.theme", { hasText: "Тема: тёмная" }).waitFor();
+  if ((await background()) !== "rgb(21, 24, 29)")
+    throw new Error("the dark theme was not remembered");
+  while ((await theme.textContent()) !== "Тема: как в системе")
+    await theme.click();
+});
+
+await step("an image at its real size", async () => {
+  await openSection("Картинки");
+  // A job with a picture (the newest ones here are failures and retries).
+  await page.locator(".history .thumb:has(img)").first().click();
+  await page.locator(".preview img.zoomable").click();
+  const viewer = page.getByRole("dialog");
+  await viewer.getByRole("button", { name: "100 %" }).click();
+  const [shown, natural] = await viewer
+    .locator("img")
+    .evaluate((image) => [image.clientWidth, image.naturalWidth]);
+  if (shown !== natural)
+    throw new Error(`100 % should be ${natural} px wide, got ${shown}`);
+  await page.screenshot({ path: join(screens, "12-real-size.png") });
+  await page.keyboard.press("Escape");
+  await viewer.waitFor({ state: "detached" });
+  // Focus is back on the image that opened the viewer.
+  if (
+    !(await page.evaluate(() =>
+      document.activeElement?.classList.contains("zoomable"),
+    ))
+  )
+    throw new Error("focus did not return to the image");
+});
+
+await step("English interface, remembered", async () => {
+  await openSection("Картинки");
+  await page.getByRole("button", { name: "English" }).click();
+  await page.getByRole("link", { name: "Library" }).waitFor();
+  await page.getByRole("button", { name: "Generate" }).waitFor();
+  // The servers' own (English) labels instead of their Russian x-labels.
+  await page.getByText("Advanced").click();
+  await page.getByText("Artificial delay, s").waitFor();
+  if ((await page.evaluate(() => document.documentElement.lang)) !== "en")
+    throw new Error("<html lang> did not follow the language");
+  await page.screenshot({ path: join(screens, "13-english.png") });
+  await page.reload();
+  await page.getByRole("link", { name: "Library" }).waitFor();
+  await page.getByRole("button", { name: "Русский" }).click();
+  await page.getByRole("link", { name: "Библиотека" }).waitFor();
 });
 
 await browser.close();

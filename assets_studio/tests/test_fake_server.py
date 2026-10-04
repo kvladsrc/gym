@@ -22,6 +22,7 @@ from model_server_sdk import KnownTask, create_app, media
 
 PNG = base64.b64encode(media.encode_png(4, 4, lambda x, y: (x, y, 0))).decode()
 WAV = base64.b64encode(media.encode_wav(media.tone(440, 0.1))).decode()
+GLB = base64.b64encode(media.encode_glb(*media.tetrahedron())).decode()
 
 
 @pytest.fixture
@@ -93,6 +94,26 @@ def test_output_depends_on_input(client: TestClient) -> None:
             "audio-to-audio",
             {"inputs": [{"role": "audio", "mime": "audio/wav", "data_b64": WAV}]},
             "audio/wav",
+        ),
+        (
+            "text-to-song",
+            {"prompt": "[Verse]\nМох и камень", "params": {"style": "folk"}},
+            "audio/wav",
+        ),
+        (
+            "3d-paint",
+            {
+                "inputs": [
+                    {"role": "mesh", "mime": "model/gltf-binary", "data_b64": GLB},
+                    {"role": "image", "mime": "image/png", "data_b64": PNG},
+                ]
+            },
+            "model/gltf-binary",
+        ),
+        (
+            "3d-to-rig",
+            {"inputs": [{"role": "mesh", "mime": "model/gltf-binary", "data_b64": GLB}]},
+            "model/x-fbx",
         ),
     ],
 )

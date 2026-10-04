@@ -1,0 +1,53 @@
+[project]
+name = "hunyuan-paint-model-server"
+version = "0.1.0"
+description = "Paints a 3D mesh from its image for the asset studio: Hunyuan3D-Paint v2.0 turbo."
+# PyTorch 2.8 / CUDA 12.9: nixpkgs has dropped CUDA 12.4, and the rasterizer is
+# compiled with the toolkit's nvcc (12.9), which must match.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  # What hy3dgen.texgen imports.
+  "diffusers>=0.32,<0.36",
+  "transformers>=4.48,<5",
+  "accelerate>=1.2",
+  "einops>=0.8",
+  "omegaconf>=2.3",
+  "huggingface-hub>=0.26,<1",
+  "numpy==1.26.4",
+  "opencv-python-headless>=4.10,<4.12",
+  "trimesh>=4.4",
+  "pymeshlab>=2023.12",
+  "xatlas>=0.0.9",
+  "pygltflib>=1.16",
+  "Pillow>=10.4",
+  "rembg==2.0.57",
+  "onnxruntime==1.20.1",
+  # Building the CUDA rasterizer (just setup).
+  "setuptools>=69",
+  "wheel",
+  "ninja",
+  "pybind11>=2.12",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+hunyuan-paint-model-server = "hunyuan_paint_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

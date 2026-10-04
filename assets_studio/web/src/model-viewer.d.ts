@@ -11,6 +11,8 @@ declare module "preact" {
         "auto-rotate"?: boolean;
         "shadow-intensity"?: string;
         exposure?: string;
+        loading?: "auto" | "lazy" | "eager";
+        "interaction-prompt"?: "auto" | "none";
       };
     }
   }

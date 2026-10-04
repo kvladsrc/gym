@@ -2,7 +2,7 @@
 name = "stable-audio-model-server"
 version = "0.1.0"
 description = "Sound effects model server for the asset studio (Stable Audio Open 1.0: text-to-audio, audio-to-audio)."
-# Same PyTorch 2.5.1 / CUDA 12.4 build as the TripoSR server: known to work here.
+# The PyTorch 2.5.1 / CUDA 12.4 build known to work on this machine.
 requires-python = "==3.11.*"
 dependencies = [
   "model-server-sdk",

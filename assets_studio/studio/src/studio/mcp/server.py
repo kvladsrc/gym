@@ -16,7 +16,7 @@ from studio.api.schemas import AssetOut, JobOut, ServerOut
 from studio.core import Studio
 from studio.domain import AssetKind, Dependency, Job
 from studio.services.generation import JobRequestError, JobStateError
-from studio.services.library import ImportError_
+from studio.services.library import BadTag, ImportError_, Unset
 
 INSTRUCTIONS = """\
 Local studio for game assets (images, 3D models, speech, sounds).
@@ -142,10 +142,37 @@ def build_mcp(studio: Studio) -> MCPServer:
             raise ToolError(str(error)) from error
 
     @mcp.tool()
-    def list_assets(kind: AssetKind | None = None, limit: int = 20) -> list[AssetView]:  # pyright: ignore[reportUnusedFunction]
+    def list_assets(  # pyright: ignore[reportUnusedFunction]
+        kind: AssetKind | None = None,
+        tags: list[str] | None = None,
+        min_rating: int | None = None,
+        unrated: bool = False,
+        limit: int = 20,
+    ) -> list[AssetView]:
         """Newest assets first (deleted ones are not listed); kind is image,
-        mesh, audio, text or video."""
-        return [asset_view(asset.id) for asset in studio.library.assets(kind=kind, limit=limit)]
+        mesh, audio, text or video; tags: having all of them (e.g.
+        "style:cartoon"); min_rating 0-5; unrated: not rated yet."""
+        assets = studio.library.assets(
+            kind=kind, tags=tags or [], min_rating=min_rating, unrated=unrated, limit=limit
+        )
+        return [asset_view(asset.id) for asset in assets]
+
+    @mcp.tool()
+    def rate_asset(  # pyright: ignore[reportUnusedFunction]
+        asset_id: str, rating: int | None = None, tags: list[str] | None = None
+    ) -> AssetView:
+        """Rate an asset 0-5 (None leaves the rating) and/or replace its tags."""
+        if rating is not None and not 0 <= rating <= 5:
+            raise ToolError("rating must be 0-5")
+        try:
+            updated = studio.library.update(
+                asset_id, rating=Unset if rating is None else rating, tags=tags
+            )
+        except BadTag as error:
+            raise ToolError(str(error)) from error
+        if updated is None:
+            raise ToolError(f"asset {asset_id} not found")
+        return asset_view(asset_id)
 
     @mcp.tool()
     def get_asset(asset_id: str) -> AssetView:  # pyright: ignore[reportUnusedFunction]
@@ -157,7 +184,8 @@ def build_mcp(studio: Studio) -> MCPServer:
         path: str | None = None, url: str | None = None, title: str | None = None
     ) -> AssetView:
         """Add a local file (path) or a downloaded file (url) to the library,
-        e.g. to use it as an input. PNG, JPEG, WebP, WAV and GLB are supported."""
+        e.g. to use it as an input: images (PNG, JPEG, WebP), sound (WAV, FLAC,
+        OGG, MP3), 3D (GLB, binary FBX), video (MP4, WebM) and text."""
         if (path is None) == (url is None):
             raise ToolError("give exactly one of path or url")
         try:

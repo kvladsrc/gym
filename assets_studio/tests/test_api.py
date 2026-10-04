@@ -143,6 +143,8 @@ def test_errors(tmp_path: Path) -> None:
         http.post(f"/api/jobs/{done['id']}/wait", params={"timeout_s": 10})
         assert http.post(f"/api/jobs/{done['id']}/cancel").status_code == 409
         assert http.post(f"/api/jobs/{done['id']}/retry").status_code == 409
+        assert http.delete(f"/api/jobs/{done['id']}").status_code == 409
+        assert http.delete("/api/jobs/missing").status_code == 404
 
 
 def test_idempotent_job_creation(tmp_path: Path) -> None:
@@ -433,3 +435,37 @@ def _free_port() -> int:
 @pytest.fixture(autouse=True)
 def _quiet_mcp_logs(caplog: pytest.LogCaptureFixture) -> None:
     caplog.set_level("WARNING")
+
+
+def test_ratings_and_tags_filter_the_library(tmp_path: Path) -> None:
+    with fake_and_studio(tmp_path) as (_, http):
+        ids: list[str] = []
+        for shade in (10, 90, 170):
+            data = media.encode_png(4, 4, lambda x, y, s=shade: (s, s, s))
+            ids.append(
+                http.post(
+                    "/api/assets",
+                    content=data,
+                    headers={"Content-Type": "application/octet-stream"},
+                ).json()["id"]
+            )
+        first = http.patch(
+            f"/api/assets/{ids[0]}", json={"rating": 5, "tags": ["Style:Cartoon ", "model:flux"]}
+        ).json()
+        assert (first["rating"], first["tags"]) == (5, ["model:flux", "style:cartoon"])
+        http.patch(f"/api/assets/{ids[1]}", json={"rating": 2, "tags": ["style:cartoon"]})
+        assert http.patch(f"/api/assets/{ids[2]}", json={"rating": 6}).status_code == 422
+        assert http.patch(f"/api/assets/{ids[2]}", json={"tags": [" "]}).status_code == 422
+
+        def listed(**params: Any) -> list[str]:
+            return [a["id"] for a in http.get("/api/assets", params=params).json()]
+
+        assert listed(tag="style:cartoon") == [ids[1], ids[0]]
+        assert listed(tag=["style:cartoon", "model:flux"]) == [ids[0]]
+        assert listed(min_rating=3) == [ids[0]]
+        assert listed(unrated=True) == [ids[2]]
+        # A rating is cleared by an explicit null; leaving it out keeps it.
+        http.patch(f"/api/assets/{ids[0]}", json={"title": "x"})
+        assert http.get(f"/api/assets/{ids[0]}").json()["rating"] == 5
+        cleared = http.patch(f"/api/assets/{ids[0]}", json={"rating": None}).json()
+        assert cleared["rating"] is None

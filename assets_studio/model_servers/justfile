@@ -4,26 +4,40 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 # these recipes only dispatch to them. `just <model>` starts the server,
 # extra arguments go to it (e.g. `just flux --port 9200`).
 
-servers := "sdxl flux triposr xtts stable_audio llm wan"
+servers := "flux qwen_image hunyuan3d hunyuan_paint mia xtts stable_audio yue2 llm wan"
 
 # Show the available commands
 default:
     @just --justfile {{ source_file() }} --list
-
-# SDXL base 1.0: images (port 9101)
-[positional-arguments]
-sdxl *args:
-    just --justfile sdxl/justfile serve "$@"
 
 # FLUX.1-schnell Q8: images (port 9104; needs HF_TOKEN)
 [positional-arguments]
 flux *args:
     just --justfile flux/justfile serve "$@"
 
-# TripoSR: image to 3D (port 9102)
+# Qwen-Image 2.1 Q8: images, transparency, editing (port 9109)
 [positional-arguments]
-triposr *args:
-    just --justfile triposr/justfile serve "$@"
+qwen_image *args:
+    just --justfile qwen_image/justfile serve "$@"
+
+alias qwen-image := qwen_image
+
+# Hunyuan3D-2mini: image to 3D shape (port 9112)
+[positional-arguments]
+hunyuan3d *args:
+    just --justfile hunyuan3d/justfile serve "$@"
+
+# Hunyuan3D-Paint v2.0 turbo: paint a mesh from its image (port 9114)
+[positional-arguments]
+hunyuan_paint *args:
+    just --justfile hunyuan_paint/justfile serve "$@"
+
+alias hunyuan-paint := hunyuan_paint
+
+# Make-It-Animatable v2: a Mixamo skeleton for a character mesh (port 9113; needs HF_TOKEN)
+[positional-arguments]
+mia *args:
+    just --justfile mia/justfile serve "$@"
 
 # XTTS-v2: speech (port 9103)
 [positional-arguments]
@@ -36,6 +50,11 @@ stable_audio *args:
     just --justfile stable_audio/justfile serve "$@"
 
 alias stable-audio := stable_audio
+
+# YuE2 3B: songs with vocals from lyrics and a style (port 9110)
+[positional-arguments]
+yue2 *args:
+    just --justfile yue2/justfile serve "$@"
 
 # Gemma 4 12B: text, Russian included (port 9106)
 [positional-arguments]

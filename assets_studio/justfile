@@ -62,6 +62,16 @@ web-check:
 studio *args:
     uv run python -m studio "$@"
 
+# Start model servers when the studio has jobs for them, stop them after
+[positional-arguments]
+launcher *args:
+    uv run python launcher/launcher.py "$@"
+
+# Breadth-first search over asset combinations: queue, tag or status of a sweep spec
+[positional-arguments]
+sweep *args:
+    uv run python sweep/sweep.py "$@"
+
 # Start the GPU-free fake model server (default port 9100)
 [positional-arguments]
 fake-server *args:

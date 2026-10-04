@@ -17,20 +17,31 @@ import {
   putAssets,
   succeededJobs,
 } from "../state/store";
+import { type Key, t } from "../i18n";
+import { Tags } from "../components/Tags";
 
 const FILTERS = [
-  { id: "all", label: "Все" },
-  { id: "image", label: "Картинки" },
-  { id: "mesh", label: "3D" },
-  { id: "audio", label: "Звук" },
-  { id: "video", label: "Видео" },
-  { id: "text", label: "Текст" },
-  { id: "favorite", label: "★ Избранное" },
-] as const;
+  { id: "all", label: "library.all" },
+  { id: "image", label: "section.image" },
+  { id: "mesh", label: "section.mesh" },
+  { id: "audio", label: "section.audio" },
+  { id: "video", label: "section.video" },
+  { id: "text", label: "section.text" },
+  { id: "favorite", label: "library.favorite" },
+] as const satisfies readonly { id: string; label: Key }[];
 type Filter = (typeof FILTERS)[number]["id"];
 const PAGE = 120;
 
-function Details({ asset }: { asset: Asset }) {
+/** Rating filter: any, not rated yet, or at least n. */
+type RatingFilter = "any" | "unrated" | "1" | "2" | "3" | "4" | "5";
+
+function Details({
+  asset,
+  onPickTag,
+}: {
+  asset: Asset;
+  onPickTag: (tag: string) => void;
+}) {
   const [parents, setParents] = useState<Parent[]>([]);
   const [title, setTitle] = useState(asset.title ?? "");
   useEffect(() => {
@@ -43,6 +54,11 @@ function Details({ asset }: { asset: Asset }) {
     job.outputs.includes(asset.id),
   );
 
+  async function retag(tags: string[]) {
+    const updated = await attempt(() => api.updateAsset(asset.id, { tags }));
+    if (updated) putAsset(updated);
+  }
+
   async function rename() {
     if (title === (asset.title ?? "")) return;
     const updated = await attempt(() => api.updateAsset(asset.id, { title }));
@@ -50,13 +66,13 @@ function Details({ asset }: { asset: Asset }) {
   }
 
   return (
-    <aside class="details" aria-label="Свойства файла">
+    <aside class="details" aria-label={t("library.details")}>
       <div class="preview">
         <AssetPreview key={asset.id} asset={asset} />
       </div>
       <input
         type="text"
-        aria-label="Название"
+        aria-label={t("library.title")}
         value={title}
         placeholder={assetName(asset)}
         onInput={(event) => setTitle(event.currentTarget.value)}
@@ -68,14 +84,20 @@ function Details({ asset }: { asset: Asset }) {
       <div class="actions">
         <AssetActions asset={asset} />
       </div>
+      <Tags
+        tags={asset.tags}
+        label={t("library.tags")}
+        onChange={(tags) => void retag(tags)}
+        onPick={onPickTag}
+      />
       <dl class="meta">
-        <dt>Вид</dt>
+        <dt>{t("library.kind")}</dt>
         <dd>
           {kindLabel(asset.kind)} · {asset.mime}
         </dd>
-        <dt>Размер</dt>
+        <dt>{t("library.size")}</dt>
         <dd>{bytes(asset.size_bytes)}</dd>
-        <dt>Создан</dt>
+        <dt>{t("library.created")}</dt>
         <dd>{time(asset.created_at)}</dd>
         {typeof asset.meta.seed === "number" && (
           <>
@@ -85,33 +107,33 @@ function Details({ asset }: { asset: Asset }) {
         )}
         {producer && (
           <>
-            <dt>Задание</dt>
+            <dt>{t("library.job")}</dt>
             <dd>{producer.prompt ?? producer.task}</dd>
           </>
         )}
         {producer?.model_snapshot && (
           <>
-            <dt>Модель</dt>
+            <dt>{t("library.model")}</dt>
             <dd>{String(producer.model_snapshot.name)}</dd>
           </>
         )}
         {asset.source_url && (
           <>
-            <dt>Источник</dt>
+            <dt>{t("library.source")}</dt>
             <dd>{asset.source_url}</dd>
           </>
         )}
       </dl>
       {parents.length > 0 && (
         <div class="field">
-          <span>Сделано из</span>
+          <span>{t("library.madeFrom")}</span>
           <div class="candidates">
             {parents.map((parent) => (
               <a
                 key={parent.asset_id}
                 class="thumb"
                 href={hrefLibrary(parent.asset_id)}
-                aria-label="Исходный файл"
+                aria-label={t("library.input")}
               >
                 <AssetThumb asset={assetById(parent.asset_id)} />
               </a>
@@ -125,6 +147,8 @@ function Details({ asset }: { asset: Asset }) {
 
 export function LibraryPage({ selectedId }: { selectedId: string | null }) {
   const [filter, setFilter] = useState<Filter>("all");
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [rating, setRating] = useState<RatingFilter>("any");
   const [limit, setLimit] = useState(PAGE);
   const [ids, setIds] = useState<string[] | null>(null);
   const finished = succeededJobs.value;
@@ -132,7 +156,7 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
   useEffect(() => {
     setIds(null);
     setLimit(PAGE);
-  }, [filter]);
+  }, [filter, tagFilter, rating]);
   useEffect(() => {
     // Ignore a response that arrives after the filter has changed again.
     let current = true;
@@ -142,7 +166,15 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
         : filter === "all"
           ? {}
           : { kind: filter };
-    void attempt(() => api.assets({ ...query, limit })).then((list) => {
+    const scored =
+      rating === "any"
+        ? {}
+        : rating === "unrated"
+          ? { unrated: true }
+          : { minRating: Number(rating) };
+    void attempt(() =>
+      api.assets({ ...query, ...scored, tags: tagFilter, limit }),
+    ).then((list) => {
       if (!current) return;
       putAssets(list ?? []);
       setIds(list?.map((asset) => asset.id) ?? []);
@@ -151,13 +183,13 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
       current = false;
     };
     // New results appear as jobs succeed.
-  }, [filter, limit, finished]);
+  }, [filter, tagFilter, rating, limit, finished]);
 
   const selected = selectedId ? assetById(selectedId) : undefined;
   return (
     <div class="library">
       <div class="browse">
-        <div class="segmented" role="group" aria-label="Показать">
+        <div class="segmented" role="group" aria-label={t("library.show")}>
           {FILTERS.map((item) => (
             <button
               key={item.id}
@@ -165,17 +197,36 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
               aria-pressed={item.id === filter}
               onClick={() => setFilter(item.id)}
             >
-              {item.label}
+              {t(item.label)}
             </button>
           ))}
+        </div>
+        <div class="filters">
+          <Tags
+            tags={tagFilter}
+            label={t("library.filterTags")}
+            onChange={setTagFilter}
+          />
+          <select
+            aria-label={t("asset.rating")}
+            value={rating}
+            onChange={(event) =>
+              setRating(event.currentTarget.value as RatingFilter)
+            }
+          >
+            <option value="any">{t("library.anyRating")}</option>
+            <option value="unrated">{t("library.unrated")}</option>
+            {["1", "2", "3", "4", "5"].map((n) => (
+              <option key={n} value={n}>
+                {t("library.minRating", { n })}
+              </option>
+            ))}
+          </select>
         </div>
         {ids === null ? (
           <span class="spinner" />
         ) : ids.length === 0 ? (
-          <p class="hint">
-            Здесь пока пусто. Результаты генераций и загруженные файлы попадают
-            сюда.
-          </p>
+          <p class="hint">{t("library.empty")}</p>
         ) : (
           <>
             <div class="grid">
@@ -194,13 +245,20 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
             </div>
             {ids.length === limit && (
               <button class="button" onClick={() => setLimit(limit + PAGE)}>
-                Показать ещё
+                {t("library.more")}
               </button>
             )}
           </>
         )}
       </div>
-      {selected && !selected.deleted_at && <Details asset={selected} />}
+      {selected && !selected.deleted_at && (
+        <Details
+          asset={selected}
+          onPickTag={(tag) =>
+            !tagFilter.includes(tag) && setTagFilter([...tagFilter, tag])
+          }
+        />
+      )}
     </div>
   );
 }

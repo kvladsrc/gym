@@ -68,8 +68,10 @@ def check_denoising(steps: int, strength: float) -> int:
     return denoising
 
 
-def open_image(data: bytes) -> Image.Image:
-    """Decode an input as RGB: upright (EXIF), transparency composited on white."""
+def open_image(data: bytes, *, keep_alpha: bool = False) -> Image.Image:
+    """Decode an input upright (EXIF). As RGB with transparency composited on
+    white, or, with ``keep_alpha``, as RGBA when the image has transparency
+    (for models that read alpha themselves); opaque images stay RGB."""
     try:
         image = Image.open(io.BytesIO(data))
         image.load()
@@ -83,16 +85,18 @@ def open_image(data: bytes) -> Image.Image:
         # Palette and grey images with alpha too: dropping alpha would leave
         # black where the image is transparent.
         rgba = image.convert("RGBA")
+        if keep_alpha:
+            return rgba
         background = Image.new("RGB", rgba.size, (255, 255, 255))
         background.paste(rgba, mask=rgba.getchannel("A"))
         return background
     return image.convert("RGB")
 
 
-def prepare_input(data: bytes) -> Image.Image:
-    """An image-to-image input: decoded, cropped to a supported aspect ratio
-    and scaled to about a megapixel."""
-    image = open_image(data)
+def prepare_input(data: bytes, *, keep_alpha: bool = False) -> Image.Image:
+    """An image-to-image input: decoded (see open_image), cropped to a
+    supported aspect ratio and scaled to about a megapixel."""
+    image = open_image(data, keep_alpha=keep_alpha)
     return ImageOps.fit(image, fit_input(*image.size), Image.Resampling.LANCZOS)
 
 

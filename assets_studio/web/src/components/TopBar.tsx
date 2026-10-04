@@ -1,13 +1,18 @@
 import { hrefLibrary, hrefSection, route } from "../state/router";
 import { bestState, sections, unseenServers } from "../state/sections";
 import { activeJobs } from "../state/store";
+import { nextTheme, type ThemeChoice, themeChoice } from "../state/theme";
+import { has, type Key, language, setLanguage, t } from "../i18n";
 
-const STATE_TITLES: Record<string, string> = {
-  ready: "Есть готовая модель",
-  busy: "Модели заняты",
-  loading: "Модели загружаются",
-  error: "Ошибка загрузки модели",
-  unavailable: "Серверы моделей не запущены",
+const THEME_LABELS: Record<ThemeChoice, Key> = {
+  auto: "theme.auto",
+  light: "theme.light",
+  dark: "theme.dark",
+};
+
+const stateTitle = (state: string) => {
+  const key = `state.${state}`;
+  return has(key) ? t(key) : state;
 };
 
 export function TopBar() {
@@ -17,7 +22,7 @@ export function TopBar() {
   return (
     <header class="topbar">
       <a class="brand" href="#/">
-        Студия
+        {t("brand")}
       </a>
       <nav class="nav">
         {sections.value.map((section) => {
@@ -34,14 +39,11 @@ export function TopBar() {
                   ? "active"
                   : ""
               }
-              title={`${STATE_TITLES[state] ?? state} · ${models}`}
+              title={`${stateTitle(state)} · ${models}`}
             >
               <span class={`dot ${state}`} />
               {section.title}
-              <span class="visually-hidden">
-                {" "}
-                ({STATE_TITLES[state] ?? state})
-              </span>
+              <span class="visually-hidden"> ({stateTitle(state)})</span>
             </a>
           );
         })}
@@ -50,22 +52,37 @@ export function TopBar() {
           href={hrefLibrary()}
           class={current.page === "library" ? "active" : ""}
         >
-          Библиотека
+          {t("nav.library")}
         </a>
         {unseen > 0 && (
           <a
             href="#/"
             class={current.page === "home" ? "active muted" : "muted"}
-            title="Модели, которые ещё ни разу не запускались"
+            title={t("nav.unseenTitle")}
           >
-            Не запускались: {unseen}
+            {t("nav.unseen", { count: unseen })}
           </a>
         )}
       </nav>
       <span class="spacer" />
       <span class={`queue${queue ? " busy" : ""}`}>
-        {queue ? `В работе: ${queue}` : "Очередь пуста"}
+        {queue ? t("queue.busy", { count: queue }) : t("queue.empty")}
       </span>
+      <button
+        class="button small theme"
+        onClick={nextTheme}
+        title={t("theme.title")}
+      >
+        {t(THEME_LABELS[themeChoice.value])}
+      </button>
+      <button
+        class="button small language"
+        lang={language.value === "ru" ? "en" : "ru"}
+        title={t("language.title")}
+        onClick={() => setLanguage(language.value === "ru" ? "en" : "ru")}
+      >
+        {t("language.switch")}
+      </button>
     </header>
   );
 }

@@ -111,8 +111,20 @@ class Generation:
         self._wake()
         return self._get(job_id)
 
+    def delete(self, job_id: str) -> Job:
+        """Remove a failed or cancelled job from the history (ADR-004)."""
+        if not self._repository.delete_job(job_id):
+            job = self._get(job_id)
+            state = "already deleted" if job.deleted_at else str(job.status)
+            raise JobStateError(
+                f"job {job_id} is {state}; only failed or cancelled jobs can be deleted"
+            )
+        self._on_change(job_id)
+        return self._get(job_id)
+
     def retry(self, job_id: str) -> Job:
-        """A new job with the same request; the failed one stays in history.
+        """A new job with the same request; the failed one leaves the history
+        (deleted, ADR-004: the retry chain still refers to it).
 
         Upstream jobs are taken from their retry chains: if an upstream job was
         already retried, the new job depends on that retry; if it failed and
@@ -130,7 +142,7 @@ class Generation:
             if upstream.status is JobStatus.FAILED:
                 upstream = self.retry(upstream.id)
             dependencies[role] = Dependency(upstream.id, dependency.output_index)
-        return self.submit(
+        retried = self.submit(
             job.server,
             job.task,
             prompt=job.prompt,
@@ -141,6 +153,9 @@ class Generation:
             dependencies=dependencies,
             retry_of=job.id,
         )
+        if self._repository.delete_job(job.id):
+            self._on_change(job.id)
+        return retried
 
     def _check_retryable_upstream(self, job: Job) -> None:
         for role, dependency in job.dependencies.items():

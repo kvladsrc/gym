@@ -33,7 +33,7 @@ from studio.core import Studio
 from studio.domain import FILE_EXTENSIONS, Asset, AssetKind, Dependency, JobStatus
 from studio.mcp.server import build_mcp
 from studio.services.generation import JobRequestError, JobStateError
-from studio.services.library import AssetInUse, ImportError_
+from studio.services.library import AssetInUse, BadTag, ImportError_, Unset
 
 logger = logging.getLogger("studio.api")
 
@@ -145,6 +145,15 @@ def create_app(
         except JobStateError as error:
             raise HTTPException(409, str(error)) from error
 
+    @app.delete("/api/jobs/{job_id}")
+    def delete_job(job_id: str) -> JobOut:  # pyright: ignore[reportUnusedFunction]
+        """Remove a failed or cancelled job from the history."""
+        job_or_404(job_id)
+        try:
+            return JobOut.of(studio.generation.delete(job_id))
+        except JobStateError as error:
+            raise HTTPException(409, str(error)) from error
+
     @app.post("/api/jobs/{job_id}/retry", status_code=201)
     def retry_job(job_id: str) -> JobOut:  # pyright: ignore[reportUnusedFunction]
         job_or_404(job_id)
@@ -159,9 +168,20 @@ def create_app(
     def list_assets(  # pyright: ignore[reportUnusedFunction]
         kind: AssetKind | None = None,
         favorite: bool | None = None,
+        tag: Annotated[list[str] | None, Query()] = None,
+        min_rating: Annotated[int | None, Query(ge=0, le=5)] = None,
+        unrated: bool = False,
         limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     ) -> list[AssetOut]:
-        assets = studio.library.assets(kind=kind, favorite=favorite, limit=limit)
+        """Assets matching all filters; ``tag`` may repeat (all must match)."""
+        assets = studio.library.assets(
+            kind=kind,
+            favorite=favorite,
+            tags=[t.strip().lower() for t in tag or []],
+            min_rating=min_rating,
+            unrated=unrated,
+            limit=limit,
+        )
         return [AssetOut.of(asset) for asset in assets]
 
     @app.post("/api/assets", status_code=201)
@@ -200,7 +220,16 @@ def create_app(
     @app.patch("/api/assets/{asset_id}")
     def update_asset(asset_id: str, request: AssetUpdate) -> AssetOut:  # pyright: ignore[reportUnusedFunction]
         asset_or_404(asset_id)
-        updated = studio.library.update(asset_id, title=request.title, favorite=request.favorite)
+        try:
+            updated = studio.library.update(
+                asset_id,
+                title=request.title,
+                favorite=request.favorite,
+                rating=request.rating if "rating" in request.model_fields_set else Unset,
+                tags=request.tags,
+            )
+        except BadTag as error:
+            raise HTTPException(422, str(error)) from error
         assert updated is not None
         return AssetOut.of(updated)
 

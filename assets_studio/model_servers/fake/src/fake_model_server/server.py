@@ -27,6 +27,7 @@ from model_server_sdk import (
     Output,
     TaskSpec,
     media,
+    ui,
 )
 
 Failure = Literal["none", "generation", "retryable", "invalid_input", "internal"]
@@ -35,8 +36,16 @@ Failure = Literal["none", "generation", "retryable", "invalid_input", "internal"
 class Controls(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    delay_s: float = Field(default=0.0, ge=0, le=60, description="Искусственная задержка, с")
-    fail: Failure = Field(default="none", description="Имитация ошибки")
+    delay_s: float = Field(
+        default=0.0,
+        ge=0,
+        le=60,
+        description="Artificial delay, s",
+        json_schema_extra=ui(ru="Искусственная задержка, с"),
+    )
+    fail: Failure = Field(
+        default="none", description="Simulated failure", json_schema_extra=ui(ru="Имитация ошибки")
+    )
 
 
 class ImageParams(Controls):
@@ -46,12 +55,24 @@ class ImageParams(Controls):
 
 class ImageToImageParams(ImageParams):
     strength: float = Field(
-        default=0.5, ge=0, le=1, description="Сила изменения", json_schema_extra=PRIMARY
+        default=0.5,
+        ge=0,
+        le=1,
+        description="Change strength",
+        json_schema_extra=ui(ru="Сила изменения", primary=True),
     )
 
 
 class MeshParams(Controls):
     scale: float = Field(default=0.5, gt=0, le=10)
+
+
+class RigParams(Controls):
+    pass
+
+
+class PaintParams(Controls):
+    pass
 
 
 class SpeechParams(Controls):
@@ -67,12 +88,25 @@ class AudioToAudioParams(AudioParams):
     strength: float = Field(default=0.5, ge=0, le=1)
 
 
+class SongParams(Controls):
+    style: str = Field(
+        default="folk",
+        min_length=1,
+        description="Style",
+        json_schema_extra=ui(ru="Стиль", primary=True),
+    )
+
+
 class TextParams(Controls):
-    words: int = Field(default=12, ge=1, le=200, description="Слов", json_schema_extra=PRIMARY)
+    words: int = Field(
+        default=12, ge=1, le=200, description="Words", json_schema_extra=ui(ru="Слов", primary=True)
+    )
 
 
 class VideoParams(Controls):
-    motion: float = Field(default=0.5, ge=0, le=1, description="Движение")
+    motion: float = Field(
+        default=0.5, ge=0, le=1, description="Motion", json_schema_extra=ui(ru="Движение")
+    )
 
 
 _IMAGE_INPUT = InputSpec(role="image", mime=["image/*"])
@@ -117,6 +151,21 @@ ALL_TASKS: tuple[TaskSpec, ...] = (
         inputs=(_IMAGE_INPUT,),
     ),
     TaskSpec(KnownTask.TEXT_TO_3D, MeshParams, ("model/gltf-binary",)),
+    TaskSpec(KnownTask.TEXT_TO_SONG, SongParams, ("audio/wav",)),
+    TaskSpec(
+        KnownTask.RIG_3D,
+        RigParams,
+        ("model/x-fbx",),
+        prompt="none",
+        inputs=(InputSpec(role="mesh", mime=["model/gltf-binary"]),),
+    ),
+    TaskSpec(
+        KnownTask.PAINT_3D,
+        PaintParams,
+        ("model/gltf-binary",),
+        prompt="none",
+        inputs=(InputSpec(role="mesh", mime=["model/gltf-binary"]), _IMAGE_INPUT),
+    ),
 )
 
 _WORDS = (
@@ -184,11 +233,22 @@ class FakeModelServer(ModelServer):
             return Output(
                 "audio/wav", media.encode_wav(media.tone(frequency, params.duration_s)), meta
             )
+        if isinstance(params, SongParams):
+            # A line of the lyrics takes a quarter of a second.
+            length = 0.5 + 0.25 * len((job.prompt or "").splitlines())
+            return Output("audio/wav", media.encode_wav(media.tone(300 + digest[0], length)), meta)
         if isinstance(params, TextParams):
             words = [_WORDS[digest[i % len(digest)] % len(_WORDS)] for i in range(params.words)]
             source = job.inputs.get("text")
             prefix = source.data.decode().strip() + "\n" if source is not None else ""
             return Output("text/plain", (prefix + " ".join(words) + "\n").encode(), meta)
+        if isinstance(params, PaintParams):
+            color = (digest[0] / 255, digest[1] / 255, digest[2] / 255, 1.0)
+            points, triangles = media.tetrahedron(0.5)
+            return Output("model/gltf-binary", media.encode_glb(points, triangles, color), meta)
+        if isinstance(params, RigParams):
+            # The FBX header and the digest: enough for signature checks.
+            return Output("model/x-fbx", media.FBX_MAGIC + b"\x34\x1d\x00\x00" + digest, meta)
         if isinstance(params, VideoParams):
             # The sample clip plus a "free" box with the digest: players skip it.
             box = struct.pack(">I4s", 8 + len(digest), b"free") + digest

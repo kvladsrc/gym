@@ -1,0 +1,49 @@
+[project]
+name = "hunyuan3d-model-server"
+version = "0.1.0"
+description = "Image-to-3D model server for the asset studio, based on Hunyuan3D-2mini (shape only)."
+# The same PyTorch 2.5.1 / CUDA 12.4 build as the other 3D servers.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.5.1",
+  "torchvision==0.20.1",
+  # What hy3dgen.shapegen imports (the texture half is not used).
+  "diffusers>=0.32,<0.36",
+  "transformers>=4.48,<5",
+  "accelerate>=1.2",
+  "einops>=0.8",
+  "omegaconf>=2.3",
+  "pyyaml>=6",
+  "safetensors>=0.4",
+  "huggingface-hub>=0.26,<1",
+  "numpy==1.26.4",
+  "opencv-python-headless>=4.10,<4.12",
+  "scikit-image>=0.24",
+  "trimesh>=4.4",
+  "pymeshlab>=2023.12",
+  "tqdm>=4.66.3",
+  "Pillow>=10.4",
+  "rembg==2.0.57",
+  "onnxruntime==1.20.1",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+hunyuan3d-model-server = "hunyuan3d_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu124" }
+torchvision = { index = "pytorch-cu124" }
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

@@ -1,5 +1,6 @@
 """Asset library: import files and look them up."""
 
+from collections.abc import Iterable
 from pathlib import Path
 
 import httpx2 as httpx
@@ -9,13 +10,28 @@ from studio.domain import MIME_KINDS, Asset, AssetKind, Origin, new_id
 from studio.media import UnsupportedMedia, detect_mime, for_storage
 from studio.storage import repository
 from studio.storage.blobs import BlobStore
-from studio.storage.repository import Repository, now
+from studio.storage.repository import Repository, Unset, now
 
 _URL_TIMEOUT_S = 30.0
 
 
+__all__ = ["AssetInUse", "BadTag", "ImportError_", "Library", "Unset"]
+
+
 class ImportError_(ValueError):
     """A file cannot be imported: wrong format, too large or unreachable."""
+
+
+class BadTag(ValueError):
+    """A tag that is empty, too long or has control characters."""
+
+
+def _tag(tag: str) -> str:
+    """Tags are lowercase without surrounding spaces, e.g. "style:cartoon"."""
+    clean = tag.strip().lower()
+    if not clean or len(clean) > 64 or any(ord(c) < 32 for c in clean):
+        raise BadTag(f"bad tag: {tag!r}")
+    return clean
 
 
 class AssetInUse(ValueError):
@@ -83,15 +99,39 @@ class Library:
         return self._repository.asset(asset_id)
 
     def assets(
-        self, *, kind: AssetKind | None = None, favorite: bool | None = None, limit: int = 100
+        self,
+        *,
+        kind: AssetKind | None = None,
+        favorite: bool | None = None,
+        tags: Iterable[str] = (),
+        min_rating: int | None = None,
+        unrated: bool = False,
+        limit: int = 100,
     ) -> list[Asset]:
-        return self._repository.assets(kind=kind, favorite=favorite, limit=limit)
+        return self._repository.assets(
+            kind=kind,
+            favorite=favorite,
+            tags=tags,
+            min_rating=min_rating,
+            unrated=unrated,
+            limit=limit,
+        )
 
     def update(
-        self, asset_id: str, *, title: str | None = None, favorite: bool | None = None
+        self,
+        asset_id: str,
+        *,
+        title: str | None = None,
+        favorite: bool | None = None,
+        rating: int | type[Unset] | None = Unset,
+        tags: Iterable[str] | None = None,
     ) -> Asset | None:
-        """Rename or (un)mark as favourite; an empty title clears it."""
-        return self._repository.update_asset(asset_id, title=title, favorite=favorite)
+        """Rename, (un)mark as favourite, rate (0-5; None clears) or retag
+        (replacing the tags); an empty title clears it."""
+        clean = None if tags is None else [_tag(tag) for tag in tags]
+        return self._repository.update_asset(
+            asset_id, title=title, favorite=favorite, rating=rating, tags=clean
+        )
 
     def delete(self, asset_id: str) -> Asset | None:
         """Remove an asset from the library (ADR-004); None if there is none.

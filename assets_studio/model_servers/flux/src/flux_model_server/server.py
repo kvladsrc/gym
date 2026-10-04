@@ -18,7 +18,6 @@ from PIL import Image
 from pydantic import BaseModel, ConfigDict, Field
 
 from model_server_sdk import (
-    PRIMARY,
     GenerationError,
     InputSpec,
     Job,
@@ -29,6 +28,7 @@ from model_server_sdk import (
     TaskSpec,
     is_out_of_memory,
     offload,
+    ui,
 )
 
 logger = logging.getLogger("flux_model_server")
@@ -63,10 +63,10 @@ class TextToImageParams(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     resolution: Resolution = Field(
-        default="1024x1024", description="Размер", json_schema_extra=PRIMARY
+        default="1024x1024", description="Size", json_schema_extra=ui(ru="Размер", primary=True)
     )
     # schnell is distilled for 4 steps; more rarely helps.
-    steps: int = Field(default=4, ge=1, le=8, description="Шаги")
+    steps: int = Field(default=4, ge=1, le=8, description="Steps", json_schema_extra=ui(ru="Шаги"))
 
 
 class ImageToImageParams(BaseModel):
@@ -76,10 +76,12 @@ class ImageToImageParams(BaseModel):
         default=0.6,
         ge=0.05,
         le=1,
-        description="Сила изменения (1 — исходная картинка почти не учитывается)",
-        json_schema_extra=PRIMARY,
+        description="Change strength (1: the source image is almost ignored)",
+        json_schema_extra=ui(
+            ru="Сила изменения (1 — исходная картинка почти не учитывается)", primary=True
+        ),
     )
-    steps: int = Field(default=4, ge=1, le=8, description="Шаги")
+    steps: int = Field(default=4, ge=1, le=8, description="Steps", json_schema_extra=ui(ru="Шаги"))
 
 
 TASKS = (

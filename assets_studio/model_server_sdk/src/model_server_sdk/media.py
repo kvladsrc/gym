@@ -151,6 +151,14 @@ def _is_glb(data: bytes) -> bool:
     return magic == b"glTF" and version == 2 and length == len(data)
 
 
+# Binary FBX (what Blender, Mixamo and Unity write); ASCII FBX is not accepted.
+FBX_MAGIC = b"Kaydara FBX Binary  \x00\x1a\x00"
+
+
+def _is_fbx(data: bytes) -> bool:
+    return len(data) > len(FBX_MAGIC) + 4 and data.startswith(FBX_MAGIC)
+
+
 def _is_text(data: bytes) -> bool:
     """Non-empty UTF-8 without control characters other than tab and line
     breaks (C0, DEL, C1); a BOM is allowed here and removed on import. A WAV
@@ -259,6 +267,7 @@ _SIGNATURES: dict[str, Callable[[bytes], bool]] = {
     "audio/ogg": _is_ogg,
     "audio/mpeg": _is_mp3,
     "model/gltf-binary": _is_glb,
+    "model/x-fbx": _is_fbx,
     "video/mp4": _is_mp4,
     "video/webm": _is_webm,
     "text/plain": _is_text,

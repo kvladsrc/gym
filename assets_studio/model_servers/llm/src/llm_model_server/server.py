@@ -27,7 +27,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from llm_model_server import runtime
 from llm_model_server.models import ModelSpec
 from model_server_sdk import (
-    PRIMARY,
     GenerationError,
     InputSpec,
     InvalidInput,
@@ -37,6 +36,7 @@ from model_server_sdk import (
     ModelServer,
     Output,
     TaskSpec,
+    ui,
 )
 
 logger = logging.getLogger("llm_model_server")
@@ -63,13 +63,33 @@ class Params(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     max_tokens: int = Field(
-        default=1024, ge=16, le=8192, description="Длина ответа, токенов", json_schema_extra=PRIMARY
+        default=1024,
+        ge=16,
+        le=8192,
+        description="Answer length, tokens",
+        json_schema_extra=ui(ru="Длина ответа, токенов", primary=True),
     )
-    temperature: float = Field(default=1.0, ge=0, le=2, description="Вариативность")
-    top_k: int = Field(default=40, ge=0, le=200, description="Top-k (0 — без ограничения)")
+    temperature: float = Field(
+        default=1.0, ge=0, le=2, description="Variability", json_schema_extra=ui(ru="Вариативность")
+    )
+    top_k: int = Field(
+        default=40,
+        ge=0,
+        le=200,
+        description="Top-k (0: no limit)",
+        json_schema_extra=ui(ru="Top-k (0 — без ограничения)"),
+    )
     top_p: float = Field(default=0.95, gt=0, le=1, description="Top-p")
-    thinking: bool = Field(default=False, description="Размышлять перед ответом (дольше)")
-    system: str = Field(default=DEFAULT_SYSTEM, description="Системная инструкция")
+    thinking: bool = Field(
+        default=False,
+        description="Think before answering (slower)",
+        json_schema_extra=ui(ru="Размышлять перед ответом (дольше)"),
+    )
+    system: str = Field(
+        default=DEFAULT_SYSTEM,
+        description="System instruction",
+        json_schema_extra=ui(ru="Системная инструкция"),
+    )
 
 
 def params_for(spec: ModelSpec) -> type[Params]:
@@ -80,11 +100,15 @@ def params_for(spec: ModelSpec) -> type[Params]:
             default=spec.temperature,
             ge=0,
             le=2,
-            description="Вариативность",
-            json_schema_extra=PRIMARY,
+            description="Variability",
+            json_schema_extra=ui(ru="Вариативность", primary=True),
         )
         top_k: int = Field(
-            default=spec.top_k, ge=0, le=200, description="Top-k (0 — без ограничения)"
+            default=spec.top_k,
+            ge=0,
+            le=200,
+            description="Top-k (0: no limit)",
+            json_schema_extra=ui(ru="Top-k (0 — без ограничения)"),
         )
         top_p: float = Field(default=spec.top_p, gt=0, le=1, description="Top-p")
 
@@ -137,7 +161,8 @@ class LlmServer(ModelServer):
                         role="text",
                         mime=["text/plain"],
                         required=False,
-                        description="Текст для правки или продолжения",
+                        description="Text to edit or continue",
+                        labels={"ru": "Текст для правки или продолжения"},
                     ),
                 ),
             ),

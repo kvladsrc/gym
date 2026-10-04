@@ -16,6 +16,11 @@ from typing import Any
 from studio.domain import PENDING, Asset, AssetKind, Dependency, Job, JobStatus, Origin
 from studio.storage.db import Database
 
+
+class Unset:
+    """No value given (``None`` is a value: clear the rating)."""
+
+
 _PENDING_SQL = ", ".join(f"'{status}'" for status in PENDING)
 # A pending job whose dependencies have all succeeded can be sent.
 _READY_SQL = f"""
@@ -71,14 +76,22 @@ class Repository:
 
     def asset(self, asset_id: str) -> Asset | None:
         row = self.db.connection.execute(
-            "SELECT * FROM assets WHERE id = ?", (asset_id,)
+            f"SELECT {_ASSET_COLUMNS} FROM assets WHERE id = ?", (asset_id,)
         ).fetchone()
         return None if row is None else _asset(row)
 
     def assets(
-        self, *, kind: AssetKind | None = None, favorite: bool | None = None, limit: int = 100
+        self,
+        *,
+        kind: AssetKind | None = None,
+        favorite: bool | None = None,
+        tags: Iterable[str] = (),
+        min_rating: int | None = None,
+        unrated: bool = False,
+        limit: int = 100,
     ) -> list[Asset]:
-        query = "SELECT * FROM assets"
+        """Assets matching every filter given; ``tags``: having all of them."""
+        query = f"SELECT {_ASSET_COLUMNS} FROM assets"
         conditions: list[str] = ["deleted_at IS NULL"]
         arguments: list[object] = []
         if kind is not None:
@@ -87,15 +100,41 @@ class Repository:
         if favorite is not None:
             conditions.append("favorite = ?")
             arguments.append(int(favorite))
+        for tag in tags:
+            conditions.append("id IN (SELECT asset_id FROM asset_tags WHERE tag = ?)")
+            arguments.append(tag)
+        if min_rating is not None:
+            conditions.append("rating >= ?")
+            arguments.append(min_rating)
+        if unrated:
+            conditions.append("rating IS NULL")
         query += " WHERE " + " AND ".join(conditions)
         query += " ORDER BY id DESC LIMIT ?"
         arguments.append(limit)
         return [_asset(row) for row in self.db.connection.execute(query, arguments)]
 
     def update_asset(
-        self, asset_id: str, *, title: str | None = None, favorite: bool | None = None
+        self,
+        asset_id: str,
+        *,
+        title: str | None = None,
+        favorite: bool | None = None,
+        rating: int | type[Unset] | None = Unset,
+        tags: Iterable[str] | None = None,
     ) -> Asset | None:
-        """Change the editable fields that are given; return the updated asset."""
+        """Change the editable fields that are given; return the updated asset.
+        ``rating=None`` clears the rating; ``tags`` replaces all tags."""
+        if rating is not Unset:
+            self.db.connection.execute(
+                "UPDATE assets SET rating = ? WHERE id = ?", (rating, asset_id)
+            )
+        if tags is not None:
+            with self.db.transaction() as connection:
+                connection.execute("DELETE FROM asset_tags WHERE asset_id = ?", (asset_id,))
+                connection.executemany(
+                    "INSERT INTO asset_tags (asset_id, tag) VALUES (?, ?)",
+                    [(asset_id, tag) for tag in sorted(set(tags))],
+                )
         if title is not None:
             self.db.connection.execute(
                 "UPDATE assets SET title = ? WHERE id = ?", (title or None, asset_id)
@@ -113,7 +152,9 @@ class Repository:
         an input. Already deleted assets are returned as they are.
         """
         with self.db.transaction() as connection:
-            row = connection.execute("SELECT * FROM assets WHERE id = ?", (asset_id,)).fetchone()
+            row = connection.execute(
+                f"SELECT {_ASSET_COLUMNS} FROM assets WHERE id = ?", (asset_id,)
+            ).fetchone()
             if row is None:
                 return None
             asset = _asset(row)
@@ -256,11 +297,11 @@ class Repository:
         return _job(row, inputs, dependencies, outputs)
 
     def jobs(self, *, statuses: Iterable[JobStatus] | None = None, limit: int = 100) -> list[Job]:
-        query = "SELECT id FROM jobs"
+        query = "SELECT id FROM jobs WHERE deleted_at IS NULL"
         arguments: list[object] = []
         if statuses is not None:
             wanted = list(statuses)
-            query += f" WHERE status IN ({_placeholders(wanted)})"
+            query += f" AND status IN ({_placeholders(wanted)})"
             arguments += wanted
         query += " ORDER BY id DESC LIMIT ?"
         arguments.append(limit)
@@ -359,6 +400,21 @@ class Repository:
             ).rowcount
             return [job_id, *_fail_dependents(connection, job_id)] if cancelled else []
 
+    def delete_job(self, job_id: str) -> bool:
+        """Hide a failed or cancelled job from the history; False if it is in
+        another state or already deleted. Nothing else changes: retries and
+        dependents still refer to it."""
+        with self.db.transaction() as connection:
+            return (
+                connection.execute(
+                    """UPDATE jobs SET version = version + 1, deleted_at = ?
+                       WHERE id = ? AND status IN ('failed', 'cancelled')
+                       AND deleted_at IS NULL""",
+                    (now(), job_id),
+                ).rowcount
+                == 1
+            )
+
     def interrupt_running(self) -> list[str]:
         """After a restart, jobs left running have lost their response.
 
@@ -393,8 +449,16 @@ class Repository:
         job did not specify it).
         """
         with self.db.transaction() as connection:
+            job = connection.execute(
+                "SELECT server, task FROM jobs WHERE id = ?", (job_id,)
+            ).fetchone()
+            automatic = automatic_tags(job["server"], job["task"], model_snapshot) if job else []
             for position, asset in enumerate(outputs):
                 self.add_asset(asset, connection)
+                connection.executemany(
+                    "INSERT OR IGNORE INTO asset_tags (asset_id, tag) VALUES (?, ?)",
+                    [(asset.id, tag) for tag in automatic],
+                )
                 connection.execute(
                     "INSERT INTO job_outputs (job_id, position, asset_id) VALUES (?, ?, ?)",
                     (job_id, position, asset.id),
@@ -476,6 +540,21 @@ def _fail_dependents(connection: sqlite3.Connection, job_id: str) -> list[str]:
     return sorted(row["id"] for row in rows)
 
 
+def automatic_tags(server: str, task: str, model_snapshot: Mapping[str, Any]) -> list[str]:
+    """Tags every generated asset gets: where it came from (ADR-007)."""
+    tags = [f"server:{server}".lower(), f"task:{task}".lower()]
+    if model_snapshot.get("id"):
+        tags.append(f"model:{model_snapshot['id']}".lower())
+    return tags
+
+
+# Columns of an asset row, with its tags joined by the unit separator.
+_ASSET_COLUMNS = (
+    "*, (SELECT group_concat(tag, char(31)) FROM "
+    "(SELECT tag FROM asset_tags WHERE asset_id = assets.id ORDER BY tag)) AS tag_list"
+)
+
+
 def _asset(row: sqlite3.Row) -> Asset:
     return Asset(
         id=row["id"],
@@ -490,6 +569,8 @@ def _asset(row: sqlite3.Row) -> Asset:
         favorite=bool(row["favorite"]),
         meta=json.loads(row["meta"]),
         deleted_at=row["deleted_at"],
+        rating=row["rating"],
+        tags=tuple(row["tag_list"].split("\x1f")) if row["tag_list"] else (),
     )
 
 
@@ -523,4 +604,5 @@ def _job(
         retry_of=row["retry_of"],
         started_at=row["started_at"],
         finished_at=row["finished_at"],
+        deleted_at=row["deleted_at"],
     )

@@ -42,6 +42,15 @@ procedural vegetation. A fantasy-inspired reader, map, and path navigation.
 </p>
 <!-- markdownlint-enable MD013 MD033 -->
 
+## Soulslike
+
+[`soulslike`](soulslike) is a Unity test level, «The Last Vigil», built to
+find the problems of the [asset studio](../assets_studio): every model,
+texture, voice and song comes from local models on a laptop GPU,
+characters through text → image (Qwen-Image) → 3D (Hunyuan3D + Paint) → a
+Mixamo rig, animated with Mixamo clips. What worked and what did not: the
+studio's [guides](../assets_studio/docs/guides).
+
 ## Zooreader
 
 [`zooreader`](zooreader) — A

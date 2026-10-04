@@ -1,6 +1,6 @@
 // A section: the generation form on the left, the shown job in the centre,
 // the section's history below.
-import { useMemo } from "preact/hooks";
+import { useEffect, useMemo } from "preact/hooks";
 
 import type { Server } from "../api/client";
 import { GenerationForm } from "../components/GenerationForm";
@@ -8,16 +8,20 @@ import { HistoryStrip } from "../components/HistoryStrip";
 import { JobView } from "../components/JobView";
 import { draftFor, shownJob, showJob, targetOf } from "../state/drafts";
 import { jobsOfSection, type Section, serverById } from "../state/sections";
-import { jobs, servers } from "../state/store";
+import { assets, jobs, servers } from "../state/store";
+import { t } from "../i18n";
 
 function ServerHint({ server }: { server: Server }) {
   if (server.state === "ready" || server.state === "busy") return null;
   const text =
     server.state === "loading"
-      ? `${server.title} загружается. Задания подождут.`
+      ? t("section.loading", { model: server.title })
       : server.state === "error"
-        ? `${server.title} не загрузилась: ${server.message ?? ""}`
-        : `${server.title}: сервер не запущен (${server.url}). Задания подождут его запуска.`;
+        ? t("section.failed", {
+            model: server.title,
+            message: server.message ?? "",
+          })
+        : t("section.notRunning", { model: server.title, url: server.url });
   return (
     <p class={`hint ${server.state === "error" ? "error" : "warn"}`}>{text}</p>
   );
@@ -26,10 +30,21 @@ function ServerHint({ server }: { server: Server }) {
 export function SectionPage({ section }: { section: Section }) {
   const history = useMemo(
     () => jobsOfSection(section.id),
-    [jobs.value, servers.value, section.id],
+    // assets: a deletion can drop a job from the history.
+    [jobs.value, servers.value, assets.value, section.id],
   );
   const selected = shownJob.value.get(section.id);
-  const shown = (selected ? jobs.value.get(selected) : undefined) ?? history[0];
+  // A job whose results were all deleted has left the history: show the newest.
+  const shown = history.find((job) => job.id === selected) ?? history[0];
+  // Left the history, not just submitted and not here yet.
+  const gone =
+    selected !== undefined &&
+    jobs.value.has(selected) &&
+    !history.some((job) => job.id === selected);
+  useEffect(() => {
+    // Forget it, or restoring a result would bring the stage back to it.
+    if (gone) showJob(section.id, null);
+  }, [gone, section.id]);
   const show = (jobId: string) => showJob(section.id, jobId);
   const target = targetOf(section, draftFor(section));
 
@@ -47,7 +62,7 @@ export function SectionPage({ section }: { section: Section }) {
             onShow={show}
           />
         ) : (
-          <div class="placeholder">Здесь появится результат.</div>
+          <div class="placeholder">{t("section.placeholder")}</div>
         )}
       </section>
       <HistoryStrip
