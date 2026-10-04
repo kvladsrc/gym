@@ -6,7 +6,6 @@ mod cv
 mod neural_network
 mod presentations
 mod talos "production/kubernetes/talos"
-mod vibe_jakubovich_mvp "games/vibe_jakubovich_mvp"
 mod zooreader "games/zooreader"
 mod? vibe_jakubovich "games/vibe_jakubovich"
 

@@ -11,8 +11,6 @@
         argv:
           - gdlint
           - games/cothic/scripts/
-          - games/vibe_jakubovich_mvp/scripts/
-          - games/vibe_jakubovich_mvp/tools/
       args:
         chdir: "{{ repo_dir }}"
       changed_when: false

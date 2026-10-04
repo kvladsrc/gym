@@ -3,19 +3,6 @@
 Small games created with LLM assistance, largely to explore and test models.
 Run the commands below from the repository root.
 
-## Vibe Jakubovich
-
-[`vibe_jakubovich_mvp`](vibe_jakubovich_mvp) — An offline Godot remake of
-the DOS game «Поле чудес», with a 3D wheel and a dancing host.
-
-![Vibe Jakubovich: spinning wheel and dancing host][jakubovich-preview]
-
-[jakubovich-preview]: ../static/vibe_jakubovich.gif
-
-```sh
-nix develop -c just vibe_jakubovich_mvp run
-```
-
 ## Cothic
 
 [`cothic`](cothic) is a Godot 4.6 prototype that turns a real codebase

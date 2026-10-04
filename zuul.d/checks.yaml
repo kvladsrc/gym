@@ -111,6 +111,5 @@
     name: gdlint
     files:
       - ^games/cothic/.*\.gd$
-      - ^games/vibe_jakubovich_mvp/.*\.gd$
     post-run: production/playbooks/notify-ntfy-on-failure.yaml
     run: production/playbooks/gdlint.yaml
