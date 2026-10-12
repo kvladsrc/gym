@@ -93,9 +93,12 @@ for entry in "${DIRS[@]}"; do
             rsync_args+=(--filter=':- .gitignore')
             ;;
         games)
-            # Keep the private Unreal draft, the soulslike test level and
-            # build caches local.
-            rsync_args+=(--exclude='/vibe_jakubovich/' --exclude='/soulslike/' --filter=':- .gitignore')
+            # Keep the private Unreal draft and build caches local. The
+            # soulslike's code goes; its art, builds and training results stay
+            # (its .gitignore), as do the Mixamo clips it plays
+            # (animations/mixamo, not listed above: their terms forbid
+            # passing the clips on).
+            rsync_args+=(--exclude='/vibe_jakubovich/' --filter=':- .gitignore')
             ;;
         esac
         rsync "${rsync_args[@]}" "$SRC/$src_rel/" "$DEST/$dest_rel/"

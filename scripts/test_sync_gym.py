@@ -31,6 +31,20 @@ class SyncGymTest(unittest.TestCase):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ignore, target)
             (source / "assets_studio/README.md").write_text("By myuser\n")
+            # The soulslike's code is public; its art, builds, results are not.
+            soulslike = repository / "games/soulslike"
+            for ignore in (soulslike / ".gitignore", soulslike / "training/.gitignore"):
+                target = source / ignore.relative_to(repository)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ignore, target)
+            kept = {
+                "games/soulslike/DESIGN.md": "Made by myuser\n",
+                "games/soulslike/unity/soulslike/Assets/Soulslike/Scripts/Hud.cs": "// myuser\n",
+            }
+            for relative, text in kept.items():
+                path = source / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(text)
             for project in projects:
                 (source / project / "assets").mkdir(parents=True)
                 ignore = repository / project / ".gitignore"
@@ -69,8 +83,12 @@ class SyncGymTest(unittest.TestCase):
                 "games/vibe_jakubovich/unreal/Intermediate/data.bin",
                 "games/vibe_jakubovich/tools/__pycache__/pipeline.pyc",
                 "games/vibe_jakubovich/.env",
-                "games/soulslike/DESIGN.md",
-                "games/soulslike/unity/soulslike/Assets/Soulslike/Scripts/Hud.cs",
+                "games/soulslike/unity/soulslike/Assets/Soulslike/Art/Characters/hero.fbx",
+                "games/soulslike/unity/soulslike/Builds/Linux/Soulslike.x86_64",
+                "games/soulslike/unity/soulslike/Library/cache.bin",
+                "games/soulslike/training/results/duel/Fighter.onnx",
+                "games/soulslike/training/.venv/bin/python",
+                "animations/mixamo/Boxing/punching_1.fbx",
                 "assets_studio/.venv/bin/python",
                 "assets_studio/build/openapi.json",
                 "assets_studio/web/node_modules/preact/index.js",
@@ -114,7 +132,11 @@ class SyncGymTest(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertFalse((destination / "games/vibe_jakubovich").exists())
-            self.assertFalse((destination / "games/soulslike").exists())
+            for relative, text in kept.items():
+                self.assertEqual(
+                    (destination / relative).read_text(), text.replace("myuser", "myuser")
+                )
+            self.assertFalse((destination / "animations").exists())
             self.assertEqual(
                 (destination / "assets_studio/README.md").read_text(), "By myuser\n"
             )

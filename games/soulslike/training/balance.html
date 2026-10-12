@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fighter balance</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --panel: #fff; --text: #1d1d1b; --muted: #6b6a66; --line: #dddad3;
+    --accent: #b5532a; --error: #b3261e; --warn: #8a6100; --ok: #2e7d32; --changed: #fff1c2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161615; --panel: #1f1f1d; --text: #e9e7e1; --muted: #9b998f; --line: #34332f;
+      --accent: #e0855c; --error: #f2817a; --warn: #e3b549; --ok: #7cc47f; --changed: #3d3418; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, sans-serif; }
+  main { max-width: 1200px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+  h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 15px; margin: 0 0 8px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { font-weight: 600; color: var(--muted); font-size: 12px; }
+  input, select, button { font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; }
+  input.num { width: 72px; }
+  input.note { width: 100%; min-width: 160px; }
+  select.blow { max-width: 280px; }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: default; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .muted { color: var(--muted); }
+  .errors li { color: var(--error); }
+  .warnings li { color: var(--warn); }
+  .ok { color: var(--ok); }
+  ul { margin: 4px 0; padding-left: 20px; }
+  tr.changed td { background: var(--changed); }
+  .bad { outline: 2px solid var(--error); }
+  pre { margin: 0; font: 12px/1.35 ui-monospace, monospace; white-space: pre; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+  .sticky { position: sticky; top: 0; z-index: 2; }
+</style>
+</head>
+<body>
+<main>
+  <div class="row"><h1>Fighter balance</h1><span class="muted" id="run"></span><a href="/actions">actions table →</a></div>
+
+  <section class="sticky">
+    <div class="row">
+      <button class="primary" id="save" disabled>Save</button>
+      <button id="reset">Reset to file</button>
+      <select id="history"><option value="">— earlier versions —</option></select>
+      <span id="status" class="muted"></span>
+    </div>
+    <ul class="errors" id="errors"></ul>
+    <ul class="warnings" id="warnings"></ul>
+  </section>
+
+  <section>
+    <h2>Base: what strikes</h2>
+    <table id="base"><thead><tr><th>strikes</th><th>damage</th><th>stagger, s</th><th>note</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section>
+    <h2>Rules <span class="muted">— factors; an empty field is 1; all matching rules multiply</span></h2>
+    <table id="rules"><thead><tr><th>held</th><th>animation</th><th>damage ×</th><th>speed ×</th><th>stagger ×</th><th>note</th><th></th></tr></thead><tbody></tbody></table>
+    <div class="row" style="margin-top:8px"><button id="add">+ rule</button></div>
+  </section>
+
+  <section>
+    <div class="row">
+      <h2 style="margin:0">Result by action</h2>
+      <select id="previewHeld"><option value="sword">sword</option><option value="hammer">hammer</option><option value="hands">hands</option></select>
+      <label><input type="checkbox" id="onlyChanged"> only changed or ruled</label>
+      <span class="muted">highlighted: differs from the saved file</span>
+    </div>
+    <table id="preview"><thead><tr><th>animation</th><th>strikes</th><th>damage</th><th>speed</th><th>stagger, s</th><th>rules</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <div class="grid2">
+    <section>
+      <h2>Training players</h2>
+      <div id="players" class="muted">—</div>
+    </section>
+    <section>
+      <div class="row"><h2 style="margin:0">Metrics</h2>
+        <label>steps <input class="num" id="steps" value="500000"></label>
+        <button id="stats">Refresh</button><span id="statsStatus" class="muted"></span></div>
+      <pre id="statsText" class="muted" style="margin-top:8px">press Refresh (reading the logs takes a few seconds)</pre>
+    </section>
+  </div>
+</main>
+<script>
+const HELD = { sword: "sword", hammer: "hammer", hands: "hands" };
+const PARTS = { sword: "sword", hammer: "hammer", limb: "limb" };
+const FACTORS = ["damage", "speed", "stagger"];
+let actions = [], saved = null, draft = null, valid = false;
+
+const $ = id => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
+const clone = o => JSON.parse(JSON.stringify(o));
+
+async function load() {
+  const state = await (await fetch("/api/state")).json();
+  actions = state.actions;
+  saved = state.balance;
+  draft = clone(saved);
+  $("run").textContent = "run: " + state.run;
+  const h = $("history");
+  h.length = 1;
+  for (const name of state.history) h.append(el("option", { value: name, textContent: name.replace(".json", "").replace("_", " ") }));
+  showPlayers(state.players);
+  render();
+}
+
+function render() {
+  renderBase();
+  renderRules();
+  changed();
+}
+
+function renderBase() {
+  const body = $("base").tBodies[0];
+  body.replaceChildren();
+  draft.base = draft.base || {};
+  for (const part of Object.keys(PARTS)) {
+    const b = draft.base[part] = draft.base[part] || { damage: 0, stagger: 0 };
+    body.append(el("tr", {},
+      el("td", { textContent: PARTS[part] }),
+      el("td", {}, num(b, "damage", false)),
+      el("td", {}, num(b, "stagger", false)),
+      el("td", {}, note(b))));
+  }
+}
+
+function num(obj, key, factor) {
+  const input = el("input", { className: "num", type: "number", step: factor ? "0.05" : "0.1", min: "0",
+    value: obj[key] ?? "", placeholder: factor ? "1" : "" });
+  input.oninput = () => {
+    if (input.value === "") { if (factor) delete obj[key]; else obj[key] = null; }
+    else obj[key] = Number(input.value);
+    changed();
+  };
+  return input;
+}
+
+function note(obj) {
+  const input = el("input", { className: "note", value: obj.note || "", placeholder: "why" });
+  input.oninput = () => { if (input.value) obj.note = input.value; else delete obj.note; changed(); };
+  return input;
+}
+
+function blowSelect(rule) {
+  const s = el("select", { className: "blow" });
+  s.append(el("option", { value: "", textContent: "all animations" }));
+  const usable = actions.filter(a => !rule.held || a.needs === "any" || a.needs === rule.held);
+  for (const group of ["any", "sword", "hammer", "hands"]) {
+    const items = usable.filter(a => a.needs === group);
+    if (!items.length) continue;
+    const g = el("optgroup", { label: group === "any" ? "common" : HELD[group] + " only" });
+    for (const a of items) g.append(el("option", { value: a.name, textContent: a.name }));
+    s.append(g);
+  }
+  if (rule.blow && !usable.some(a => a.name === rule.blow))
+    s.append(el("option", { value: rule.blow, textContent: rule.blow + " (no such animation!)" }));
+  s.value = rule.blow || "";
+  s.onchange = () => { if (s.value) rule.blow = s.value; else delete rule.blow; changed(); };
+  return s;
+}
+
+function renderRules() {
+  const body = $("rules").tBodies[0];
+  body.replaceChildren();
+  draft.rules = draft.rules || [];
+  draft.rules.forEach((rule, i) => {
+    const held = el("select");
+    held.append(el("option", { value: "", textContent: "any" }));
+    for (const [k, v] of Object.entries(HELD)) held.append(el("option", { value: k, textContent: v }));
+    held.value = rule.held || "";
+    held.onchange = () => { if (held.value) rule.held = held.value; else delete rule.held; renderRules(); changed(); };
+    const del = el("button", { textContent: "✕", title: "remove" });
+    del.onclick = () => { draft.rules.splice(i, 1); renderRules(); changed(); };
+    body.append(el("tr", {},
+      el("td", {}, held), el("td", {}, blowSelect(rule)),
+      ...FACTORS.map(f => el("td", {}, num(rule, f, true))),
+      el("td", {}, note(rule)), el("td", {}, del)));
+  });
+}
+
+/** One action's numbers, as Balance.Of works them out. */
+function of(balance, held, action) {
+  const part = action.strikes === "weapon" ? held : action.strikes;
+  const b = part && balance.base && balance.base[part];
+  let damage = b ? Number(b.damage) || 0 : 0, stagger = b ? Number(b.stagger) || 0 : 0, speed = 1, rules = 0;
+  for (const r of balance.rules || []) {
+    if (r.held && r.held !== held) continue;
+    if (r.blow && r.blow !== action.name) continue;
+    damage *= r.damage ?? 1; speed *= r.speed ?? 1; stagger *= r.stagger ?? 1; rules++;
+  }
+  return { part, damage, speed, stagger, rules };
+}
+
+function renderPreview() {
+  const held = $("previewHeld").value, only = $("onlyChanged").checked;
+  const body = $("preview").tBodies[0];
+  body.replaceChildren();
+  const fmt = (v, d) => (Math.round(v * 10 ** d) / 10 ** d).toString();
+  for (const a of actions) {
+    if (a.needs !== "any" && a.needs !== held) continue;
+    const now = of(draft, held, a), was = of(saved, held, a);
+    const diff = ["damage", "speed", "stagger"].some(k => Math.abs(now[k] - was[k]) > 1e-6);
+    if (only && !diff && !now.rules) continue;
+    const cell = (v, w, d) => el("td", { textContent: fmt(v, d) + (Math.abs(v - w) > 1e-6 ? "  (was " + fmt(w, d) + ")" : "") });
+    body.append(el("tr", { className: diff ? "changed" : "" },
+      el("td", { textContent: a.name }),
+      el("td", { textContent: now.part ? PARTS[now.part] : "—" }),
+      now.part ? cell(now.damage, was.damage, 1) : el("td", { textContent: "—" }),
+      cell(now.speed, was.speed, 3),
+      now.part ? cell(now.stagger, was.stagger, 2) : el("td", { textContent: "—" }),
+      el("td", { textContent: now.rules || "" })));
+  }
+}
+
+let timer = null;
+function changed() {
+  renderPreview();
+  const same = JSON.stringify(draft) === JSON.stringify(saved);
+  $("status").textContent = same ? "as in the file" : "unsaved changes";
+  clearTimeout(timer);
+  timer = setTimeout(validate, 250);
+}
+
+async function validate() {
+  const r = await (await fetch("/api/check", { method: "POST", body: JSON.stringify(draft) })).json();
+  showProblems(r);
+}
+
+function showProblems(r) {
+  valid = r.errors.length === 0;
+  $("errors").replaceChildren(...r.errors.map(e => el("li", { textContent: e })));
+  $("warnings").replaceChildren(...r.warnings.map(e => el("li", { textContent: e })));
+  $("save").disabled = !valid || JSON.stringify(draft) === JSON.stringify(saved);
+}
+
+$("save").onclick = async () => {
+  const r = await (await fetch("/api/save", { method: "POST", body: JSON.stringify(draft) })).json();
+  showProblems(r);
+  if (r.saved) {
+    await load();
+    $("status").innerHTML = '<span class="ok">saved: the players take it from their next fights</span>';
+  }
+};
+$("reset").onclick = () => { draft = clone(saved); render(); };
+$("add").onclick = () => { draft.rules.push({}); renderRules(); changed(); };
+$("previewHeld").onchange = renderPreview;
+$("onlyChanged").onchange = renderPreview;
+$("history").onchange = async () => {
+  const name = $("history").value;
+  if (!name) return;
+  draft = await (await fetch("/api/history/" + encodeURIComponent(name))).json();
+  $("history").value = "";
+  render();
+  $("status").textContent = "loaded version " + name + ": save to apply";
+};
+
+function showPlayers(list) {
+  const box = $("players");
+  if (!list.length) { box.textContent = "no player logs (training has not run)"; return; }
+  const current = list.map(p => p.hash).filter(Boolean);
+  box.replaceChildren(el("table", {},
+    el("thead", {}, el("tr", {}, ...["log", "balance", "changes", "updated"].map(t => el("th", { textContent: t })))),
+    el("tbody", {}, ...list.map(p => el("tr", {},
+      el("td", { textContent: p.log }),
+      el("td", { textContent: p.hash || "not written (an old player)" }),
+      el("td", { textContent: p.taken }),
+      el("td", { textContent: p.age < 120 ? p.age + " s ago" : Math.round(p.age / 60) + " min ago" }))))));
+  const complaints = list.flatMap(p => p.complaints.map(c => p.log + ": " + c));
+  if (complaints.length) box.append(el("ul", { className: "errors" }, ...complaints.map(c => el("li", { textContent: c }))));
+  if (new Set(current).size > 1) box.append(el("p", { className: "muted", textContent: "the players are still moving to the new version" }));
+}
+
+setInterval(async () => showPlayers(await (await fetch("/api/players")).json()), 10000);
+
+$("stats").onclick = async () => {
+  $("statsStatus").textContent = "reading the logs…";
+  $("stats").disabled = true;
+  try {
+    const r = await (await fetch("/api/stats?steps=" + encodeURIComponent($("steps").value))).json();
+    $("statsText").textContent = r.text;
+    $("statsText").className = "";
+  } finally {
+    $("statsStatus").textContent = "";
+    $("stats").disabled = false;
+  }
+};
+
+load();
+</script>
+</body>
+</html>

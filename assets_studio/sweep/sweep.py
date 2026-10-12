@@ -13,6 +13,10 @@ image models, 3D models); every combination becomes a chain of jobs
     uv run python sweep/sweep.py status SPEC.toml
     uv run python sweep/sweep.py paint SPEC.toml   # paint shape-only meshes from their images
 
+A category with ``images`` (asset ids of concepts already in the studio)
+instead of subjects remakes 3D from those images: no text-to-image job, no
+style or genre (a mesh made again after a change to a 3D server).
+
 The manifest (job ids per combination) is kept in
 ~/.local/share/assets-studio/sweeps/<name>.json, so ``tag`` can be run
 again as jobs finish.
@@ -53,7 +57,8 @@ def combinations(spec: dict[str, Any]) -> list[dict[str, Any]]:
     rng = random.Random(spec.get("seed", 1))  # noqa: S311 -- reproducible draws, not secrets
     genres = list(spec["genres"])
     out = []
-    for (category, c), style in itertools.product(spec["categories"].items(), spec["styles"]):
+    texts = {name: c for name, c in spec["categories"].items() if "images" not in c}
+    for (category, c), style in itertools.product(texts.items(), spec["styles"]):
         for genre in rng.sample(genres, k=min(spec.get("genres_per", 1), len(genres))):
             subjects = c["subjects"] if spec.get("every_subject") else [rng.choice(c["subjects"])]
             for subject in subjects:
@@ -72,10 +77,42 @@ def combinations(spec: dict[str, Any]) -> list[dict[str, Any]]:
     return out
 
 
+def mesh_jobs(spec: dict[str, Any], category: str, image: dict[str, Any]) -> list[dict[str, str]]:
+    """The 3D jobs of one image: ``image`` is the job's input, either
+    ``{"dependencies": {...}}`` (an image job of the sweep) or ``{"inputs": {...}}``
+    (an image already in the studio)."""
+    meshes = []
+    c = spec["categories"][category]
+    for model in c.get("3d", spec["3d_models"]):
+        mesh = spec["3d_models"][model]
+        params = {**mesh.get("params", {}), **c.get("3d_params", {}).get(model, {})}
+        job = call(
+            "POST",
+            "/api/jobs",
+            {"server": mesh["server"], "task": "image-to-3d", "params": params, **image},
+        )
+        meshes.append({"model": model, "job": job["id"]})
+    return meshes
+
+
 def queue(spec: dict[str, Any], manifest: Path) -> None:
     if manifest.exists():
         sys.exit(f"{manifest} exists: this sweep was queued already")
     entries = []
+    for category, c in spec["categories"].items():
+        for asset in c.get("images", []):
+            entry = {
+                "category": category,
+                "style": "existing",
+                "genre": "none",
+                "subject": asset,
+                "prompt": None,
+                "image_model": "existing",
+                "image_job": None,
+                "image_asset": asset,
+            }
+            entry["meshes"] = mesh_jobs(spec, category, {"inputs": {"image": asset}})
+            entries.append(entry)
     for combo in combinations(spec):
         category = spec["categories"][combo["category"]]
         for image_model, image in spec["image_models"].items():
@@ -91,21 +128,12 @@ def queue(spec: dict[str, Any], manifest: Path) -> None:
                     "params": {**image.get("params", {}), **category.get("image_params", {})},
                 },
             )
-            entry = {**combo, "image_model": image_model, "image_job": job["id"], "meshes": []}
-            for model in category.get("3d", spec["3d_models"]):
-                mesh = spec["3d_models"][model]
-                params = {**mesh.get("params", {}), **category.get("3d_params", {}).get(model, {})}
-                job3d = call(
-                    "POST",
-                    "/api/jobs",
-                    {
-                        "server": mesh["server"],
-                        "task": "image-to-3d",
-                        "params": params,
-                        "dependencies": {"image": {"job_id": job["id"], "output_index": 0}},
-                    },
-                )
-                entry["meshes"].append({"model": model, "job": job3d["id"]})
+            entry = {**combo, "image_model": image_model, "image_job": job["id"]}
+            entry["meshes"] = mesh_jobs(
+                spec,
+                combo["category"],
+                {"dependencies": {"image": {"job_id": job["id"], "output_index": 0}}},
+            )
             entries.append(entry)
     manifest.parent.mkdir(parents=True, exist_ok=True)
     manifest.write_text(json.dumps({"name": spec["name"], "entries": entries}, indent=1))
@@ -128,7 +156,8 @@ def tag(manifest: Path) -> None:
     data = json.loads(manifest.read_text())
     done = Counter()
     for entry in data["entries"]:
-        targets = [(entry["image_job"], None)] + [(m["job"], m["model"]) for m in entry["meshes"]]
+        targets = [(entry["image_job"], None)] if entry["image_job"] else []
+        targets += [(m["job"], m["model"]) for m in entry["meshes"]]
         for job_id, model in targets:
             job = call("GET", f"/api/jobs/{job_id}")
             done[job["status"]] += 1
@@ -171,6 +200,9 @@ def paint(manifest: Path) -> None:
                 continue
             if call("GET", f"/api/jobs/{mesh['job']}")["status"] in ("failed", "cancelled"):
                 continue
+            dependencies = {"mesh": {"job_id": mesh["job"], "output_index": 0}}
+            if entry["image_job"]:
+                dependencies["image"] = {"job_id": entry["image_job"], "output_index": 0}
             job = call(
                 "POST",
                 "/api/jobs",
@@ -178,10 +210,9 @@ def paint(manifest: Path) -> None:
                     "server": "paint",
                     "task": "3d-paint",
                     "params": {},
-                    "dependencies": {
-                        "mesh": {"job_id": mesh["job"], "output_index": 0},
-                        "image": {"job_id": entry["image_job"], "output_index": 0},
-                    },
+                    "dependencies": dependencies,
+                    # An image already in the studio: an input, not a job's output.
+                    "inputs": {"image": entry["image_asset"]} if not entry["image_job"] else {},
                 },
             )
             entry["meshes"].append({"model": painted, "job": job["id"]})
@@ -195,7 +226,9 @@ def status(manifest: Path) -> None:
     data = json.loads(manifest.read_text())
     counts: Counter[str] = Counter()
     for entry in data["entries"]:
-        for job_id in [entry["image_job"]] + [m["job"] for m in entry["meshes"]]:
+        for job_id in [entry["image_job"], *(m["job"] for m in entry["meshes"])]:
+            if job_id is None:
+                continue
             counts[call("GET", f"/api/jobs/{job_id}")["status"]] += 1
     print(dict(counts))
 
