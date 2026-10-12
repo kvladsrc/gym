@@ -203,7 +203,7 @@ in
     (config.lib.nixGL.wrap f3d)
     (config.lib.nixGL.wrap gamescope)
     (config.lib.nixGL.wrap gthumb)
-    (config.lib.nixGL.wrap kooha)
+    (config.lib.nixGL.wrap obs-studio)
     (config.lib.nixGL.wrap ryubing)
     (config.lib.nixGL.wrap zeal)
     blenderWithMcp
@@ -246,7 +246,7 @@ in
     };
     # The portal is the system's (/usr), so it never sees niri's own
     # niri-portals.conf in the Nix store; without it no backend serves
-    # ScreenCast under niri, and screen recorders (Kooha, OBS) get nothing.
+    # ScreenCast under niri, and screen recorders (OBS) get nothing.
     ".config/xdg-desktop-portal/niri-portals.conf" = {
       source = "${pkgs.niri}/share/xdg-desktop-portal/niri-portals.conf";
     };

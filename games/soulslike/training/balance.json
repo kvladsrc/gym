@@ -1,0 +1,42 @@
+{
+  "base": {
+    "sword": {
+      "damage": 16,
+      "stagger": 0.3
+    },
+    "hammer": {
+      "damage": 30,
+      "stagger": 0.3,
+      "note": "at 0.3 the sword won 3 in 4 against it, cutting short 3 in 4 of its blows; at 0.6 (no look-alike slashes left to the sword) the hammer won 2 in 3"
+    },
+    "limb": {
+      "damage": 13,
+      "stagger": 0.3
+    }
+  },
+  "rules": [
+    {
+      "held": "hands",
+      "damage": 1.3,
+      "speed": 1.4,
+      "stagger": 1.7,
+      "note": "bare-handed: 13 damage, 0.5 s stagger, all its actions 1.4 times as fast (at 1 it won a fifth of its fights, at 1.2 a tenth)"
+    },
+    {
+      "blow": "sword_and_shield_slash_5",
+      "speed": 0.9,
+      "note": "the sword's favourite, two blows in three of its own"
+    },
+    {
+      "held": "sword",
+      "blow": "great_sword_high_spin_attack",
+      "damage": 1.1,
+      "speed": 1.2
+    },
+    {
+      "held": "sword",
+      "blow": "great_sword_jump_attack",
+      "speed": 1.2
+    }
+  ]
+}
