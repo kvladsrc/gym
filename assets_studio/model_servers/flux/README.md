@@ -1,5 +1,9 @@
 # FLUX model server
 
+> Retired from the active Studio catalog at the user’s request; weights,
+> offload cache and local environment removed. Use Qwen-Image instead.
+> Source is retained for historical jobs; it is not an active launcher recipe.
+
 Text-to-image и image-to-image по контракту v1 на основе
 [FLUX.1-schnell](https://huggingface.co/black-forest-labs/FLUX.1-schnell)
 (Apache-2.0) с трансформером в

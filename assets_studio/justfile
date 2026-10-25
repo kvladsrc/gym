@@ -67,6 +67,15 @@ studio *args:
 launcher *args:
     uv run python launcher/launcher.py "$@"
 
+# Separate editor and saved job graphs, http://127.0.0.1:9001
+[positional-arguments]
+flow *args:
+    uv run studio-flow "$@"
+
+# Flow graph, persistence and submission tests (no models)
+flow-test:
+    uv run pytest -q flow/tests
+
 # Breadth-first search over asset combinations: queue, tag or status of a sweep spec
 [positional-arguments]
 sweep *args:
@@ -81,3 +90,8 @@ fake-server *args:
 [positional-arguments]
 check-server url *args:
     uv run python -m model_server_sdk.check "$@"
+
+# Inspect media through the local Qwen model; return text only
+[positional-arguments]
+describe-media *args:
+    uv run python agent_tools/describe_media.py "$@"

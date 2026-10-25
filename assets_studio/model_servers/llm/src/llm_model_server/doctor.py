@@ -26,6 +26,13 @@ def main() -> None:
         "installed": runtime.installed(),
         "devices": devices,
         "hf_token_found": get_token() is not None,
+        "projectors_downloaded": {
+            key: isinstance(
+                try_to_load_from_cache(spec.repo, spec.projector, revision=spec.revision), str
+            )
+            for key, spec in MODELS.items()
+            if spec.projector
+        },
         "models_downloaded": {
             key: isinstance(
                 try_to_load_from_cache(spec.repo, spec.file, revision=spec.revision), str

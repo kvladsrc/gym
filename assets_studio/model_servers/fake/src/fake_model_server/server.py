@@ -75,6 +75,10 @@ class PaintParams(Controls):
     pass
 
 
+class MotionParams(Controls):
+    pass
+
+
 class SpeechParams(Controls):
     voice: Literal["alpha", "beta"] = "alpha"
     speed: float = Field(default=1.0, ge=0.5, le=2.0)
@@ -158,6 +162,17 @@ ALL_TASKS: tuple[TaskSpec, ...] = (
         ("model/x-fbx",),
         prompt="none",
         inputs=(InputSpec(role="mesh", mime=["model/gltf-binary"]),),
+    ),
+    TaskSpec("text-to-motion", MotionParams, ("model/x-fbx",), prompt="required"),
+    TaskSpec(
+        "video-to-motion",
+        MotionParams,
+        ("model/x-fbx",),
+        prompt="none",
+        inputs=(
+            InputSpec(role="video", mime=["video/mp4"]),
+            InputSpec(role="rig", mime=["model/x-fbx", "model/gltf-binary"]),
+        ),
     ),
     TaskSpec(
         KnownTask.PAINT_3D,
@@ -246,7 +261,7 @@ class FakeModelServer(ModelServer):
             color = (digest[0] / 255, digest[1] / 255, digest[2] / 255, 1.0)
             points, triangles = media.tetrahedron(0.5)
             return Output("model/gltf-binary", media.encode_glb(points, triangles, color), meta)
-        if isinstance(params, RigParams):
+        if isinstance(params, RigParams | MotionParams):
             # The FBX header and the digest: enough for signature checks.
             return Output("model/x-fbx", media.FBX_MAGIC + b"\x34\x1d\x00\x00" + digest, meta)
         if isinstance(params, VideoParams):

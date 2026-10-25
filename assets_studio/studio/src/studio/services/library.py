@@ -2,12 +2,16 @@
 
 from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 import httpx2 as httpx
+from model_server_sdk.media import MOTION_FORMATS
 
+from model_server_sdk import media as signatures
 from studio.config import StudioConfig
 from studio.domain import MIME_KINDS, Asset, AssetKind, Origin, new_id
-from studio.media import UnsupportedMedia, detect_mime, for_storage
+from studio.media import UnsupportedMedia, detect_mime, for_storage, video_frame
+from studio.services.skeleton import NotAMotion, skeleton
 from studio.storage import repository
 from studio.storage.blobs import BlobStore
 from studio.storage.repository import Repository, Unset, now
@@ -106,6 +110,7 @@ class Library:
         tags: Iterable[str] = (),
         min_rating: int | None = None,
         unrated: bool = False,
+        motion: bool | None = None,
         limit: int = 100,
     ) -> list[Asset]:
         return self._repository.assets(
@@ -114,6 +119,7 @@ class Library:
             tags=tags,
             min_rating=min_rating,
             unrated=unrated,
+            motion=motion,
             limit=limit,
         )
 
@@ -152,8 +158,47 @@ class Library:
                 self._blobs.remove(asset.blob_sha256, asset.mime)
         return asset
 
+    def retype_motions(self) -> int:
+        """Once, after migration 0008: plain-text assets that are native motions (SMPL-X or
+        SOMA) become motion assets, their files stored under the new type. Returns how many."""
+        moved: set[str] = set()
+        with self._blobs.lock:
+            for asset in self._repository.text_assets():
+                path = self._blobs.path(asset.blob_sha256, asset.mime)
+                if not path.exists():
+                    continue  # a deleted asset whose file went
+                data = path.read_bytes()
+                mime = next((m for m in MOTION_FORMATS if signatures.looks_like(m, data)), None)
+                if mime is None:
+                    continue
+                self._blobs.put(data, mime)
+                self._repository.retype_asset(asset.id, AssetKind.MOTION, mime)
+                moved.add(asset.blob_sha256)
+            for sha256 in moved:
+                if not self._repository.blob_in_use(sha256, "text/plain"):
+                    self._blobs.remove(sha256, "text/plain")
+        return len(moved)
+
     def file(self, asset: Asset) -> Path:
         return self._blobs.path(asset.blob_sha256, asset.mime)
+
+    def video_frame(self, asset: Asset, time_s: float) -> Asset:
+        """The frame of a video at ``time_s`` as a new image asset, made from the video."""
+        if asset.kind != AssetKind.VIDEO:
+            raise ImportError_("only a video has frames")
+        try:
+            png = video_frame(self.file(asset).read_bytes(), asset.mime, time_s)
+        except UnsupportedMedia as error:
+            raise ImportError_(str(error)) from error
+        frame = self.import_bytes(png, title=f"{asset.title or asset.id} · {time_s:.2f} s")
+        self._repository.add_input_lineage(asset.id, frame.id)
+        return frame
+
+    def skeleton(self, asset: Asset) -> dict[str, Any]:
+        """Joint positions per frame of a motion asset, for the viewer (see skeleton.py)."""
+        if asset.kind != AssetKind.MOTION:
+            raise NotAMotion("not a motion asset")
+        return skeleton(self.file(asset).read_bytes())
 
     def parents(self, asset_id: str) -> list[tuple[str, str]]:
         return self._repository.parents(asset_id)

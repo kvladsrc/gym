@@ -9,6 +9,7 @@ import asyncio
 import base64
 import binascii
 import logging
+import os
 import queue
 import random
 import threading
@@ -47,6 +48,7 @@ from model_server_sdk.contract import (
     output_seed,
     params_schema_problems,
 )
+from model_server_sdk.errors import EXIT_GPU_BROKEN, gpu_broken_cause
 
 logger = logging.getLogger("model_server_sdk")
 
@@ -209,15 +211,26 @@ class _ModelThread:
                 future.set_exception(error)
 
 
+def exit_soon(code: int, delay_s: float = 1.0) -> None:
+    """End the process after ``delay_s``, time for the response in flight.
+
+    os._exit, not sys.exit: with a broken CUDA context an orderly shutdown
+    (CUDA teardown in the model's finalizers) can hang.
+    """
+    threading.Timer(delay_s, os._exit, args=(code,)).start()
+
+
 class _State:
     def __init__(self) -> None:
         self.loaded = False
         self.load_error: str | None = None
+        # Set when a generation broke the GPU state: the process exits.
+        self.broken: str | None = None
         self.generation = threading.Lock()
 
     @property
     def status(self) -> ServerStatus:
-        if self.load_error is not None:
+        if self.load_error is not None or self.broken is not None:
             return "error"
         if not self.loaded:
             return "loading"
@@ -277,7 +290,7 @@ def create_app(server: ModelServer) -> FastAPI:
         return Info(
             contract=CONTRACT_VERSION,
             status=state.status,
-            status_message=state.load_error,
+            status_message=state.load_error or state.broken,
             model=model,
             tasks=[spec.info() for spec in specs.values()],
         )
@@ -294,6 +307,8 @@ def create_app(server: ModelServer) -> FastAPI:
             )
         if not state.loaded:
             raise _ContractError(503, "not_ready", "model is loading", retryable=True)
+        if state.broken is not None:
+            raise _ContractError(503, "not_ready", state.broken, retryable=True)
         spec = specs.get(request.task)
         if spec is None:
             raise _ContractError(
@@ -321,13 +336,22 @@ def create_app(server: ModelServer) -> FastAPI:
         started = time.monotonic()
         try:
             outputs = server.generate(job)
-        except GenerationError as error:
-            raise _ContractError(
-                500, "generation_failed", str(error), retryable=error.retryable
-            ) from error
-        except InvalidInput as error:
-            raise _invalid(str(error)) from error
         except BaseException as error:  # SystemExit from a library must not escape the contract
+            if (cause := gpu_broken_cause(error)) is not None:
+                # Every later generation would fail the same way: say so, and
+                # exit to be started again (the job is retryable on the new process).
+                logger.critical("the GPU state is broken; exiting", exc_info=error)
+                state.broken = f"GPU state broken by {type(cause).__name__}: {cause}; restarting"
+                exit_soon(EXIT_GPU_BROKEN)
+                raise _ContractError(
+                    500, "generation_failed", state.broken, retryable=True
+                ) from error
+            if isinstance(error, GenerationError):
+                raise _ContractError(
+                    500, "generation_failed", str(error), retryable=error.retryable
+                ) from error
+            if isinstance(error, InvalidInput):
+                raise _invalid(str(error)) from error
             logger.exception("generation crashed")
             raise _internal(f"{type(error).__name__}: {error}") from error
         elapsed = time.monotonic() - started

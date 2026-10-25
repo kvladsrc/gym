@@ -1,18 +1,18 @@
 // All assets: filter by kind or favourites, inspect one, trace what it was made from.
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import { api, type Asset, type Parent } from "../api/client";
 import { AssetActions } from "../components/AssetActions";
 import { AssetCard } from "../components/AssetCard";
 import { AssetPreview } from "../components/AssetPreview";
 import { AssetThumb } from "../components/AssetThumb";
+import { Provenance } from "../components/Provenance";
 import { assetName, bytes, kindLabel, time } from "../format";
 import { go, hrefLibrary } from "../state/router";
 import {
   assetById,
   assets,
   attempt,
-  jobs,
   putAsset,
   putAssets,
   succeededJobs,
@@ -24,6 +24,7 @@ const FILTERS = [
   { id: "all", label: "library.all" },
   { id: "image", label: "section.image" },
   { id: "mesh", label: "section.mesh" },
+  { id: "animation", label: "section.animation" },
   { id: "audio", label: "section.audio" },
   { id: "video", label: "section.video" },
   { id: "text", label: "section.text" },
@@ -37,9 +38,12 @@ type RatingFilter = "any" | "unrated" | "1" | "2" | "3" | "4" | "5";
 
 function Details({
   asset,
+  preview = true,
   onPickTag,
 }: {
   asset: Asset;
+  /** False when the viewer already shows the asset large. */
+  preview?: boolean;
   onPickTag: (tag: string) => void;
 }) {
   const [parents, setParents] = useState<Parent[]>([]);
@@ -50,9 +54,6 @@ function Details({
       setParents(list ?? []),
     );
   }, [asset.id, asset.title]);
-  const producer = [...jobs.value.values()].find((job) =>
-    job.outputs.includes(asset.id),
-  );
 
   async function retag(tags: string[]) {
     const updated = await attempt(() => api.updateAsset(asset.id, { tags }));
@@ -67,9 +68,11 @@ function Details({
 
   return (
     <aside class="details" aria-label={t("library.details")}>
-      <div class="preview">
-        <AssetPreview key={asset.id} asset={asset} />
-      </div>
+      {preview && (
+        <div class="preview">
+          <AssetPreview key={asset.id} asset={asset} />
+        </div>
+      )}
       <input
         type="text"
         aria-label={t("library.title")}
@@ -99,24 +102,6 @@ function Details({
         <dd>{bytes(asset.size_bytes)}</dd>
         <dt>{t("library.created")}</dt>
         <dd>{time(asset.created_at)}</dd>
-        {typeof asset.meta.seed === "number" && (
-          <>
-            <dt>Seed</dt>
-            <dd>{asset.meta.seed}</dd>
-          </>
-        )}
-        {producer && (
-          <>
-            <dt>{t("library.job")}</dt>
-            <dd>{producer.prompt ?? producer.task}</dd>
-          </>
-        )}
-        {producer?.model_snapshot && (
-          <>
-            <dt>{t("library.model")}</dt>
-            <dd>{String(producer.model_snapshot.name)}</dd>
-          </>
-        )}
         {asset.source_url && (
           <>
             <dt>{t("library.source")}</dt>
@@ -124,6 +109,7 @@ function Details({
           </>
         )}
       </dl>
+      <Provenance asset={asset} />
       {parents.length > 0 && (
         <div class="field">
           <span>{t("library.madeFrom")}</span>
@@ -145,18 +131,58 @@ function Details({
   );
 }
 
+/** Grid: many at once. Viewer: one large, as in a section, with the list
+ * as a strip below and ←/→ to step through it. Remembered in this browser. */
+type View = "grid" | "viewer";
+const VIEW_KEY = "assets-studio.library-view";
+
+function rememberedView(): View {
+  try {
+    return localStorage.getItem(VIEW_KEY) === "viewer" ? "viewer" : "grid";
+  } catch {
+    return "grid"; // storage blocked
+  }
+}
+
+function remember(view: View) {
+  try {
+    localStorage.setItem(VIEW_KEY, view);
+  } catch {
+    // storage blocked: the choice lasts until the page is reloaded
+  }
+}
+
+/** Arrow keys belong to the field being typed in, not to the viewer. */
+function typing(target: EventTarget | null) {
+  return (
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+  );
+}
+
 export function LibraryPage({ selectedId }: { selectedId: string | null }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [rating, setRating] = useState<RatingFilter>("any");
   const [limit, setLimit] = useState(PAGE);
   const [ids, setIds] = useState<string[] | null>(null);
+  const [view, setView] = useState<View>(rememberedView);
+  const strip = useRef<HTMLDivElement>(null);
   const finished = succeededJobs.value;
 
+  // A new filter in the viewer: show the first of the new list once it loads.
+  const jump = useRef(false);
   useEffect(() => {
     setIds(null);
     setLimit(PAGE);
   }, [filter, tagFilter, rating]);
+  function refilter<T>(set: (value: T) => void) {
+    return (value: T) => {
+      jump.current = true;
+      set(value);
+    };
+  }
   useEffect(() => {
     // Ignore a response that arrives after the filter has changed again.
     let current = true;
@@ -165,7 +191,11 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
         ? { favorite: true }
         : filter === "all"
           ? {}
-          : { kind: filter };
+          : filter === "animation"
+            ? { motion: true } // native JSON and FBX clips alike
+            : filter === "mesh" || filter === "text"
+              ? { kind: filter, motion: false } // their animations are under Animation
+              : { kind: filter };
     const scored =
       rating === "any"
         ? {}
@@ -185,33 +215,106 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
     // New results appear as jobs succeed.
   }, [filter, tagFilter, rating, limit, finished]);
 
+  // Deleted here a moment ago: gone without reloading the list.
+  const listed = (ids ?? []).flatMap((id) => {
+    const asset = assets.value.get(id);
+    return asset && !asset.deleted_at ? [asset] : [];
+  });
+  const shown = listed.map((asset) => asset.id);
   const selected = selectedId ? assetById(selectedId) : undefined;
+  const position = selectedId ? shown.indexOf(selectedId) : -1;
+  const viewer = view === "viewer";
+
+  // Where the viewer is, ahead of rendering: quick key presses add up.
+  const at = useRef<string | null | undefined>(selectedId);
+  at.current = selectedId;
+  function step(by: number) {
+    const next = (at.current ? shown.indexOf(at.current) : -1) + by;
+    if (next >= 0 && next < shown.length) {
+      at.current = shown[next];
+      go(hrefLibrary(shown[next]));
+    }
+    // At the end of what is loaded: load more; the next press goes on.
+    if (next >= shown.length && ids?.length === limit) setLimit(limit + PAGE);
+  }
+
+  // The viewer always shows something: the first one when none is picked or
+  // the filter has just changed (a link to one asset keeps it, listed or not).
+  useEffect(() => {
+    if (!viewer || ids === null || !shown.length) return;
+    if (!selectedId || (jump.current && !shown.includes(selectedId)))
+      go(hrefLibrary(shown[0]));
+    jump.current = false;
+  }, [viewer, selectedId, ids]);
+  useEffect(() => {
+    if (!viewer) return;
+    function onKey(event: KeyboardEvent) {
+      if (typing(event.target) || event.altKey || event.ctrlKey) return;
+      if (event.key === "ArrowLeft") step(-1);
+      else if (event.key === "ArrowRight") step(1);
+      else return;
+      event.preventDefault();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+  useEffect(() => {
+    strip.current
+      ?.querySelector(".thumb.selected")
+      ?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [selectedId, viewer]);
+
+  function choose(next: View) {
+    setView(next);
+    remember(next);
+  }
+
+  const more = ids?.length === limit && (
+    <button class="button" onClick={() => setLimit(limit + PAGE)}>
+      {t("library.more")}
+    </button>
+  );
+
   return (
-    <div class="library">
+    <div class={`library${viewer ? " viewing" : ""}`}>
       <div class="browse">
-        <div class="segmented" role="group" aria-label={t("library.show")}>
-          {FILTERS.map((item) => (
-            <button
-              key={item.id}
-              class={item.id === filter ? "active" : ""}
-              aria-pressed={item.id === filter}
-              onClick={() => setFilter(item.id)}
-            >
-              {t(item.label)}
-            </button>
-          ))}
+        <div class="library-top">
+          <div class="segmented" role="group" aria-label={t("library.show")}>
+            {FILTERS.map((item) => (
+              <button
+                key={item.id}
+                class={item.id === filter ? "active" : ""}
+                aria-pressed={item.id === filter}
+                onClick={() => refilter(setFilter)(item.id)}
+              >
+                {t(item.label)}
+              </button>
+            ))}
+          </div>
+          <div class="segmented" role="group" aria-label={t("library.view")}>
+            {(["grid", "viewer"] as const).map((item) => (
+              <button
+                key={item}
+                class={item === view ? "active" : ""}
+                aria-pressed={item === view}
+                onClick={() => choose(item)}
+              >
+                {t(item === "grid" ? "library.viewGrid" : "library.viewLarge")}
+              </button>
+            ))}
+          </div>
         </div>
         <div class="filters">
           <Tags
             tags={tagFilter}
             label={t("library.filterTags")}
-            onChange={setTagFilter}
+            onChange={refilter(setTagFilter)}
           />
           <select
             aria-label={t("asset.rating")}
             value={rating}
             onChange={(event) =>
-              setRating(event.currentTarget.value as RatingFilter)
+              refilter(setRating)(event.currentTarget.value as RatingFilter)
             }
           >
             <option value="any">{t("library.anyRating")}</option>
@@ -225,35 +328,77 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
         </div>
         {ids === null ? (
           <span class="spinner" />
-        ) : ids.length === 0 ? (
+        ) : shown.length === 0 ? (
           <p class="hint">{t("library.empty")}</p>
+        ) : viewer ? (
+          <>
+            <div class="viewer-head">
+              <button
+                class="button small"
+                aria-label={t("library.previous")}
+                disabled={position <= 0}
+                onClick={() => step(-1)}
+              >
+                ←
+              </button>
+              <span class="viewer-name" title={selected && assetName(selected)}>
+                {selected ? assetName(selected) : ""}
+              </span>
+              <span class="hint">
+                {position >= 0 &&
+                  t("library.position", { n: position + 1, of: shown.length })}
+              </span>
+              <button
+                class="button small"
+                aria-label={t("library.next")}
+                disabled={position < 0 || position >= shown.length - 1}
+                onClick={() => step(1)}
+              >
+                →
+              </button>
+            </div>
+            <div class="preview">
+              {selected && !selected.deleted_at ? (
+                <AssetPreview key={selected.id} asset={selected} />
+              ) : (
+                <span class="spinner" />
+              )}
+            </div>
+            <div class="history" ref={strip}>
+              {listed.map((asset) => (
+                <button
+                  key={asset.id}
+                  class={`thumb${asset.id === selectedId ? " selected" : ""}`}
+                  aria-pressed={asset.id === selectedId}
+                  title={assetName(asset)}
+                  onClick={() => go(hrefLibrary(asset.id))}
+                >
+                  <AssetThumb asset={asset} />
+                </button>
+              ))}
+              {more}
+            </div>
+          </>
         ) : (
           <>
             <div class="grid">
-              {ids.map((id) => {
-                const asset = assets.value.get(id);
-                // Deleted here a moment ago: gone without reloading the list.
-                return asset && !asset.deleted_at ? (
-                  <AssetCard
-                    key={id}
-                    asset={asset}
-                    selected={id === selectedId}
-                    onClick={() => go(hrefLibrary(id))}
-                  />
-                ) : null;
-              })}
+              {listed.map((asset) => (
+                <AssetCard
+                  key={asset.id}
+                  asset={asset}
+                  selected={asset.id === selectedId}
+                  onClick={() => go(hrefLibrary(asset.id))}
+                />
+              ))}
             </div>
-            {ids.length === limit && (
-              <button class="button" onClick={() => setLimit(limit + PAGE)}>
-                {t("library.more")}
-              </button>
-            )}
+            {more}
           </>
         )}
       </div>
       {selected && !selected.deleted_at && (
         <Details
           asset={selected}
+          preview={!viewer}
           onPickTag={(tag) =>
             !tagFilter.includes(tag) && setTagFilter([...tagFilter, tag])
           }

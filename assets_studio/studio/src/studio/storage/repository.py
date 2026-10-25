@@ -16,6 +16,16 @@ from typing import Any
 from studio.domain import PENDING, Asset, AssetKind, Dependency, Job, JobStatus, Origin
 from studio.storage.db import Database
 
+# Motion of any file format: a motion asset (SMPL-X, SOMA), or made by a motion task (the
+# Animation section's rule, as the web UI's isMotionTask in web/src/format.ts): "…-motion"
+# (generation, in-betweening, refinement), "…-pose" (a single pose), "retarget-…" and 2D pose
+# observations. FBX clips are meshes, observations text.
+MOTION_TASK_SQL = (
+    "(j.task = 'motion' OR j.task LIKE '%-motion' OR j.task LIKE '%-pose'"
+    " OR j.task LIKE '%pose-observations'"
+    " OR j.task LIKE 'retarget-%')"
+)
+
 
 class Unset:
     """No value given (``None`` is a value: clear the rating)."""
@@ -88,9 +98,11 @@ class Repository:
         tags: Iterable[str] = (),
         min_rating: int | None = None,
         unrated: bool = False,
+        motion: bool | None = None,
         limit: int = 100,
     ) -> list[Asset]:
-        """Assets matching every filter given; ``tags``: having all of them."""
+        """Assets matching every filter given; ``tags``: having all of them; ``motion``: a motion
+        asset or made by a motion task (True), or neither (False)."""
         query = f"SELECT {_ASSET_COLUMNS} FROM assets"
         conditions: list[str] = ["deleted_at IS NULL"]
         arguments: list[object] = []
@@ -108,6 +120,12 @@ class Repository:
             arguments.append(min_rating)
         if unrated:
             conditions.append("rating IS NULL")
+        if motion is not None:
+            made = (
+                "(kind = 'motion' OR id IN (SELECT o.asset_id FROM job_outputs o"
+                f" JOIN jobs j ON j.id = o.job_id WHERE {MOTION_TASK_SQL}))"
+            )
+            conditions.append(made if motion else f"NOT {made}")
         query += " WHERE " + " AND ".join(conditions)
         query += " ORDER BY id DESC LIMIT ?"
         arguments.append(limit)
@@ -187,6 +205,35 @@ class Repository:
             ).fetchone()
         return replace(asset, deleted_at=deleted_at), shared is None
 
+    def text_assets(self) -> list[Asset]:
+        """Every plain-text asset, deleted ones included."""
+        rows = self.db.connection.execute(
+            f"SELECT {_ASSET_COLUMNS} FROM assets WHERE mime = 'text/plain'"
+        ).fetchall()
+        return [_asset(row) for row in rows]
+
+    def retype_asset(self, asset_id: str, kind: str, mime: str) -> None:
+        self.db.connection.execute(
+            "UPDATE assets SET kind = ?, mime = ? WHERE id = ?", (kind, mime, asset_id)
+        )
+
+    def blob_in_use(self, sha256: str, mime: str) -> bool:
+        """Whether an asset not deleted keeps this file."""
+        row = self.db.connection.execute(
+            "SELECT 1 FROM assets WHERE blob_sha256 = ? AND mime = ? AND deleted_at IS NULL"
+            " LIMIT 1",
+            (sha256, mime),
+        ).fetchone()
+        return row is not None
+
+    def add_input_lineage(self, parent_id: str, child_id: str) -> None:
+        """The child was made from the parent without a job (e.g. a video frame)."""
+        self.db.connection.execute(
+            "INSERT OR IGNORE INTO lineage (parent_id, child_id, relation, job_id)"
+            " VALUES (?, ?, 'input', NULL)",
+            (parent_id, child_id),
+        )
+
     def parents(self, asset_id: str) -> list[tuple[str, str]]:
         """(parent asset id, relation) pairs of an asset."""
         rows = self.db.connection.execute(
@@ -194,6 +241,13 @@ class Repository:
             (asset_id,),
         )
         return [(row["parent_id"], row["relation"]) for row in rows]
+
+    def producer(self, asset_id: str) -> Job | None:
+        """The job whose output the asset is; None for an imported asset."""
+        row = self.db.connection.execute(
+            "SELECT job_id FROM job_outputs WHERE asset_id = ?", (asset_id,)
+        ).fetchone()
+        return None if row is None else self.job(row["job_id"])
 
     # Jobs: creation and reading
 

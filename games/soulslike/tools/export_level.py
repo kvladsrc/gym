@@ -273,7 +273,8 @@ def ground_of(scene: bpy.types.Scene) -> list:
     for o in scene.objects:
         materials = [m for m in o.data.materials if m] if o.type == "MESH" else []
         painted = materials and all(
-            (is_procedural(m) or needs_bake(m)) and not is_emissive(m) for m in materials
+            (is_procedural(m) or needs_bake(m)) and not is_emissive(m)
+            for m in materials
         )
         water = any(
             w in m.name.lower() for m in materials for w in ("water", "lake", "stream")
@@ -296,19 +297,29 @@ def bake_masks(scene: bpy.types.Scene, textures: Path) -> dict:
     for obj in [o for o in scene.objects if o.type == "MESH"]:
         names = {
             n.attribute_name
-            for m in obj.data.materials if m and m.node_tree
-            for n in m.node_tree.nodes if n.type == "ATTRIBUTE"
+            for m in obj.data.materials
+            if m and m.node_tree
+            for n in m.node_tree.nodes
+            if n.type == "ATTRIBUTE"
         } & {a.name for a in obj.data.color_attributes}
-        atlas = next((uv for uv in obj.data.uv_layers if "atlas" in uv.name.lower()), None)
+        atlas = next(
+            (uv for uv in obj.data.uv_layers if "atlas" in uv.name.lower()), None
+        )
         if not names or atlas is None:
             continue
         select_only(scene, obj)
         obj.data.uv_layers.active = atlas
         kept = [slot.material for slot in obj.material_slots]
         dx, dy = obj.dimensions.x, obj.dimensions.y
-        width, height = (MASK_SIZE, round(MASK_SIZE * dy / dx)) if dx >= dy else (round(MASK_SIZE * dx / dy), MASK_SIZE)
+        width, height = (
+            (MASK_SIZE, round(MASK_SIZE * dy / dx))
+            if dx >= dy
+            else (round(MASK_SIZE * dx / dy), MASK_SIZE)
+        )
         for name in sorted(names):
-            image = bpy.data.images.new(f"{file_name(obj.name)}_{file_name(name)}", width, height)
+            image = bpy.data.images.new(
+                f"{file_name(obj.name)}_{file_name(name)}", width, height
+            )
             image.colorspace_settings.name = "Non-Color"  # data, not a colour
             material = bpy.data.materials.new("Mask bake")
             material.use_nodes = True
@@ -360,7 +371,9 @@ def bake_procedural(scene: bpy.types.Scene, textures: Path) -> list:
         select_only(scene, obj)
         # A UV map made for this ("… atlas") is the bake's: the first one may
         # be a tiling layer's (a ground of 4 m tiles), the bake through it a mush.
-        atlas = next((uv for uv in obj.data.uv_layers if "atlas" in uv.name.lower()), None)
+        atlas = next(
+            (uv for uv in obj.data.uv_layers if "atlas" in uv.name.lower()), None
+        )
         if atlas is not None:
             obj.data.uv_layers.active = atlas
             atlas.active_render = True
@@ -376,8 +389,15 @@ def bake_procedural(scene: bpy.types.Scene, textures: Path) -> list:
         name = file_name(obj.name)
         # The image in the object's proportions (300 x 500 m: 2458 x 4096).
         dx, dy = obj.dimensions.x, obj.dimensions.y
-        width, height = (size, size) if atlas is None or dx <= 0 or dy <= 0 else (
-            (size, round(size * dy / dx)) if dx >= dy else (round(size * dx / dy), size))
+        width, height = (
+            (size, size)
+            if atlas is None or dx <= 0 or dy <= 0
+            else (
+                (size, round(size * dy / dx))
+                if dx >= dy
+                else (round(size * dx / dy), size)
+            )
+        )
         image = bpy.data.images.new(name, width, height)
         for slot in obj.material_slots:
             slot.material = slot.material.copy()
@@ -533,7 +553,10 @@ def main() -> None:
         bake_anim=False,
     )
     (out / f"{args.name}.json").write_text(
-        json.dumps({"lights": lights, "ground": ground, "routes": routes, "masks": masks}, indent=1)
+        json.dumps(
+            {"lights": lights, "ground": ground, "routes": routes, "masks": masks},
+            indent=1,
+        )
     )
     total = sum(len(o.data.polygons) for o in scene.objects if o.type == "MESH")
     print(

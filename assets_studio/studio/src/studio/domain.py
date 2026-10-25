@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any, Literal
 
+from model_server_sdk.media import SMPLX_MOTION, SOMA_MOTION
+
 
 class AssetKind(StrEnum):
     IMAGE = "image"
@@ -14,6 +16,7 @@ class AssetKind(StrEnum):
     AUDIO = "audio"
     TEXT = "text"
     VIDEO = "video"
+    MOTION = "motion"  # body motion or a pose (one frame), SMPL-X or SOMA (ADR-009)
 
 
 class Origin(StrEnum):
@@ -60,6 +63,8 @@ MIME_KINDS: dict[str, AssetKind] = {
     "video/mp4": AssetKind.VIDEO,
     "video/webm": AssetKind.VIDEO,
     "audio/mpeg": AssetKind.AUDIO,  # a weak signature (a sync word): late
+    SMPLX_MOTION: AssetKind.MOTION,  # JSON text with its format: before plain text
+    SOMA_MOTION: AssetKind.MOTION,
     "text/plain": AssetKind.TEXT,
 }
 FILE_EXTENSIONS: dict[str, str] = {
@@ -75,6 +80,8 @@ FILE_EXTENSIONS: dict[str, str] = {
     "video/mp4": ".mp4",
     "video/webm": ".webm",
     "text/plain": ".txt",
+    SMPLX_MOTION: ".json",
+    SOMA_MOTION: ".json",
 }
 CANONICAL_MIME: dict[AssetKind, str] = {
     AssetKind.IMAGE: "image/png",
@@ -82,6 +89,7 @@ CANONICAL_MIME: dict[AssetKind, str] = {
     AssetKind.MESH: "model/gltf-binary",
     AssetKind.TEXT: "text/plain",
     AssetKind.VIDEO: "video/mp4",
+    # Motion has none: SMPL-X and SOMA are different bodies, a server names the ones it takes.
 }
 
 

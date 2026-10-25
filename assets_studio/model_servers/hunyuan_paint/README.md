@@ -1,5 +1,9 @@
 # Hunyuan3D-Paint model server
 
+> Retired from the active Studio catalog. Use the 2.1 server. Local 2.0 weights
+and environments were removed; this source remains for historical
+reproducibility.
+
 Задача `3d-paint`: модель (GLB) и картинка, из которой она сделана → та же
 модель с UV-текстурой. На основе
 [Hunyuan3D-Paint v2.0 turbo](https://github.com/Tencent-Hunyuan/Hunyuan3D-2):

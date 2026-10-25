@@ -145,12 +145,21 @@ def test_job_waits_for_a_server_that_is_not_running(tmp_path: Path) -> None:
 
 
 def test_job_waits_while_the_model_loads(tmp_path: Path) -> None:
+    # The model finishes loading only once the job has been seen waiting: a fixed
+    # delay from the server's start raced the studio's own start on a busy node.
+    may_load = threading.Event()
+
+    class SlowToLoad(FakeModelServer):
+        def load(self) -> None:
+            may_load.wait(timeout=30)
+
     with (
-        live_server(create_app(FakeModelServer(load_delay_s=1.0))) as url,
+        live_server(create_app(SlowToLoad())) as url,
         running_studio(tmp_path, model_server("image", url)) as studio,
     ):
         job = studio.generation.submit("image", "text-to-image", prompt="мох")
         wait_for(studio, job.id, JobStatus.WAITING_MODEL)
+        may_load.set()
         wait_for(studio, job.id, JobStatus.SUCCEEDED)
 
 

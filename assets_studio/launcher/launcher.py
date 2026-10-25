@@ -12,6 +12,8 @@ leaves servers it did not start alone.
   after SWITCH_S when another server has ready jobs.
 - A server that exits on its own is not restarted for BACKOFF_S; its jobs keep
   waiting in the studio. Its output is in ~/.cache/assets-studio/launcher/.
+  One that exits with EXIT_GPU_BROKEN (a generation broke its CUDA state, the
+  model is fine) is started again at once.
 - On exit a busy or loading server is left running, its pid in
   ~/.cache/assets-studio/launcher/<server>.pid; the next launcher takes it
   over (a restart must not lose a generation in progress).
@@ -34,15 +36,29 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
+from model_server_sdk import EXIT_GPU_BROKEN
+
 logger = logging.getLogger("launcher")
 
 # Studio server ids (studio.example.toml) and their model_servers/justfile recipes.
 RECIPES = {
-    "flux": "flux",
     "qwen_image": "qwen_image",
-    "hunyuan3d": "hunyuan3d",
+    "birefnet": "birefnet",
+    "hunyuan3d21": "hunyuan3d21",
+    "hi3d": "hi3d",
     "rig": "mia",
-    "paint": "hunyuan_paint",
+    "skintokens": "skintokens",
+    "unirig": "unirig",
+    "motion": "kimodo",
+    "motion_smplx": "kimodo_smplx",
+    "mocapanything": "mocapanything",
+    "gvhmr": "gvhmr",
+    "gemx": "gemx",
+    "htd_refine": "htd_refine",
+    "prompthmr": "prompthmr",
+    "animation_tools": "animation_tools",
+    "sam2": "sam2",
+    "paint21": "hunyuan_paint21",
     "voice": "xtts",
     "sound": "stable_audio",
     "song": "yue2",
@@ -124,10 +140,16 @@ class Launcher:
         self._demand, self._states = demand, states
         current = self.current
         if current is not None and (code := current.process.poll()) is not None:
-            logger.warning(
-                "%s exited with code %s; not restarted for %.0f s", current.server, code, BACKOFF_S
-            )
-            self.failed_at[current.server] = now
+            if code == EXIT_GPU_BROKEN:
+                logger.warning("%s broke its GPU state; restarting it", current.server)
+            else:
+                logger.warning(
+                    "%s exited with code %s; not restarted for %.0f s",
+                    current.server,
+                    code,
+                    BACKOFF_S,
+                )
+                self.failed_at[current.server] = now
             self.current = current = None
         if current is not None:
             if demand.wants(current.server):

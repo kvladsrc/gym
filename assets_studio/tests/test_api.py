@@ -2,7 +2,9 @@
 
 import asyncio
 import contextlib
+import io
 import json
+import shutil
 import signal
 import socket
 import subprocess
@@ -18,6 +20,7 @@ import httpx2 as httpx
 import pytest
 from fake_model_server import FakeModelServer
 from mcp import Client
+from PIL import Image
 from studio.api.app import create_app as create_studio_app
 from studio.config import Server, StudioConfig
 from studio.core import Studio
@@ -115,6 +118,13 @@ def test_upload_chain_and_lineage(tmp_path: Path) -> None:
         assert http.get(f"/api/assets/{varied}/lineage").json() == [
             {"asset_id": asset["id"], "relation": "input"}
         ]
+        # What made each asset: the job with its inputs, parameters and seed.
+        made_by = http.get(f"/api/assets/{varied}/job").json()
+        assert (made_by["id"], made_by["inputs"]) == (variation["id"], {"image": asset["id"]})
+        assert made_by["seed"] is not None
+        assert http.get(f"/api/assets/{done['outputs'][0]}/job").json()["id"] == mesh["id"]
+        assert http.get(f"/api/assets/{asset['id']}/job").json() is None
+        assert http.get("/api/assets/nope/job").status_code == 404
         meshes = http.get("/api/assets", params={"kind": "mesh"}).json()
         assert [item["id"] for item in meshes] == done["outputs"]
 
@@ -219,7 +229,7 @@ def test_mcp_agent_scenario(tmp_path: Path) -> None:
         assert done["status"] == "succeeded"
         assert Path(done["output_paths"][0]).read_bytes()[:4] == b"RIFF"
         asset = call(url, "get_asset", {"asset_id": done["outputs"][0]})
-        assert asset["kind"] == "audio"
+        assert (asset["kind"], asset["job_id"]) == ("audio", job["id"])
         assert Path(asset["path"]).read_bytes()[:4] == b"RIFF"
 
         mesh = call(
@@ -242,7 +252,7 @@ def test_mcp_import_and_errors(tmp_path: Path) -> None:
     source.write_bytes(media.encode_png(4, 4, lambda x, y: (1, 2, 3)))
     with fake_and_studio(tmp_path / "data") as (url, _):
         imported = call(url, "import_asset", {"path": str(source), "title": "вход"})
-        assert (imported["kind"], imported["title"]) == ("image", "вход")
+        assert (imported["kind"], imported["title"], imported["job_id"]) == ("image", "вход", None)
         assert Path(imported["path"]).read_bytes() == source.read_bytes()
         listed = call(url, "list_assets", {"kind": "image"})["result"]
         assert [asset["id"] for asset in listed] == [imported["id"]]
@@ -469,3 +479,51 @@ def test_ratings_and_tags_filter_the_library(tmp_path: Path) -> None:
         assert http.get(f"/api/assets/{ids[0]}").json()["rating"] == 5
         cleared = http.patch(f"/api/assets/{ids[0]}", json={"rating": None}).json()
         assert cleared["rating"] is None
+
+
+def test_motion_filter_finds_animations_whatever_their_format(tmp_path: Path) -> None:
+    with fake_and_studio(tmp_path) as (_, http):
+        wait_ready(http)
+
+        def made(task: str) -> str:
+            created = http.post(
+                "/api/jobs", json={"server": "image", "task": task, "prompt": "мох"}
+            )
+            job = http.post(f"/api/jobs/{created.json()['id']}/wait", params={"timeout_s": 10})
+            return job.json()["outputs"][0]
+
+        motion, image = made("text-to-motion"), made("text-to-image")
+
+        def listed(**params: Any) -> list[str]:
+            return [a["id"] for a in http.get("/api/assets", params=params).json()]
+
+        assert listed(motion=True) == [motion]  # an FBX, kind mesh: still an animation
+        assert motion not in listed(kind="mesh", motion=False)
+        assert image in listed(motion=False)
+        assert image not in listed(motion=True)
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_a_video_frame_becomes_an_image_made_from_the_video(tmp_path: Path) -> None:
+    from model_server_sdk.video import encode_mp4
+
+    # 1 s at 10 fps: frame n is grey level 25 n, so the frame at 0.5 s is level 125
+    frames = [bytes([25 * n] * (32 * 32 * 3)) for n in range(10)]
+    video = encode_mp4(frames, width=32, height=32, fps=10)
+    with fake_and_studio(tmp_path) as (_, http):
+        uploaded = http.post(
+            "/api/assets", content=video, headers={"Content-Type": "application/octet-stream"}
+        ).json()
+        frame = http.post(f"/api/assets/{uploaded['id']}/frames", params={"time_s": 0.5})
+        assert frame.status_code == 201, frame.text
+        image = frame.json()
+        assert (image["kind"], image["mime"]) == ("image", "image/png")
+        assert http.get(f"/api/assets/{image['id']}/lineage").json() == [
+            {"asset_id": uploaded["id"], "relation": "input"}
+        ]
+        pixels = Image.open(io.BytesIO(http.get(image["file_url"]).content)).convert("L")
+        level = pixels.getpixel((16, 16))
+        assert isinstance(level, int)
+        assert abs(level - 125) <= 12  # the frame at 0.5 s, not the first
+        not_video = http.post(f"/api/assets/{image['id']}/frames", params={"time_s": 0})
+        assert not_video.status_code == 422

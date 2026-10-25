@@ -18,24 +18,33 @@ args=()
 build=0
 run=duel
 while [[ $# -gt 0 ]]; do
-  case "$1" in
+    case "$1" in
     --build) build=1 ;;
-    --seconds) args+=(--seconds "$2"); shift ;;
+    --seconds)
+        args+=(--seconds "$2")
+        shift
+        ;;
     --deterministic) args+=(--deterministic) ;;
     --watch) args+=(--watch) ;;
-    --seed) args+=(--seed "$2"); shift ;;
-    -*) echo "unknown option $1" >&2; exit 2 ;;
+    --seed)
+        args+=(--seed "$2")
+        shift
+        ;;
+    -*)
+        echo "unknown option $1" >&2
+        exit 2
+        ;;
     *) run="$1" ;;
-  esac
-  shift
+    esac
+    shift
 done
 if [[ $build == 1 || ! -x "$project/Builds/ArenaView/Arena.x86_64" ]]; then
-  start=$(wc -l < "$project/Logs/Editor.log")
-  (cd "$project" && unity cmd --no-banner menu --path "Soulslike/Build Arena Viewer" > /dev/null)
-  for _ in $(seq 1 360); do
-    tail -n +"$start" "$project/Logs/Editor.log" | grep -q "Soulslike: arena viewer" && break
-    sleep 5
-  done
-  tail -n +"$start" "$project/Logs/Editor.log" | grep "Soulslike: arena viewer"
+    start=$(wc -l <"$project/Logs/Editor.log")
+    (cd "$project" && unity cmd --no-banner menu --path "Soulslike/Build Arena Viewer" >/dev/null)
+    for _ in $(seq 1 360); do
+        tail -n +"$start" "$project/Logs/Editor.log" | grep -q "Soulslike: arena viewer" && break
+        sleep 5
+    done
+    tail -n +"$start" "$project/Logs/Editor.log" | grep "Soulslike: arena viewer"
 fi
 exec "$here/.venv/bin/python" "$here/record.py" "$run" "${args[@]}"

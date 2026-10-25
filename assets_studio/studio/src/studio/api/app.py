@@ -11,7 +11,7 @@ import logging
 from collections.abc import AsyncGenerator, Callable, Iterable, Sequence
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Body, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
@@ -34,6 +34,7 @@ from studio.domain import FILE_EXTENSIONS, Asset, AssetKind, Dependency, JobStat
 from studio.mcp.server import build_mcp
 from studio.services.generation import JobRequestError, JobStateError
 from studio.services.library import AssetInUse, BadTag, ImportError_, Unset
+from studio.services.skeleton import NotAMotion
 
 logger = logging.getLogger("studio.api")
 
@@ -171,15 +172,18 @@ def create_app(
         tag: Annotated[list[str] | None, Query()] = None,
         min_rating: Annotated[int | None, Query(ge=0, le=5)] = None,
         unrated: bool = False,
+        motion: bool | None = None,
         limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     ) -> list[AssetOut]:
-        """Assets matching all filters; ``tag`` may repeat (all must match)."""
+        """Assets matching all filters; ``tag`` may repeat (all must match); ``motion``: made by
+        a motion task or not (the library's Animations filter, whatever the file format)."""
         assets = studio.library.assets(
             kind=kind,
             favorite=favorite,
             tags=[t.strip().lower() for t in tag or []],
             min_rating=min_rating,
             unrated=unrated,
+            motion=motion,
             limit=limit,
         )
         return [AssetOut.of(asset) for asset in assets]
@@ -250,6 +254,30 @@ def create_app(
             headers={"X-Content-Type-Options": "nosniff"},
         )
 
+    @app.post("/api/assets/{asset_id}/frames", status_code=201)
+    def save_video_frame(  # pyright: ignore[reportUnusedFunction]
+        asset_id: str, time_s: Annotated[float, Query(ge=0)]
+    ) -> AssetOut:
+        """The frame of a video at ``time_s`` as a new image asset, made from the video."""
+        asset = asset_or_404(asset_id)
+        if asset.deleted_at is not None:
+            raise HTTPException(410, f"asset {asset_id} was deleted")
+        try:
+            return AssetOut.of(studio.library.video_frame(asset, time_s))
+        except ImportError_ as error:
+            raise HTTPException(422, str(error)) from error
+
+    @app.get("/api/assets/{asset_id}/skeleton")
+    def asset_skeleton(asset_id: str) -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
+        """A native motion (SMPL-X or SOMA) as joint positions per frame, for the viewer."""
+        asset = asset_or_404(asset_id)
+        if asset.deleted_at is not None:
+            raise HTTPException(410, f"asset {asset_id} was deleted")
+        try:
+            return studio.library.skeleton(asset)
+        except NotAMotion as error:
+            raise HTTPException(422, str(error)) from error
+
     @app.get("/api/assets/{asset_id}/lineage")
     def lineage(asset_id: str) -> list[ParentOut]:  # pyright: ignore[reportUnusedFunction]
         asset_or_404(asset_id)
@@ -257,6 +285,14 @@ def create_app(
             ParentOut(asset_id=parent, relation=relation)
             for parent, relation in studio.library.parents(asset_id)
         ]
+
+    @app.get("/api/assets/{asset_id}/job")
+    def producer(asset_id: str) -> JobOut | None:  # pyright: ignore[reportUnusedFunction]
+        """The job that made the asset (prompt, parameters, seed, inputs, model);
+        null for an imported asset."""
+        asset_or_404(asset_id)
+        job = studio.generation.producer(asset_id)
+        return None if job is None else JobOut.of(job)
 
     @app.get("/api/events")
     async def events(request: Request) -> StreamingResponse:  # pyright: ignore[reportUnusedFunction]

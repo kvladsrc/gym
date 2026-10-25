@@ -1,0 +1,43 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Heavy files live outside the Dropbox-synced working copy.
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+source := cache / "unirig-source"
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/unirig_model_server/server.py`
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/unirig"
+export UNIRIG_SOURCE := source
+export HF_HUB_DISABLE_TELEMETRY := "1"
+
+gpu_shell := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned UniRig source and create the environment
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then \
+        git clone --no-checkout https://github.com/VAST-AI-Research/UniRig.git "{{ source }}"; \
+    fi
+    git -C "{{ source }}" cat-file -e "{{ revision }}^{commit}" 2>/dev/null \
+        || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ gpu_shell }} uv sync --extra test
+
+# Download the checkpoints and the OPT config (network only, no GPU)
+download:
+    {{ gpu_shell }} uv run --no-sync python -c "from unirig_model_server.server import download; download()"
+
+# Report PyTorch, the CUDA device, flash-attn, spconv, bpy and whether the weights are downloaded
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m unirig_model_server.doctor
+
+# Serve on 127.0.0.1:9117 (override with --port)
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync unirig-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

@@ -196,7 +196,7 @@ namespace Soulslike.EditorTools
             foreach (var hurt in root.GetComponentsInChildren<Collider>(true))
                 if (hurt.gameObject.layer == Fighter.HurtboxLayer) hurt.tag = bodyTag;
             var fighter = root.AddComponent<Fighter>();
-            // Forearms and shins: the sword's blade does not hurt them.
+            // Forearms and shins: the sword's blade does not hurt them bare-handed.
             var proof = new[] { "LeftForeArm", "RightForeArm", "LeftLeg", "RightLeg" }.Select(b => "Hurtbox " + b).ToArray();
             fighter.swordProof = root.GetComponentsInChildren<Collider>(true)
                 .Where(c => c.gameObject.layer == Fighter.HurtboxLayer && proof.Contains(c.name)).ToArray();

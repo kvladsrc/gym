@@ -20,7 +20,7 @@ environment {
 }
 
 layout {
-    gaps 2
+    gaps 6
 
     focus-ring {
         off
@@ -28,17 +28,17 @@ layout {
 
     border {
         on
-        width 2
-        active-color "#b6a078"
-        inactive-color "#3b383f"
+        width 1
+        active-color "#b9aa8c"
+        inactive-color "#454039"
     }
 
     shadow {
         on
-        softness 2
+        softness 8
         spread 0
         offset x=0 y=1
-        color "#16151acc"
+        color "#10111280"
     }
 }
 
@@ -94,7 +94,7 @@ spawn-at-startup "gentoo-pipewire-launcher"
 spawn-at-startup "/usr/bin/gnome-keyring-daemon" "--start" "--components=secrets"
 spawn-at-startup "mako"
 spawn-at-startup "waybar"
-spawn-at-startup "swaybg" "-i" "/home/myuser/.local/share/wallpapers/discordia.png" "-m" "fill" "-c" "#1c1b20"
+spawn-at-startup "swaybg" "-i" "/home/myuser/.local/share/wallpapers/nothing-to-report-0244.jpg" "-m" "fill" "-c" "#181a1b"
 spawn-at-startup "dropbox"
 spawn-at-startup "kanshi"
 spawn-at-startup "/usr/libexec/polkit-gnome-authentication-agent-1"

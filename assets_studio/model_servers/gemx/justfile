@@ -1,0 +1,45 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Heavy files live outside the Dropbox-synced working copy.
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+source := cache / "gemx-source"
+weights := cache / "gemx-weights"
+worker_env := cache / "venvs/gemx-worker"
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/gemx_model_server/server.py`
+weights_revision := `sed -n 's/^WEIGHTS_REVISION = "\([0-9a-f]*\)".*/\1/p' src/gemx_model_server/server.py`
+soma_revision := `sed -n 's/^SOMA_REVISION = "\([0-9a-f]*\)".*/\1/p' src/gemx_model_server/server.py`
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/gemx"
+
+gpu_shell := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned GEM-X source and create both environments (server, worker)
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then git clone --no-checkout https://github.com/NVlabs/GEM-X.git "{{ source }}"; fi
+    git -C "{{ source }}" cat-file -e "{{ revision }}^{commit}" 2>/dev/null || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ gpu_shell }} uv sync --extra test
+    cd worker && {{ gpu_shell }} env UV_PROJECT_ENVIRONMENT="{{ worker_env }}" uv sync
+
+# Download the pinned weights (about 7.2 GB): GEM-X Body Pose + ViTPose + Motion, SOMA v0.3.3, YOLOX
+download:
+    mkdir -p "{{ weights }}/soma"
+    {{ gpu_shell }} "{{ worker_env }}/bin/python" -c "from huggingface_hub import hf_hub_download as d; \
+      [d('nvidia/GEM-X', f, revision='{{ weights_revision }}', local_dir='{{ weights }}') for f in ('body_config.json', 'body_video_native77.yaml', 'motion_native77.yaml', 'motion_stats_raw.npz', 'motion_native77_e774_s292175.ckpt', 'body_s240000.ckpt', 'vitpose.pth')]; \
+      [d('nvidia/SOMA-X', f, revision='{{ soma_revision }}', local_dir='{{ weights }}/soma') for f in ('SOMA_neutral.npz', 'SOMA_template_rig.usda', 'SOMA_procedural_transforms.json', 'correctives_model.pt')]"
+    if [[ ! -f "{{ weights }}/yolox_humanart.onnx" ]]; then \
+      curl -sS --fail --location https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/yolox_x_8xb8-300e_humanart-a39d44ed.zip -o "{{ weights }}/yolox.zip"; \
+      unzip -p "{{ weights }}/yolox.zip" '*/end2end.onnx' > "{{ weights }}/yolox_humanart.onnx"; rm "{{ weights }}/yolox.zip"; fi
+
+# Serve on 127.0.0.1:9129 (override with --port)
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync gemx-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

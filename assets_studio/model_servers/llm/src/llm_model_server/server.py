@@ -24,7 +24,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from llm_model_server import runtime
+from llm_model_server import runtime, vision
 from llm_model_server.models import ModelSpec
 from model_server_sdk import (
     GenerationError,
@@ -147,7 +147,8 @@ class LlmServer(ModelServer):
         self.model = ModelInfo(
             id=spec.key.replace(".", "_"),  # contract ids have no dots
             name=spec.name,
-            revision=f"{spec.revision[:8]}+llama.cpp.{runtime.BUILD}",
+            revision=f"{spec.revision[:8]}+llama.cpp.{runtime.BUILD}"
+            + ("+vision.1" if spec.projector else ""),
             license=spec.license,
             source=spec.source,
         )
@@ -166,16 +167,22 @@ class LlmServer(ModelServer):
                     ),
                 ),
             ),
+            *(vision.TASKS if spec.projector else ()),
         )
         self._process: subprocess.Popen[bytes] | None = None
         self._url = ""
         self._weights = ""
+        self._projector = ""
 
     def load(self) -> None:
         from huggingface_hub import hf_hub_download
 
         runtime.install()
         self._weights = hf_hub_download(self.spec.repo, self.spec.file, revision=self.spec.revision)
+        if self.spec.projector:
+            self._projector = hf_hub_download(
+                self.spec.repo, self.spec.projector, revision=self.spec.revision
+            )
         self._start()
 
     def _start(self) -> None:
@@ -187,6 +194,7 @@ class LlmServer(ModelServer):
             *("--ctx-size", str(CONTEXT_TOKENS), "--parallel", "1"),
             # Thinking goes to a separate field, never into the text.
             *("--reasoning-format", "deepseek", "--no-webui"),
+            *self.runtime_args(),
         ]
         logger.info("starting llama.cpp %s with %s", runtime.BUILD, self.spec.file)
         # Its output goes to this server's terminal, where its errors are seen.
@@ -207,6 +215,23 @@ class LlmServer(ModelServer):
             self.close()  # never leave a half-started model holding the GPU
             raise
 
+    def runtime_args(self) -> list[str]:
+        """Additional arguments for a model-specific runtime (e.g. vision)."""
+        if not self.spec.projector:
+            return []
+        return [
+            "--mmproj",
+            self._projector,
+            "--image-min-tokens",
+            "1024",
+            "--image-max-tokens",
+            "1536",
+            "--batch-size",
+            "2048",
+            "--ubatch-size",
+            "512",
+        ]
+
     def close(self) -> None:
         process = self._process
         if process is None or process.poll() is not None:
@@ -219,6 +244,21 @@ class LlmServer(ModelServer):
             process.wait()
 
     def generate(self, job: Job) -> list[Output]:
+        assert isinstance(job.params, (Params, vision.Params))
+        if job.task != KnownTask.TEXT_TO_TEXT:
+            if not self.spec.projector:
+                raise InvalidInput("this model does not declare visual tasks")
+            chat, meta = vision.request(job)
+            if self._process is not None and self._process.poll() is not None:
+                try:
+                    self._start()
+                except Exception as error:
+                    raise GenerationError(f"llama-server cannot restart: {error}") from error
+            outputs = []
+            for seed in job.seeds:
+                output = self._complete(chat, job.params, seed)
+                outputs.append(Output(output.mime, output.data, {**output.meta, **meta}))
+            return outputs
         assert isinstance(job.params, Params)
         source = None
         if "text" in job.inputs:
@@ -236,7 +276,9 @@ class LlmServer(ModelServer):
         chat = messages(job.prompt or "", source, job.params.system)
         return [self._complete(chat, job.params, seed) for seed in job.seeds]
 
-    def _complete(self, chat: list[dict[str, str]], params: Params, seed: int) -> Output:
+    def _complete(
+        self, chat: list[dict[str, Any]], params: Params | vision.Params, seed: int
+    ) -> Output:
         thinking = params.thinking and self.spec.thinking
         template: dict[str, Any] = {"enable_thinking": thinking}
         if thinking:

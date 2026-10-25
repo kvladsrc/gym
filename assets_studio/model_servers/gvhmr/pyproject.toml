@@ -1,0 +1,22 @@
+[project]
+name = "gvhmr-model-server"
+version = "0.1.0"
+description = "Human motion capture server for the asset studio: GVHMR from a video onto a Mixamo rig."
+# The server only: GVHMR itself runs in a child process in its own
+# environment (worker/, Python 3.10 and PyTorch 2.3; the SDK needs 3.11).
+requires-python = "==3.11.*"
+dependencies = ["assets-studio-processing", "model-server-sdk[video]"]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+gvhmr-model-server = "gvhmr_model_server.__main__:main"
+
+[tool.uv.sources]
+assets-studio-processing = { path = "../../asset_processing", editable = true }
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

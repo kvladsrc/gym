@@ -499,3 +499,61 @@ def test_out_of_memory_detection() -> None:
     assert is_out_of_memory(OutOfMemoryError("CUDA out of memory. Tried to allocate 2 GiB"))
     assert is_out_of_memory(RuntimeError("CUBLAS_STATUS_ALLOC_FAILED when calling cublasCreate"))
     assert not is_out_of_memory(RuntimeError("shape mismatch"))
+
+
+def test_a_broken_gpu_state_fails_retryably_and_exits(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A CUDA error that poisons the process: this and every later job would
+    fail, so the server says so and exits to be started again."""
+    import model_server_sdk.server as sdk_server
+
+    exits: list[int] = []
+    monkeypatch.setattr(sdk_server, "exit_soon", exits.append)
+
+    def crash(_: Job) -> None:
+        try:
+            raise RuntimeError("CUDA error: an illegal memory access was encountered")
+        except RuntimeError as error:
+            raise GenerationError("no surface found") from error
+
+    with client_for(EchoServer(behaviour=crash)) as client:
+        assert wait_until_loaded(client) == "ready"
+        message = assert_error(
+            client.post("/v1/generate", json={"task": "echo"}),
+            500,
+            "generation_failed",
+            retryable=True,
+        )
+        assert "illegal memory access" in message
+        assert exits == [75]
+        info = client.get("/v1/info").json()
+        assert info["status"] == "error"
+        assert "restarting" in info["status_message"]
+        assert_error(
+            client.post("/v1/generate", json={"task": "echo"}), 503, "not_ready", retryable=True
+        )
+
+
+def test_gpu_broken_detection() -> None:
+    from model_server_sdk import is_gpu_broken
+
+    class AcceleratorError(RuntimeError):  # the name torch uses
+        pass
+
+    assert is_gpu_broken(AcceleratorError("CUDA error: an illegal memory access was encountered"))
+    assert is_gpu_broken(RuntimeError("CUDA error: device-side assert triggered"))
+    wrapped = ValueError("decoding failed")  # raised while handling the CUDA error
+    wrapped.__context__ = AcceleratorError("CUDA error: unspecified launch failure")
+    assert is_gpu_broken(wrapped)
+    assert not is_gpu_broken(RuntimeError("CUDA out of memory. Tried to allocate 2 GiB"))
+    assert not is_gpu_broken(RuntimeError("shape mismatch"))
+
+
+def test_a_child_failure_is_explained() -> None:
+    from model_server_sdk import explain_child_failure
+
+    traceback = "warn\nTraceback (most recent call last):\n  File x\nValueError: bad mesh\nwarn"
+    assert explain_child_failure(traceback, 1) == "ValueError: bad mesh"
+    assert explain_child_failure("UserWarning: ignore\n  noise", -11).startswith(
+        "the process crashed (SIGSEGV)"
+    )
+    assert explain_child_failure("a\nb", 2) == "a\nb"

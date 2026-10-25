@@ -23,9 +23,10 @@ namespace Soulslike.Training
         /// LevelBuilder.Hurtboxes), which blows are swept against.</summary>
         public const int HurtboxLayer = 27;
 
-        /// <summary>Its hurtboxes a sword's blade does not hurt: the forearms
-        /// (elbow to hand) and the shins (knee to foot), where armour is
-        /// thickest (LevelBuilder.DuelBody). Other blows land on them.</summary>
+        /// <summary>Its hurtboxes a sword's blade does not hurt while it is
+        /// bare-handed: the forearms (elbow to hand) and the shins (knee to
+        /// foot), its guard against the sword (LevelBuilder.DuelBody). Other
+        /// blows land on them, and with a weapon in hand the blade does too.</summary>
         public Collider[] swordProof = { };
 
         public Fighter opponent;
@@ -152,15 +153,40 @@ namespace Soulslike.Training
         public int Doing => current;
         public float Progress => current < 0 ? 0f : Mathf.Clamp01(clock / Length(current));
         public bool Staggered => stagger > 0f;
-        /// <summary>Busy till its action ends, or (a blow that landed, <see
-        /// cref="AfterHit.Cancel"/>) till <see cref="CancelAfter"/> s past the
-        /// hit.</summary>
-        public bool Busy => stagger > 0f || current >= 0 && clock < cancelFrom;
+        /// <summary>Whether no blow hurts it now: inside its roll's or quick
+        /// move's window (<see cref="Balance.Evade"/>, shares of the action).
+        /// A blow touching it then is evaded (<see cref="Evaded"/>).</summary>
+        public bool Untouchable => stagger <= 0f && current >= 0 && Evades(current)
+            && Progress >= Balance.Current.Evade.from && Progress < Balance.Current.Evade.to;
+
+        /// <summary>Whether an action is an evade: the roll or a quick move (no blow).</summary>
+        bool Evades(int action) => action == RollAction || action < strikes.Length && !strikes[action];
+
+        /// <summary>Whether its blow may still be dropped for an evade: not
+        /// past <see cref="Balance.Window.cancel"/> of its length (its wind-up,
+        /// before it can strike), and not staggered. Its energy stays spent.</summary>
+        bool Cancellable => stagger <= 0f && current >= 0 && !Evades(current)
+            && Progress < Balance.Current.Evade.cancel;
+        /// <summary>Busy till its action reaches its <see cref="FreePhase"/>,
+        /// or (a blow that landed, <see cref="AfterHit.Cancel"/>) till <see
+        /// cref="CancelAfter"/> s past the hit, whichever is sooner: then any
+        /// action may cut the rest of it short.</summary>
+        public bool Busy => stagger > 0f || current >= 0 && clock < Mathf.Min(cancelFrom, FreeFrom(current));
         public const float CancelAfter = 0.1f;
+        /// <summary>The phase (of <see cref="Fight.Phases"/>, from 0) from
+        /// which any action — a blow, the roll, a quick move — may begin
+        /// without waiting for the one in progress to end: the 4th of 5, the
+        /// last of a blow's striking ones.</summary>
+        public const int FreePhase = 3;
+        float FreeFrom(int action) => Length(action) * FreePhase / Fight.Phases;
+        /// <summary>Doing nothing and not staggered: its action played to its
+        /// end (a flask, a change of weapon wait for it, not for <see cref="Busy"/>).</summary>
+        public bool Idle => stagger <= 0f && current < 0;
         /// <summary>A landed blow's recovery, the rest of its clip after it
-        /// lands: played in full, played <see cref="FasterRecovery"/> times
+        /// lands: played as it is, played <see cref="FasterRecovery"/> times
         /// as fast, or giving way to the next action; so that a hit opens a
-        /// combo and a miss pays in full.</summary>
+        /// combo and a miss pays in full (to its <see cref="FreePhase"/>,
+        /// where any action may cut it short).</summary>
         public enum AfterHit { Full, Faster, Cancel }
         public const float FasterRecovery = 1.5f;
         /// <summary>The recovery after a hit (the editor's combo demo compares them).</summary>
@@ -255,14 +281,12 @@ namespace Soulslike.Training
             hold = Hold;
         }
 
-        /// <summary>A blow evaded: it began with the other within
-        /// <see cref="EvadeReach"/> m of this body (between their capsules) and
-        /// its clip played out with the other's health as it was. Raised by the
-        /// striker.</summary>
+        /// <summary>A blow evaded: it touched the other inside its evade's
+        /// window (<see cref="Untouchable"/>), or a hammer blocked it. Raised by
+        /// the striker; the other gains <see cref="EvadePoints"/>.</summary>
         public event Action Evaded;
-        public const float EvadeReach = 1f;
-        bool closeAtStart;
-        float otherHealthAtStart;
+        /// <summary>A blow dropped in its wind-up for an evade (<see cref="Cancellable"/>).</summary>
+        public event Action Cancelled;
         public float SinceLanded { get; private set; } = ComboWindow;
         int lastLanded = -1;
 
@@ -271,7 +295,10 @@ namespace Soulslike.Training
         float clock, stagger, gravity, damageDone, cancelFrom = float.MaxValue;
         /// <summary>Landed at all in this clip; how often; a hit not yet told;
         /// the miss told; till when it touches nothing, s.</summary>
-        bool landed, fresh, reported, blocked;
+        /// <summary>This blow met a hammer (blocked) or a body in its evade (evaded): it strikes no more.</summary>
+        bool landed, fresh, reported, blocked, evaded;
+        /// <summary>This blow went past its wind-up (counted in <see cref="WeaponBlows"/>; one dropped before is not).</summary>
+        bool counted;
         int hits;
         float rearm;
         Trace lead, follow, leadShin, followShin, shaft;
@@ -363,8 +390,8 @@ namespace Soulslike.Training
 
         /// <summary>Starts an action if it may; whether it did.</summary>
         public bool Allowed(int action) =>
-            !Busy && !Health.Dead && action >= 0 && action <= RollAction
-            && Usable(action, Held);
+            !Health.Dead && action >= 0 && action <= RollAction && Usable(action, Held)
+            && (!Busy || Cancellable && Evades(action));
 
         /// <summary>Whether a fighter holding this may take the action: the
         /// roll and the common ones anyone, the rest only with what they need.</summary>
@@ -374,6 +401,16 @@ namespace Soulslike.Training
         public bool Act(int action)
         {
             if (!Allowed(action)) return false;
+            // Allowed while busy: an evade dropping a blow in its wind-up.
+            if (Busy) Cancelled?.Invoke();
+            // A blow cut short from its free phase on, having missed: told as
+            // a miss, as at its clip's end.
+            else if (current >= 0 && current < Attacks && strikes[current] && counted && !landed && !reported)
+            {
+                reported = true;
+                Combo = 0;
+                Struck?.Invoke(false, 0f);
+            }
             if (balanceHeld != Held || speedOf.Length != Actions) Rebalance();
             float cost = Level >= 1 ? AdrenalineEnergy : 1f;
             current = action;
@@ -393,16 +430,14 @@ namespace Soulslike.Training
             }
             // Any action stops the speeds (Inertia): the only way to stand.
             motion.Stop();
-            landed = fresh = reported = blocked = false;
+            landed = fresh = reported = blocked = evaded = false;
             hits = 0;
             rearm = 0f;
             // Every striking part starts its path anew (a part left on swept
             // from where the last action left it).
             lead.on = follow.on = leadShin.on = followShin.on = shaft.on = false;
-            closeAtStart = opponent != null && Gap() <= EvadeReach;
-            otherHealthAtStart = opponent != null ? opponent.Health.Current : 0f;
             damageDone = 0f;
-            if (Held != Weapon.Hands && attackWeapon[action] == Held) WeaponBlows++;
+            counted = false;
             animator?.SetInteger("AttackIndex", action);
             animator?.SetTrigger("Attack");
             // By the clip's length alone, whatever strikes.
@@ -463,8 +498,8 @@ namespace Soulslike.Training
             {
                 clock += dt * pace;
                 float t = clock / rollLength;
-                // No invulnerability: a roll saves only by taking the body (and
-                // its hurtboxes) out of the blow's way.
+                // Untouchable in its evade's window (Untouchable); else it saves
+                // only by taking the body (and its hurtboxes) out of the blow's way.
                 move = rollWay * Mathf.Lerp(5f, 1.5f, t) * Size * pace;
                 if (t >= 1f) current = -1;
             }
@@ -473,6 +508,11 @@ namespace Soulslike.Training
                 clock += dt * pace;
                 if (strikes[current])
                 {
+                    if (!counted && Progress >= Balance.Current.Evade.cancel)
+                    {
+                        counted = true;
+                        if (Held != Weapon.Hands && attackWeapon[current] == Held) WeaponBlows++;
+                    }
                     Sweeps(dt);
                     // Told as it lands, or as its clip ends having missed.
                     rearm -= dt;
@@ -500,18 +540,7 @@ namespace Soulslike.Training
                 // the body moves the line its root took, evenly).
                 float length = Mathf.Max(attackLength[current], 0.01f);
                 move = (transform.forward * travelForward[current] + transform.right * travelSide[current]) * (Size / length * pace);
-                if (clock >= attackLength[current])
-                {
-                    // Played out (a stagger would have cut it short): evaded if
-                    // it began close and the other lost nothing.
-                    if (strikes[current] && closeAtStart && opponent != null && !opponent.Health.Dead
-                        && opponent.Health.Current >= otherHealthAtStart)
-                    {
-                        opponent.Pump(EvadePoints);
-                        Evaded?.Invoke();
-                    }
-                    current = -1;
-                }
+                if (clock >= attackLength[current]) current = -1;
             }
             else
             {
@@ -709,11 +738,11 @@ namespace Soulslike.Training
             if (weapon && Blades < Blade.Length)
                 Blade[Blades++] = new BladePath { a = trace.a, b = trace.b, a2 = a, b2 = b, radius = radius };
             Swept?.Invoke(a, b, radius);
-            if (!blocked && dt > 0f)
+            if (!blocked && !evaded && dt > 0f)
             {
                 float pointSpeed = (b - trace.b).magnitude / dt;
                 const int steps = 4;
-                for (int k = 1; k <= steps && !blocked; k++)
+                for (int k = 1; k <= steps && !blocked && !evaded; k++)
                 {
                     float f = k / (float)steps;
                     var from = Vector3.Lerp(trace.a, a, f);
@@ -724,6 +753,9 @@ namespace Soulslike.Training
                         blocked = true;
                         WeaponBlowsBlocked++;
                         Blocked?.Invoke(met);
+                        // A block is the hammer's holder's evade.
+                        opponent.Pump(EvadePoints);
+                        Evaded?.Invoke();
                         break;
                     }
                     if (rearm > 0f) continue;
@@ -733,8 +765,16 @@ namespace Soulslike.Training
                         var hurt = touched[n];
                         var other = hurt.GetComponentInParent<Fighter>();
                         if (other == null || other == this || !strikesAnyone && other != opponent) continue;
-                        // The blade on a forearm or shin: nothing; a body part it touches too may still be hit.
-                        if (weapon && Held == Weapon.Sword && System.Array.IndexOf(other.swordProof, hurt) >= 0) continue;
+                        // The blade on a bare-handed one's forearm or shin: nothing; a body part it touches too may still be hit.
+                        if (weapon && Held == Weapon.Sword && other.Held == Weapon.Hands && System.Array.IndexOf(other.swordProof, hurt) >= 0) continue;
+                        // Inside its evade's window: the blow passes, evaded, and strikes it no more.
+                        if (other.Untouchable)
+                        {
+                            evaded = true;
+                            other.Pump(EvadePoints);
+                            Evaded?.Invoke();
+                            break;
+                        }
                         rearm = Rehit;
                         // This hit's place in the combo (counted for good as it is told, in Update).
                         int next = Combo > 0 && (landed || current != lastLanded) && SinceLanded < ComboWindow ? Combo + 1 : 1;

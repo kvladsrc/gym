@@ -1,0 +1,41 @@
+---
+# DeepSeek Harness, headless profile: the model through DeepRelay (its
+# documented dsh setup, deeprelay.ai/docs/guides/coding-agents), long
+# commands (the stance steps wait minutes for Studio jobs; the default
+# bash timeout is 60 s).
+- id: llm-pi-ai
+  config:
+    providers:
+      deeprelay:
+        apiKeyEnv: DEEPRELAY_API_KEY  # pragma: allowlist secret
+        api: anthropic-messages
+        baseURL: https://api.deeprelay.ai
+        reasoning: high
+        models:
+          - id: deeprelay/deepseek-v4.1-flash
+            contextWindow: 1048576
+            reasoningEfforts:
+              "off": none
+              low: low
+              medium: medium
+              high: high
+          - id: deeprelay/deepseek-v4-pro
+            contextWindow: 1048576
+            reasoningEfforts:
+              "off": none
+              low: low
+              medium: medium
+              high: high
+- id: agent-default-model
+  config:
+    provider: deeprelay
+    model: deeprelay/deepseek-v4.1-flash
+- id: bash-sandbox
+  config:
+    timeoutMs: 3600000
+    maxTimeoutMs: 7200000
+# No session records leave the machine (they would upload context on
+# explicit feedback).
+- id: session-telemetry-otel
+  config:
+    mode: DISABLED

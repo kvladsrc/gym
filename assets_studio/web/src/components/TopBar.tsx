@@ -1,4 +1,10 @@
-import { hrefLibrary, hrefSection, route } from "../state/router";
+import {
+  hrefJobs,
+  hrefLibrary,
+  hrefSection,
+  lastSection,
+  route,
+} from "../state/router";
 import { bestState, sections, unseenServers } from "../state/sections";
 import { activeJobs } from "../state/store";
 import { nextTheme, type ThemeChoice, themeChoice } from "../state/theme";
@@ -25,34 +31,33 @@ export function TopBar() {
         {t("brand")}
       </a>
       <nav class="nav">
-        {sections.value.map((section) => {
-          const state = bestState(section.servers);
-          const models = section.servers
-            .map((server) => server.title)
-            .join(", ");
-          return (
-            <a
-              key={section.id}
-              href={hrefSection(section.id)}
-              class={
-                current.page === "section" && current.sectionId === section.id
-                  ? "active"
-                  : ""
-              }
-              title={`${stateTitle(state)} · ${models}`}
-            >
-              <span class={`dot ${state}`} />
-              {section.title}
-              <span class="visually-hidden"> ({stateTitle(state)})</span>
-            </a>
-          );
-        })}
-        <span class="separator" />
+        <a
+          href={hrefSection(lastSection.value ?? sections.value[0]?.id ?? "")}
+          class={
+            current.page === "section" || current.page === "tool"
+              ? "active"
+              : ""
+          }
+          title={sections.value
+            .map(
+              (section) =>
+                `${section.title}: ${stateTitle(bestState(section.servers))}`,
+            )
+            .join(" · ")}
+        >
+          <span
+            class={`dot ${bestState(sections.value.flatMap((section) => section.servers))}`}
+          />
+          {t("nav.generate")}
+        </a>
         <a
           href={hrefLibrary()}
           class={current.page === "library" ? "active" : ""}
         >
           {t("nav.library")}
+        </a>
+        <a href={hrefJobs} class={current.page === "jobs" ? "active" : ""}>
+          {t("nav.jobs")}
         </a>
         {unseen > 0 && (
           <a
@@ -65,9 +70,9 @@ export function TopBar() {
         )}
       </nav>
       <span class="spacer" />
-      <span class={`queue${queue ? " busy" : ""}`}>
+      <a class={`queue${queue ? " busy" : ""}`} href={hrefJobs}>
         {queue ? t("queue.busy", { count: queue }) : t("queue.empty")}
-      </span>
+      </a>
       <button
         class="button small theme"
         onClick={nextTheme}

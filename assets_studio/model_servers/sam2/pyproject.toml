@@ -1,0 +1,33 @@
+[project]
+name = "sam2-model-server"
+version = "0.1.0"
+description = "Track a selected subject on the original video pixels for motion capture."
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk[images,video]",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  "transformers>=4.57,<5",
+  "numpy==1.26.4",
+  "opencv-python-headless>=4.10,<4.12",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+sam2-model-server = "sam2_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

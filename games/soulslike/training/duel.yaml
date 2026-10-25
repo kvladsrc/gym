@@ -24,8 +24,9 @@ behaviors:
       normalize: false
       # 920 numbers come in (512 from the grid's convolutions, 408 others:
       # one-hots of actions, both bodies' six points): the first layer
-      # narrower than that, a third for combinations of combinations. The GPU is idle beside the trainer's
-      # Python, so the size costs nothing in time.
+      # narrower than that, a third for combinations of combinations. The
+      # GPU is idle beside the trainer's Python, so the size costs nothing
+      # in time.
       hidden_units: 512
       num_layers: 3
       # The 32 x 32 grid (0.25 m cells) through convolutions: the same weights
@@ -56,7 +57,8 @@ behaviors:
     time_horizon: 256
     summary_freq: 20000
     # A checkpoint (and its .onnx, for watch.sh and play.sh) every 100 k steps,
-    # ~6 min: a save takes a second or two. 40 kept (~1.4 GB): the last 4 M steps.
+    # ~6 min: a save takes a second or two. 40 kept (~1.4 GB): the last 4 M
+    # steps.
     keep_checkpoints: 40
     checkpoint_interval: 100000
     self_play:

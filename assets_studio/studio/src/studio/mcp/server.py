@@ -20,10 +20,11 @@ from studio.services.library import BadTag, ImportError_, Unset
 
 INSTRUCTIONS = """\
 Local studio for game assets (images, 3D models, speech, sounds).
-Each server runs one model; the user starts it manually. Call list_servers to see
-which models are ready and what tasks and parameters they accept, then
-generate, then wait_for_job; results are assets with a local file path.
-Jobs wait in a queue while their model server is not running."""
+Each server runs one model. Call list_servers to see what tasks and parameters
+they accept, then generate, then wait_for_job; results are assets with a local
+file path. A server shown as unavailable is not running yet: submit the job
+anyway, it waits in the queue until the launcher starts that server (one GPU
+model at a time, so a job can wait minutes)."""
 
 
 class AssetView(AssetOut):
@@ -31,6 +32,9 @@ class AssetView(AssetOut):
     the asset is deleted: the file may be gone)."""
 
     path: str | None
+    # The job that made it (get_job tells its prompt, parameters and inputs);
+    # None for an imported file.
+    job_id: str | None
 
 
 class JobView(JobOut):
@@ -59,7 +63,12 @@ def build_mcp(studio: Studio) -> MCPServer:
         if asset is None:
             raise ToolError(f"asset {asset_id} not found")
         path = None if asset.deleted_at else str(studio.library.file(asset))
-        return AssetView(**AssetOut.of(asset).model_dump(), path=path)
+        producer = studio.generation.producer(asset_id)
+        return AssetView(
+            **AssetOut.of(asset).model_dump(),
+            path=path,
+            job_id=None if producer is None else producer.id,
+        )
 
     @mcp.tool()
     def list_servers() -> list[ServerOut]:  # pyright: ignore[reportUnusedFunction]
@@ -150,7 +159,7 @@ def build_mcp(studio: Studio) -> MCPServer:
         limit: int = 20,
     ) -> list[AssetView]:
         """Newest assets first (deleted ones are not listed); kind is image,
-        mesh, audio, text or video; tags: having all of them (e.g.
+        mesh, audio, text, video or motion (SMPL-X or SOMA); tags: having all of them (e.g.
         "style:cartoon"); min_rating 0-5; unrated: not rated yet."""
         assets = studio.library.assets(
             kind=kind, tags=tags or [], min_rating=min_rating, unrated=unrated, limit=limit
@@ -176,7 +185,8 @@ def build_mcp(studio: Studio) -> MCPServer:
 
     @mcp.tool()
     def get_asset(asset_id: str) -> AssetView:  # pyright: ignore[reportUnusedFunction]
-        """An asset with its local file path and metadata (seed, mesh stats…)."""
+        """An asset with its local file path, metadata (seed, mesh stats…) and
+        the job that made it (get_job: its prompt, parameters and inputs)."""
         return asset_view(asset_id)
 
     @mcp.tool()

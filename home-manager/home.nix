@@ -13,8 +13,8 @@ let
   # libraries in sync with Gentoo's loaded NVIDIA kernel driver.
   nvidiaLibraries = (
     pkgs.linuxPackages.nvidiaPackages.mkDriver {
-      version = "595.99.02";
-      sha256_64bit = "sha256-6HR3lYv3YwcFSTJL1a1slI66btIQ5EAFs+/4SUD24ew="; # pragma: allowlist secret
+      version = "595.104.02";
+      sha256_64bit = "sha256-5CHCAuTHn1jDx/MWG75xRU67PYiTb4ggWg4yfNBMWco="; # pragma: allowlist secret
       useSettings = false;
       usePersistenced = false;
     }
@@ -22,6 +22,34 @@ let
     libsOnly = true;
     acceptLicense = true;
   };
+
+  # DeepSeek Harness (dsh): DeepSeek's agent harness, the model through DeepRelay
+  # (DEEPRELAY_API_KEY from the shell; profile in dotfiles/dsh). Its loader addon patches
+  # Node internals and recognises only the official nodejs.org build, not nixpkgs' Node.
+  dshVersion = "0.2.1-rc.2";
+  dshNode = pkgs.stdenvNoCC.mkDerivation {
+    pname = "nodejs-official";
+    version = "24.22.1";
+    src = pkgs.fetchurl {
+      url = "https://nodejs.org/dist/v24.22.1/node-v24.22.1-linux-x64.tar.xz";
+      hash = "sha256-bBcqmrZxj3uAH7WnvUhq8u5eMnWAhqBLhPzOKqdwleY="; # pragma: allowlist secret
+    };
+    dontConfigure = true;
+    dontBuild = true;
+    dontFixup = true; # the official binary uses the system loader (glibc on Gentoo)
+    installPhase = "cp -r . $out";
+  };
+  dsh = pkgs.writeShellScriptBin "dsh" ''
+    # npm packages with native addons stay outside the store, pinned to dshVersion.
+    set -euo pipefail
+    prefix="''${XDG_DATA_HOME:-$HOME/.local/share}/dsh"
+    export PATH="${dshNode}/bin:$PATH"
+    installed="$(node -p "require('$prefix/node_modules/@deepseek-ai/dsh/package.json').version" 2>/dev/null || true)"
+    if [ "$installed" != "${dshVersion}" ]; then
+      npm install --no-fund --no-audit --prefix "$prefix" "@deepseek-ai/dsh@${dshVersion}" >&2
+    fi
+    exec "$prefix/node_modules/.bin/dsh" "$@"
+  '';
 
   niriWithHybridGraphics = config.lib.nixGL.wrap (
     pkgs.symlinkJoin {
@@ -160,6 +188,7 @@ in
     gocryptfs
     google-chrome
     graphviz
+    losslesscut
     mg
     nautilus
     nemo-with-extensions
@@ -233,7 +262,9 @@ in
     ripgrep # consult-ripgrep
     rust-analyzer
     unityCli
+    butler # itch.io uploads (games/soulslike)
     uv
+    dsh
   ];
 
   home.file = {
@@ -269,9 +300,16 @@ in
     ".local/share/wallpapers/discordia.png" = {
       source = dotfiles/wallpapers/discordia.png;
     };
+    ".local/share/wallpapers/nothing-to-report-0244.jpg" = {
+      source = dotfiles/wallpapers/nothing-to-report-0244-qwen.jpg;
+    };
     ".emacs.d" = {
       source = dotfiles/emacs.d;
       recursive = true;
+    };
+    # Read-only: the headless profile is configured here, not from the dsh web UI.
+    ".dsh/profiles/headless/cordis.patch.yml" = {
+      source = dotfiles/dsh/headless.cordis.patch.yml;
     };
   };
 
@@ -321,10 +359,37 @@ in
       size = 16;
     };
     shellIntegration.enableBashIntegration = true;
-    themeFile = "yorumi-abyss";
     settings = {
       confirm_os_window_close = 0;
       term = "xterm-256color";
+      # Quiet Orbit: keep terminal surfaces aligned with the desktop shell.
+      background = "#181a1b";
+      foreground = "#d9d3c7";
+      cursor = "#b9aa8c";
+      cursor_text_color = "#181a1b";
+      selection_background = "#454037";
+      selection_foreground = "#eee8dc";
+      url_color = "#a8bcc0";
+      active_tab_background = "#37342e";
+      active_tab_foreground = "#d9d3c7";
+      inactive_tab_background = "#181a1b";
+      inactive_tab_foreground = "#aaa398";
+      color0 = "#252321";
+      color1 = "#ca9187";
+      color2 = "#a3b89a";
+      color3 = "#c7a06c";
+      color4 = "#9caebb";
+      color5 = "#b1a0b5";
+      color6 = "#94b6af";
+      color7 = "#d9d3c7";
+      color8 = "#827c72";
+      color9 = "#e0afa3";
+      color10 = "#bbceb0";
+      color11 = "#ddc397";
+      color12 = "#b3c6d2";
+      color13 = "#ccbacf";
+      color14 = "#b0d0c8";
+      color15 = "#eee8dc";
     };
   };
 

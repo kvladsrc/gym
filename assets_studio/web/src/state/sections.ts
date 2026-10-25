@@ -1,9 +1,10 @@
-// Sections (ADR-004): one per kind of result, built from the tasks the model
-// servers declare. Inside a section the user picks a task and a model.
+// Sections are built from declared tasks. Motion is a separate workflow even
+// when its result shares a file format with a mesh (FBX) or text (native JSON).
 import { computed } from "@preact/signals";
 
 import type { Job, Server, Task } from "../api/client";
 import { assetById, jobs, servers } from "./store";
+import { isMotionMime, isMotionTask } from "../format";
 import { type Key, t } from "../i18n";
 
 export interface Section {
@@ -18,6 +19,7 @@ export interface Section {
 const SECTIONS: [string, Key][] = [
   ["image", "section.image"],
   ["mesh", "section.mesh"],
+  ["animation", "section.animation"],
   ["audio", "section.audio"],
   ["text", "section.text"],
   ["video", "section.video"],
@@ -31,8 +33,10 @@ const MIME_KINDS: Record<string, string> = {
   video: "video",
 };
 
-/** The section of a task: the kind of what it produces. */
+/** Motion tasks take precedence over their shared output MIME types. */
 export function sectionOfTask(task: Task): string | undefined {
+  if (isMotionTask(task.task) || task.output_mime.some(isMotionMime))
+    return "animation";
   const type = task.output_mime[0]?.split("/")[0];
   return type ? MIME_KINDS[type] : undefined;
 }
@@ -92,6 +96,7 @@ export function bestState(members: Server[]): string {
 const RESULTS: Record<string, string> = {
   image: "image",
   "3d": "mesh",
+  rig: "mesh",
   speech: "audio",
   audio: "audio",
   text: "text",
@@ -101,9 +106,21 @@ const RESULTS: Record<string, string> = {
 /** The section a job belongs to: by what its task produces on its server,
  * else by the task's name ("…-to-image"), so past jobs keep their place. */
 export function sectionOfJob(job: Job): string | undefined {
+  // Keep history in Animations even after its model is removed or replaced.
+  if (isMotionTask(job.task)) return "animation";
   const server = serverById(job.server);
   const task = server && taskOf(server, job.task);
   if (task) return sectionOfTask(task);
+  if (
+    [
+      "prepare-rig",
+      "3d-paint",
+      "3d-refine",
+      "3d-retopo",
+      "3d-bake-normals",
+    ].includes(job.task)
+  )
+    return "mesh";
   const result = job.task.split("-to-").at(-1);
   return result ? RESULTS[result] : undefined;
 }

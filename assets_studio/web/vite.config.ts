@@ -6,6 +6,17 @@ const studio = "http://127.0.0.1:9000";
 
 export default defineConfig({
   plugins: [preact()],
-  build: { outDir: "dist", emptyOutDir: true, chunkSizeWarningLimit: 2000 },
-  server: { proxy: { "/api": studio, "/mcp": studio } },
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: { input: { studio: "index.html", flow: "flow.html" } },
+  },
+  server: {
+    proxy: {
+      "/api": studio,
+      "/mcp": studio,
+      "/flow-api": "http://127.0.0.1:9001",
+    },
+  },
 });

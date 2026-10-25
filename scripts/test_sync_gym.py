@@ -65,7 +65,7 @@ class SyncGymTest(unittest.TestCase):
                 if line.startswith("mod") and '"games/' in line
             ]
             (source / "justfile").write_text("\n".join(game_modules) + "\n")
-            for project in ("cothic", "zooreader", "mosslight"):
+            for project in ("cothic", "zooreader", "mosslight", "soulslike"):
                 (source / "games" / project / "justfile").write_text(
                     f"probe:\n    @echo {project}\n"
                 )
@@ -134,7 +134,8 @@ class SyncGymTest(unittest.TestCase):
             self.assertFalse((destination / "games/vibe_jakubovich").exists())
             for relative, text in kept.items():
                 self.assertEqual(
-                    (destination / relative).read_text(), text.replace("myuser", "myuser")
+                    (destination / relative).read_text(),
+                    text.replace("myuser", "myuser"),
                 )
             self.assertFalse((destination / "animations").exists())
             self.assertEqual(

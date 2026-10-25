@@ -8,6 +8,7 @@ from hunyuan_paint_model_server.server import (
     clear_faint,
     describe,
     is_cut_out,
+    matte,
     reduce_faces,
 )
 from PIL import Image
@@ -48,3 +49,19 @@ def test_metadata_tells_a_reduction() -> None:
     box = trimesh.creation.box()
     assert describe(box, 2048, 5000)["reduced_from"] == 5000
     assert "reduced_from" not in describe(box, 2048, len(box.faces))
+
+
+def test_the_painted_model_is_a_matte_non_metal() -> None:
+    import json
+
+    mesh = trimesh.creation.box()
+    uv = mesh.vertices[:, :2] + 0.5
+    texture = Image.new("RGB", (8, 8), (200, 100, 50))
+    material = trimesh.visual.material.SimpleMaterial(image=texture)
+    mesh.visual = trimesh.visual.TextureVisuals(uv=uv, material=material)
+    data = matte(mesh).export(file_type="glb")
+    length = int.from_bytes(data[12:16], "little")
+    pbr = json.loads(data[20 : 20 + length])["materials"][0]["pbrMetallicRoughness"]
+    assert pbr["metallicFactor"] == 0.0  # absent would mean 1: metal
+    assert pbr["roughnessFactor"] == pytest.approx(0.9)
+    assert "baseColorTexture" in pbr

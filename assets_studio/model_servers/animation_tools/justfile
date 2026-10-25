@@ -1,0 +1,28 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/animation_tools"
+runner := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
+
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Lightweight Python environment; Blender is the processing backend, no weights
+setup:
+    {{ runner }} uv sync --extra test
+
+# Prepare rigs and retarget animation (port 9124)
+[positional-arguments]
+serve *args:
+    {{ runner }} uv run --no-sync animation-tools-model-server "$@"
+
+# Report the Blender executable
+doctor:
+    {{ runner }} uv run --no-sync python -c "from animation_tools_model_server.server import blender; print(blender() or 'Blender not found')"
+
+# Contract and error-handling tests, without Blender or GPU
+test:
+    {{ runner }} uv run --no-sync pytest -q tests
+
+# Real Blender regressions: different bind poses, terminal wrist twist and root travel
+integration:
+    {{ runner }} env RUN_BLENDER_TESTS=1 uv run --no-sync pytest -q tests/test_blender_integration.py

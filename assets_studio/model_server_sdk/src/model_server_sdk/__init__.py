@@ -9,7 +9,12 @@ from model_server_sdk.contract import (
     ModelInfo,
     ui,
 )
-from model_server_sdk.errors import is_out_of_memory
+from model_server_sdk.errors import (
+    EXIT_GPU_BROKEN,
+    explain_child_failure,
+    is_gpu_broken,
+    is_out_of_memory,
+)
 from model_server_sdk.server import (
     GenerationError,
     InputData,
@@ -23,6 +28,7 @@ from model_server_sdk.server import (
 
 __all__ = [
     "CONTRACT_VERSION",
+    "EXIT_GPU_BROKEN",
     "PRIMARY",
     "GenerationError",
     "InputData",
@@ -35,6 +41,8 @@ __all__ = [
     "Output",
     "TaskSpec",
     "create_app",
+    "explain_child_failure",
+    "is_gpu_broken",
     "is_out_of_memory",
     "serve",
     "ui",

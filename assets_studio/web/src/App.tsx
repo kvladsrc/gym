@@ -1,4 +1,6 @@
 import { HomePage } from "./pages/HomePage";
+import { FramePage } from "./pages/FramePage";
+import { JobsPage } from "./pages/JobsPage";
 import { LibraryPage } from "./pages/LibraryPage";
 import { SectionPage } from "./pages/SectionPage";
 import { TopBar } from "./components/TopBar";
@@ -24,6 +26,10 @@ export function App() {
         {!connected.value && <div class="offline">{t("app.offline")}</div>}
         {current.page === "library" ? (
           <LibraryPage selectedId={current.assetId} />
+        ) : current.page === "jobs" ? (
+          <JobsPage />
+        ) : current.page === "tool" && current.toolId === "frame" ? (
+          <FramePage />
         ) : section ? (
           <SectionPage key={section.id} section={section} />
         ) : (

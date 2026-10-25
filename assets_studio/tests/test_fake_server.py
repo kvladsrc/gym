@@ -42,9 +42,9 @@ def payloads(response: GenerateResponse) -> list[bytes]:
     return [base64.b64decode(output.data_b64) for output in response.outputs]
 
 
-def test_declares_every_known_task(client: TestClient) -> None:
+def test_declares_known_and_custom_tasks(client: TestClient) -> None:
     tasks = {task["task"] for task in client.get("/v1/info").json()["tasks"]}
-    assert tasks == {task.value for task in KnownTask}
+    assert tasks == {task.value for task in KnownTask} | {"text-to-motion", "video-to-motion"}
 
 
 def test_outputs_are_deterministic(client: TestClient) -> None:

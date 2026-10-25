@@ -252,6 +252,12 @@ class QwenImageServer(ModelServer):
         revision=f"{BASE_REVISION[:8]}+gguf.{GGUF_REVISION[:8]}",
         license="Qwen Research License (non-commercial)",
         source=f"https://huggingface.co/{BASE_REPO}",
+        details={
+            "transformer": "GGUF Q8_0 (unsloth/Qwen-Image-2.1-GGUF), practically lossless",
+            "text encoder": "bf16, without its unused output head (~16.3 GB)",
+            "offloading": "both models streamed from RAM in 3 groups (offload store ~26 GB)",
+            "GPU": "8 GB card",
+        },
     )
     tasks = TASKS
 

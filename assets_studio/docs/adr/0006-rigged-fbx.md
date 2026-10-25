@@ -6,10 +6,10 @@
 
 Модели из картинки (TripoSR, SF3D, Hunyuan3D) — неподвижные сетки. Для
 анимаций Mixamo персонажу нужен скелет Mixamo и веса кожи. Это умеет
-модель (Make-It-Animatable), но её результат — FBX: Unity строит из FBX
-аватар Humanoid, на который ложатся анимации Mixamo; GLB Unity без пакета
-glTFast не открывает, а glTFast аватар Humanoid не строит. Студия хранила
-для 3D только GLB.
+модель (Make-It-Animatable), но её результат — FBX: Unity строит из
+FBX аватар Humanoid, на который ложатся анимации Mixamo; GLB Unity без
+пакета glTFast не открывает, а glTFast аватар Humanoid не
+строит. Студия хранила для 3D только GLB.
 
 ## Решение
 

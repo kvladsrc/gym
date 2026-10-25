@@ -173,6 +173,10 @@ class Generation:
     def jobs(self, *, statuses: Iterable[JobStatus] | None = None, limit: int = 100) -> list[Job]:
         return self._repository.jobs(statuses=statuses, limit=limit)
 
+    def producer(self, asset_id: str) -> Job | None:
+        """The job that made the asset: its prompt, parameters, seed and inputs."""
+        return self._repository.producer(asset_id)
+
     def _get(self, job_id: str) -> Job:
         job = self._repository.job(job_id)
         if job is None:

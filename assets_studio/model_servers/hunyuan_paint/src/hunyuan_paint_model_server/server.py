@@ -57,6 +57,9 @@ BACKGROUND_MODEL = "isnet-general-use"
 FAINT_ALPHA = 32
 # Alpha below this somewhere in the image: it already comes cut out.
 TRANSPARENT_BELOW = 128
+# Paint draws colour only: the surface is a matte non-metal (as Paint 2.1
+# predicts for most things: roughness ~0.9, metallic ~0.05).
+MATTE_ROUGHNESS = 0.9
 
 
 class Params(BaseModel):
@@ -192,6 +195,22 @@ def reduce_faces(mesh: Any, faces: int) -> Any:
     return trimesh.Trimesh(reduced.vertex_matrix(), reduced.face_matrix(), process=False)
 
 
+def matte(mesh: Any) -> Any:
+    """The painted texture as a matte non-metal material.
+
+    Paint returns a SimpleMaterial; trimesh exports it as PBR without
+    metallicFactor, which glTF reads as 1: every model was fully metal in
+    engines and viewers (dark, mirror-like where the scene reflects)."""
+    from trimesh.visual.material import PBRMaterial
+
+    material = mesh.visual.material
+    image = getattr(material, "image", None) or getattr(material, "baseColorTexture", None)
+    mesh.visual.material = PBRMaterial(
+        baseColorTexture=image, metallicFactor=0.0, roughnessFactor=MATTE_ROUGHNESS
+    )
+    return mesh
+
+
 def describe(mesh: Any, texture_size: int, faces_in: int | None = None) -> dict[str, Any]:
     bounds = np.asarray(mesh.bounds, dtype=float)
     reduced = {} if faces_in is None or faces_in == len(mesh.faces) else {"reduced_from": faces_in}
@@ -269,7 +288,7 @@ class HunyuanPaintServer(ModelServer):
             raise GenerationError(
                 "out of GPU memory; free GPU memory or use a 1024 texture", retryable=True
             ) from error
-        data = painted.export(file_type="glb")
+        data = matte(painted).export(file_type="glb")
         # Deterministic for a given mesh and image: one candidate (max_count 1).
         return [
             Output("model/gltf-binary", data, describe(painted, params.texture_size, faces_in))

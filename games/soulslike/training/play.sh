@@ -20,16 +20,19 @@ project="$here/../unity/soulslike"
 args=()
 run=duel
 while [[ $# -gt 0 ]]; do
-  case "$1" in
+    case "$1" in
     --deterministic) args+=(--deterministic) ;;
-    -*) echo "unknown option $1" >&2; exit 2 ;;
+    -*)
+        echo "unknown option $1" >&2
+        exit 2
+        ;;
     *) run="$1" ;;
-  esac
-  shift
+    esac
+    shift
 done
 if [[ ! -x "$project/Builds/ArenaView/Arena.x86_64" ]]; then
-  echo "no arena viewer: build it (Soulslike/Build Arena Viewer, or ./record.sh --build)" >&2
-  exit 1
+    echo "no arena viewer: build it (Soulslike/Build Arena Viewer, or ./record.sh --build)" >&2
+    exit 1
 fi
 cd "$here"
 exec "$here/.venv/bin/python" "$here/play.py" "$run" "${args[@]}"

@@ -17,10 +17,14 @@ exclude: |
   (.*_gtest\.cc$)|
   (^third_party/)|
   (^node_modules/)|
-  # Unity's serialised files: rewritten by the editor on save (trailing
-  # spaces, no final newline) and full of GUIDs that look like secrets.
-  (^games/soulslike/unity/soulslike/(ProjectSettings/|Packages/packages-lock\.json$|.*\.(meta|asset|inputactions)$))|
-  (^animations/mixamo/.*\.meta$)
+  # Unity's serialised files, in every game's project: rewritten by the
+  # editor on save (trailing spaces, no final newline) and full of GUIDs
+  # that look like secrets; TutorialInfo is the template's sample content.
+  (^games/[^/]+/unity/[^/]+/(ProjectSettings/|Packages/packages-lock\.json$|Assets/TutorialInfo/|.*\.(meta|asset|inputactions|unity|prefab|mat|anim|controller|overrideController|physicMaterial|lighting|renderTexture)$))|
+  (^animations/mixamo/.*\.meta$)|
+  # Studio job records of a game's art (asset ids, prompts), written by its
+  # queue scripts.
+  (^games/[^/]+/art/[^/]+\.json$)
 
 repos:
   # TODO(myuser): Uncommend ASAP
@@ -111,9 +115,10 @@ repos:
     hooks:
       - id: prettier
         files: "\\.(cjs|js|jsx|mjs|ts|tsx|json|css|scss|html)$"
-        # Generated from the studio's OpenAPI; `just assets_studio web-check`
-        # compares it byte for byte with a fresh generation.
-        exclude: ^assets_studio/web/src/api/schema\.ts$
+        # Generated: the studio's OpenAPI (`just assets_studio web-check`
+        # compares it byte for byte with a fresh generation), and the Mixamo
+        # gallery's page (animations/mixamo/Tools~/gallery.py).
+        exclude: ^(assets_studio/web/src/api/schema\.ts|animations/mixamo/Gallery~/index\.html)$
 
   # ---------- LaTeX ----------
   - repo: https://github.com/WGUNDERWOOD/tex-fmt

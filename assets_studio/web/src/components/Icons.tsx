@@ -40,6 +40,33 @@ export const TextIcon = () => (
   </svg>
 );
 
+export const MotionIcon = () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+  >
+    <circle cx="13" cy="4.5" r="1.8" />
+    <path d="m9 21 2.5-6 2.5 2.5V21M8 11l3-4 3 1 2 3h3M11.5 15l-1-5" />
+  </svg>
+);
+
+export const DataIcon = () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+  >
+    <path d="M8 4c-2 0-2 1.5-2 3v2c0 1.5-1 3-2 3 1 0 2 1.5 2 3v2c0 1.5 0 3 2 3M16 4c2 0 2 1.5 2 3v2c0 1.5 1 3 2 3-1 0-2 1.5-2 3v2c0 1.5 0 3-2 3" />
+  </svg>
+);
+
 export const FilmIcon = () => (
   <svg
     width="24"
