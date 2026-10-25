@@ -1,14 +1,12 @@
-// A section: the generation form on the left, the shown job in the centre,
-// the section's history below.
-import { useEffect, useMemo } from "preact/hooks";
-
+// Making things: the tree of models on the left, the chosen model's task form in the middle,
+// the model's description and its job history on the right.
 import type { Server } from "../api/client";
 import { GenerationForm } from "../components/GenerationForm";
-import { HistoryStrip } from "../components/HistoryStrip";
-import { JobView } from "../components/JobView";
-import { draftFor, shownJob, showJob, targetOf } from "../state/drafts";
-import { jobsOfSection, type Section, serverById } from "../state/sections";
-import { assets, jobs, servers } from "../state/store";
+import { ModelPanel } from "../components/ModelPanel";
+import { ModelTree } from "../components/ModelTree";
+import { taskLabel } from "../format";
+import { draftFor, targetOf } from "../state/drafts";
+import type { Section } from "../state/sections";
 import { t } from "../i18n";
 
 function ServerHint({ server }: { server: Server }) {
@@ -28,48 +26,33 @@ function ServerHint({ server }: { server: Server }) {
 }
 
 export function SectionPage({ section }: { section: Section }) {
-  const history = useMemo(
-    () => jobsOfSection(section.id),
-    // assets: a deletion can drop a job from the history.
-    [jobs.value, servers.value, assets.value, section.id],
-  );
-  const selected = shownJob.value.get(section.id);
-  // A job whose results were all deleted has left the history: show the newest.
-  const shown = history.find((job) => job.id === selected) ?? history[0];
-  // Left the history, not just submitted and not here yet.
-  const gone =
-    selected !== undefined &&
-    jobs.value.has(selected) &&
-    !history.some((job) => job.id === selected);
-  useEffect(() => {
-    // Forget it, or restoring a result would bring the stage back to it.
-    if (gone) showJob(section.id, null);
-  }, [gone, section.id]);
-  const show = (jobId: string) => showJob(section.id, jobId);
   const target = targetOf(section, draftFor(section));
-
   return (
     <div class="workspace">
-      <aside class="panel">
-        {target && <ServerHint server={target.server} />}
-        <GenerationForm section={section} onSubmitted={show} />
-      </aside>
-      <section class="stage">
-        {shown ? (
-          <JobView
-            job={shown}
-            server={serverById(shown.server)}
-            onShow={show}
-          />
+      <ModelTree />
+      <section class="launch panel" aria-label={t("form.label")}>
+        {target ? (
+          <>
+            <header class="launch-head">
+              <h1>{taskLabel(target.task.task)}</h1>
+              <span class="hint">
+                {section.title} · {target.server.title}
+              </span>
+            </header>
+            <ServerHint server={target.server} />
+            <GenerationForm section={section} />
+          </>
         ) : (
-          <div class="placeholder">{t("section.placeholder")}</div>
+          <p class="hint">{t("form.unknownTasks")}</p>
         )}
       </section>
-      <HistoryStrip
-        jobs={history}
-        selected={shown?.id ?? null}
-        onSelect={show}
-      />
+      {target && (
+        <ModelPanel
+          sectionId={section.id}
+          server={target.server}
+          task={target.task}
+        />
+      )}
     </div>
   );
 }

@@ -14,9 +14,9 @@ namespace Soulslike.Training
     /// The fight's rewards come in the curriculum's last stage (FighterAgent.
     /// Stage 2; before it the agents learn to face and close in): damage dealt
     /// as a share of the other's health, the same taken off; the win +1, the
-    /// loss nothing more (its lost health is -1 already), a time-out -2 to
+    /// loss -0.3 more (its lost health is -1 already), a time-out -2 to
     /// both: losing a fight, energy and all, is always better than running
-    /// from it to the time-out. Not zero-sum: a decided fight is +1 to the
+    /// from it to the time-out. Not zero-sum: a decided fight is +0.7 to the
     /// pair, a time-out -4. A combo, adrenaline and evasions (they
     /// raise adrenaline) pay through
     /// the damage they add (Fighter.ComboFactor, Fighter.LevelFactor). No
@@ -51,11 +51,15 @@ namespace Soulslike.Training
         /// <summary>A time-out's reward to both. With a loss at -1 (and its
         /// lost health another -1, and the energy spent), the side losing
         /// gained by running to the time-out, and they ran; now a loss adds
-        /// nothing to its lost health.</summary>
+        /// LossMark to its lost health.</summary>
         const float TimeOut = -2f;
-        /// <summary>A loss's own reward: nothing to learn from, only its sign
-        /// for the ELO.</summary>
-        const float LossMark = -0.001f;
+        /// <summary>A loss's own reward. At -0.001 (only its sign, for the
+        /// ELO) a loss cost hardly more than its lost health. At -0.3 the
+        /// loser's -1.3 is above a time-out's -2; but a time-out's -2 comes
+        /// last and discounted (gamma 0.995: 0.1 at 90 s), so a sure loser
+        /// would still gain by fleeing early in the fight (at -0.5, in its
+        /// first ~50 s; at -0.3, ~38 s; at -0.001, ~13 s). Watch Duel/Decided.</summary>
+        const float LossMark = -0.3f;
 
         float clock;
         bool over;
@@ -88,6 +92,10 @@ namespace Soulslike.Training
                 me.Body.Evaded += () =>
                 {
                     stats.Add("Duel/Evaded", 1f, StatAggregationMethod.Sum);
+                };
+                me.Body.Cancelled += () =>
+                {
+                    stats.Add("Duel/Cancelled", 1f, StatAggregationMethod.Sum);
                 };
                 me.Body.Struck += (landed, damage) =>
                 {
@@ -155,10 +163,10 @@ namespace Soulslike.Training
             if (stage >= 2)
             {
                 // Both dead in one frame cannot happen (blows land one at a time).
-                // A win +1, a loss nothing more, a time-out -2. Added to the
+                // A win +1, a loss -0.3 more, a time-out -2. Added to the
                 // last step's damage and energy (set, they were lost). The
                 // self-play ELO reads the last step's sign (>0 a win, 0 a
-                // draw, <0 a loss): a loss gets a mark of -0.001 so it is never
+                // draw, <0 a loss): a loss's mark is never 0, or it would be
                 // taken for a draw (with 0 its ELO only rose).
                 bool decided = firstDead || secondDead;
                 first.AddReward(secondDead ? 1f : decided ? LossMark : TimeOut);

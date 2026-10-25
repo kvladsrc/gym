@@ -15,6 +15,7 @@ class Database:
         self.path = path
         path.parent.mkdir(parents=True, exist_ok=True)
         self._local = threading.local()
+        self.applied: list[int] = []  # migrations applied by this opening, by number
         self._migrate()
 
     @property
@@ -67,6 +68,7 @@ class Database:
             if number <= self.schema_version:
                 continue
             self._apply(migration.name, migration.read_text(), number)
+            self.applied.append(number)
 
     def _apply(self, name: str, script: str, number: int) -> None:
         """One migration in one transaction, with foreign keys off while it runs.

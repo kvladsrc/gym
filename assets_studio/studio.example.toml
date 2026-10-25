@@ -1,5 +1,4 @@
 # Copy to ~/.config/assets-studio/studio.toml, then start model servers from model_servers/:
-#   just flux          (images, port 9104; needs HF_TOKEN)
 #   just xtts          (speech, port 9103)
 #   just stable_audio  (sounds and music, port 9105; needs HF_TOKEN)
 #   just gemma         (text, Gemma 4 12B, port 9106)
@@ -7,10 +6,19 @@
 #   just wan           (video from a first frame, Wan2.2, port 9108)
 #   just qwen_image    (images with transparency, editing; Qwen-Image 2.1, port 9109)
 #   just yue2          (songs with vocals from lyrics; YuE2, port 9110)
-#   just hunyuan3d     (3D shape; Hunyuan3D-2mini, port 9112)
+#   just hunyuan3d21   (3D shape; Hunyuan3D-2.1, offloaded, port 9119)
 #   just mia           (Mixamo skeleton for a character; Make-It-Animatable, port 9113)
-#   just hunyuan_paint (paint a mesh from its image; Hunyuan3D-Paint, port 9114)
-# FLUX (~5 GB peak) runs alone or beside XTTS; Stable Audio (6.4 GB peak) runs alone.
+#   just hi3d          (3D refine: coarse mesh + image to fine geometry; Hi3D v1.0, port 9130)
+#   just hunyuan_paint21 (PBR paint from its image; Hunyuan3D-Paint 2.1, port 9120)
+#   just skintokens    (skeleton of any shape; SkinTokens, port 9116)
+#   just unirig        (skeleton of any shape; UniRig, port 9117)
+#   just kimodo        (humanoid animation from text; Kimodo, port 9118)
+#   just kimodo_smplx  (native SMPL-X motion and in-betweens; Kimodo SMPL-X, port 9128)
+#   just birefnet      (background removal; BiRefNet, port 9121)
+#   just mocapanything (animation of a rig from a video; MoCapAnything V2, port 9122)
+#   just gvhmr        (human motion from video onto a Mixamo rig, port 9123)
+#   just htd_refine   (native SMPL-X refinement with source video, port 9127)
+# Stable Audio (6.4 GB peak) runs alone.
 # The text models fill the card and spill into RAM: run them alone. So does Wan.
 # Qwen-Image and YuE2 also take the whole card: run them alone.
 #
@@ -20,11 +28,6 @@
 # default the model's own name. Keep ids stable: jobs refer to them.
 # No timeout_s for slow models: a studio timeout would only abandon a
 # generation the server keeps running.
-
-[[servers]]
-id = "flux"
-title = "FLUX"
-url = "http://127.0.0.1:9104"
 
 [[servers]]
 id = "voice"
@@ -62,16 +65,81 @@ title = "YuE2"
 url = "http://127.0.0.1:9110"
 
 [[servers]]
-id = "hunyuan3d"
-title = "Hunyuan3D-2mini"
-url = "http://127.0.0.1:9112"
-
-[[servers]]
 id = "rig"
 title = "Make-It-Animatable"
 url = "http://127.0.0.1:9113"
 
 [[servers]]
-id = "paint"
-title = "Hunyuan3D-Paint"
-url = "http://127.0.0.1:9114"
+id = "skintokens"
+title = "SkinTokens"
+url = "http://127.0.0.1:9116"
+
+[[servers]]
+id = "unirig"
+title = "UniRig"
+url = "http://127.0.0.1:9117"
+
+[[servers]]
+id = "motion"
+title = "Kimodo"
+url = "http://127.0.0.1:9118"
+
+[[servers]]
+id = "motion_smplx"
+title = "Kimodo SMPL-X"
+url = "http://127.0.0.1:9128"
+
+[[servers]]
+id = "hunyuan3d21"
+title = "Hunyuan3D-2.1"
+url = "http://127.0.0.1:9119"
+
+[[servers]]
+id = "hi3d"
+title = "Hi3D v1.0"
+url = "http://127.0.0.1:9130"
+
+[[servers]]
+id = "paint21"
+title = "Hunyuan3D-Paint 2.1"
+url = "http://127.0.0.1:9120"
+
+[[servers]]
+id = "birefnet"
+title = "BiRefNet"
+url = "http://127.0.0.1:9121"
+
+[[servers]]
+id = "mocapanything"
+title = "MoCapAnything V2"
+url = "http://127.0.0.1:9122"
+
+[[servers]]
+id = "gvhmr"
+title = "GVHMR"
+url = "http://127.0.0.1:9123"
+
+[[servers]]
+id = "gemx"
+title = "GEM-X"
+url = "http://127.0.0.1:9129"
+
+[[servers]]
+id = "htd_refine"
+title = "HTD-Refine"
+url = "http://127.0.0.1:9127"
+
+[[servers]]
+id = "animation_tools"
+title = "Animation tools"
+url = "http://127.0.0.1:9124"
+
+[[servers]]
+id = "sam2"
+title = "SAM 2.1 · selected subject"
+url = "http://127.0.0.1:9125"
+
+[[servers]]
+id = "prompthmr"
+title = "PromptHMR-video · native pilot"
+url = "http://127.0.0.1:9126"

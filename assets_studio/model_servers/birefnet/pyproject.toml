@@ -1,0 +1,41 @@
+[project]
+name = "birefnet-model-server"
+version = "0.1.0"
+description = "Background removal server for the asset studio, based on BiRefNet."
+# PyTorch 2.8 / CUDA 12.9 like the other servers: one download in uv's cache.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk[images,video]",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  # What the model code in the weights repositories (birefnet.py) imports;
+  # it subclasses transformers' PreTrainedModel as written for 4.x.
+  "transformers>=4.46,<5",
+  "timm>=1.0",
+  "kornia>=0.7",
+  "einops>=0.8",
+  "huggingface-hub>=0.26,<1",
+  "numpy==1.26.4",
+  # The foreground colour estimate (blurs).
+  "opencv-python-headless>=4.10,<4.12",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+birefnet-model-server = "birefnet_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

@@ -1,21 +1,15 @@
-// The generation form of a section: task, model, inputs, description,
+// The form of the chosen task and model (picked in the model tree): inputs, description,
 // variants and parameters. Its state is the section's draft in the store.
 import { useState } from "preact/hooks";
 
 import { api } from "../api/client";
-import { promptLabel, taskLabel } from "../format";
-import {
-  chooseServer,
-  chooseTask,
-  draftFor,
-  targetOf,
-  updateDraft,
-} from "../state/drafts";
-import { type Section, serversFor } from "../state/sections";
+import { promptLabel } from "../format";
+import { draftFor, targetOf, updateDraft } from "../state/drafts";
+import type { Section } from "../state/sections";
 import { assetById, mergeJob } from "../state/store";
 import { InputPicker } from "./InputPicker";
 import { invalidParams, isPrimary, ParamsForm, properties } from "./ParamsForm";
-import { has, t } from "../i18n";
+import { t } from "../i18n";
 
 const SEED_LIMIT = 2 ** 32;
 const MAX_SEGMENTS = 6;
@@ -27,17 +21,13 @@ function parseSeed(text: string): number | null | undefined {
   return seed < SEED_LIMIT ? seed : undefined;
 }
 
-const modelState = (state: string) => {
-  const key = `model.${state}`;
-  return has(key) ? t(key) : state;
-};
-
 export function GenerationForm({
   section,
   onSubmitted,
 }: {
   section: Section;
-  onSubmitted: (jobId: string) => void;
+  /** Called with the new job's id. */
+  onSubmitted?: (jobId: string) => void;
 }) {
   const draft = draftFor(section);
   const target = targetOf(section, draft);
@@ -48,7 +38,6 @@ export function GenerationForm({
     return <p class="hint">{t("form.unknownTasks")}</p>;
   }
   const { task, server } = target;
-  const models = serversFor(section, task.task);
 
   const seed = parseSeed(draft.seed);
   // Inputs of this task only; one deleted since it was picked counts as missing.
@@ -95,7 +84,7 @@ export function GenerationForm({
         dependencies: {},
       });
       mergeJob(job);
-      onSubmitted(job.id);
+      onSubmitted?.(job.id);
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : String(failure));
     } finally {
@@ -105,44 +94,6 @@ export function GenerationForm({
 
   return (
     <>
-      {section.tasks.length > 1 && (
-        <div class="tasks" role="group" aria-label={t("form.task")}>
-          {section.tasks.map((name) => (
-            <button
-              key={name}
-              class={name === task.task ? "active" : ""}
-              aria-pressed={name === task.task}
-              onClick={() => chooseTask(section, name)}
-            >
-              {taskLabel(name)}
-            </button>
-          ))}
-        </div>
-      )}
-      <div class="field">
-        <span id={`model-${section.id}`}>{t("form.model")}</span>
-        <div
-          class="models"
-          role="group"
-          aria-labelledby={`model-${section.id}`}
-        >
-          {models.map((model) => {
-            const active = model.id === server.id;
-            return (
-              <button
-                key={model.id}
-                class={active ? "active" : ""}
-                aria-pressed={active}
-                title={`${model.title}: ${modelState(model.state)}`}
-                onClick={() => chooseServer(section, model.id)}
-              >
-                <span class={`dot ${model.state}`} />
-                {model.title}
-              </button>
-            );
-          })}
-        </div>
-      </div>
       {task.inputs.map((spec) => (
         <InputPicker
           key={spec.role}

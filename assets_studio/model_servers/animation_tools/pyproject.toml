@@ -1,0 +1,20 @@
+[project]
+name = "animation-tools-model-server"
+version = "0.1.0"
+description = "Deterministic rig preparation and animation transfer for the asset studio."
+requires-python = ">=3.11"
+dependencies = ["assets-studio-processing", "model-server-sdk"]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+animation-tools-model-server = "animation_tools_model_server.__main__:main"
+
+[tool.uv.sources]
+assets-studio-processing = { path = "../../asset_processing", editable = true }
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

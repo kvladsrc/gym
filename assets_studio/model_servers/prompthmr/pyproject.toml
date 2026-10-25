@@ -1,0 +1,20 @@
+[project]
+name = "prompthmr-model-server"
+version = "0.1.0"
+description = "PromptHMR-video native motion with preserved camera/pose diagnostics."
+requires-python = "==3.11.*"
+dependencies = ["model-server-sdk", "assets-studio-processing", "gdown==5.2.0"]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+prompthmr-model-server = "prompthmr_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+assets-studio-processing = { path = "../../asset_processing", editable = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

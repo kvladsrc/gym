@@ -65,6 +65,12 @@ The hero (`Hero`, `HumanFighter`, as `training/play.sh` has it):
   Space: the roll (no invulnerability: it saves by taking the body out of
   the blow's way). A blow pressed starts at the next decision it is free at
   (5 a second, as the network's).
+- Every action is cut into 5 equal phases, a blow striking in the 2nd to
+  4th. The roll (or a quick move) drops a blow still in its 1st phase (its
+  wind-up, `evade.cancel` in the balance); from the 4th phase of any action
+  on, any other may begin without waiting for its end (a blow cut short
+  having missed counts as a miss). A flask and a change of weapon still
+  wait for the action's end.
 - 1, 2, 3: the sword, the hammer, bare hands (between actions); R: a flask
   (three); E: rest at a bonfire.
 - Blows land where the animation's weapon goes: the blade, the hammer's

@@ -1,0 +1,21 @@
+[project]
+name = "gemx-model-server"
+version = "0.1.0"
+description = "Whole-body motion capture server for the asset studio: NVIDIA GEM-X (SOMA) from a video."
+# The server only: GEM-X runs in a child process in its own environment (worker/, PyTorch 2.10).
+requires-python = "==3.11.*"
+dependencies = ["assets-studio-processing", "model-server-sdk[video]"]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+gemx-model-server = "gemx_model_server.__main__:main"
+
+[tool.uv.sources]
+assets-studio-processing = { path = "../../asset_processing", editable = true }
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

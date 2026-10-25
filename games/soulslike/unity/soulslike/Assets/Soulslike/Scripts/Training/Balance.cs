@@ -16,6 +16,8 @@ namespace Soulslike.Training
     ///   hand (<see cref="Rule.held"/>: sword, hammer, hands) and the
     ///   animation (<see cref="Rule.blow"/>: a clip's name, or roll), either,
     ///   both, or neither (all). Every rule naming an action multiplies it.
+    /// - <see cref="Evade"/>: the window of a roll or quick move no blow hurts,
+    ///   and how far into its wind-up a blow may be dropped for one.
     ///
     /// The speed plays the whole animation that much faster; its damage (by
     /// the striking point's speed) and its energy (by its length) follow.
@@ -39,7 +41,20 @@ namespace Soulslike.Training
             public float damage = 1f, speed = 1f, stagger = 1f;
         }
 
+        /// <summary>The part of a roll or quick move no blow hurts, as shares
+        /// of the action (0–1, phases 2–3 of 5 by default): a blow touching the
+        /// body then is evaded.</summary>
+        public class Window
+        {
+            public float from = 0.2f, to = 0.6f;
+            /// <summary>A blow may be dropped for an evade (the roll or a quick
+            /// move) till this share of it (0: never).</summary>
+            public float cancel;
+            public string note;
+        }
+
         [JsonProperty("base")] public Dictionary<string, Part> Base = new();
+        [JsonProperty("evade")] public Window Evade = new();
         [JsonProperty("rules")] public List<Rule> Rules = new();
 
         /// <summary>Changes each time another balance is taken in (fighters

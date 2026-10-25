@@ -8,12 +8,10 @@ Each model runs as its own server, started when needed.
 
 <!-- markdownlint-disable MD013 MD033 -->
 <p>
-  <a href="../static/assets_studio/1-text-to-image.png"><img src="../static/assets_studio/1-text-to-image.png" width="240" alt="Text to image: a tree concept from Qwen-Image"></a>
-  <a href="../static/assets_studio/2-paint.png"><img src="../static/assets_studio/2-paint.png" width="240" alt="The concept as a 3D model, shaped by Hunyuan3D and painted by Hunyuan3D-Paint"></a>
-  <a href="../static/assets_studio/3-library-3d.png"><img src="../static/assets_studio/3-library-3d.png" width="240" alt="The library: 3D models, shapes and painted"></a>
-  <a href="../static/assets_studio/4-asset.png"><img src="../static/assets_studio/4-asset.png" width="240" alt="An asset in the library: rating, tags, and on to 3D or video"></a>
-  <a href="../static/assets_studio/5-library-concepts.png"><img src="../static/assets_studio/5-library-concepts.png" width="240" alt="The library: concepts for a level, characters and skies"></a>
-  <a href="../static/assets_studio/6-library-props.png"><img src="../static/assets_studio/6-library-props.png" width="240" alt="The library: props, trees and ground tiles"></a>
+  <a href="../static/assets_studio/screenshot-2026-10-18-20-03-00.png"><img src="../static/assets_studio/screenshot-2026-10-18-20-03-00.png" width="240" alt="Asset Studio screenshot: 2026-10-18 20-03-00"></a>
+  <a href="../static/assets_studio/screenshot-2026-10-18-20-03-13.png"><img src="../static/assets_studio/screenshot-2026-10-18-20-03-13.png" width="240" alt="Asset Studio screenshot: 2026-10-18 20-03-13"></a>
+  <a href="../static/assets_studio/screenshot-2026-10-25-12-38-27.png"><img src="../static/assets_studio/screenshot-2026-10-25-12-38-27.png" width="240" alt="Asset Studio screenshot: 2026-10-25 12-38-27"></a>
+  <a href="../static/assets_studio/screenshot-2026-10-25-12-38-47.png"><img src="../static/assets_studio/screenshot-2026-10-25-12-38-47.png" width="240" alt="Asset Studio screenshot: 2026-10-25 12-38-47"></a>
 </p>
 <!-- markdownlint-enable MD013 MD033 -->
 
@@ -24,6 +22,7 @@ Each model runs as its own server, started when needed.
 | `studio/` | The studio: job queue, library (SQLite + files), API, MCP |
 | `web/` | The web UI (Preact) |
 | `model_server_sdk/` | SDK and contract checker for model servers |
+| `asset_processing/` | Shared Blender conversion, rig preparation and motion transfer, independent of the SDK |
 | `model_servers/` | One server per model, each with its own environment |
 | `docs/adr/` | Design decisions: the model-server contract, storage, sections |
 | `docs/models/` | Why each model was chosen, with measurements |
@@ -42,8 +41,8 @@ Then start the models you need, each in its own terminal:
 
 ```sh
 cd model_servers
-just setup flux                 # once per server: its environment
-just flux                       # or: qwen_image, hunyuan3d, xtts,
+just setup qwen_image                 # once per server: its environment
+just qwen_image                 # or: hunyuan3d21, xtts,
                                 #     stable_audio, gemma, qwen, wan, fake
 ```
 
@@ -51,10 +50,18 @@ just flux                       # or: qwen_image, hunyuan3d, xtts,
 
 | Server | Task | Notes |
 | --- | --- | --- |
-| `flux` | text → image, image → image | FLUX.1-schnell Q8: ~1 min |
-| `hunyuan3d` | image → 3D | Hunyuan3D-2mini: shape; + `paint`: [use](docs/guides/3d.md) |
-| `hunyuan_paint` | 3D + image → 3D | Hunyuan3D-Paint: paints from the image |
+| `birefnet` | image → image | BiRefNet: background removal (MIT), a few seconds |
+| `sam2` | video + isolated first frame → video | SAM 2.1: track one subject on white, original video pixels; [use](model_servers/sam2/README.md) |
+| `hunyuan3d21` | image → 3D | Hunyuan3D-2.1 Shape (3.3B), offloaded to RAM; on trial |
+| `hi3d` | 3D + image → 3D | Hi3D v1.0: a coarse mesh refined from its image, 512³–1536³ grid; geometry only; [setup](model_servers/hi3d/README.md); on trial |
+| `hunyuan_paint21` | 3D + image → 3D | Hunyuan3D-Paint 2.1: PBR (base colour, metallic, roughness), offloaded; on trial |
 | `mia` | 3D → rig | Make-It-Animatable v2: Mixamo skeleton, skin weights; FBX |
+| `skintokens`, `unirig` | 3D → rig | any skeleton (animals, birds, props), skin weights; FBX; on trial |
+| `animation_tools` | rig + animation → animated character | Blender: prepare rigs, transfer Kimodo/Mixamo motion; [use](model_servers/animation_tools/README.md) |
+| `mocapanything` | video + rig → animation | MoCapAnything V2: a quadruped rig (SkinTokens) moving as in the video; FBX |
+| `prompthmr` | video + selected-track observations → native motion | PromptHMR-video research pilot; [setup and limits](model_servers/prompthmr/README.md) |
+| `gvhmr` | video + humanoid rig → animation | GVHMR: human motion, Mixamo rig; FBX; [setup](model_servers/gvhmr/README.md) |
+| `kimodo` | text → animation | Kimodo: humanoid motion, FBX with Mixamo bone names (Unity Humanoid) |
 | `xtts` | text → speech | 14 languages, voice cloning |
 | `stable_audio` | text → sound, sound → sound | effects and music up to 47 s |
 | `gemma`, `qwen` | text → text | Gemma 4 12B, Qwen3.8 27B via llama.cpp |
@@ -71,4 +78,13 @@ just check      # lint, types, tests, web UI build and lint (no GPU)
 cd model_servers && just test   # each server's own tests (no GPU)
 ```
 
+Saved job graphs: [`studio flow`](flow/README.md), a separate editor on
+`http://127.0.0.1:9001` (`just flow`). Studio owns the queue and library;
+launcher starts models; flow saves and submits repeatable chains.
+
 Plan and status: [`PLAN.md`](PLAN.md).
+
+Agent visual inspection uses local Qwen3.8 image/video-to-text tasks; see
+[shared media rules](../.agents/media-analysis.md) and
+[the mocap approach review](docs/reviews/mocap-approach.md).
+Hunyuan3D-2mini and Paint 2.0 are retired from the active catalog; use 2.1.

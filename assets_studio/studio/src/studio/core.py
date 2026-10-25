@@ -50,6 +50,8 @@ class Studio:
         self._waiters: set[threading.Event] = set()
         self.dispatcher = Dispatcher(config, repository, blobs, on_change=self._job_changed)
         self.library = Library(config, repository, blobs)
+        if 8 in self.database.applied:  # 0008_motion_kind
+            self.library.retype_motions()
         self.generation = Generation(
             config, repository, wake=self.dispatcher.wake, on_change=self._job_changed
         )

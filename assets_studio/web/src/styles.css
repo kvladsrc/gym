@@ -177,6 +177,46 @@ textarea {
 .queue.busy {
   color: var(--text);
 }
+a.queue {
+  text-decoration: none;
+}
+a.queue:hover {
+  text-decoration: underline;
+}
+
+/* Every job: the queue, then the history. */
+.jobs-page {
+  overflow-y: auto;
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) 24px
+    max(16px, env(safe-area-inset-left, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.jobs-page .jobs {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.jobs-page h2 {
+  font-size: 15px;
+  margin: 0 0 8px;
+}
+.jobs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.job-task {
+  font-weight: 500;
+  white-space: nowrap;
+}
+.job-model {
+  color: var(--muted);
+  white-space: nowrap;
+}
 
 .dot {
   width: 7px;
@@ -197,26 +237,179 @@ textarea {
 }
 
 /* Tab page: form | preview, history below */
+/* A button that reads as a link: small inline actions in lists. */
+button.link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent);
+  cursor: pointer;
+}
+button.link:hover {
+  text-decoration: underline;
+}
+
+/* Making things: model tree | task form | model description and history. */
 .workspace {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: 240px minmax(0, 1fr) 320px;
   min-height: 0;
 }
-.panel {
-  grid-row: 1 / 3;
+.workspace > * {
+  min-height: 0;
   overflow-y: auto;
-  padding: 14px;
-  background: var(--surface);
+}
+.tree {
   border-right: 1px solid var(--border);
+  padding: 10px 6px;
+  background: var(--surface);
+}
+.tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tree ul ul {
+  padding-left: 14px;
+}
+.tree-folder,
+.tree-model {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.tree-folder {
+  font-weight: 600;
+}
+.tree-folder .caret {
+  width: 1em;
+  color: var(--muted);
+}
+.tree-task {
+  display: block;
+  padding: 6px 6px 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.tree-model:hover,
+.tree-folder:hover {
+  background: var(--sunken);
+}
+.tree-model.active {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.tree-model:focus-visible,
+.tree-folder:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.workspace > .launch {
+  padding: 16px 20px;
+}
+.launch > * {
+  max-width: 860px;
+}
+.preview.tool-video {
+  min-height: 360px;
+}
+.launch-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.launch-head h1 {
+  font-size: 18px;
+  margin: 0;
+}
+.model-panel {
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: var(--gap);
+  gap: 12px;
 }
-.stage {
-  min-height: 0;
-  overflow: auto;
-  padding: 16px;
+.model-panel h2 {
+  font-size: 15px;
+  margin: 0;
+}
+.model-panel .meta dd {
+  overflow-wrap: anywhere;
+}
+.model-panel .mono {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px;
+}
+.jobs h3 {
+  font-size: 13px;
+  margin: 0 0 6px;
+  color: var(--muted);
+}
+.jobs ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.job-row {
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.job-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.job-row .prompt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.job-time,
+.job-note {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.job-actions {
+  display: flex;
+  gap: 10px;
+}
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+  .model-panel {
+    grid-column: 1 / -1;
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}
+@media (max-width: 720px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tree {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+}
+.panel {
+  padding: 14px;
+  background: var(--surface);
   display: flex;
   flex-direction: column;
   gap: var(--gap);
@@ -466,6 +659,97 @@ details .fields {
   object-fit: contain;
   background: #000;
 }
+.preview .video-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+}
+
+.preview .video-preview video {
+  position: static; /* under the frame controls, not over them */
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
+.video-frames {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 8px;
+}
+
+.preview .motion-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  width: 100%;
+}
+
+.motion-viewer canvas {
+  width: 100%;
+  cursor: grab;
+  touch-action: none;
+  background: var(--viewer);
+  border-radius: var(--radius);
+}
+
+.motion-controls input[type="range"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.motion-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.motion-keys,
+.motion-generate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.motion-generate input:not([type]) {
+  flex: 1;
+  min-width: 12ch;
+}
+
+.motion-generate input[type="number"] {
+  width: 6ch;
+  margin-left: 4px;
+}
+
+.motion-keys .chip {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
+.preview .data-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 16px;
+}
+
+.preview .data-preview svg {
+  width: 48px;
+  height: 48px;
+}
+
 .preview .text {
   position: absolute;
   inset: 0;
@@ -668,14 +952,6 @@ details .fields {
   border-radius: 4px;
 }
 
-.workspace > .stage {
-  grid-column: 2;
-  grid-row: 1;
-}
-.workspace > .history {
-  grid-column: 2;
-  grid-row: 2;
-}
 .card-name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -764,9 +1040,6 @@ a.button {
 }
 .button.star.on {
   color: var(--star);
-}
-.stage > .placeholder {
-  margin: auto;
 }
 .details > input[type="text"] {
   width: 100%;
@@ -934,4 +1207,56 @@ a.button {
 .segmented.rating button {
   min-width: 26px;
   padding: 2px 6px;
+}
+.provenance {
+  display: grid;
+  gap: 8px;
+}
+.provenance h3 {
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+.prompt-text {
+  margin: 0;
+  max-height: 12em;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+/* Library viewer: one asset large, the filtered list as a strip below. */
+.library-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.library.viewing .browse {
+  overflow: hidden;
+}
+.library.viewing .preview {
+  min-height: 0;
+}
+.library.viewing .history {
+  margin: 0 -16px -14px;
+  flex: none;
+  align-items: center;
+}
+.viewer-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.viewer-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
 }

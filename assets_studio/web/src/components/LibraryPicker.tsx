@@ -1,4 +1,5 @@
-// Dialog with library assets of one kind; picking one returns it.
+// Dialog with library assets of one kind (and of the input's types, where a kind has several
+// that are not converted: SMPL-X and SOMA motion); picking one returns it.
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 import { api, type Asset } from "../api/client";
@@ -9,10 +10,13 @@ import { t } from "../i18n";
 
 export function LibraryPicker({
   kind,
+  mimes,
   onPick,
   onClose,
 }: {
   kind: string;
+  /** Only these types; all of the kind when absent. */
+  mimes?: readonly string[] | undefined;
   onPick: (asset: Asset) => void;
   onClose: () => void;
 }) {
@@ -21,9 +25,11 @@ export function LibraryPicker({
   useEffect(() => {
     void attempt(() => api.assets({ kind })).then((list) => {
       putAssets(list ?? []);
-      setItems(list ?? []);
+      setItems(
+        (list ?? []).filter((asset) => !mimes || mimes.includes(asset.mime)),
+      );
     });
-  }, [kind]);
+  }, [kind, mimes?.join(",")]);
 
   // Escape while focus is outside the dialog (effects run after the first paint;
   // the handlers on the elements below work from the first moment).

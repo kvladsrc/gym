@@ -43,7 +43,7 @@ export function HomePage() {
         {t("home.emptyBefore")} <code>~/.config/assets-studio/studio.toml</code>
         {t("home.emptyExample")}
       </p>
-      <pre>{`[[servers]]\nid = "flux"\nurl = "http://127.0.0.1:9104"`}</pre>
+      <pre>{`[[servers]]\nid = "qwen_image"\nurl = "http://127.0.0.1:9109"`}</pre>
       <p>{t("home.emptyAfter")}</p>
     </div>
   );

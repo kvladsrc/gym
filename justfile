@@ -3,8 +3,10 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 mod assets_studio
 mod cothic "games/cothic"
 mod cv
+mod finish_the_game "games/finish_the_game"
 mod neural_network
 mod presentations
+mod soulslike "games/soulslike"
 mod talos "production/kubernetes/talos"
 mod zooreader "games/zooreader"
 mod? vibe_jakubovich "games/vibe_jakubovich"
@@ -47,6 +49,24 @@ helm-check-deps:
 # Upgrade Flux and regenerate the install manifest
 flux-upgrade:
     flux install --export --components-extra=image-reflector-controller,image-automation-controller > production/kubernetes/flux/infrastructure/flux-system/gotk-components.yaml
+
+# Run Renovate now, as Zuul's daily renovate-bot job does (its credentials from
+# zuul-config; Gerrit through the cluster's node port, outside Authentik).
+# Pass Renovate flags, e.g. `just renovate --dry-run=lookup`.
+renovate *args="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    secrets=~/repos/zuul-config/zuul.d/jobs.yaml
+    secret() { yq -r ".[] | select(.secret.name == \"gerrit_basic_auth\") | .secret.data.$1" "$secrets"; }
+    port=$(kubectl -n gerrit-cluster get svc gerrit-service -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
+    node=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+    export LOG_LEVEL=info RENOVATE_CONFIG_FILE="$PWD/renovate.json"
+    export RENOVATE_USERNAME RENOVATE_PASSWORD RENOVATE_GITHUB_COM_TOKEN
+    RENOVATE_USERNAME=$(secret renovate_username)
+    RENOVATE_PASSWORD=$(secret renovate_password)
+    RENOVATE_GITHUB_COM_TOKEN=$(secret renovate_github_token)
+    renovate --platform=gerrit --endpoint="http://$node:$port" \
+        --git-author="Renovate Bot <renovate@bonfire.lit>" {{ args }} src
 
 # Run all bazel tests
 test *args="":

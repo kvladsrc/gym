@@ -90,13 +90,24 @@ hammer's head and the upper half of its shaft, or a fist, foot or shin.
 Damage scales 80–120 % with the striking point's speed on contact. A hit
 staggers the opponent and cuts its action short; the blow that landed plays
 its recovery 1.5 times as fast, so a hit opens a combo and a miss pays in
-full. Nothing is invulnerable: a roll or an evade saves only by taking the
-body out of the blow's way.
+full.
+
+- **Evades.** The roll and the quick evades have a window (by default
+  their phases 2–3 of 5) when no blow hurts the body. A blow that touches
+  it then is evaded: it does nothing and strikes that body no more in this
+  swing, and the evader gains adrenaline. Before and after the window the
+  body is as open as ever, so an evade must meet the blow, not run from it:
+  a last-moment evade pays.
+- **Feints.** A blow still in its wind-up (its first fifth, before it can
+  strike) may be dropped for the roll or a quick evade; its energy stays
+  spent. Past that it must play out. (`evade.cancel` in the balance; 0
+  turns it off.)
 
 - **The hammer is a shield** against the sword: its head and the upper
   half of its shaft stop a blade that meets them, always, in a blow or not.
-- **Forearms and shins** take no damage from the sword's blade (armour);
-  other blows land on them.
+- **Bare-handed, forearms and shins** take no damage from the sword's
+  blade: the bare-handed fighter's guard against the sword. With a weapon
+  in hand they are hit as usual, and other blows always land on them.
 
 ## Adrenaline
 
@@ -113,7 +124,8 @@ or last-moment evades.
 - Six levels: 0, A, B, C, D, S.
 - One level comes simply from standing within 3 m of the opponent.
 - Earned by: dealing damage (a point per 30 damage) and evading blows (0.7
-  a point). Taking hits earns nothing, so trading blows doesn't pump both
+  a point: a blow met inside an evade's window, or a sword blow blocked by
+  the hammer). Taking hits earns nothing, so trading blows doesn't pump both
   fighters.
 - Earned points hold for 1 s, then decay (0.35 a second).
 - Higher levels multiply your damage: ×1, 1.1, 1.25, 1.4, 1.6, 2 at S. From
@@ -125,7 +137,8 @@ or last-moment evades.
 
 - **Damage:** dealt and taken, as a share of the opponent's health (+) and
   your own (−).
-- **Win:** +1. A loss adds nothing beyond the health already lost.
+- **Win:** +1. **Loss:** −0.3 on top of the health already lost (−1.3
+  in all, still above a time-out).
 - **Time-out:** −2 for both, so stalling never pays.
 - **Energy:** a small cost for every action, proportional to its duration
   (0.08 a second of clip).
@@ -138,7 +151,8 @@ standing apart) were tried and dropped.
 
 `balance.json` sets each action's damage, speed and stagger: a base by what
 strikes (`sword`, `hammer`, `limb`), then rules that multiply it for a
-weapon in hand (`held`), an animation (`blow`), or both. Speed plays the
+weapon in hand (`held`), an animation (`blow`), or both; `evade` sets the
+window of a roll or quick evade that no blow hurts. Speed plays the
 whole clip faster, and its damage and energy follow. The training's
 players read the file again as each fight begins, so a change needs no
 rebuild or restart. `./balance.sh` opens a panel in the browser that edits

@@ -1,0 +1,25 @@
+[project]
+name = "prompthmr-worker"
+version = "0.1.0"
+description = "Isolated static-camera PromptHMR-video inference; no Studio SDK."
+requires-python = "==3.10.*"
+dependencies = [
+  "torch==2.3.0", "torchvision==0.18.0", "numpy==1.23.5", "timm==0.9.12",
+  "pytorch-lightning==2.3.0", "xformers==0.0.26.post1", "pytorch3d", "smplx==0.1.28", "open_clip_torch==2.24.0",
+  "yacs==0.1.8", "omegaconf==2.3.0", "einops>=0.8", "rich", "scipy", "pillow",
+  "opencv-python-headless==4.10.0.84", "av==13.0.0", "loguru", "hydra-core==1.3.2",
+  "tensorboardX", "setuptools>=68,<81", "gdown==5.2.0", "matplotlib", "trimesh",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu121" }
+torchvision = { index = "pytorch-cu121" }
+pytorch3d = { url = "https://dl.fbaipublicfiles.com/pytorch3d/packaging/wheels/py310_cu121_pyt230/pytorch3d-0.7.6-cp310-cp310-linux_x86_64.whl" }
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true

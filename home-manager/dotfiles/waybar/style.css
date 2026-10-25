@@ -1,9 +1,9 @@
-@import url("./motif.css");
+@import url("./orbit.css");
 
 * {
   font-family: "Mononoki Nerd Font";
   font-weight: 400;
-  font-size: 14px;
+  font-size: 13px;
   min-height: 0;
 }
 
@@ -37,7 +37,7 @@ window#waybar {
 #workspaces button.active {
   color: @text;
   background: @selected;
-  border-bottom-color: @gold;
+  border-bottom-color: @accent;
 }
 
 #workspaces button.urgent {

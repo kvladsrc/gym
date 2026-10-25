@@ -12,6 +12,7 @@ import wave
 import zlib
 from collections.abc import Callable, Sequence
 from importlib import resources
+from typing import cast
 
 RGB = tuple[int, int, int]
 
@@ -128,6 +129,27 @@ def tetrahedron(
         (-scale, -scale, scale),
     ]
     return points, [(0, 1, 2), (0, 3, 1), (0, 2, 3), (1, 3, 2)]
+
+
+# Body motion and poses (a pose is a one-frame motion), one type per body model: the studio's
+# native packages, JSON whose "format" names the model (ADR-009).
+SMPLX_MOTION = "application/vnd.studio.smplx-motion+json"
+SOMA_MOTION = "application/vnd.studio.soma-motion+json"
+MOTION_FORMATS = {SMPLX_MOTION: "studio.smplx-motion.v1", SOMA_MOTION: "studio.soma-motion.v1"}
+
+
+def _motion_format(data: bytes) -> str | None:
+    """The "format" of a native motion package, or None for anything else."""
+    if data.lstrip()[:1] != b"{":
+        return None
+    try:
+        package: object = json.loads(data)
+    except (ValueError, UnicodeError):
+        return None
+    if not isinstance(package, dict):
+        return None
+    value: object = cast(dict[str, object], package).get("format")
+    return value if isinstance(value, str) else None
 
 
 def looks_like(mime: str, data: bytes) -> bool | None:
@@ -271,6 +293,8 @@ _SIGNATURES: dict[str, Callable[[bytes], bool]] = {
     "video/mp4": _is_mp4,
     "video/webm": _is_webm,
     "text/plain": _is_text,
+    SMPLX_MOTION: lambda data: _motion_format(data) == MOTION_FORMATS[SMPLX_MOTION],
+    SOMA_MOTION: lambda data: _motion_format(data) == MOTION_FORMATS[SOMA_MOTION],
 }
 
 

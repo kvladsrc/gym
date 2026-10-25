@@ -1,0 +1,51 @@
+[project]
+name = "mocapanything-model-server"
+version = "0.1.0"
+description = "Motion capture server for the asset studio: MoCapAnything V2 animates a rig of any skeleton from a video."
+# PyTorch 2.8 / CUDA 12.9 like the other servers (upstream pins 2.9).
+requires-python = "==3.11.*"
+dependencies = [
+  "assets-studio-processing",
+  "model-server-sdk",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  # requirements.txt without training, the Gradio demo, TripoSG (the V1
+  # baseline) and SAM2 (the dance demo).
+  "transformers>=5.10,<6",
+  "sentencepiece>=0.2",
+  "huggingface-hub",
+  "numpy==1.26.4",
+  "scipy>=1.11",
+  "scikit-image>=0.22",
+  "opencv-python-headless>=4.10,<4.12",
+  "Pillow>=10.4",
+  "matplotlib>=3.7",
+  "trimesh>=4.4",
+  "pygltflib>=1.16",
+  "roma>=1.5",
+  "pyyaml>=6",
+  "tqdm>=4.66",
+  "imageio>=2.37",
+  "imageio-ffmpeg>=0.5",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+mocapanything-model-server = "mocapanything_model_server.__main__:main"
+
+[tool.uv.sources]
+assets-studio-processing = { path = "../../asset_processing", editable = true }
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

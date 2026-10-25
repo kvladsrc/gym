@@ -1,10 +1,10 @@
 /* Keep the palette local: Home Manager installs this stylesheet as a symlink. */
-@define-color frame #1c1b20;
-@define-color panel #25242a;
-@define-color border #3b383f;
-@define-color text #d6d0c5;
-@define-color selected #353139;
-@define-color gold #b6a078;
+@define-color frame #181a1b;
+@define-color panel #252321;
+@define-color border #454039;
+@define-color text #d9d3c7;
+@define-color selected #37342e;
+@define-color accent #b9aa8c;
 
 * {
   font-family: "Mononoki Nerd Font";
@@ -40,7 +40,7 @@ window {
 }
 
 #input:focus {
-  border-color: @gold;
+  border-color: @accent;
   box-shadow: none;
 }
 
@@ -65,7 +65,7 @@ window {
 
 #entry:selected {
   background: @selected;
-  border-left-color: @gold;
+  border-left-color: @accent;
   outline: none;
 }
 

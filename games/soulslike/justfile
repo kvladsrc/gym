@@ -1,0 +1,62 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# The game's itch.io page, and Unity's per-build folder not to ship.
+itch := "myuser/reiforce"
+unshipped := "*_BackUpThisFolder_ButDontShipItWithYourGame"
+
+# Show all available commands
+default:
+    @just --list --list-submodules
+
+# Train the duellists (run-id, --resume, --hours H, --envs N, --build, --from RUN)
+train *args="":
+    training/train.sh {{ args }}
+
+# Watch the newest model fight in a window, live
+watch run="duel" *args="":
+    training/watch.sh {{ run }} {{ args }}
+
+# Play against the newest model in the arena
+duel run="duel":
+    training/play.sh {{ run }}
+
+# Film a minute of the newest model to training/results/<run>/videos
+record run="duel":
+    training/record.sh {{ run }}
+
+# How often each weapon beats each other, lately
+weapons run="duel" *args="":
+    training/weapons.sh {{ run }} {{ args }}
+
+# Which actions each weapon takes, and how often each lands
+actions run="duel" *args="":
+    training/actions.sh {{ run }} {{ args }}
+
+# Edit the balance in the browser, checked before saving
+balance *args="":
+    training/balance.sh {{ args }}
+
+# TensorBoard over all the runs
+tensorboard:
+    cd training && uv run tensorboard --logdir results
+
+# Rebuild the arena, its training player and its viewer (Unity running, training stopped)
+build-arena:
+    tools/build.sh arena
+
+# Rebuild the Last Ember with the newest network, and its players: linux, windows or all
+build-game target="all":
+    tools/build.sh game {{ target }}
+
+# Play the game's Linux build (on the NVIDIA GPU)
+play:
+    ./play.sh
+
+# Upload both game builds to itch.io (only the changes go)
+publish:
+    butler push unity/soulslike/Builds/Windows {{ itch }}:windows --ignore '{{ unshipped }}'
+    butler push unity/soulslike/Builds/Linux {{ itch }}:linux --ignore '{{ unshipped }}'
+
+# Check the training scripts and the balance
+check:
+    cd training && uv run python -m py_compile *.py && uv run python balance.py --check

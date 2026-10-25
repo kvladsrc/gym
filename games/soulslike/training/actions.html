@@ -1,139 +1,319 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fighter actions</title>
-<style>
-  :root {
-    --bg: #f6f5f2; --panel: #fff; --text: #1d1d1b; --muted: #6b6a66; --line: #dddad3;
-    --accent: #b5532a; --warn: #8a6100; --rare: #b3261e;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #161615; --panel: #1f1f1d; --text: #e9e7e1; --muted: #9b998f; --line: #34332f;
-      --accent: #e0855c; --warn: #e3b549; --rare: #f2817a; }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 system-ui, sans-serif; }
-  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
-  header { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
-  h1 { font-size: 20px; margin: 0; }
-  h2 { font-size: 17px; margin: 24px 0 4px; }
-  a { color: var(--accent); }
-  input, select, button { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 3px 6px; }
-  .muted { color: var(--muted); }
-  .scroll { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; background: var(--panel); font-variant-numeric: tabular-nums; }
-  td, th { padding: 3px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  th { color: var(--muted); font-weight: 500; }
-  td.l, th.l { text-align: left; }
-  tr.sub td { border-bottom-style: dotted; }
-  .name { font-weight: 600; }
-  .rare { color: var(--rare); }
-  .was { color: var(--warn); }
-</style>
-</head>
-<body>
-<main>
-  <header>
-    <h1>Fighter actions</h1>
-    <a href="/">← balance</a>
-    <label>steps <input id="steps" value="500000" size="8"></label>
-    <label>order <select id="order"><option value="slot">by number</option><option value="use">by use</option></select></label>
-    <button id="reload">Refresh</button>
-    <span id="line" class="muted"></span>
-  </header>
-  <p class="muted"># is the network's output (the action's place in the list). Share: of all the actions of a fighter with that weapon; hits: of its blows; red: under 0.5 %. Damage, speed and stagger come from balance.json.</p>
-  <div id="sections"></div>
-</main>
-<script>
-const SECTIONS = [["any", "Common"], ["sword", "Sword"], ["hammer", "Hammer"], ["hands", "Bare-handed"]];
-const HELD = { sword: "sword", hammer: "hammer", hands: "hands" };
-const RARE = 0.005;
-let data = null;
-const el = (tag, props = {}, ...kids) => { const e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
-const pct = v => v == null ? "—" : (v * 100).toFixed(v < 0.1 ? 1 : 0) + " %";
-const num = (v, d) => (Math.round(v * 10 ** d) / 10 ** d).toString();
-const td = (text, cls = "") => el("td", { textContent: text, className: cls });
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fighter actions</title>
+    <style>
+      :root {
+        --bg: #f6f5f2;
+        --panel: #fff;
+        --text: #1d1d1b;
+        --muted: #6b6a66;
+        --line: #dddad3;
+        --accent: #b5532a;
+        --warn: #8a6100;
+        --rare: #b3261e;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #161615;
+          --panel: #1f1f1d;
+          --text: #e9e7e1;
+          --muted: #9b998f;
+          --line: #34332f;
+          --accent: #e0855c;
+          --warn: #e3b549;
+          --rare: #f2817a;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.4 system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+      header {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0;
+      }
+      h2 {
+        font-size: 17px;
+        margin: 24px 0 4px;
+      }
+      a {
+        color: var(--accent);
+      }
+      input,
+      select,
+      button {
+        font: inherit;
+        color: inherit;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        padding: 3px 6px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .scroll {
+        overflow-x: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        background: var(--panel);
+        font-variant-numeric: tabular-nums;
+      }
+      td,
+      th {
+        padding: 3px 8px;
+        text-align: right;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 500;
+      }
+      td.l,
+      th.l {
+        text-align: left;
+      }
+      tr.sub td {
+        border-bottom-style: dotted;
+      }
+      .name {
+        font-weight: 600;
+      }
+      .rare {
+        color: var(--rare);
+      }
+      .was {
+        color: var(--warn);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Fighter actions</h1>
+        <a href="/">← balance</a>
+        <label>steps <input id="steps" value="500000" size="8" /></label>
+        <label
+          >order
+          <select id="order">
+            <option value="slot">by number</option>
+            <option value="use">by use</option>
+          </select></label
+        >
+        <button id="reload">Refresh</button>
+        <span id="line" class="muted"></span>
+      </header>
+      <p class="muted">
+        # is the network's output (the action's place in the list). Share: of
+        all the actions of a fighter with that weapon; hits: of its blows; red:
+        under 0.5 %. Damage, speed and stagger come from balance.json.
+      </p>
+      <div id="sections"></div>
+    </main>
+    <script>
+      const SECTIONS = [
+        ["any", "Common"],
+        ["sword", "Sword"],
+        ["hammer", "Hammer"],
+        ["hands", "Bare-handed"],
+      ];
+      const HELD = { sword: "sword", hammer: "hammer", hands: "hands" };
+      const RARE = 0.005;
+      let data = null;
+      const el = (tag, props = {}, ...kids) => {
+        const e = Object.assign(document.createElement(tag), props);
+        e.append(...kids);
+        return e;
+      };
+      const pct = (v) =>
+        v == null ? "—" : (v * 100).toFixed(v < 0.1 ? 1 : 0) + " %";
+      const num = (v, d) => (Math.round(v * 10 ** d) / 10 ** d).toString();
+      const td = (text, cls = "") =>
+        el("td", { textContent: text, className: cls });
 
-/** One action's numbers, as Balance.Of works them out. */
-function of(balance, held, action) {
-  const part = action.strikes === "weapon" ? held : action.strikes;
-  const b = part && balance.base && balance.base[part];
-  let damage = b ? Number(b.damage) || 0 : 0, stagger = b ? Number(b.stagger) || 0 : 0, speed = 1;
-  for (const r of balance.rules || []) {
-    if (r.held && r.held !== held) continue;
-    if (r.blow && r.blow !== action.name) continue;
-    damage *= r.damage ?? 1; speed *= r.speed ?? 1; stagger *= r.stagger ?? 1;
-  }
-  return { part, damage, speed, stagger };
-}
+      /** One action's numbers, as Balance.Of works them out. */
+      function of(balance, held, action) {
+        const part = action.strikes === "weapon" ? held : action.strikes;
+        const b = part && balance.base && balance.base[part];
+        let damage = b ? Number(b.damage) || 0 : 0,
+          stagger = b ? Number(b.stagger) || 0 : 0,
+          speed = 1;
+        for (const r of balance.rules || []) {
+          if (r.held && r.held !== held) continue;
+          if (r.blow && r.blow !== action.name) continue;
+          damage *= r.damage ?? 1;
+          speed *= r.speed ?? 1;
+          stagger *= r.stagger ?? 1;
+        }
+        return { part, damage, speed, stagger };
+      }
 
-function kind(a) {
-  if (a.strikes == null) return a.name === "roll" ? "roll" : "evade";
-  return a.strikes === "weapon" ? "weapon" : "limb";
-}
+      function kind(a) {
+        if (a.strikes == null) return a.name === "roll" ? "roll" : "evade";
+        return a.strikes === "weapon" ? "weapon" : "limb";
+      }
 
-/** An action's rows: one per weapon that may take it. */
-function rows(a) {
-  const helds = a.needs === "any" ? ["sword", "hammer", "hands"] : [a.needs];
-  return helds.map((h, i) => {
-    const u = a.usage[h];
-    const fresh = u && !u.was;
-    const b = of(data.balance, h, a);
-    const first = i === 0 ? [
-      el("td", { textContent: String(a.index).padStart(2, "0"), rowSpan: helds.length, className: "muted" }),
-      el("td", { rowSpan: helds.length, className: "l" }, el("div", { className: "name", textContent: a.name }),
-        el("div", { className: "muted", textContent: a.clip.split("/")[0] })),
-      el("td", { textContent: kind(a), rowSpan: helds.length, className: "l" }),
-    ] : [];
-    return el("tr", { className: i < helds.length - 1 ? "sub" : "" }, ...first,
-      td(HELD[h], "l"),
-      fresh ? td(pct(u.share), u.share < RARE ? "rare" : "") :
-        u ? el("td", { textContent: "new clip", className: "was", title: "the old clip's numbers (" + u.was + ") are hidden" }) : td("—"),
-      td(fresh ? pct(u.hit) : "—"),
-      td(b.part ? num(b.damage, 1) : "—"),
-      td(num(b.speed, 2)),
-      td(b.part ? num(b.stagger, 2) : "—"));
-  });
-}
+      /** An action's rows: one per weapon that may take it. */
+      function rows(a) {
+        const helds =
+          a.needs === "any" ? ["sword", "hammer", "hands"] : [a.needs];
+        return helds.map((h, i) => {
+          const u = a.usage[h];
+          const fresh = u && !u.was;
+          const b = of(data.balance, h, a);
+          const first =
+            i === 0
+              ? [
+                  el("td", {
+                    textContent: String(a.index).padStart(2, "0"),
+                    rowSpan: helds.length,
+                    className: "muted",
+                  }),
+                  el(
+                    "td",
+                    { rowSpan: helds.length, className: "l" },
+                    el("div", { className: "name", textContent: a.name }),
+                    el("div", {
+                      className: "muted",
+                      textContent: a.clip.split("/")[0],
+                    }),
+                  ),
+                  el("td", {
+                    textContent: kind(a),
+                    rowSpan: helds.length,
+                    className: "l",
+                  }),
+                ]
+              : [];
+          return el(
+            "tr",
+            { className: i < helds.length - 1 ? "sub" : "" },
+            ...first,
+            td(HELD[h], "l"),
+            fresh
+              ? td(pct(u.share), u.share < RARE ? "rare" : "")
+              : u
+                ? el("td", {
+                    textContent: "new clip",
+                    className: "was",
+                    title: "the old clip's numbers (" + u.was + ") are hidden",
+                  })
+                : td("—"),
+            td(fresh ? pct(u.hit) : "—"),
+            td(b.part ? num(b.damage, 1) : "—"),
+            td(num(b.speed, 2)),
+            td(b.part ? num(b.stagger, 2) : "—"),
+          );
+        });
+      }
 
-function usageOf(a) {
-  return Math.max(0, ...Object.values(a.usage).filter(u => !u.was).map(u => u.share));
-}
+      function usageOf(a) {
+        return Math.max(
+          0,
+          ...Object.values(a.usage)
+            .filter((u) => !u.was)
+            .map((u) => u.share),
+        );
+      }
 
-function render() {
-  const box = document.getElementById("sections");
-  box.replaceChildren();
-  for (const [needs, title] of SECTIONS) {
-    let list = data.actions.filter(a => a.needs === needs);
-    if (document.getElementById("order").value === "use") list = [...list].sort((x, y) => usageOf(y) - usageOf(x));
-    const head = el("tr", {}, ...["#", "animation", "strikes", "held", "share", "hits", "damage", "speed", "stagger, s"]
-      .map((t, i) => el("th", { textContent: t, className: i >= 1 && i <= 3 ? "l" : "" })));
-    box.append(el("h2", { textContent: `${title} — ${list.length}` }),
-      el("p", { className: "muted", textContent: needs === "any" ? "with any weapon or none" : HELD[needs] + " only" }),
-      el("div", { className: "scroll" }, el("table", {}, el("thead", {}, head), el("tbody", {}, ...list.flatMap(rows)))));
-  }
-}
+      function render() {
+        const box = document.getElementById("sections");
+        box.replaceChildren();
+        for (const [needs, title] of SECTIONS) {
+          let list = data.actions.filter((a) => a.needs === needs);
+          if (document.getElementById("order").value === "use")
+            list = [...list].sort((x, y) => usageOf(y) - usageOf(x));
+          const head = el(
+            "tr",
+            {},
+            ...[
+              "#",
+              "animation",
+              "strikes",
+              "held",
+              "share",
+              "hits",
+              "damage",
+              "speed",
+              "stagger, s",
+            ].map((t, i) =>
+              el("th", {
+                textContent: t,
+                className: i >= 1 && i <= 3 ? "l" : "",
+              }),
+            ),
+          );
+          box.append(
+            el("h2", { textContent: `${title} — ${list.length}` }),
+            el("p", {
+              className: "muted",
+              textContent:
+                needs === "any"
+                  ? "with any weapon or none"
+                  : HELD[needs] + " only",
+            }),
+            el(
+              "div",
+              { className: "scroll" },
+              el(
+                "table",
+                {},
+                el("thead", {}, head),
+                el("tbody", {}, ...list.flatMap(rows)),
+              ),
+            ),
+          );
+        }
+      }
 
-async function load() {
-  const line = document.getElementById("line");
-  if (!data) {
-    data = await (await fetch("/api/view?stats=0")).json();
-    render();
-  }
-  line.textContent = "reading the training's stats (a few seconds)…";
-  try {
-    data = await (await fetch("/api/view?steps=" + encodeURIComponent(document.getElementById("steps").value))).json();
-    line.textContent = `${data.line} · steps ${data.since}–${data.last}`;
-    render();
-  } catch (e) {
-    line.textContent = "the stats could not be read: " + e;
-  }
-}
-document.getElementById("reload").onclick = load;
-document.getElementById("order").onchange = render;
-load();
-</script>
-</body>
+      async function load() {
+        const line = document.getElementById("line");
+        if (!data) {
+          data = await (await fetch("/api/view?stats=0")).json();
+          render();
+        }
+        line.textContent = "reading the training's stats (a few seconds)…";
+        try {
+          data = await (
+            await fetch(
+              "/api/view?steps=" +
+                encodeURIComponent(document.getElementById("steps").value),
+            )
+          ).json();
+          line.textContent = `${data.line} · steps ${data.since}–${data.last}`;
+          render();
+        } catch (e) {
+          line.textContent = "the stats could not be read: " + e;
+        }
+      }
+      document.getElementById("reload").onclick = load;
+      document.getElementById("order").onchange = render;
+      load();
+    </script>
+  </body>
 </html>

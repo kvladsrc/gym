@@ -1,9 +1,17 @@
 import { useEffect, useState } from "preact/hooks";
 
 import type { Asset } from "../api/client";
-import { assetName } from "../format";
+import { assetName, isMotionAsset, isReadableText } from "../format";
 import { clayIfShapeOnly, useModelViewer } from "./AssetPreview";
-import { CubeIcon, FilmIcon, TextIcon, TrashIcon, WaveIcon } from "./Icons";
+import {
+  CubeIcon,
+  DataIcon,
+  FilmIcon,
+  MotionIcon,
+  TextIcon,
+  TrashIcon,
+  WaveIcon,
+} from "./Icons";
 
 function VideoThumb({ asset }: { asset: Asset }) {
   const [failed, setFailed] = useState(false);
@@ -47,7 +55,9 @@ export function AssetThumb({ asset }: { asset: Asset | undefined }) {
   if (asset.kind === "image")
     return <img src={asset.file_url} alt={assetName(asset)} loading="lazy" />;
   if (asset.kind === "video") return <VideoThumb asset={asset} />;
+  if (isMotionAsset(asset)) return <MotionIcon />;
   if (asset.kind === "mesh") return <MeshThumb asset={asset} />;
-  if (asset.kind === "text") return <TextIcon />;
+  if (asset.kind === "text")
+    return isReadableText(asset) ? <TextIcon /> : <DataIcon />;
   return <WaveIcon />;
 }

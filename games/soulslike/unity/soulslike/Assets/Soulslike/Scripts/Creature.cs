@@ -170,7 +170,7 @@ namespace Soulslike
         /// there whole, facing as it did.</summary>
         void Return()
         {
-            if (Body.Busy) return;
+            if (!Body.Idle) return;
             var to = Flat(home - Body.Ground);
             if (to.magnitude < 0.6f)
             {

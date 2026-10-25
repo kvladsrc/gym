@@ -1,0 +1,53 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Heavy files live outside the Dropbox-synced working copy.
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+source := cache / "gvhmr-source"
+worker_env := cache / "venvs/gvhmr-worker"
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/gvhmr_model_server/server.py`
+# Upstream's checkpoints (Google Drive): GVHMR, HMR2, ViTPose, YOLOv8x (and DPVO, unused).
+checkpoints := "https://drive.google.com/drive/folders/1eebJ13FUEXrKBawHpJroW0sNSxLjh9xD"
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/gvhmr"
+export GVHMR_SOURCE := source
+export GVHMR_PYTHON := worker_env / "bin/python"
+
+gpu_shell := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned GVHMR source and create both environments (server, worker)
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then \
+        git clone --no-checkout https://github.com/zju3dv/GVHMR.git "{{ source }}"; \
+    fi
+    git -C "{{ source }}" cat-file -e "{{ revision }}^{commit}" 2>/dev/null \
+        || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ gpu_shell }} uv sync --extra test
+    cd worker && {{ gpu_shell }} env UV_PROJECT_ENVIRONMENT="{{ worker_env }}" uv sync
+
+# Download verified checkpoints from a pinned HF mirror (about 5.6 GB).
+download:
+    {{ gpu_shell }} uv run --no-sync python -m gvhmr_model_server.download
+
+# Download upstream's original Google Drive folder. SMPL-X is registration-gated:
+# put SMPLX_NEUTRAL.npz from smpl-x.is.tue.mpg.de in inputs/checkpoints/body_models/smplx/ yourself
+download-drive:
+    mkdir -p "{{ source }}/inputs/checkpoints"
+    cd "{{ source }}/inputs/checkpoints" && "{{ worker_env }}/bin/gdown" --folder "{{ checkpoints }}" -O .
+
+# Report the worker's PyTorch and CUDA device, Blender, the checkpoints and SMPL-X
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m gvhmr_model_server.doctor
+
+# Serve on 127.0.0.1:9123 (override with --port)
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync gvhmr-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

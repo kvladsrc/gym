@@ -3,7 +3,7 @@ name = "assets-studio-workspace"
 version = "0.1.0"
 description = "Workspace root: shared tooling and tests for the asset studio."
 requires-python = ">=3.12"
-dependencies = ["assets-studio", "model-server-sdk", "fake-model-server"]
+dependencies = ["assets-studio-processing", "assets-studio", "model-server-sdk", "fake-model-server", "assets-studio-flow"]
 
 [dependency-groups]
 dev = ["httpx2>=2.13", "import-linter>=2.1", "pyright[nodejs]>=1.1.400", "pytest>=8.3", "ruff>=0.11"]
@@ -12,14 +12,16 @@ dev = ["httpx2>=2.13", "import-linter>=2.1", "pyright[nodejs]>=1.1.400", "pytest
 package = false
 
 [tool.uv.sources]
+assets-studio-processing = { workspace = true }
 assets-studio = { workspace = true }
 model-server-sdk = { workspace = true }
 fake-model-server = { workspace = true }
+assets-studio-flow = { workspace = true }
 
 [tool.uv.workspace]
 # Real model servers are standalone projects with their own lock files:
 # their heavy dependencies (PyTorch, CUDA) must not leak into this workspace.
-members = ["studio", "model_server_sdk", "model_servers/fake"]
+members = ["asset_processing", "studio", "model_server_sdk", "model_servers/fake", "flow"]
 
 [tool.ruff]
 line-length = 100
@@ -34,21 +36,23 @@ ignore = ["S101", "ANN401", "RUF001", "RUF002", "RUF003"]
 "**/tests/**" = ["ANN", "S"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "flow/tests"]
 pythonpath = ["tests", "launcher"]
 addopts = "-ra"
 
 [tool.pyright]
-include = ["studio/src", "model_server_sdk/src", "model_servers/fake/src", "launcher", "tests"]
+include = ["asset_processing/src", "studio/src", "model_server_sdk/src", "model_servers/fake/src", "launcher", "agent_tools", "flow/src", "tests"]
 typeCheckingMode = "strict"
 pythonVersion = "3.12"
 executionEnvironments = [
+  { root = "asset_processing/src", pythonVersion = "3.11" },
   { root = "model_server_sdk/src", pythonVersion = "3.11" },
+  { root = "flow/src", pythonVersion = "3.12" },
   { root = "tests", extraPaths = ["tests", "launcher"], reportPrivateUsage = false },
 ]
 
 [tool.importlinter]
-root_packages = ["studio"]
+root_packages = ["studio", "model_server_sdk", "asset_processing"]
 
 [[tool.importlinter.contracts]]
 name = "Studio layers: api/mcp -> core -> services -> dispatch -> storage -> domain"
@@ -76,3 +80,9 @@ type = "forbidden"
 source_modules = ["studio.api", "studio.mcp"]
 forbidden_modules = ["studio.storage", "studio.dispatch"]
 allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "The model-server SDK is independent of asset processing"
+type = "forbidden"
+source_modules = ["model_server_sdk"]
+forbidden_modules = ["asset_processing"]

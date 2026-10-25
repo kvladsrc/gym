@@ -7,6 +7,20 @@ export type Task = Schemas["TaskInfo"];
 export type InputSpec = Schemas["InputSpec"];
 export type Job = Schemas["JobOut"];
 export type JobCreate = Schemas["JobCreate"];
+
+/** GET /api/assets/{id}/skeleton: a native motion as joint positions per frame. */
+export interface Skeleton {
+  format: string;
+  fps: number;
+  /** Every stride-th frame of the stored motion is shown. */
+  stride: number;
+  frames: number;
+  source_frames: number;
+  names: string[];
+  parents: number[];
+  /** Per frame, x, y, z of each joint in turn; metres, Y up. */
+  positions: number[][];
+}
 export type Asset = Schemas["AssetOut"];
 export type Parent = Schemas["ParentOut"];
 
@@ -52,6 +66,8 @@ export const api = {
     tags?: string[];
     minRating?: number;
     unrated?: boolean;
+    /** Made by a motion task (true) or not (false), whatever the file format. */
+    motion?: boolean;
     limit?: number;
   }) => {
     const params = new URLSearchParams();
@@ -62,10 +78,18 @@ export const api = {
     if (query.minRating !== undefined)
       params.set("min_rating", String(query.minRating));
     if (query.unrated) params.set("unrated", "true");
+    if (query.motion !== undefined) params.set("motion", String(query.motion));
     params.set("limit", String(query.limit ?? 300));
     return request<Asset[]>("GET", `/api/assets?${params.toString()}`);
   },
   asset: (id: string) => request<Asset>("GET", `/api/assets/${id}`),
+  skeleton: (id: string) =>
+    request<Skeleton>("GET", `/api/assets/${id}/skeleton`),
+  saveVideoFrame: (id: string, seconds: number) =>
+    request<Asset>(
+      "POST",
+      `/api/assets/${id}/frames?time_s=${seconds.toFixed(3)}`,
+    ),
   updateAsset: (
     id: string,
     body: {
@@ -98,4 +122,6 @@ export const api = {
   deleteAsset: (id: string) => request<Asset>("DELETE", `/api/assets/${id}`),
   lineage: (id: string) =>
     request<Parent[]>("GET", `/api/assets/${id}/lineage`),
+  /** The job that made the asset; null for an imported file. */
+  assetJob: (id: string) => request<Job | null>("GET", `/api/assets/${id}/job`),
 };

@@ -1,13 +1,24 @@
 // Large preview: image, 3D model (model-viewer; FBX only described), audio (waveform + controls),
-// video (native player) or text (with copying).
+// video (native player, frame by frame, frames saved as images), text (with copying) or a
+// motion skeleton.
 // The 3D and audio libraries are loaded on first use to keep the page light.
 import { useEffect, useRef, useState } from "preact/hooks";
 
-import type { Asset } from "../api/client";
-import { assetName } from "../format";
+import { api, type Asset } from "../api/client";
+import {
+  assetName,
+  assetTask,
+  bytes,
+  isMotionAsset,
+  isReadableText,
+  taskLabel,
+} from "../format";
+import { attempt, putAsset, say } from "../state/store";
 import { cssColor, dark } from "../state/theme";
 import { ImageViewer } from "./ImageViewer";
 import { t } from "../i18n";
+import { DataIcon, MotionIcon } from "./Icons";
+import { MotionViewer } from "./MotionViewer";
 
 let modelViewer: Promise<unknown> | null = null;
 
@@ -173,19 +184,85 @@ function TextPreview({ asset }: { asset: Asset }) {
   );
 }
 
-function VideoPreview({ asset }: { asset: Asset }) {
+/** A video, frame by frame if wanted: any frame can be saved as an image asset (made from
+ * this video), which the image tasks then take like any other picture. */
+export function VideoPreview({ asset }: { asset: Asset }) {
   const [failed, setFailed] = useState(false);
-  useEffect(() => setFailed(false), [asset.file_url]);
+  const [time, setTime] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const video = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    setFailed(false);
+    setTime(0);
+  }, [asset.file_url]);
+  const fps =
+    typeof asset.meta.fps === "number" && asset.meta.fps > 0
+      ? asset.meta.fps
+      : 30;
+  function step(frames: number) {
+    const element = video.current;
+    if (!element) return;
+    element.pause();
+    const end = Number.isFinite(element.duration) ? element.duration : Infinity;
+    element.currentTime = Math.min(
+      end,
+      Math.max(0, element.currentTime + frames / fps),
+    );
+  }
+  async function saveFrame() {
+    const at = video.current?.currentTime ?? 0;
+    setSaving(true);
+    const image = await attempt(() => api.saveVideoFrame(asset.id, at));
+    setSaving(false);
+    if (image) {
+      putAsset(image);
+      say(t("video.frameSaved", { seconds: at.toFixed(2) }));
+    }
+  }
   if (failed) return <p class="hint error">{t("preview.videoUnsupported")}</p>;
   return (
-    <video
-      src={asset.file_url}
-      controls
-      loop
-      playsInline
-      aria-label={assetName(asset)}
-      onError={() => setFailed(true)}
-    />
+    <div class="video-preview">
+      <video
+        ref={video}
+        src={asset.file_url}
+        controls
+        loop
+        playsInline
+        aria-label={assetName(asset)}
+        onError={() => setFailed(true)}
+        onTimeUpdate={(event) => setTime(event.currentTarget.currentTime)}
+        onSeeked={(event) => setTime(event.currentTarget.currentTime)}
+      />
+      <div class="row video-frames">
+        <button
+          class="button small"
+          aria-label={t("video.previous")}
+          onClick={() => step(-1)}
+        >
+          ‹
+        </button>
+        <span class="motion-time">
+          {t("video.at", {
+            frame: Math.round(time * fps) + 1,
+            seconds: time.toFixed(2),
+          })}
+        </span>
+        <button
+          class="button small"
+          aria-label={t("video.next")}
+          onClick={() => step(1)}
+        >
+          ›
+        </button>
+        <button
+          class="button small"
+          disabled={saving}
+          onClick={() => void saveFrame()}
+        >
+          {t("video.saveFrame")}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -213,7 +290,31 @@ function ImagePreview({ asset }: { asset: Asset }) {
   );
 }
 
+/** Motion and other data (10 MB of numbers) are not shown: fetching them froze the page. */
+function DataPreview({ asset }: { asset: Asset }) {
+  const task = assetTask(asset);
+  return (
+    <div class="data-preview">
+      {isMotionAsset(asset) ? <MotionIcon /> : <DataIcon />}
+      <p class="hint">
+        {t(isMotionAsset(asset) ? "preview.motion" : "preview.data", {
+          size: bytes(asset.size_bytes),
+        })}
+        {task ? ` · ${taskLabel(task)}` : ""}
+      </p>
+      <a class="button small" href={asset.file_url} download>
+        {t("preview.download")}
+      </a>
+    </div>
+  );
+}
+
+/** Motion (SMPL-X, SOMA) as its skeleton; other motion data (FBX, observations) has no
+ * picture here. */
 export function AssetPreview({ asset }: { asset: Asset }) {
+  if (asset.kind === "motion") return <MotionViewer asset={asset} />;
+  if (isMotionAsset(asset) || (asset.kind === "text" && !isReadableText(asset)))
+    return <DataPreview asset={asset} />;
   if (asset.kind === "image") return <ImagePreview asset={asset} />;
   if (asset.kind === "mesh") return <MeshPreview asset={asset} />;
   if (asset.kind === "video") return <VideoPreview asset={asset} />;

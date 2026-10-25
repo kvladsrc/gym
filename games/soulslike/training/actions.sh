@@ -12,23 +12,35 @@ here="$(cd "$(dirname "$0")" && pwd)"
 args=()
 every=0
 while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --steps) args+=(--steps "$2"); shift ;;
+    case "$1" in
+    --steps)
+        args+=(--steps "$2")
+        shift
+        ;;
     --across) args+=(--across) ;;
-    --weapon) args+=(--weapon "$2"); shift ;;
-    --every) every="$2"; shift ;;
-    -*) echo "unknown option $1" >&2; exit 2 ;;
+    --weapon)
+        args+=(--weapon "$2")
+        shift
+        ;;
+    --every)
+        every="$2"
+        shift
+        ;;
+    -*)
+        echo "unknown option $1" >&2
+        exit 2
+        ;;
     *) args+=("$1") ;;
-  esac
-  shift
+    esac
+    shift
 done
 show() { "$here/.venv/bin/python" "$here/actions.py" "${args[@]}"; }
 if [[ $every == 0 ]]; then
-  show
-  exit
+    show
+    exit
 fi
 while true; do
-  clear
-  show || true
-  sleep "$every"
+    clear
+    show || true
+    sleep "$every"
 done

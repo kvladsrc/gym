@@ -5,7 +5,9 @@ the last this many steps, but not from before the balance last changed
 TAG = "Balance/version"
 
 
-def window(values: dict[str, list[tuple[int, float]]], last: int, steps: int, across: bool) -> tuple[int, str]:
+def window(
+    values: dict[str, list[tuple[int, float]]], last: int, steps: int, across: bool
+) -> tuple[int, str]:
     """The step the stretch starts after, and a line telling the balance."""
     since = max(0, last - steps)
     points = sorted(values.get(TAG, []))

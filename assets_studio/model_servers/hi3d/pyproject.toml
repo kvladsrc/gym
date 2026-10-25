@@ -1,0 +1,51 @@
+[project]
+name = "hi3d-model-server"
+version = "0.1.0"
+description = "Mesh refinement model server for the asset studio, based on Hi3D v1.0 (Sparc3D)."
+# Upstream's verified stack (torch 2.5.0+cu124, flash-attn 2.7.4.post1,
+# spconv-cu120 2.3.6, transformers 4.46.3) on Python 3.11, the SDK's.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.5.0",
+  "torchvision==0.20.0",
+  "triton==3.1.0",
+  # Triton 3.1 imports setuptools to build its kernels; uv's venvs have none.
+  "setuptools>=70",
+  # A prebuilt wheel: building flash-attn takes an hour of every CPU core.
+  "flash-attn==2.7.4.post1",
+  # One wheel per CUDA minor; cu120 covers the 12.0-12.5 that torch's cu124 is.
+  "spconv-cu120==2.3.6",
+  "transformers==4.46.3",
+  "accelerate>=0.31,<2",
+  "safetensors>=0.4.3",
+  "huggingface-hub>=0.28,<1",
+  "numpy==1.26.4",
+  "Pillow>=10.4",
+  "trimesh>=4.4,<5",
+  "pyfqmr>=0.4",
+  "rembg==2.0.57",
+  "onnxruntime==1.20.1",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+hi3d-model-server = "hi3d_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu124" }
+torchvision = { index = "pytorch-cu124" }
+triton = { index = "pytorch-cu124" }
+flash-attn = { url = "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.5cxx11abiFALSE-cp311-cp311-linux_x86_64.whl" }
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

@@ -1,0 +1,10 @@
+/* Quiet Orbit: ship's charcoal surfaces, warm labels and dim amber. */
+@define-color frame #181a1b;
+@define-color panel #252321;
+@define-color border #454039;
+@define-color text #d9d3c7;
+@define-color muted #aaa398;
+@define-color selected #37342e;
+@define-color accent #b9aa8c;
+@define-color warning #c7a06c;
+@define-color critical #ca9187;

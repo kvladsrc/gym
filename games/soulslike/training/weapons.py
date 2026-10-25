@@ -26,19 +26,29 @@ NAMES = {"Sword": "sword", "Hammer": "hammer", "Hands": "hands"}
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("run", nargs="?", default="duel")
-    parser.add_argument("--steps", type=int, default=500_000, help="the last this many steps")
-    parser.add_argument("--across", action="store_true", help="also before the balance's last change")
+    parser.add_argument(
+        "--steps", type=int, default=500_000, help="the last this many steps"
+    )
+    parser.add_argument(
+        "--across", action="store_true", help="also before the balance's last change"
+    )
     args = parser.parse_args()
     here = os.path.dirname(os.path.abspath(__file__))
-    files = sorted(glob.glob(os.path.join(here, "results", args.run, "Fighter", "events.out.tfevents.*")),
-                   key=os.path.getmtime)
+    files = sorted(
+        glob.glob(
+            os.path.join(here, "results", args.run, "Fighter", "events.out.tfevents.*")
+        ),
+        key=os.path.getmtime,
+    )
     values: dict[str, list[tuple[int, float]]] = {}
     for f in files:
         acc = EventAccumulator(f, size_guidance={"scalars": 0})
         acc.Reload()
         for tag in acc.Tags()["scalars"]:
             if tag.startswith(("Weapons/", "Clash/", "Guard/")) or tag == TAG:
-                values.setdefault(tag, []).extend((e.step, e.value) for e in acc.Scalars(tag))
+                values.setdefault(tag, []).extend(
+                    (e.step, e.value) for e in acc.Scalars(tag)
+                )
     if not values:
         raise SystemExit("no Weapons/ statistics in this run yet")
     last = max(step for points in values.values() for step, _ in points)
@@ -56,7 +66,11 @@ def main() -> None:
     width = 8
     print(balance)
     print(f"the row's wins over the column, steps {since}–{last}")
-    print(" " * width + "".join(NAMES[w].rjust(width) for w in WEAPONS) + "overall".rjust(width + 2))
+    print(
+        " " * width
+        + "".join(NAMES[w].rjust(width) for w in WEAPONS)
+        + "overall".rjust(width + 2)
+    )
     for a in WEAPONS:
         row = NAMES[a].ljust(width)
         known = []
@@ -84,8 +98,16 @@ def main() -> None:
 
     tables = [
         ("weapons crossed a fight", clashes, lambda v: f"{v:.2f}"),
-        ("the row's weapon blows a fight", lambda a, b: mean(f"Clash/{a} vs {b}: blows"), lambda v: f"{v:.1f}"),
-        ("the row's blows cut short", lambda a, b: mean(f"Clash/{a} vs {b}: blows cut"), lambda v: f"{v * 100:.0f} %"),
+        (
+            "the row's weapon blows a fight",
+            lambda a, b: mean(f"Clash/{a} vs {b}: blows"),
+            lambda v: f"{v:.1f}",
+        ),
+        (
+            "the row's blows cut short",
+            lambda a, b: mean(f"Clash/{a} vs {b}: blows cut"),
+            lambda v: f"{v * 100:.0f} %",
+        ),
     ]
     if all(clashes(a, b) is None for a in armed for b in armed):
         return
@@ -109,7 +131,9 @@ def main() -> None:
             ("sword blows the hammer blocked", blocked, lambda v: f"{v * 100:.0f} %"),
             ("sword hits a fight", hits, lambda v: f"{v:.1f}"),
         ]:
-            print(f"  {label}".ljust(32) + ("?" if v is None else shown(v)).rjust(width))
+            print(
+                f"  {label}".ljust(32) + ("?" if v is None else shown(v)).rjust(width)
+            )
 
 
 if __name__ == "__main__":

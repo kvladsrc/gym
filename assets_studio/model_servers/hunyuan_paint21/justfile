@@ -1,0 +1,59 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Heavy files live outside the Dropbox-synced working copy.
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+# The same checkout as hunyuan3d21 (the repository holds shape and paint).
+source := cache / "hunyuan3d21-source"
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/hunyuan_paint21_model_server/server.py`
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/hunyuan_paint21"
+export HUNYUAN3D21_SOURCE := source
+export U2NET_HOME := cache / "u2net"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+# Shared with hunyuan3d21, mia and hunyuan_paint.
+export HY3DGEN_MODELS := cache / "hy3dgen"
+
+root := quote(justfile_directory() / "../../..")
+gpu_shell := "nix develop " + root + "#assets-studio-gpu --command"
+# With the CUDA toolkit: only to build the native modules.
+cuda_shell := "nix develop " + root + "#assets-studio-cuda --command"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned source, create the environment, build the rasterizer and the inpainting module
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then \
+        git clone --no-checkout https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1.git "{{ source }}"; \
+    fi
+    git -C "{{ source }}" cat-file -e "{{ revision }}^{commit}" 2>/dev/null \
+        || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ gpu_shell }} uv sync --extra test
+    # The laptop's RTX 3070 is sm_86: build for it only.
+    {{ cuda_shell }} env TORCH_CUDA_ARCH_LIST=8.6 MAX_JOBS=2 uv pip install \
+        --python "$UV_PROJECT_ENVIRONMENT" --no-build-isolation "{{ source }}/hy3dpaint/custom_rasterizer"
+    # upstream's compile_mesh_painter.sh, with this environment's Python.
+    {{ cuda_shell }} bash -c 'cd "{{ source }}/hy3dpaint/DifferentiableRenderer" \
+        && py="$UV_PROJECT_ENVIRONMENT/bin/python" \
+        && $CXX -O3 -Wall -shared -std=c++11 -fPIC $("$py" -m pybind11 --includes) \
+            mesh_inpaint_processor.cpp \
+            -o mesh_inpaint_processor$("$py" -c "import sysconfig; print(sysconfig.get_config_var(\"EXT_SUFFIX\"))")'
+
+# Download the paint weights, DINOv2-giant and RealESRGAN (~11 GB; network only, no GPU)
+download:
+    {{ gpu_shell }} uv run --no-sync python -c "from hunyuan_paint21_model_server.server import download; download()"
+
+# Report PyTorch, the CUDA device, the native modules and whether the weights are downloaded
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m hunyuan_paint21_model_server.doctor
+
+# Serve on 127.0.0.1:9120 (override with --port)
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync hunyuan-paint21-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

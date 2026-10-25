@@ -9,6 +9,8 @@ resolution-markers = [
 [manifest]
 members = [
     "assets-studio",
+    "assets-studio-flow",
+    "assets-studio-processing",
     "assets-studio-workspace",
     "fake-model-server",
     "model-server-sdk",
@@ -69,11 +71,37 @@ requires-dist = [
 ]
 
 [[package]]
+name = "assets-studio-flow"
+version = "0.1.0"
+source = { editable = "flow" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx2" },
+    { name = "jsonschema" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.115" },
+    { name = "httpx2", specifier = ">=2.13" },
+    { name = "jsonschema", specifier = ">=4.25" },
+    { name = "uvicorn", specifier = ">=0.30" },
+]
+
+[[package]]
+name = "assets-studio-processing"
+version = "0.1.0"
+source = { editable = "asset_processing" }
+
+[[package]]
 name = "assets-studio-workspace"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "assets-studio" },
+    { name = "assets-studio-flow" },
+    { name = "assets-studio-processing" },
     { name = "fake-model-server" },
     { name = "model-server-sdk" },
 ]
@@ -90,6 +118,8 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "assets-studio", editable = "studio" },
+    { name = "assets-studio-flow", editable = "flow" },
+    { name = "assets-studio-processing", editable = "asset_processing" },
     { name = "fake-model-server", editable = "model_servers/fake" },
     { name = "model-server-sdk", editable = "model_server_sdk" },
 ]

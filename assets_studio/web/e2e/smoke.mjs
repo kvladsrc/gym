@@ -66,29 +66,60 @@ async function noHorizontalScroll() {
 }
 
 const control = process.env.CONTROL;
-const history = page.locator(".history .thumb");
+const rows = page.locator(".jobs .job-row");
+const newest = () => rows.first();
 
-/** Submit the form and wait until the new job is the one shown (and finished). */
+/** Submit the form and wait until the new job heads the section's list (and has finished). */
 async function generate(status = "succeeded") {
-  const before = await history.count();
+  const before = (await rows.count())
+    ? await newest().getAttribute("data-job")
+    : null;
   await page.getByRole("button", { name: "Сгенерировать" }).click();
-  await page.waitForFunction(
-    (count) =>
-      document.querySelectorAll(".history .thumb").length === count &&
-      document.querySelector(".history .thumb")?.classList.contains("selected"),
-    before + 1,
-  );
-  if (status) await page.locator(`.job-head .badge.${status}`).waitFor();
+  await page.waitForFunction((previous) => {
+    const row = document.querySelector(".jobs .job-row");
+    return row !== null && row.getAttribute("data-job") !== previous;
+  }, before);
+  if (status) await newest().locator(`.badge.${status}`).waitFor();
 }
 
-/** Wait until the section is really on screen: the previous page may still be rendered. */
-async function onSection(name) {
-  await page.locator(".nav a.active", { hasText: name }).waitFor();
+/** The newest job's result, opened in the library. */
+async function openResult() {
+  await newest()
+    .getByRole("link", { name: /Открыть в библиотеке/ })
+    .click();
+  await page.locator(".details .preview").waitFor();
 }
 
-async function openSection(name) {
-  await page.locator(".nav a", { hasText: name }).click();
-  await onSection(name);
+/** The model tree's button for a task of a section: its first model, or the named one. */
+function treeModel(section, task, model) {
+  const folder = page
+    .locator(".tree > ul > li")
+    .filter({ has: page.locator(".tree-folder", { hasText: section }) });
+  const item = folder.locator("li").filter({
+    has: page.locator(".tree-task", { hasText: new RegExp(`^${task}$`) }),
+  });
+  const models = item.locator(".tree-model");
+  return model ? models.filter({ hasText: model }) : models.first();
+}
+
+/** Wait until the form of this task is on screen. */
+async function onTask(task) {
+  await page
+    .locator(".launch-head h1", { hasText: new RegExp(`^${task}$`) })
+    .waitFor();
+}
+
+/** Open a task's form from the tree (from any page: Generate shows the tree). */
+async function pick(section, task, model) {
+  if (!(await page.locator(".tree").count()))
+    await page.getByRole("link", { name: "Генерация", exact: true }).click();
+  await treeModel(section, task, model).click();
+  await onTask(task);
+}
+
+async function openLibrary() {
+  await page.getByRole("link", { name: "Библиотека", exact: true }).click();
+  await page.locator(".grid .card").first().waitFor();
 }
 
 async function advanced() {
@@ -103,54 +134,52 @@ await step("home lists models never started; sections by result", async () => {
   await page.goto(base);
   await page.getByRole("heading", { name: "Ещё не запускались" }).waitFor();
   await page.locator(".unseen", { hasText: "Офлайн" }).waitFor();
-  const titles = await page.locator(".nav a .dot").count();
+  await page.getByRole("link", { name: "Генерация", exact: true }).click();
+  await page.locator(".tree .tree-folder").first().waitFor();
+  const titles = await page.locator(".tree .tree-folder").count();
   if (titles !== 5) throw new Error(`expected 5 sections, got ${titles}`);
-  await openSection("Картинки");
-  await page.locator(".nav a.active .dot.ready").waitFor();
-  // Two models can make images: the choice is inside the section.
-  const models = await page.locator(".models button").count();
+  await page.locator(".tree-model .dot.ready").first().waitFor();
+  // Two models can make images: both under the task in the tree.
+  const models = await treeModel("Картинки", "Текст → картинка")
+    .locator("xpath=../..")
+    .locator(".tree-model")
+    .count();
   if (models !== 2) throw new Error(`expected 2 models, got ${models}`);
 });
 
 await step("generate three image variants", async () => {
-  await page.getByRole("button", { name: "Текст → картинка" }).click();
+  await pick("Картинки", "Текст → картинка", "Основная");
+  await page.locator(".model-panel", { hasText: "Fake model" }).waitFor(); // what the model is
   await page.locator("textarea").fill("мох на камне");
   await page.getByRole("button", { name: "3", exact: true }).click();
   await generate();
-  const candidates = await page.locator(".candidates .thumb").count();
-  if (candidates !== 3)
-    throw new Error(`expected 3 candidates, got ${candidates}`);
-  await page.getByRole("button", { name: "Вариант 2" }).click();
-  await page.locator(".preview img").waitFor();
-  await page
-    .locator(".actions .hint", { hasText: "Fake model (fake)" })
+  // Three results: one job line, the results in the library.
+  await newest()
+    .getByRole("link", { name: "Открыть в библиотеке (3)" })
     .waitFor();
   await noHorizontalScroll();
   await page.screenshot({ path: join(screens, "1-image.png") });
+  await openResult();
+  await page.locator(".details .preview img").waitFor();
+  await page.locator(".details", { hasText: "Fake model (fake)" }).waitFor();
+  await page.getByRole("link", { name: "Генерация", exact: true }).click();
+  await onTask("Текст → картинка");
 });
 
 await step("the same task with another model", async () => {
-  await page.getByRole("button", { name: "Вторая" }).click();
-  await page.getByRole("button", { name: "1", exact: true }).click();
-  await generate();
-  await page
-    .locator(".actions .hint", { hasText: "Fake model (second)" })
-    .waitFor();
+  await pick("Картинки", "Текст → картинка", "Вторая");
   const kept = await page.locator("textarea").inputValue();
   if (kept !== "мох на камне") throw new Error(`the text was lost: "${kept}"`);
-  await page.getByRole("button", { name: "Основная" }).click();
-  await page
-    .getByRole("button", { name: "Вариант 2" })
-    .waitFor({ state: "detached" });
+  await page.getByRole("button", { name: "1", exact: true }).click();
+  await generate();
+  await page.locator(".model-panel h2", { hasText: "Вторая" }).waitFor();
+  await pick("Картинки", "Текст → картинка", "Основная");
 });
 
 await step("send a result to another task of the same section", async () => {
+  await openResult();
   await page.getByRole("button", { name: "→ Картинки", exact: true }).click();
-  await page
-    .locator('.tasks button[aria-pressed="true"]', {
-      hasText: "Картинка → картинка",
-    })
-    .waitFor();
+  await onTask("Картинка → картинка");
   await page.locator(".dropzone .thumb img").waitFor(); // the input was kept
 });
 
@@ -171,43 +200,42 @@ await step("decimal parameters can be typed", async () => {
   await noHorizontalScroll();
   await page.screenshot({ path: join(screens, "2-image-to-image.png") });
   // Iterating: sending the result back keeps the task and the tuned strength.
+  await openResult();
   await page.getByRole("button", { name: "→ Картинки", exact: true }).click();
-  await page
-    .locator('.tasks button[aria-pressed="true"]', {
-      hasText: "Картинка → картинка",
-    })
-    .waitFor();
+  await onTask("Картинка → картинка");
   const kept = await page.getByLabel("Сила изменения").inputValue();
   if (kept !== "0.25") throw new Error(`strength reset to ${kept}`);
 });
 
 await step("send the image to the 3D section", async () => {
+  await openResult();
   await page.getByRole("button", { name: "→ 3D", exact: true }).click();
   await page.waitForURL(/#\/mesh$/);
-  await onSection("3D");
+  await onTask("Картинка → 3D");
   await page.locator(".dropzone .thumb img").waitFor();
   await generate();
-  await page.locator(".preview model-viewer").waitFor();
+  await openResult();
+  await page.locator(".details .preview model-viewer").waitFor();
   await page.waitForTimeout(1500); // let the model render for the screenshot
   await noHorizontalScroll();
   await page.screenshot({ path: join(screens, "3-mesh.png") });
 });
 
 await step("speech, sound and sound-to-sound", async () => {
-  await openSection("Звук");
-  await page.getByRole("button", { name: "Текст → речь" }).click();
+  await pick("Звук", "Текст → речь");
   await page.locator("textarea").fill("Привет, путник!");
   await generate();
+  await openResult();
   await page.getByRole("button", { name: "Слушать" }).waitFor();
-  await page.getByRole("button", { name: "Текст → звук" }).click();
+  await pick("Звук", "Текст → звук");
   await page.locator("textarea").fill("шаги по гравию");
   await generate();
+  await openResult();
   await page.getByRole("button", { name: "→ Звук", exact: true }).click();
-  await page
-    .locator('.tasks button[aria-pressed="true"]', { hasText: "Звук → звук" })
-    .waitFor();
+  await onTask("Звук → звук");
   await page.locator(".dropzone .thumb svg").waitFor();
   await generate();
+  await openResult();
   await page.getByRole("button", { name: "Слушать" }).waitFor();
   await page.waitForTimeout(500);
   await noHorizontalScroll();
@@ -217,69 +245,79 @@ await step("speech, sound and sound-to-sound", async () => {
 await step(
   "text, video and text-to-3D; primary parameters up front",
   async () => {
-    await openSection("Текст");
+    await pick("Текст", "Текст → текст");
     // "Слов" is marked primary: shown without opening "Дополнительно".
     if ((await page.locator("details").getAttribute("open")) !== null)
       await page.locator("details summary").click();
     await page.getByLabel("Слов").fill("5");
     await page.locator("textarea").fill("описание таверны");
     await generate();
-    const text = await page.locator(".preview .text pre").innerText();
+    await openResult();
+    const text = await page.locator(".details .preview .text pre").innerText();
     if (text.trim().split(/\s+/).length !== 5)
       throw new Error(`expected 5 words, got ${JSON.stringify(text)}`);
-    await page.getByRole("button", { name: "Копировать" }).waitFor();
+    await page
+      .getByRole("button", { name: "Копировать", exact: true })
+      .waitFor();
     // Text-to-text is X-to-X: the result goes back in as the text to edit.
     await page.getByRole("button", { name: "→ Текст", exact: true }).click();
     await page.locator(".dropzone .thumb svg").waitFor();
     await page.locator("textarea").fill("продолжи");
     await generate();
-    const edited = await page.locator(".preview .text pre").innerText();
+    await openResult();
+    const edited = await page
+      .locator(".details .preview .text pre")
+      .innerText();
     if (!edited.startsWith(text.trim()))
       throw new Error("the source text is not part of the result");
     await page.screenshot({ path: join(screens, "4a-text.png") });
 
-    await openSection("Видео");
+    await pick("Видео", "Картинка → видео");
     await page.getByRole("button", { name: "Из библиотеки" }).click();
     await page.getByRole("dialog").locator(".card").first().click();
     await page.locator(".dropzone .thumb img").waitFor();
     await generate();
-    await page.locator(".preview video").waitFor();
+    await openResult();
+    await page.locator(".details .preview video").waitFor();
     await page.waitForFunction(
-      () => document.querySelector(".preview video")?.readyState >= 1,
+      () => document.querySelector(".details .preview video")?.readyState >= 1,
     ); // the browser can decode the clip
-    await page.locator(".history .thumb video").first().waitFor();
+    // Any frame can be kept as an image made from the video.
+    await page
+      .getByRole("button", { name: "Сохранить кадр картинкой" })
+      .click();
+    await page.getByText(/Кадр на .* сохранён картинкой/).waitFor();
     await noHorizontalScroll();
     await page.screenshot({ path: join(screens, "4b-video.png") });
 
-    await openSection("3D");
-    await page.getByRole("button", { name: "Текст → 3D" }).click();
+    await pick("3D", "Текст → 3D");
     await page.locator("textarea").fill("бочка");
     await generate();
-    await page.locator(".preview model-viewer").waitFor();
+    await openResult();
+    await page.locator(".details .preview model-viewer").waitFor();
   },
 );
 
 await step("drafts survive switching sections", async () => {
-  await openSection("Картинки");
+  await pick("Картинки", "Текст → картинка");
   await page.locator("textarea").fill("черновик");
-  await openSection("3D");
-  await openSection("Картинки");
+  await pick("3D", "Текст → 3D");
+  await pick("Картинки", "Текст → картинка");
   const kept = await page.locator("textarea").inputValue();
   if (kept !== "черновик") throw new Error(`draft lost: "${kept}"`);
   // An invalid number survives a tab switch, blocks sending and says why.
   await advanced();
   await page.getByLabel("Width").fill("abc");
   await page.getByText("Исправьте значения в «Дополнительно»").waitFor();
-  await openSection("3D");
-  await openSection("Картинки");
+  await pick("3D", "Текст → 3D");
+  await pick("Картинки", "Текст → картинка");
   const width = await page.getByLabel("Width").inputValue();
   if (width !== "abc") throw new Error(`invalid text lost: "${width}"`);
   if (await page.getByRole("button", { name: "Сгенерировать" }).isEnabled()) {
     throw new Error("an invalid value must block sending");
   }
   // Another task starts from its own defaults: the invalid text is gone.
-  await page.getByRole("button", { name: "Текст → картинка" }).click();
-  await page.getByRole("button", { name: "Картинка → картинка" }).click();
+  await pick("Картинки", "Картинка → картинка");
   const reset = await page.getByLabel("Width").inputValue();
   if (reset !== "256")
     throw new Error(`expected the default 256, got "${reset}"`);
@@ -306,31 +344,32 @@ await step(
   async () => {
     // A model chosen by hand sticks: its jobs wait for it rather than go to
     // the other one, which is still ready.
-    const main = page.locator(".models button", { hasText: "Основная" });
-    await main.click();
+    await pick("Картинки", "Картинка → картинка", "Основная");
+    const main = treeModel("Картинки", "Картинка → картинка", "Основная");
     await fetch(`${control}/stop`, { method: "POST" });
     await main.locator(".dot.unavailable").waitFor();
     // The other image model still runs: the section stays usable.
-    await page
-      .locator(".nav a", { hasText: "Картинки" })
+    await treeModel("Картинки", "Текст → картинка", "Вторая")
       .locator(".dot.ready")
       .waitFor();
     await page
       .locator(".panel .hint", { hasText: "Основная: сервер не запущен" })
       .waitFor();
-    await page.getByRole("button", { name: "Текст → картинка" }).click(); // tasks are remembered
+    await pick("Картинки", "Текст → картинка", "Основная"); // tasks are remembered
     await page.locator("textarea").fill("ждёт сервер");
     await generate(null);
     await page.getByText("Ждёт запуска модели").waitFor();
-    await page.getByRole("button", { name: "Отменить" }).click();
-    await page.locator(".job-head .badge.cancelled").waitFor();
+    await newest().getByRole("button", { name: "Отменить" }).click();
+    await newest().locator(".badge.cancelled").waitFor();
     await noHorizontalScroll();
     await page.screenshot({ path: join(screens, "5-stopped.png") });
     await generate(null);
     await page.getByText("Ждёт запуска модели").waitFor();
     await fetch(`${control}/start`, { method: "POST" });
-    await main.locator(".dot.ready").waitFor();
-    await page.locator(".job-head .badge.succeeded").waitFor();
+    await treeModel("Картинки", "Текст → картинка", "Основная")
+      .locator(".dot.ready")
+      .waitFor();
+    await newest().locator(".badge.succeeded").waitFor();
   },
 );
 
@@ -338,21 +377,47 @@ await step("a failed job and its retry", async () => {
   await advanced();
   await page.getByLabel("Имитация ошибки").selectOption("generation");
   await generate("failed");
-  await page.locator(".error-box").getByText("generation_failed").waitFor();
-  const before = await history.count();
-  await page.getByRole("button", { name: "Повторить" }).click();
-  // The retry replaces the failed job in the history (ADR-004).
+  await newest().locator(".error-box").getByText("generation_failed").waitFor();
+  const failed = await newest().getAttribute("data-job");
+  const before = await rows.count();
+  await newest().getByRole("button", { name: "Повторить" }).click();
+  // The retry replaces the failed job in the list (ADR-004).
   await page.waitForFunction(
-    (count) =>
-      document.querySelectorAll(".history .thumb").length === count &&
-      document
-        .querySelector(".history .thumb")
-        ?.classList.contains("selected") &&
-      !document.querySelector(".error-box"),
-    before,
+    ([id, count]) =>
+      document.querySelectorAll(".jobs .job-row").length === count &&
+      !document.querySelector(`.jobs .job-row[data-job="${id}"]`),
+    [failed, before],
   );
   await page.screenshot({ path: join(screens, "6-failed.png") });
   await page.getByLabel("Имитация ошибки").selectOption("none");
+});
+
+await step("the jobs page: every model's queue and history", async () => {
+  await page.getByRole("link", { name: "Задания", exact: true }).click();
+  const history = page.locator(".jobs-page .jobs").nth(1);
+  await history.locator(".job-row").first().waitFor();
+  // Jobs of several models and tasks, each line naming its task and model.
+  await history
+    .locator(".job-row .job-task", { hasText: "Текст → картинка" })
+    .first()
+    .waitFor();
+  await history
+    .locator(".job-row .job-task", { hasText: "Текст → речь" })
+    .first()
+    .waitFor();
+  await history.getByRole("button", { name: "Ошибка" }).click();
+  await page.waitForFunction(
+    () =>
+      [
+        ...document.querySelectorAll(
+          ".jobs-page .jobs:nth-of-type(2) .job-row",
+        ),
+      ].every((row) => row.classList.contains("failed")) &&
+      document.querySelector(".jobs-page .jobs:nth-of-type(2) .job-row") !==
+        null,
+  );
+  await noHorizontalScroll();
+  await page.screenshot({ path: join(screens, "6a-jobs.png") });
 });
 
 await step("a server that never started", async () => {
@@ -363,8 +428,7 @@ await step("a server that never started", async () => {
 });
 
 await step("library lists results and shows details", async () => {
-  await openSection("Библиотека");
-  await page.locator(".grid .card").first().waitFor();
+  await openLibrary();
   const cards = await page.locator(".grid .card").count();
   if (cards < 8) throw new Error(`expected at least 8 assets, got ${cards}`);
   await page.getByRole("button", { name: "Картинки" }).click();
@@ -425,19 +489,19 @@ await step("delete an asset from the library", async () => {
 await step(
   "a job whose results are all deleted leaves the history",
   async () => {
-    await openSection("Звук");
-    await history.first().waitFor();
-    const before = await history.count();
-    await history.first().click();
-    const stage = page.locator(".stage");
-    await stage.getByRole("button", { name: "Удалить" }).click();
-    await stage.getByRole("button", { name: "Точно удалить?" }).click();
+    await pick("Звук", "Звук → звук");
+    await newest().waitFor();
+    const before = await rows.count();
+    await openResult();
+    const details = page.locator(".details");
+    await details.getByRole("button", { name: "Удалить" }).click();
+    await details.getByRole("button", { name: "Точно удалить?" }).click();
+    await page.getByText("Удалено из библиотеки").waitFor();
+    await pick("Звук", "Звук → звук");
     await page.waitForFunction(
-      (count) => document.querySelectorAll(".history .thumb").length === count,
+      (count) => document.querySelectorAll(".jobs .job-row").length === count,
       before - 1,
     );
-    // The stage moved on to a job that still has its result.
-    await stage.getByRole("button", { name: "Слушать" }).waitFor();
   },
 );
 
@@ -450,9 +514,9 @@ await step("dark theme: chosen, applied and remembered", async () => {
   while ((await theme.textContent()) !== "Тема: тёмная") await theme.click();
   if ((await background()) !== "rgb(21, 24, 29)")
     throw new Error(`dark background expected, got ${await background()}`);
-  await openSection("Картинки");
+  await pick("Картинки", "Текст → картинка");
   await page.screenshot({ path: join(screens, "10-dark-section.png") });
-  await page.getByRole("link", { name: "Библиотека" }).click();
+  await page.getByRole("link", { name: "Библиотека", exact: true }).click();
   await page.locator(".grid .card").first().waitFor();
   await page.screenshot({ path: join(screens, "11-dark-library.png") });
   await page.reload();
@@ -464,10 +528,10 @@ await step("dark theme: chosen, applied and remembered", async () => {
 });
 
 await step("an image at its real size", async () => {
-  await openSection("Картинки");
-  // A job with a picture (the newest ones here are failures and retries).
-  await page.locator(".history .thumb:has(img)").first().click();
-  await page.locator(".preview img.zoomable").click();
+  await openLibrary();
+  await page.getByRole("button", { name: "Картинки" }).click();
+  await page.locator(".grid .card").first().click();
+  await page.locator(".details .preview img.zoomable").click();
   const viewer = page.getByRole("dialog");
   await viewer.getByRole("button", { name: "100 %" }).click();
   const [shown, natural] = await viewer
@@ -488,9 +552,9 @@ await step("an image at its real size", async () => {
 });
 
 await step("English interface, remembered", async () => {
-  await openSection("Картинки");
+  await pick("Картинки", "Текст → картинка");
   await page.getByRole("button", { name: "English" }).click();
-  await page.getByRole("link", { name: "Library" }).waitFor();
+  await page.getByRole("link", { name: "Library", exact: true }).waitFor();
   await page.getByRole("button", { name: "Generate" }).waitFor();
   // The servers' own (English) labels instead of their Russian x-labels.
   await page.getByText("Advanced").click();
@@ -499,9 +563,9 @@ await step("English interface, remembered", async () => {
     throw new Error("<html lang> did not follow the language");
   await page.screenshot({ path: join(screens, "13-english.png") });
   await page.reload();
-  await page.getByRole("link", { name: "Library" }).waitFor();
+  await page.getByRole("link", { name: "Library", exact: true }).waitFor();
   await page.getByRole("button", { name: "Русский" }).click();
-  await page.getByRole("link", { name: "Библиотека" }).waitFor();
+  await page.getByRole("link", { name: "Библиотека", exact: true }).waitFor();
 });
 
 await browser.close();

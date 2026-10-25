@@ -1,0 +1,59 @@
+[project]
+name = "skintokens-model-server"
+version = "0.1.0"
+description = "Rigging server for the asset studio: SkinTokens predicts a skeleton of any shape and its skin weights."
+# PyTorch 2.8 / CUDA 12.9 like the other rigging servers (upstream tests 2.7 /
+# 12.8); bpy 4.3 is for Python 3.11 only.
+requires-python = "==3.11.*"
+dependencies = [
+  "assets-studio-processing",
+  "model-server-sdk",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  # A prebuilt wheel: building flash-attn takes an hour of every CPU core.
+  "flash-attn==2.8.3.post2",
+  # requirements.txt without the Gradio demo and its helper server.
+  "transformers>=4.57.0",
+  "diffusers>=0.35.0",
+  "python-box",
+  "einops",
+  "omegaconf",
+  "lightning",
+  "addict",
+  "fast-simplification",
+  "bpy==4.3.0",
+  "trimesh",
+  "open3d",
+  "scipy",
+  "requests",
+  "huggingface_hub",
+  "numpy~=1.26.4",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+skintokens-model-server = "skintokens_model_server.__main__:main"
+
+[tool.uv.sources]
+assets-studio-processing = { path = "../../asset_processing", editable = true }
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+bpy = { index = "blender" }
+flash-attn = { url = "https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3.post2/flash_attn-2.8.3.post2+cu12torch2.8cxx11abiTRUE-cp311-cp311-linux_x86_64.whl" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[[tool.uv.index]]
+name = "blender"
+url = "https://download.blender.org/pypi/"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

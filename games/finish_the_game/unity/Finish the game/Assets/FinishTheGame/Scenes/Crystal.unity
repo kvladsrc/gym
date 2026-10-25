@@ -1,0 +1,2116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!29 &1
+OcclusionCullingSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_OcclusionBakeSettings:
+    smallestOccluder: 5
+    smallestHole: 0.25
+    backfaceThreshold: 100
+  m_SceneGUID: 00000000000000000000000000000000
+  m_OcclusionCullingData: {fileID: 0}
+--- !u!104 &2
+RenderSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 10
+  m_Fog: 1
+  m_FogColor: {r: 0.66, g: 0.55, b: 0.5, a: 1}
+  m_FogMode: 3
+  m_FogDensity: 0.0011
+  m_LinearFogStart: 0
+  m_LinearFogEnd: 300
+  m_AmbientSkyColor: {r: 0.36, g: 0.42, b: 0.58, a: 1}
+  m_AmbientEquatorColor: {r: 0.42, g: 0.38, b: 0.34, a: 1}
+  m_AmbientGroundColor: {r: 0.18, g: 0.15, b: 0.12, a: 1}
+  m_AmbientIntensity: 1
+  m_AmbientMode: 1
+  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
+  m_SkyboxMaterial: {fileID: 2100000, guid: b711f46427a7c062eb8b2d619890366d, type: 2}
+  m_HaloStrength: 0.5
+  m_FlareStrength: 1
+  m_FlareFadeSpeed: 3
+  m_HaloTexture: {fileID: 0}
+  m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
+  m_DefaultReflectionMode: 0
+  m_DefaultReflectionResolution: 128
+  m_ReflectionBounces: 1
+  m_ReflectionIntensity: 1
+  m_CustomReflection: {fileID: 0}
+  m_Sun: {fileID: 0}
+  m_UseRadianceAmbientProbe: 0
+--- !u!157 &3
+LightmapSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
+  m_GISettings:
+    serializedVersion: 2
+    m_BounceScale: 1
+    m_IndirectOutputScale: 1
+    m_AlbedoBoost: 1
+    m_EnvironmentLightingMode: 0
+    m_EnableBakedLightmaps: 1
+    m_EnableRealtimeLightmaps: 0
+  m_LightmapEditorSettings:
+    serializedVersion: 12
+    m_Resolution: 2
+    m_BakeResolution: 40
+    m_AtlasSize: 1024
+    m_AO: 0
+    m_AOMaxDistance: 1
+    m_CompAOExponent: 1
+    m_CompAOExponentDirect: 0
+    m_ExtractAmbientOcclusion: 0
+    m_Padding: 2
+    m_LightmapParameters: {fileID: 0}
+    m_LightmapsBakeMode: 1
+    m_TextureCompression: 1
+    m_ReflectionCompression: 2
+    m_MixedBakeMode: 2
+    m_BakeBackend: 2
+    m_PVRSampling: 1
+    m_PVRDirectSampleCount: 32
+    m_PVRSampleCount: 512
+    m_PVRBounces: 2
+    m_PVREnvironmentSampleCount: 256
+    m_PVREnvironmentReferencePointCount: 2048
+    m_PVRFilteringMode: 1
+    m_PVRDenoiserTypeDirect: 2
+    m_PVRDenoiserTypeIndirect: 2
+    m_PVRDenoiserTypeAO: 2
+    m_PVRFilterTypeDirect: 0
+    m_PVRFilterTypeIndirect: 0
+    m_PVRFilterTypeAO: 0
+    m_PVREnvironmentMIS: 1
+    m_PVRCulling: 1
+    m_PVRFilteringGaussRadiusDirect: 1
+    m_PVRFilteringGaussRadiusIndirect: 1
+    m_PVRFilteringGaussRadiusAO: 1
+    m_PVRFilteringAtrousPositionSigmaDirect: 0.5
+    m_PVRFilteringAtrousPositionSigmaIndirect: 2
+    m_PVRFilteringAtrousPositionSigmaAO: 1
+    m_ExportTrainingData: 0
+    m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
+  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
+  m_LightingSettings: {fileID: 0}
+--- !u!196 &4
+NavMeshSettings:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_BuildSettings:
+    serializedVersion: 3
+    agentTypeID: 0
+    agentRadius: 0.5
+    agentHeight: 2
+    agentSlope: 45
+    agentClimb: 0.4
+    ledgeDropHeight: 0
+    maxJumpAcrossDistance: 0
+    minRegionArea: 2
+    manualCellSize: 0
+    cellSize: 0.16666667
+    manualTileSize: 0
+    tileSize: 256
+    buildHeightMesh: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
+    debug:
+      m_Flags: 0
+  m_NavMeshData: {fileID: 0}
+--- !u!1 &88862739
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 88862741}
+  - component: {fileID: 88862740}
+  m_Layer: 0
+  m_Name: Mood
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &88862740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 88862739}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 0d09559cd4bbeb173ae3e7f1d00496da, type: 2}
+--- !u!4 &88862741
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 88862739}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &500194328
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 500194332}
+  - component: {fileID: 500194330}
+  - component: {fileID: 500194331}
+  - component: {fileID: 500194329}
+  m_Layer: 0
+  m_Name: Main Camera
+  m_TagString: MainCamera
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &500194329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500194328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 697d0c66b3982c4b8b240dc05e474d40, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.ForwardCamera
+  world: {fileID: 1010065416}
+  hero: {fileID: 1956073320}
+  height: 1.7
+  distance: 5
+  pitch: 8
+  rail: 8
+  sideEase: 2
+  lookBack: 5
+  lookAhead: 18
+  turnTime: 0.8
+  orbit: 1
+  mouseTurn: 0.12
+  pitchRange: {x: -25, y: 70}
+  distanceRange: {x: 2, y: 14}
+  zoomStep: 0.6
+--- !u!20 &500194330
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500194328}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.62, g: 0.68, b: 0.72, a: 1}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 5000
+  field of view: 55
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!114 &500194331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500194328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 1
+  m_Antialiasing: 2
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
+--- !u!4 &500194332
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 500194328}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &652844820
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 652844822}
+  - component: {fileID: 652844821}
+  m_Layer: 0
+  m_Name: Hilda
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &652844821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 652844820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c76531c0bd46876ab290e6ff2cf3b54, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.Villager
+  title: Hilda
+  world: {fileID: 1010065416}
+  hero: {fileID: 1956073320}
+  font: {fileID: 12800000, guid: bd277f8c03102d4fe934303d5e75509e, type: 3}
+  rig: {fileID: 919132149155446097, guid: db6a322fe838fd58da17f8fd57942669, type: 3}
+  moves: {fileID: 9100000, guid: 7df583729a5b5b0faa08470ac85b7c05, type: 2}
+  look: {fileID: 2100000, guid: 59c3bdc86c28ed4d5a7365580570b99e, type: 2}
+  height: 1.68
+  named: 9
+  ghostly: 0
+  hover: 0.25
+  motes: {fileID: 0}
+  rays: {fileID: 0}
+  raysSize: 2.3
+  pace: 1.35
+  searching: 0
+--- !u!4 &652844822
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 652844820}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &896636666
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 896636668}
+  - component: {fileID: 896636667}
+  m_Layer: 0
+  m_Name: Spirit
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &896636667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 896636666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1b9d32dfeb9f6a6890880e9d7c80076, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.RibbonSpirit
+  ribbon: {fileID: 1010065417}
+  eye: {fileID: 500194330}
+  glowLook: {fileID: 2100000, guid: 78d7510f69e5de0d2b590f5d5548d2a2, type: 2}
+  trailLook: {fileID: 2100000, guid: 834b8316f3f696acfa9327e91e2aec85, type: 2}
+  hop: {fileID: 8300000, guid: f3b313475c574ce129318bf8aaf615ab, type: 3}
+  flash: {fileID: 8300000, guid: dce1be3a3a7c2ac7780bd6cfe7147df8, type: 3}
+  vanish: {fileID: 8300000, guid: 4cb4414b85d48402aa57817490e5a9fe, type: 3}
+  apparent: 0.085
+  least: 1.1
+  most: 60
+  stretch: {x: 12, y: 24}
+  pace: {x: 10, y: 17}
+  leaps: 2
+  gather: 0.6
+  leapTime: 0.9
+  seed: 7
+--- !u!4 &896636668
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 896636666}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1010065414
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1010065418}
+  - component: {fileID: 1010065416}
+  - component: {fileID: 1010065417}
+  - component: {fileID: 1010065415}
+  m_Layer: 0
+  m_Name: World
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1010065415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010065414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4891caf828c02d29d8d85ef7306153d5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.StoryMap
+  world: {fileID: 1010065416}
+  view: {fileID: 500194329}
+  small: 260
+  big: 620
+  shown: 0
+--- !u!114 &1010065416
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010065414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 234e6d98cb102a91481493d3133c9f39, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.CrystalWorld
+  material: {fileID: 2100000, guid: b1145f977778e9a518f7d68527970ffd, type: 2}
+  hero: {fileID: 1956073320}
+  view: {fileID: 500194329}
+  ribbon: {fileID: 1010065417}
+  horizon: {fileID: 0}
+  behind: 60
+  halfWidth: 50
+  sideFade: 6
+  behindFade: 10
+  aheadFade: 8
+  bandBeyond: 0
+  texel: 0.5
+  abovePixels: 2048
+  models:
+  - name: animal_bear
+    mesh: {fileID: 1362433111173418665, guid: 0e477124bcb45b181b5677a0eb4f64e5, type: 3}
+    texture: {fileID: 2800000, guid: 2eb3f07abd7dfcc8e97722d30c798a45, type: 3}
+    yaw: 0
+    colour: {r: 0.2491421, g: 0.22781867, b: 0.20140938, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: animal_boar
+    mesh: {fileID: -2576434017882831477, guid: c9666aa8c190528718d179654c691964, type: 3}
+    texture: {fileID: 2800000, guid: c0a8abffe01178faaac64114af5f9fb8, type: 3}
+    yaw: 0
+    colour: {r: 0.27781865, g: 0.24074759, b: 0.2034927, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: animal_cow
+    mesh: {fileID: 4321232136251713652, guid: 364e830ab0e90a739a5d335d01cb1219, type: 3}
+    texture: {fileID: 2800000, guid: ba94d56fda1ce35cebcddee8f0030b21, type: 3}
+    yaw: 0
+    colour: {r: 0.69044137, g: 0.6092524, b: 0.5230393, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: animal_deer
+    mesh: {fileID: 8086293592693339055, guid: 3e33cbe0038acbd3599865dd8bae5fe4, type: 3}
+    texture: {fileID: 2800000, guid: eabe931a19a2c197688196019509821f, type: 3}
+    yaw: 0
+    colour: {r: 0.6680149, g: 0.46660545, b: 0.30704662, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: animal_dog
+    mesh: {fileID: 2754635098858006851, guid: 1d14c4097315a2d819c5361e65526ec1, type: 3}
+    texture: {fileID: 2800000, guid: 2dda65ee6cafa2136a9a05acfe9e1b7e, type: 3}
+    yaw: 0
+    colour: {r: 0.56764704, g: 0.46225488, b: 0.3232843, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: animal_horse
+    mesh: {fileID: -2392515075088368879, guid: 941722f9e9882f70e8f050f5f66fa1ae, type: 3}
+    texture: {fileID: 2800000, guid: c5a7e366d78bb15ffa0a5128c87918fb, type: 3}
+    yaw: 0
+    colour: {r: 0.69914216, g: 0.60361516, b: 0.47267157, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: animal_sheep
+    mesh: {fileID: -6822924999566533953, guid: ab6f8fa28cb78020eb7b33d23a87dbe9, type: 3}
+    texture: {fileID: 2800000, guid: 8e00d137873ea82309a22b285822fb7f, type: 3}
+    yaw: 0
+    colour: {r: 0.68376225, g: 0.6611519, b: 0.60606605, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: animal_wolf
+    mesh: {fileID: 6127225125800652499, guid: ad66e3c6609dac905809b3a1d423e941, type: 3}
+    texture: {fileID: 2800000, guid: 2be890b8c347454db896d2219dd34c7f, type: 3}
+    yaw: 0
+    colour: {r: 0.60808814, g: 0.5568015, b: 0.4826594, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: barn
+    mesh: {fileID: 364427641470135591, guid: 9929c16cc07184cf19cce645d0853c1d, type: 3}
+    texture: {fileID: 2800000, guid: 6f09963f0e9052f419c4f0d6d0277c6a, type: 3}
+    yaw: 0
+    colour: {r: 0.35263503, g: 0.2643996, b: 0.17389701, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: boulder
+    mesh: {fileID: 7097535474461884996, guid: 308a69918d8cb9e7e9867e965782d24f, type: 3}
+    texture: {fileID: 2800000, guid: 3405758599e8a28fa9caddaa4f75e273, type: 3}
+    yaw: 0
+    colour: {r: 0.38333333, g: 0.3482231, b: 0.24828434, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: cave
+    mesh: {fileID: -268172259488452600, guid: a1cc915d66ecbe97db2031e3cb367cb7, type: 3}
+    texture: {fileID: 2800000, guid: 2c905a06e436a174ab18cb1e234c621a, type: 3}
+    yaw: 0
+    colour: {r: 0.37463227, g: 0.31752458, b: 0.22879907, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_anvil
+    mesh: {fileID: -875928989701068190, guid: d814f703a262df74fae75ee3f96a918e, type: 3}
+    texture: {fileID: 2800000, guid: 831e0a2203f52cc818e51c9983e39ccb, type: 3}
+    yaw: 0
+    colour: {r: 0.2762255, g: 0.22303925, b: 0.166299, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_beehives
+    mesh: {fileID: 8428737289062884006, guid: 8b1a5499f7650e7049734449a53e9816, type: 3}
+    texture: {fileID: 2800000, guid: 2b6c575ddc12320da805a656e8cf7db4, type: 3}
+    yaw: 0
+    colour: {r: 0.55980396, g: 0.45471823, b: 0.32555157, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_bridge
+    mesh: {fileID: -2712122423992457726, guid: 013ece039818809f2a677deca30d01a3, type: 3}
+    texture: {fileID: 2800000, guid: b0043bd6df08a00d8bc9f15a1e912391, type: 3}
+    yaw: 0
+    colour: {r: 0.33541676, g: 0.25784314, b: 0.16501229, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_gravestones
+    mesh: {fileID: 188957735709422293, guid: 4d1b67eef89cffa64b46a533f6e8e2ab, type: 3}
+    texture: {fileID: 2800000, guid: fe07d81e0ee6aa575a9d7359a5064ab5, type: 3}
+    yaw: 0
+    colour: {r: 0.42058825, g: 0.39417902, b: 0.36354166, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_market_stall
+    mesh: {fileID: 2663412895097402676, guid: 9c96421d360cfd7fc83d80cd76ed6d4a, type: 3}
+    texture: {fileID: 2800000, guid: 5118e46576f8b9f5ba7a195c81c76a7d, type: 3}
+    yaw: 0
+    colour: {r: 0.4187501, g: 0.33645833, b: 0.22352947, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_scarecrow
+    mesh: {fileID: 5585685060297570105, guid: 0d902c5f8b041a678b9114e34d4e3ead, type: 3}
+    texture: {fileID: 2800000, guid: 1dafa8f3819d253439488e57e3b08e0b, type: 3}
+    yaw: 0
+    colour: {r: 0.5340686, g: 0.4041053, b: 0.2822917, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_shrine
+    mesh: {fileID: 7759704394707377568, guid: 0833cd8da9ba39d07ae7a6c3f633b2cc, type: 3}
+    texture: {fileID: 2800000, guid: 9595255f213fd05629229fa09a8dcdf9, type: 3}
+    yaw: 0
+    colour: {r: 0.36887258, g: 0.27726707, b: 0.17518388, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_standing_stones
+    mesh: {fileID: 1144957133266427234, guid: a92c328ffeb2cb2f898609133d7e0f84, type: 3}
+    texture: {fileID: 2800000, guid: 54bc12ead3e61ddb7b705bf0da7b4b0c, type: 3}
+    yaw: 0
+    colour: {r: 0.30545345, g: 0.3474878, b: 0.30906865, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_statue
+    mesh: {fileID: -4543143977512801005, guid: d173f606bad19f65cb224d1f47ae8b49, type: 3}
+    texture: {fileID: 2800000, guid: 120f67d8160bcf310a5b96343bc11d01, type: 3}
+    yaw: 0
+    colour: {r: 0.35808828, g: 0.32506123, b: 0.22346826, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_table
+    mesh: {fileID: -1292821916498282977, guid: 0711c1a2ae3d59cddabbd52d15111fa4, type: 3}
+    texture: {fileID: 2800000, guid: eee1ca0829784d2f6becf6dc35536df0, type: 3}
+    yaw: 0
+    colour: {r: 0.37781864, g: 0.28363973, b: 0.192157, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: decor_wagon
+    mesh: {fileID: 2306183934085323132, guid: 9210d6fe143e3d9b3b49e7a02844cb4b, type: 3}
+    texture: {fileID: 2800000, guid: 57f7f5334bb50b51dba819be99b5f5db, type: 3}
+    yaw: 0
+    colour: {r: 0.38553932, g: 0.29963234, b: 0.2025123, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: fence
+    mesh: {fileID: 306804030031596660, guid: a7f526f2a1202ebd08c0e0da973b48ec, type: 3}
+    texture: {fileID: 2800000, guid: c5cb023f0f289183fb3eea5e8cb9a5e0, type: 3}
+    yaw: 0
+    colour: {r: 0.4438113, g: 0.3764093, b: 0.29852945, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: gate
+    mesh: {fileID: -2773478565644090183, guid: 3040e68fcf7149c0a88b3be9fc4fde44, type: 3}
+    texture: {fileID: 2800000, guid: d4eab2cc3cb6ca064bcfcd36c073cb84, type: 3}
+    yaw: 0
+    colour: {r: 0.40251225, g: 0.3917892, b: 0.3588848, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: haystack
+    mesh: {fileID: 2715618219524298506, guid: 091a479de0b358ad6b14c3e5aa91197f, type: 3}
+    texture: {fileID: 2800000, guid: 9ee559b8ed95b387e9292b4cb6f919bb, type: 3}
+    yaw: 0
+    colour: {r: 0.5691788, g: 0.40134802, b: 0.10165438, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: house
+    mesh: {fileID: 6163085868652917451, guid: 6ecf2da9bc3b58837a4f7f865145aaf5, type: 3}
+    texture: {fileID: 2800000, guid: ac6a29258bc5c9740aac9109ace2e1d9, type: 3}
+    yaw: 0
+    colour: {r: 0.50790447, g: 0.4249388, b: 0.31158102, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: house2
+    mesh: {fileID: -7256515696960729187, guid: 55f6d7a5e3181aff0ac17b1a2ae13bdc, type: 3}
+    texture: {fileID: 2800000, guid: 687c50c79411e5f8e9a411690f01203c, type: 3}
+    yaw: 0
+    colour: {r: 0.4413604, g: 0.35159326, b: 0.253125, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: item_book
+    mesh: {fileID: 8267289932987780057, guid: 09f33357977a9c2efb91e6588d91aa2c, type: 3}
+    texture: {fileID: 2800000, guid: 2a1798e2569e4d1818db484705e0276e, type: 3}
+    yaw: 0
+    colour: {r: 0.36758587, g: 0.23939954, b: 0.16721813, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: item_bread
+    mesh: {fileID: -1309078623744377789, guid: d5773138b993aa5aa92f194f61267e28, type: 3}
+    texture: {fileID: 2800000, guid: 884465a98b0d4ce689cfcb51b6bd2fca, type: 3}
+    yaw: 0
+    colour: {r: 0.5891544, g: 0.3981618, b: 0.15085788, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: item_chest_gold
+    mesh: {fileID: -5022887970042155588, guid: 978b8a48449f1acc4b08f0e3ddd2c140, type: 3}
+    texture: {fileID: 2800000, guid: 75636b5cc7c9e160ba4b45449fb03c1a, type: 3}
+    yaw: 0
+    colour: {r: 0.36660543, g: 0.27261034, b: 0.1954657, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: item_key
+    mesh: {fileID: -3770459190929907836, guid: 81593b5deae0cb72e911aa6c1365f8f7, type: 3}
+    texture: {fileID: 2800000, guid: d871dd63686a3d1f38d716760819a526, type: 3}
+    yaw: 0
+    colour: {r: 0.41145834, g: 0.38890922, b: 0.32855394, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: item_lantern
+    mesh: {fileID: -8351439692718146466, guid: 93385ecb5b5ee60de971f8cbed74fea0, type: 3}
+    texture: {fileID: 2800000, guid: 1f1f38a995ce76d3c893699f71047398, type: 3}
+    yaw: 0
+    colour: {r: 0.47696087, g: 0.41409314, b: 0.32371318, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: item_map
+    mesh: {fileID: -1288914001855081651, guid: 9b42ebc035409be01900da64ba7c9a57, type: 3}
+    texture: {fileID: 2800000, guid: b4ebfc88d98a29e4690851060678abb5, type: 3}
+    yaw: 0
+    colour: {r: 0.6079655, g: 0.52022046, b: 0.38351706, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: item_potion_blue
+    mesh: {fileID: 4111708964804626571, guid: ab7527ea9a4df7570adf4a9b3bceaa63, type: 3}
+    texture: {fileID: 2800000, guid: b52a95a0525e801899749df15aff77e7, type: 3}
+    yaw: 0
+    colour: {r: 0.49350488, g: 0.6136028, b: 0.7280027, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: item_potion_red
+    mesh: {fileID: 5248309269211979746, guid: a41cbf9bd9a3c1f78af5c2aaf57176b6, type: 3}
+    texture: {fileID: 2800000, guid: 8ea71fc093167a29a9bb8ba5df286390, type: 3}
+    yaw: 0
+    colour: {r: 0.63370085, g: 0.43933815, b: 0.39191177, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: item_scroll
+    mesh: {fileID: 2733030969970221381, guid: 90f979e8b49809728868f68b25ad3f50, type: 3}
+    texture: {fileID: 2800000, guid: 2326ea73d5f67d49982ea4058d380fbc, type: 3}
+    yaw: 0
+    colour: {r: 0.62150705, g: 0.50569844, b: 0.34332114, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: keep
+    mesh: {fileID: 4356771056285168480, guid: 1e6c9619cd952cee0abbb92f310bdc12, type: 3}
+    texture: {fileID: 2800000, guid: 5042c4ef9ae8cb205a771dd24e710d16, type: 3}
+    yaw: 0
+    colour: {r: 0.37732837, g: 0.34950987, b: 0.29975486, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: keys
+    mesh: {fileID: -4873134890218260285, guid: e8e4e13450ac22f54b01344f22d8a3e4, type: 3}
+    texture: {fileID: 2800000, guid: 550d1effe4f5ad6b19d32fa5038fb30c, type: 3}
+    yaw: 0
+    colour: {r: 0.19001229, g: 0.17959562, b: 0.16924018, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: oak
+    mesh: {fileID: -5554802122567887888, guid: 1b7265abc0cea71c18bbced728a1f125, type: 3}
+    texture: {fileID: 2800000, guid: fd4df795079437f4ca7cf575f4c0e3df, type: 3}
+    yaw: 0
+    colour: {r: 0.21850507, g: 0.22561277, b: 0.11121323, a: 1}
+    bulk: 0.55
+    kind:
+    height: 0
+    sink: 0.05
+  - name: old14
+    mesh: {fileID: 240694903101284169, guid: 9549dab7f297c2c549fa905b57570454, type: 3}
+    texture: {fileID: 2800000, guid: 8de28525db0c28d6691b9059f5594a3d, type: 3}
+    yaw: 0
+    colour: {r: 0.28186274, g: 0.25539216, b: 0.23131138, a: 1}
+    bulk: 1
+    kind: prop
+    height: 1.2
+    sink: 0
+  - name: old15
+    mesh: {fileID: -6776548287479312861, guid: d1f49104b88e5eb30ad6eb3e5e217441, type: 3}
+    texture: {fileID: 2800000, guid: 7d6dcae9934d91a87bb7ada93328626b, type: 3}
+    yaw: 0
+    colour: {r: 0.2509804, g: 0.2204045, b: 0.20428932, a: 1}
+    bulk: 1
+    kind: prop
+    height: 1.2
+    sink: 0
+  - name: old16
+    mesh: {fileID: -2118892280165410011, guid: e40e4ce43bd483a0088867347cda3c1c, type: 3}
+    texture: {fileID: 2800000, guid: 123ec68aa4671f06c90c43798eae54b4, type: 3}
+    yaw: 0
+    colour: {r: 0.4518382, g: 0.310723, b: 0.2283702, a: 1}
+    bulk: 1
+    kind: prop
+    height: 0.9
+    sink: 0
+  - name: old17
+    mesh: {fileID: -7393884058440006447, guid: a4d7ff489b8075f6fa3105e57a0a62a3, type: 3}
+    texture: {fileID: 2800000, guid: 48f9c45445549829185fe9c4de742b34, type: 3}
+    yaw: 0
+    colour: {r: 0.34270835, g: 0.24491431, b: 0.19246326, a: 1}
+    bulk: 1
+    kind: prop
+    height: 0.9
+    sink: 0
+  - name: old32
+    mesh: {fileID: 2737902866253576785, guid: 0a04322655a085ab2a4d7d10a567b80d, type: 3}
+    texture: {fileID: 2800000, guid: baa05d8a647b5a2d4bb186d65298ad6e, type: 3}
+    yaw: 0
+    colour: {r: 0.27530637, g: 0.27481624, b: 0.21439962, a: 1}
+    bulk: 0.5
+    kind: dead
+    height: 7
+    sink: 0.07
+  - name: old34
+    mesh: {fileID: 618193215459419578, guid: 7074a56ed03cab915b8c42435fcf5860, type: 3}
+    texture: {fileID: 2800000, guid: d51e3d231aeeebdf382ffcfebd9d486c, type: 3}
+    yaw: 0
+    colour: {r: 0.25226718, g: 0.26384798, b: 0.18235299, a: 1}
+    bulk: 1
+    kind: stump
+    height: 1.4
+    sink: 0.06
+  - name: old35
+    mesh: {fileID: 7105005971987327227, guid: f5110fb6661313169ac8af1fcc9d0511, type: 3}
+    texture: {fileID: 2800000, guid: 05841caff6ce3921091bd2730409420a, type: 3}
+    yaw: 0
+    colour: {r: 0.38511026, g: 0.45625016, b: 0.29797792, a: 1}
+    bulk: 1
+    kind: rock
+    height: 3
+    sink: 0
+  - name: old37
+    mesh: {fileID: -1952041172395913011, guid: cdfc7505d21aa2dd9a823d7834e01f30, type: 3}
+    texture: {fileID: 2800000, guid: ec8063dec8ffd9566b3031b71099b10f, type: 3}
+    yaw: 0
+    colour: {r: 0.30134797, g: 0.34626234, b: 0.21458343, a: 1}
+    bulk: 1
+    kind: rock
+    height: 4
+    sink: 0
+  - name: old45
+    mesh: {fileID: 7114638489204133292, guid: 4bf863da1046dd72fb9d434c9638bc8e, type: 3}
+    texture: {fileID: 2800000, guid: beaf991f5b578ad3e9ca53f5a1cb15be, type: 3}
+    yaw: 0
+    colour: {r: 0.24828441, g: 0.2520221, b: 0.16348037, a: 1}
+    bulk: 1
+    kind: prop
+    height: 1
+    sink: 0
+  - name: old51
+    mesh: {fileID: 8978879257786887717, guid: 93d4125d5ff8a5bac919ff955d7482f3, type: 3}
+    texture: {fileID: 2800000, guid: c8d8fb0e94395ef9892833a342c78574, type: 3}
+    yaw: 0
+    colour: {r: 0.38382366, g: 0.35747555, b: 0.29013476, a: 1}
+    bulk: 1
+    kind: camp
+    height: 1
+    sink: 0
+  - name: old52
+    mesh: {fileID: 5428011323874714590, guid: eaa479b5e45eb58ef9b9cde4cf771eac, type: 3}
+    texture: {fileID: 2800000, guid: 43692cb2797748c1bb11826b59ec7b77, type: 3}
+    yaw: 0
+    colour: {r: 0.4737132, g: 0.46960777, b: 0.3731005, a: 1}
+    bulk: 1
+    kind: camp
+    height: 2.4
+    sink: 0
+  - name: old53
+    mesh: {fileID: -1178327390761615259, guid: 1658bf8462b7cf77bad1ba18de8a1a84, type: 3}
+    texture: {fileID: 2800000, guid: 51cf5ecd4e9845840878fc19493bc64d, type: 3}
+    yaw: 0
+    colour: {r: 0.28848028, g: 0.3086396, b: 0.27009803, a: 1}
+    bulk: 1
+    kind: prop
+    height: 1.2
+    sink: 0
+  - name: old56
+    mesh: {fileID: -4731003774267978527, guid: 858fa9726ee4d6bcc83237625c4c2379, type: 3}
+    texture: {fileID: 2800000, guid: 346ba97682ed126c3aae1f9743d14e87, type: 3}
+    yaw: 0
+    colour: {r: 0.51035535, g: 0.29828423, b: 0.30484068, a: 1}
+    bulk: 0.5
+    kind: tree
+    height: 9
+    sink: 0.05
+  - name: old57
+    mesh: {fileID: -4245753561364006779, guid: 5c49e7acc33c66201a19034feaf356ca, type: 3}
+    texture: {fileID: 2800000, guid: b5e4382941008c6a5b03506d4ddf8135, type: 3}
+    yaw: 0
+    colour: {r: 0.73308814, g: 0.52971804, b: 0.29479167, a: 1}
+    bulk: 0.5
+    kind: tree
+    height: 11
+    sink: 0.05
+  - name: old58
+    mesh: {fileID: -8862952046395478192, guid: a70916bd2a3ef4d36aef232c9ad40565, type: 3}
+    texture: {fileID: 2800000, guid: 955e56184245573c2a341e6929968024, type: 3}
+    yaw: 0
+    colour: {r: 0.38419124, g: 0.22500007, b: 0.28216904, a: 1}
+    bulk: 0.5
+    kind: tree
+    height: 9
+    sink: 0.045
+  - name: old60
+    mesh: {fileID: 8873770601556223876, guid: 7a309ecea6eb45581b306391c3db3781, type: 3}
+    texture: {fileID: 2800000, guid: ea1732cbeaf24ac908a9025350b5f30b, type: 3}
+    yaw: 0
+    colour: {r: 0.5938725, g: 0.50238967, b: 0.4280637, a: 1}
+    bulk: 0.5
+    kind: bush
+    height: 1.2
+    sink: 0
+  - name: old62
+    mesh: {fileID: 8662703633554511673, guid: da2e6371ab6625aaaaf159b9ea89831d, type: 3}
+    texture: {fileID: 2800000, guid: eab2bb17594f5e84caadebb7d50c65e6, type: 3}
+    yaw: 0
+    colour: {r: 0.3101715, g: 0.33155647, b: 0.31507364, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 3.5
+    sink: 0
+  - name: old63
+    mesh: {fileID: -5033275844811875666, guid: 2607816c8657e31a996bedc277fc254f, type: 3}
+    texture: {fileID: 2800000, guid: ffa2cc1fb949b03ad9498ba7a45c3f81, type: 3}
+    yaw: 0
+    colour: {r: 0.228799, g: 0.2675858, b: 0.274326, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 3
+    sink: 0
+  - name: old64
+    mesh: {fileID: -1911597831989579881, guid: 97f88f881bd78a775a71e09cbd2415f4, type: 3}
+    texture: {fileID: 2800000, guid: f0f8e93083f3fe73f91b1ee824d736b4, type: 3}
+    yaw: 0
+    colour: {r: 0.2881741, g: 0.29307598, b: 0.25729164, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 3
+    sink: 0
+  - name: old65
+    mesh: {fileID: 2814549510001762396, guid: 6d5627cbf9b9a22fc83a6c17b594f112, type: 3}
+    texture: {fileID: 2800000, guid: b74cc6e0a405c38a28a54acec938a273, type: 3}
+    yaw: 0
+    colour: {r: 0.36145848, g: 0.32738984, b: 0.26899517, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 6
+    sink: 0
+  - name: old66
+    mesh: {fileID: -4165395597937280282, guid: e16dd0f55b369f51289554bd5171018b, type: 3}
+    texture: {fileID: 2800000, guid: f2b9c998265a6a75d9f6ed6ac2c6e4e9, type: 3}
+    yaw: 0
+    colour: {r: 0.25833338, g: 0.16672805, b: 0.09252454, a: 1}
+    bulk: 1
+    kind: prop
+    height: 1.6
+    sink: 0
+  - name: old67
+    mesh: {fileID: -9182088104674831173, guid: 929d663f29ff98199bec874c6d5fab92, type: 3}
+    texture: {fileID: 2800000, guid: 95ec0dcee39cb723e82c2703395989ec, type: 3}
+    yaw: 0
+    colour: {r: 0.19699758, g: 0.17365198, b: 0.119056374, a: 1}
+    bulk: 1
+    kind: stump
+    height: 1
+    sink: 0.08
+  - name: old68
+    mesh: {fileID: 1835881542625143343, guid: f182054a2973e884fbeea4ee86ac474e, type: 3}
+    texture: {fileID: 2800000, guid: 9261141c43b9a48f499a8c14fcc0da30, type: 3}
+    yaw: 0
+    colour: {r: 0.25435054, g: 0.1677084, b: 0.059987746, a: 1}
+    bulk: 1
+    kind: prop
+    height: 0.9
+    sink: 0
+  - name: old71
+    mesh: {fileID: 1117346133562711861, guid: dc2a49ac0931ba668969f2266a52f890, type: 3}
+    texture: {fileID: 2800000, guid: 09c62666f54cb685c9408e6423bba363, type: 3}
+    yaw: 0
+    colour: {r: 0.46170348, g: 0.47499993, b: 0.38602942, a: 1}
+    bulk: 0.5
+    kind: bush
+    height: 1.6
+    sink: 0
+  - name: old72
+    mesh: {fileID: -963546506829999218, guid: 9875943438a26054b9c0ac34bfccac0a, type: 3}
+    texture: {fileID: 2800000, guid: 4723639a3e7401dde862daec43686f83, type: 3}
+    yaw: 0
+    colour: {r: 0.21825974, g: 0.19871329, b: 0.1509804, a: 1}
+    bulk: 0.5
+    kind: dead
+    height: 8
+    sink: 0.06
+  - name: old73
+    mesh: {fileID: 3649066405563359989, guid: cc6bb402972cb3f76860108d4dcfa445, type: 3}
+    texture: {fileID: 2800000, guid: 74ddac92d0af34885bae4a859611b0b5, type: 3}
+    yaw: 0
+    colour: {r: 0.26200977, g: 0.31041682, b: 0.22591929, a: 1}
+    bulk: 0.5
+    kind: bush
+    height: 1.4
+    sink: 0
+  - name: old74
+    mesh: {fileID: -5958784122220572733, guid: aafd4542fbad053b2ad7cdcc9cdbf5fc, type: 3}
+    texture: {fileID: 2800000, guid: 702847d443c24c873a97cd754e73f556, type: 3}
+    yaw: 0
+    colour: {r: 0.2746936, g: 0.28026962, b: 0.113174014, a: 1}
+    bulk: 0.5
+    kind: bush
+    height: 1.6
+    sink: 0
+  - name: old75
+    mesh: {fileID: 3594240089058636082, guid: 2f5e2dc80ddde25d7b3bf8165f843fdf, type: 3}
+    texture: {fileID: 2800000, guid: ccfd516e38e5675419b4c795b241fae3, type: 3}
+    yaw: 0
+    colour: {r: 0.4012869, g: 0.39522073, b: 0.31844363, a: 1}
+    bulk: 1
+    kind: rock
+    height: 2.5
+    sink: 0
+  - name: old76
+    mesh: {fileID: -4241039314396163393, guid: d874c06798d897184ba76ea3f4f3eac7, type: 3}
+    texture: {fileID: 2800000, guid: 87f2a886522f2d521b91eec24af07b12, type: 3}
+    yaw: 0
+    colour: {r: 0.2404412, g: 0.26213244, b: 0.15269609, a: 1}
+    bulk: 1
+    kind: rock
+    height: 2
+    sink: 0
+  - name: old79
+    mesh: {fileID: 432690154729933705, guid: 5051f7815ff8e8aa48c25f6f157d6af6, type: 3}
+    texture: {fileID: 2800000, guid: d90319f8db7feb15284647e024621375, type: 3}
+    yaw: 0
+    colour: {r: 0.19123778, g: 0.17935053, b: 0.119362704, a: 1}
+    bulk: 1
+    kind: prop
+    height: 3.2
+    sink: 0
+  - name: old80
+    mesh: {fileID: -3344525088210076897, guid: 1e1e2215767f787f1adca7a5a53f7a48, type: 3}
+    texture: {fileID: 2800000, guid: 6c72cc2c73cc83a049915a68977132d3, type: 3}
+    yaw: 0
+    colour: {r: 0.35300246, g: 0.31887266, b: 0.22800246, a: 1}
+    bulk: 1
+    kind: prop
+    height: 1.5
+    sink: 0
+  - name: old81
+    mesh: {fileID: -5380917190034784929, guid: c05f27e918bc7e250b3122cf29b4f99d, type: 3}
+    texture: {fileID: 2800000, guid: 83f1c40d37d7b9cb38648c0539458237, type: 3}
+    yaw: 0
+    colour: {r: 0.40030643, g: 0.31844363, b: 0.1655025, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 5
+    sink: 0
+  - name: old83
+    mesh: {fileID: 5407535037751962843, guid: 1103d23c2edba34a8b906d6bd7f5b678, type: 3}
+    texture: {fileID: 2800000, guid: 93a5c6d2bd728cc53bc775a53f05a178, type: 3}
+    yaw: 0
+    colour: {r: 0.32757363, g: 0.3075368, b: 0.12898284, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 7
+    sink: 0
+  - name: old84
+    mesh: {fileID: 8102993006419478226, guid: bbf68e8c28f7305d5b5365434066e916, type: 3}
+    texture: {fileID: 2800000, guid: b38408ae685c1b428b7afc1a34b53f33, type: 3}
+    yaw: 0
+    colour: {r: 0.26607844, g: 0.23411766, b: 0.132549, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 10
+    sink: 0
+  - name: old85
+    mesh: {fileID: -540564638652513331, guid: 69c0adbde9f7de17cb0e7cda44f97440, type: 3}
+    texture: {fileID: 2800000, guid: 6ed92ff090209f51a80cba78442de2fb, type: 3}
+    yaw: 0
+    colour: {r: 0.30612737, g: 0.26979178, b: 0.18210785, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 6
+    sink: 0
+  - name: old86
+    mesh: {fileID: 6797165024217931386, guid: ae578a42c32dc99f594fce02e7eb999e, type: 3}
+    texture: {fileID: 2800000, guid: 28189fe835fabe197aba6e6db0598a2f, type: 3}
+    yaw: 0
+    colour: {r: 0.3188725, g: 0.32738972, b: 0.20772061, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 8
+    sink: 0
+  - name: old87
+    mesh: {fileID: -474295618412282038, guid: d4fef10ba2f524c769a781f93f4aea92, type: 3}
+    texture: {fileID: 2800000, guid: c03448669fbf1580faef3c458b146180, type: 3}
+    yaw: 0
+    colour: {r: 0.46176475, g: 0.42291647, b: 0.22879905, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 7
+    sink: 0
+  - name: old88
+    mesh: {fileID: -4673053617668773622, guid: 59ffecc46cb47cbc790e8b089fa691a3, type: 3}
+    texture: {fileID: 2800000, guid: 878001107eae870f7a21187bcc8ee364, type: 3}
+    yaw: 0
+    colour: {r: 0.3061275, g: 0.3019607, b: 0.19313727, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 2
+    sink: 0
+  - name: old90
+    mesh: {fileID: 2530767862126051427, guid: bbb7ce7c37e94f0f0a8b95f4f81409ef, type: 3}
+    texture: {fileID: 2800000, guid: 54cc50a5076c65e02a7ec4c8d135ca0f, type: 3}
+    yaw: 0
+    colour: {r: 0.39797804, g: 0.37628666, b: 0.2626226, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 3
+    sink: 0
+  - name: old91
+    mesh: {fileID: 2790783939952157379, guid: 9aecfb4880df26c31987cf7d80dea554, type: 3}
+    texture: {fileID: 2800000, guid: c89aaef34c99b441ca55140214ec1e2b, type: 3}
+    yaw: 0
+    colour: {r: 0.30569854, g: 0.27965683, b: 0.20906867, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 2
+    sink: 0
+  - name: old93
+    mesh: {fileID: 4897045889351193205, guid: 857bd28d02090e095a9542ab62b1b060, type: 3}
+    texture: {fileID: 2800000, guid: 8cbf923bd1c1cd722b28fafba8c6321e, type: 3}
+    yaw: 0
+    colour: {r: 0.34246314, g: 0.32861522, b: 0.26207116, a: 1}
+    bulk: 1
+    kind: ruin
+    height: 2
+    sink: 0
+  - name: old94
+    mesh: {fileID: -6896936470641713674, guid: ddc382d1197f3dadba24ca9182a3113e, type: 3}
+    texture: {fileID: 2800000, guid: 34c338fbd5b39aaf9b78b6186cd21cbe, type: 3}
+    yaw: 0
+    colour: {r: 0.21292904, g: 0.330331, b: 0.12175245, a: 1}
+    bulk: 0.5
+    kind: tree
+    height: 13
+    sink: 0.06
+  - name: old95
+    mesh: {fileID: -7888379387173148423, guid: 9d5760d47fcd6cef99add432b6c6001c, type: 3}
+    texture: {fileID: 2800000, guid: f2166dfb6433f377aa4b9ea3864e848f, type: 3}
+    yaw: 0
+    colour: {r: 0.42224258, g: 0.44019628, b: 0.18259805, a: 1}
+    bulk: 0.5
+    kind: tree
+    height: 9
+    sink: 0.05
+  - name: old96
+    mesh: {fileID: -6542476398671240534, guid: 75d3b94f18580ba79942d8d042ae952b, type: 3}
+    texture: {fileID: 2800000, guid: db8050f915a076168854ca5039789d87, type: 3}
+    yaw: 0
+    colour: {r: 0.30863968, g: 0.33805153, b: 0.15992643, a: 1}
+    bulk: 0.5
+    kind: tree
+    height: 14
+    sink: 0.15
+  - name: old97
+    mesh: {fileID: 7408378279268990455, guid: 5d82e2fc3e6824696a317a1fe57f6f54, type: 3}
+    texture: {fileID: 2800000, guid: 5b7102bfca3e7d97397f620be0aa8924, type: 3}
+    yaw: 0
+    colour: {r: 0.14338234, g: 0.23382351, b: 0.053308826, a: 1}
+    bulk: 0.5
+    kind: tree
+    height: 14
+    sink: 0.05
+  - name: old98
+    mesh: {fileID: 9068959706244493112, guid: 7508ef9b74ed2ff758229e8fc4f26af7, type: 3}
+    texture: {fileID: 2800000, guid: 7d4e71234340efbd488e2ba619670242, type: 3}
+    yaw: 0
+    colour: {r: 0.34430152, g: 0.32101724, b: 0.10533085, a: 1}
+    bulk: 0.5
+    kind: tree
+    height: 9
+    sink: 0.06
+  - name: old99
+    mesh: {fileID: 6755642558631913171, guid: e9f1c99ad3178628cbd516f7ff832d85, type: 3}
+    texture: {fileID: 2800000, guid: 49cbbf11f06cbd0d59be425ae4a28fc6, type: 3}
+    yaw: 0
+    colour: {r: 0.43376228, g: 0.3716911, b: 0.09172795, a: 1}
+    bulk: 0.5
+    kind: tree
+    height: 9
+    sink: 0.17
+  - name: old100
+    mesh: {fileID: 4855224733640654532, guid: b16e04a5aec1daf849cc2662360e33b2, type: 3}
+    texture: {fileID: 2800000, guid: 02bae167543a3b19b8bd581a02701051, type: 3}
+    yaw: 0
+    colour: {r: 0.45919135, g: 0.43302694, b: 0.16562504, a: 1}
+    bulk: 0.5
+    kind: tree
+    height: 10
+    sink: 0.07
+  - name: old101
+    mesh: {fileID: 4294327040049242240, guid: b09e5c69d19d06a999016b518cd23980, type: 3}
+    texture: {fileID: 2800000, guid: 06017a1b87f939d2b8672088ee7fe691, type: 3}
+    yaw: 0
+    colour: {r: 0.32763478, g: 0.2998775, b: 0.21066177, a: 1}
+    bulk: 0.5
+    kind: dead
+    height: 5
+    sink: 0.06
+  - name: old102
+    mesh: {fileID: -4417663941850680188, guid: 3b0c3c09c85ea112a8f713ab5ee3e84d, type: 3}
+    texture: {fileID: 2800000, guid: f9ab6ca5ec2060caba7f8fd97eb84283, type: 3}
+    yaw: 0
+    colour: {r: 0.41556382, g: 0.36121303, b: 0.2545956, a: 1}
+    bulk: 1
+    kind: stump
+    height: 2.5
+    sink: 0.2
+  - name: old103
+    mesh: {fileID: 7651259368613241584, guid: e3cd9575964b5dbc7974ac19a7d9dad8, type: 3}
+    texture: {fileID: 2800000, guid: dd81c8419d09c9272a39da1b06e8a005, type: 3}
+    yaw: 0
+    colour: {r: 0.3919118, g: 0.37408084, b: 0.22303928, a: 1}
+    bulk: 1
+    kind: stump
+    height: 2.2
+    sink: 0.18
+  - name: old104
+    mesh: {fileID: 5754349337505048548, guid: c4e34342b4878b2bdbbd35f69f12e2b6, type: 3}
+    texture: {fileID: 2800000, guid: e84bd6ee823f66f9a8f5b1e69da90247, type: 3}
+    yaw: 0
+    colour: {r: 0.29810053, g: 0.2664215, b: 0.19136028, a: 1}
+    bulk: 1
+    kind: stump
+    height: 2.5
+    sink: 0.1
+  - name: old105
+    mesh: {fileID: -1906677011014188746, guid: 7199a67f16bcd3f538c2a6be5659ceb9, type: 3}
+    texture: {fileID: 2800000, guid: e250de83197aa39818c8e8338a0763cc, type: 3}
+    yaw: 0
+    colour: {r: 0.3411152, g: 0.31372556, b: 0.23511025, a: 1}
+    bulk: 1
+    kind: stump
+    height: 3
+    sink: 0.07
+  - name: old106
+    mesh: {fileID: 3743818265308742607, guid: 578d2ac9f52e8f0c580915787b30d98f, type: 3}
+    texture: {fileID: 2800000, guid: 1ad06727aa3fb9574a2974e70a6a7de6, type: 3}
+    yaw: 0
+    colour: {r: 0.37120104, g: 0.33204654, b: 0.24154414, a: 1}
+    bulk: 1
+    kind: stump
+    height: 2.8
+    sink: 0.07
+  - name: old107
+    mesh: {fileID: -3891089152147187572, guid: ed5be0ca65502a60493643444df25079, type: 3}
+    texture: {fileID: 2800000, guid: fa8dc7e438ce2e8588a0b2fb6b9eee10, type: 3}
+    yaw: 0
+    colour: {r: 0.3175858, g: 0.2691789, b: 0.17524521, a: 1}
+    bulk: 0.5
+    kind: dead
+    height: 6
+    sink: 0.06
+  - name: old108
+    mesh: {fileID: 7126633423130032095, guid: 480fff9acc79636e88abaa102904f777, type: 3}
+    texture: {fileID: 2800000, guid: 925e251283e98837bb214a72d4db25aa, type: 3}
+    yaw: 0
+    colour: {r: 0.29325983, g: 0.2672795, b: 0.15171567, a: 1}
+    bulk: 0.5
+    kind: dead
+    height: 5
+    sink: 0.07
+  - name: old112
+    mesh: {fileID: -3323611128791615656, guid: 38e7f9c167a51db2db6a5ec293ec2631, type: 3}
+    texture: {fileID: 2800000, guid: 0b1cee4f1b73d455ba7a89457c8be815, type: 3}
+    yaw: 0
+    colour: {r: 0.40998787, g: 0.34197304, b: 0.23547806, a: 1}
+    bulk: 1
+    kind: prop
+    height: 2.6
+    sink: 0
+  - name: old113
+    mesh: {fileID: 2503031427718619617, guid: 7001fe3d475432fe484011e7183cd7a5, type: 3}
+    texture: {fileID: 2800000, guid: 1ef89b1f74c74440fa96382f5fdd6564, type: 3}
+    yaw: 0
+    colour: {r: 0.34442416, g: 0.28265932, b: 0.19424023, a: 1}
+    bulk: 1
+    kind: prop
+    height: 2.4
+    sink: 0
+  - name: pine
+    mesh: {fileID: 2699108164452376466, guid: 9542b20ade56ecea2a9463c203cb1318, type: 3}
+    texture: {fileID: 2800000, guid: 3a941c87b5aadf5af9c981b307774c73, type: 3}
+    yaw: 0
+    colour: {r: 0.17794119, g: 0.3607843, b: 0.38026968, a: 1}
+    bulk: 0.4
+    kind:
+    height: 0
+    sink: 0.025
+  - name: portal
+    mesh: {fileID: 1288085847678184429, guid: a8b70bbadda439c91adc5d799897e180, type: 3}
+    texture: {fileID: 2800000, guid: b2f3a502f5c599628a32e1f1373c734e, type: 3}
+    yaw: 0
+    colour: {r: 0.34944862, g: 0.35251233, b: 0.34687513, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: relief_cliff
+    mesh: {fileID: 5626213229327705153, guid: 667db0f8d5ce980afae02d7ae47b378e, type: 3}
+    texture: {fileID: 2800000, guid: 1cdf2193ab51616d1aad281e898ce349, type: 3}
+    yaw: 0
+    colour: {r: 0.34938726, g: 0.303799, b: 0.21819851, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: relief_crag
+    mesh: {fileID: -788090138689273335, guid: b23dc6a391aa1bc5cb0251bae874d09c, type: 3}
+    texture: {fileID: 2800000, guid: f0024a590c1b4944eaf608647816215e, type: 3}
+    yaw: 0
+    colour: {r: 0.3476103, g: 0.29227945, b: 0.21899514, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: relief_fallen_log
+    mesh: {fileID: -697684877964412627, guid: 2718201532029f0bd86d345fbbf8b238, type: 3}
+    texture: {fileID: 2800000, guid: db78766ca6f56efb5a308f45698017b8, type: 3}
+    yaw: 0
+    colour: {r: 0.36446083, g: 0.33547798, b: 0.1883579, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: relief_river_stones
+    mesh: {fileID: 5902530891507425303, guid: a2c21d17570314cf3b3e2386b13640b6, type: 3}
+    texture: {fileID: 2800000, guid: d22ac4399aaeb766ea6bfa99bb20bf1d, type: 3}
+    yaw: 0
+    colour: {r: 0.3629289, g: 0.42892167, b: 0.36109084, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: relief_rock_cluster
+    mesh: {fileID: 6324324789749923138, guid: 36f8057228707ce92bccd3a7497fad37, type: 3}
+    texture: {fileID: 2800000, guid: b154250d483bf067ba9b3c2e03491064, type: 3}
+    yaw: 0
+    colour: {r: 0.31378666, g: 0.2949756, b: 0.22824754, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: townhouse
+    mesh: {fileID: 5683338472974494864, guid: a7caa3544f97ddd04b4ead2f8e271b6e, type: 3}
+    texture: {fileID: 2800000, guid: 83b48767ade8c809bb32255bbc12918d, type: 3}
+    yaw: 0
+    colour: {r: 0.29160547, g: 0.23455893, b: 0.17022058, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: wall
+    mesh: {fileID: -5118962629291980332, guid: b709c8c6e6932889ebe99ecb117efeda, type: 3}
+    texture: {fileID: 2800000, guid: f95b8e5a501a82c2092d0ccd63175ce0, type: 3}
+    yaw: 0
+    colour: {r: 0.3298407, g: 0.30888483, b: 0.2598653, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: watchtower
+    mesh: {fileID: -5111003418427255013, guid: c39716eec7dc8278b99d4ad585f5dc87, type: 3}
+    texture: {fileID: 2800000, guid: 4e1608d950c120c5f9a75172ab6d0353, type: 3}
+    yaw: 0
+    colour: {r: 0.31562504, g: 0.23615195, b: 0.17677695, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: weapon_axe
+    mesh: {fileID: -7688693653664136655, guid: 67b793406eb71af08959050f67f3abab, type: 3}
+    texture: {fileID: 2800000, guid: c910795738a3de173bb936506e5594e6, type: 3}
+    yaw: 0
+    colour: {r: 0.38020846, g: 0.32549033, b: 0.2854779, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: weapon_dagger
+    mesh: {fileID: 7865139213166455279, guid: 2522f13a09d2e3bb7878992a7901b568, type: 3}
+    texture: {fileID: 2800000, guid: cbfbc0cd00b54169ab559d8fe1d3856a, type: 3}
+    yaw: 0
+    colour: {r: 0.6344976, g: 0.6144608, b: 0.56997526, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: weapon_mace
+    mesh: {fileID: 3358948159993867685, guid: 637801f1f8318eb2d83eaa91bad9d7e7, type: 3}
+    texture: {fileID: 2800000, guid: 56c8fc5e83f80de84a5ae20cf48ec225, type: 3}
+    yaw: 0
+    colour: {r: 0.40845597, g: 0.369179, b: 0.2978554, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: weapon_shield
+    mesh: {fileID: -7170990113330060800, guid: bcae91bcfd51ab1c98f8804771f73514, type: 3}
+    texture: {fileID: 2800000, guid: 44a881545db7d145894cf546384ae2eb, type: 3}
+    yaw: 0
+    colour: {r: 0.3612745, g: 0.37475488, b: 0.33584562, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: weapon_spear
+    mesh: {fileID: -2229489569258853016, guid: 8a355ef325449908d992a7a1dec9bb1d, type: 3}
+    texture: {fileID: 2800000, guid: 16de6d4cd7a972e85ac7ad5474cdb884, type: 3}
+    yaw: 0
+    colour: {r: 0.4685047, g: 0.3787991, b: 0.32064953, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: weapon_staff
+    mesh: {fileID: -8514625582417624147, guid: 2dd854b35bc030984a478af127af7d90, type: 3}
+    texture: {fileID: 2800000, guid: 78dcbee1b4c0c1f88904943d9a43bf56, type: 3}
+    yaw: 0
+    colour: {r: 0.39019623, g: 0.38596818, b: 0.37058833, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: weapon_sword
+    mesh: {fileID: 5778303100675363848, guid: 46a4c352cd46d2a4182abf3db6a991f6, type: 3}
+    texture: {fileID: 2800000, guid: 68291b8a8c80b99809e587786d641142, type: 3}
+    yaw: 0
+    colour: {r: 0.80110306, g: 0.7312498, b: 0.6416057, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: well
+    mesh: {fileID: 5567545245653623675, guid: 9be112baceddf87e08282cb64cc04f8d, type: 3}
+    texture: {fileID: 2800000, guid: 5b5138b7497ca72e99b87dd9b062d35e, type: 3}
+    yaw: 0
+    colour: {r: 0.31470594, g: 0.2669118, b: 0.22922792, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: wild_chicken
+    mesh: {fileID: -1736180729970464854, guid: 075c01002f05c915f880554152bdcdab, type: 3}
+    texture: {fileID: 2800000, guid: b42b16c35fe69cf83be1463394eed3f6, type: 3}
+    yaw: 0
+    colour: {r: 0.5097427, g: 0.3311275, b: 0.19963242, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: wild_crow
+    mesh: {fileID: 3745292769918234367, guid: f0afffe53e9858a968f850989077ac90, type: 3}
+    texture: {fileID: 2800000, guid: dbbd448a7c5983e19b256ebb3380ec1e, type: 3}
+    yaw: 0
+    colour: {r: 0.14730397, g: 0.14227945, b: 0.14730397, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: wild_duck
+    mesh: {fileID: 4418232875322821192, guid: 48eb9df65188595b481796c3a69677da, type: 3}
+    texture: {fileID: 2800000, guid: edfc8ff041b3436178b80a160a28a877, type: 3}
+    yaw: 0
+    colour: {r: 0.527206, g: 0.44969368, b: 0.3900122, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: wild_eagle
+    mesh: {fileID: -1367827851602061779, guid: 0b535ceb7e55e9900a9150c620909bf4, type: 3}
+    texture: {fileID: 2800000, guid: 0fdd648d27a9c832abf4007614ba670e, type: 3}
+    yaw: 0
+    colour: {r: 0.34932587, g: 0.28927702, b: 0.20349261, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  - name: wild_owl
+    mesh: {fileID: 8578107677866451710, guid: 2e3413e0c5719294c9cf13c283678497, type: 3}
+    texture: {fileID: 2800000, guid: 0a402edf7bf707cf9bfa00f571be3c56, type: 3}
+    yaw: 0
+    colour: {r: 0.4925858, g: 0.40980393, b: 0.33216912, a: 1}
+    bulk: 1
+    kind:
+    height: 0
+    sink: 0
+  grassTexture: {fileID: 2800000, guid: 144a7af9e3507a29ba5e00363621b68e, type: 3}
+  roadTexture: {fileID: 2800000, guid: f03c90c9841b3d34e954d603f50f14c4, type: 3}
+  grassTile: 8
+  roadTile: 5
+  drawDistance: 2500
+  navigation: 0
+  stripMaterial: {fileID: 2100000, guid: 2f9830bb108e7b994a32cda224420b56, type: 2}
+  ribbonAhead: 90
+  startAngle: 70
+  roam: 40
+  framePixels: 72
+  frameDistances:
+  - 22
+  - 15
+  - 30
+  - 40
+  frameHeight: 4
+  frameLook: 3
+  frameView: 34
+  framesAnUpdate: 3
+  branches: 0
+  maxLeaving: 900
+  leavingSpeed: 25
+  goneIn: 3.5
+  offerAhead: 450
+  branchSide: 140
+--- !u!114 &1010065417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010065414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee7e3149408bd574398538531f4831dc, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.RibbonBend
+  world: {fileID: 1010065416}
+  view: {fileID: 500194329}
+  flat: 16
+  arc: 40
+  straighten: {x: 10, y: 26}
+  rise: 85
+  riseLength: 14
+  curl: 60
+  relief: 0.3
+  sway: 25
+  twist: 35
+  speed: 0.05
+  breathe: 0.08
+  pastFlat: 30
+  pastShrink: 8
+  pastSink: 20
+  pastWindow: 80
+  sky: 1
+  anchor: {fileID: 0}
+  above: 0.15
+  startWidth: 0.3
+  follow: 40
+  level: 10
+  rampLength: 200
+  rampPitch: 26
+  reliefTo: 50
+  settleFrom: 40
+  settleTo: 330
+  memory: {x: 60, y: 330}
+  filmIn: {x: 330, y: 460}
+  lead: 1.3
+  settle: 1.5
+  turns: 4
+  funnelRadius: {x: 250, y: 600}
+  widen: 1.2
+  funnelRise: {x: 12, y: 30}
+  funnelBase: 60
+  wobble: 0.1
+  sag: 20
+  windLength: 400
+  flutter: 10
+  flutterLength: 280
+  flutterSpeed: 30
+  flutterTwist: 25
+  calm: {x: 220, y: 520}
+  skyWidth: 0.09
+  stripHalfWidth: 50
+  frameLength: 7
+  frameAspect: 3.5
+  route: -1
+  renderers: []
+  global: 1
+  branchFrom: 3.4028235e+38
+  branchSide: 0
+  branchSpread: 220
+  vanish: 0
+  tint: {r: 1, g: 1, b: 1, a: 1}
+  storyFrom: 0
+--- !u!4 &1010065418
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1010065414}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1203895513
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1203895515}
+  - component: {fileID: 1203895514}
+  m_Layer: 0
+  m_Name: Sun
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!108 &1203895514
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1203895513}
+  m_Enabled: 1
+  serializedVersion: 13
+  m_Type: 1
+  m_Color: {r: 1, g: 0.82, b: 0.6, a: 1}
+  m_Intensity: 2.2
+  m_Range: 10
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize2D: {x: 0.5, y: 0.5}
+  m_Shadows:
+    m_Type: 2
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 0.85
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
+  m_ShapeRadius: 0.025
+  m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
+--- !u!4 &1203895515
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1203895513}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.18005681, y: -0.4890738, z: 0.10395585, w: 0.8471007}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1442619853
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1442619855}
+  - component: {fileID: 1442619854}
+  m_Layer: 0
+  m_Name: Hilda's Spirit
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1442619854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1442619853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c76531c0bd46876ab290e6ff2cf3b54, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.Villager
+  title: A spirit
+  world: {fileID: 1010065416}
+  hero: {fileID: 1956073320}
+  font: {fileID: 12800000, guid: bd277f8c03102d4fe934303d5e75509e, type: 3}
+  rig: {fileID: 919132149155446097, guid: db72659d80122a08bb2955842e65edd4, type: 3}
+  moves: {fileID: 9100000, guid: 7df583729a5b5b0faa08470ac85b7c05, type: 2}
+  look: {fileID: 2100000, guid: 006007dfd99c2fb718f588b182dacd1d, type: 2}
+  height: 1.68
+  named: 9
+  ghostly: 1
+  hover: 0.25
+  motes: {fileID: 2100000, guid: f89508cef5bad6a189bdbe5cca439a83, type: 2}
+  rays: {fileID: 2100000, guid: 85b8e254f7716b4aa9b5b514368dc186, type: 2}
+  raysSize: 2.3
+  pace: 1.35
+  searching: 0
+--- !u!4 &1442619855
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1442619853}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1609753380
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1609753383}
+  - component: {fileID: 1609753382}
+  - component: {fileID: 1609753381}
+  m_Layer: 0
+  m_Name: Quest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1609753381
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1609753380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b4f0c7777f9ee2de94d75f29185021b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.SpiritQuest
+  world: {fileID: 1010065416}
+  ribbon: {fileID: 1010065417}
+  hero: {fileID: 1956073320}
+  view: {fileID: 500194329}
+  dialogue: {fileID: 1609753382}
+  spirit: {fileID: 896636667}
+  hilda: {fileID: 652844821}
+  ghost: {fileID: 1442619854}
+  keysModel: {fileID: 919132149155446097, guid: e8e4e13450ac22f54b01344f22d8a3e4, type: 3}
+  keysTexture: {fileID: 2800000, guid: 550d1effe4f5ad6b19d32fa5038fb30c, type: 3}
+  keysLook: {fileID: 2100000, guid: 59c3bdc86c28ed4d5a7365580570b99e, type: 2}
+  glintLook: {fileID: 2100000, guid: f402cd90a6ec4e582934d26126ad7d89, type: 2}
+  keysSize: 0.3
+  lines:
+  - {fileID: 8300000, guid: 62ebcd16d7ecd4087bbb7e377f1a0295, type: 3}
+  - {fileID: 8300000, guid: 2e43c889c02d0d8f28c8cca79b816038, type: 3}
+  - {fileID: 8300000, guid: b79098dd19a09533e833b2d75ca08512, type: 3}
+  - {fileID: 8300000, guid: 44d1f04b6d489ff44a97a6b6e68558a8, type: 3}
+  - {fileID: 8300000, guid: ace1e1beeadaca84fa00631f34bf40c4, type: 3}
+  - {fileID: 8300000, guid: 74457f75ac24b1a7e96096b339c3cd05, type: 3}
+  - {fileID: 8300000, guid: 3af046db7d709cd1689a1ee6d28386fd, type: 3}
+  - {fileID: 8300000, guid: 47d2ce2414d6e4717b952847a1ea5bae, type: 3}
+  - {fileID: 8300000, guid: 5b9b119c3b1e15daf885a7bc40af8fc8, type: 3}
+  - {fileID: 8300000, guid: f362068c9fa1e1ae59d9db3fc317ed8b, type: 3}
+  - {fileID: 8300000, guid: 6c9e64175ccf59b67959bd4712d57cf3, type: 3}
+  - {fileID: 8300000, guid: 6cb898976e32e3dbbba65e513b31ec01, type: 3}
+  - {fileID: 8300000, guid: 7dd7c25278b414966a249c757a09af73, type: 3}
+  - {fileID: 8300000, guid: a419e717191f002158b57cf023d8b5ce, type: 3}
+  - {fileID: 8300000, guid: 7f722a54916d813a5ab51f31ed43b028, type: 3}
+  - {fileID: 8300000, guid: 7f622c6d82a8f03bf95ccba2219aac1f, type: 3}
+  - {fileID: 8300000, guid: 1138ff167e32652d7a1ae1876f92d034, type: 3}
+  - {fileID: 8300000, guid: d8dc77edfb48d5dbaab11c03d16c9aa1, type: 3}
+  - {fileID: 8300000, guid: 06b72da79f07bfb27a429d31fe194174, type: 3}
+  keysSound: {fileID: 8300000, guid: c05643d86c8ee83e0bb8e631981462a9, type: 3}
+  dreamSound: {fileID: 8300000, guid: a1bf9a13e42fde557915a3e9810cfd18, type: 3}
+  comesAt: 240
+  reach: 3.2
+--- !u!114 &1609753382
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1609753380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b1871a9748c8aeffbd78773a0eb104f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.Dialogue
+  font: {fileID: 12800000, guid: bd277f8c03102d4fe934303d5e75509e, type: 3}
+  view: {fileID: 500194329}
+  hero: {fileID: 1956073320}
+  entry: {fileID: 8300000, guid: 21a80dff4286595c8af2f698dd1efc6f, type: 3}
+  fieldOfView: 36
+  behind: 1.3
+  shoulder: 0.75
+  above: 0.22
+--- !u!4 &1609753383
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1609753380}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1865466846
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1865466848}
+  - component: {fileID: 1865466847}
+  m_Layer: 0
+  m_Name: Marks
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1865466847
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1865466846}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 605361474f52d77cb8997ac59c420d39, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.StoryMarks
+  world: {fileID: 1010065416}
+  ribbon: {fileID: 1010065417}
+  view: {fileID: 500194329}
+  reach: 30
+  from: 150
+  size: 26
+  smallest: 8
+  light: {r: 1, g: 0.92, b: 0.75, a: 1}
+  village: {fileID: 2800000, guid: f5672c63e3ce837b4a9471e6e77b3038, type: 3}
+  cave: {fileID: 2800000, guid: 7bf95c6a05c59919b82f3220951a7096, type: 3}
+  city: {fileID: 2800000, guid: 4a8b4c73db412124784861db5fa74c6b, type: 3}
+  farm: {fileID: 2800000, guid: d8affea7eeeed70fda55470e12896ffe, type: 3}
+  end: {fileID: 2800000, guid: e7dc5c7fb2f18710fab8752ebd8540f6, type: 3}
+  route: -1
+  fromS: 0
+  alpha: 1
+--- !u!4 &1865466848
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1865466846}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1956073319
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1956073322}
+  - component: {fileID: 1956073321}
+  - component: {fileID: 1956073320}
+  m_Layer: 0
+  m_Name: Hero
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1956073320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1956073319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8f68c46d79b3e4cb90eeaa47f6ca7de, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::FinishTheGame.Hero
+  world: {fileID: 1010065416}
+  view: {fileID: 500194329}
+  map: {fileID: 1010065415}
+  speed: 7
+  turn: 720
+  forwardOnly: 0
+  look: {fileID: 2100000, guid: 8757c9f51ae378fb1a2fd559b4673d3e, type: 2}
+  rig: {fileID: 919132149155446097, guid: 4888a9cfd8a3473bc810e19084a57fe9, type: 3}
+  gaits: {fileID: 9100000, guid: 8d0de464813b5abce90d5c2d01a99128, type: 2}
+  rigHeight: 1.8
+  inFrame: 0
+  margin: 0.06
+  bottom: 0.1
+  held: 0
+--- !u!143 &1956073321
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1956073319}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 1.8
+  m_Radius: 0.4
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!4 &1956073322
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1956073319}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 1203895515}
+  - {fileID: 500194332}
+  - {fileID: 1956073322}
+  - {fileID: 1010065418}
+  - {fileID: 88862741}
+  - {fileID: 1865466848}
+  - {fileID: 1609753383}
+  - {fileID: 896636668}
+  - {fileID: 652844822}
+  - {fileID: 1442619855}

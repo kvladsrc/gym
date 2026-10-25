@@ -32,8 +32,6 @@ export interface Target {
 }
 
 export const drafts = signal<ReadonlyMap<string, Draft>>(new Map());
-/** The job shown in each section (null: the newest). */
-export const shownJob = signal<ReadonlyMap<string, string>>(new Map());
 
 const schemaKey = (task: Task | undefined) =>
   task ? JSON.stringify(task.params_schema) : "";
@@ -154,13 +152,6 @@ export function chooseTask(section: Section, taskName: string) {
  * jobs then wait for this model rather than go to another. */
 export function chooseServer(section: Section, serverId: string) {
   save(section.id, { ...draftFor(section), server: serverId });
-}
-
-export function showJob(sectionId: string, jobId: string | null) {
-  const next = new Map(shownJob.value);
-  if (jobId) next.set(sectionId, jobId);
-  else next.delete(sectionId);
-  shownJob.value = next;
 }
 
 /** Tasks of a section that accept this asset as an input, with the input role. */

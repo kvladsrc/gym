@@ -124,7 +124,8 @@ export interface paths {
         };
         /**
          * List Assets
-         * @description Assets matching all filters; ``tag`` may repeat (all must match).
+         * @description Assets matching all filters; ``tag`` may repeat (all must match); ``motion``: made by
+         *     a motion task or not (the library's Animations filter, whatever the file format).
          */
         get: operations["list_assets_api_assets_get"];
         put?: never;
@@ -195,6 +196,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/assets/{asset_id}/frames": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save Video Frame
+         * @description The frame of a video at ``time_s`` as a new image asset, made from the video.
+         */
+        post: operations["save_video_frame_api_assets__asset_id__frames_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assets/{asset_id}/skeleton": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Asset Skeleton
+         * @description A native motion (SMPL-X or SOMA) as joint positions per frame, for the viewer.
+         */
+        get: operations["asset_skeleton_api_assets__asset_id__skeleton_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/assets/{asset_id}/lineage": {
         parameters: {
             query?: never;
@@ -204,6 +245,27 @@ export interface paths {
         };
         /** Lineage */
         get: operations["lineage_api_assets__asset_id__lineage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assets/{asset_id}/job": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Producer
+         * @description The job that made the asset (prompt, parameters, seed, inputs, model);
+         *     null for an imported asset.
+         */
+        get: operations["producer_api_assets__asset_id__job_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -242,7 +304,7 @@ export interface components {
          * AssetKind
          * @enum {string}
          */
-        AssetKind: "image" | "mesh" | "audio" | "text" | "video";
+        AssetKind: "image" | "mesh" | "audio" | "text" | "video" | "motion";
         /** AssetOut */
         AssetOut: {
             /** Id */
@@ -446,6 +508,10 @@ export interface components {
             license?: string | null;
             /** Source */
             source?: string | null;
+            /** Details */
+            details?: {
+                [key: string]: string;
+            } | null;
         };
         /** ParentOut */
         ParentOut: {
@@ -769,6 +835,7 @@ export interface operations {
                 tag?: string[] | null;
                 min_rating?: number | null;
                 unrated?: boolean;
+                motion?: boolean | null;
                 limit?: number;
             };
             header?: never;
@@ -993,6 +1060,72 @@ export interface operations {
             };
         };
     };
+    save_video_frame_api_assets__asset_id__frames_post: {
+        parameters: {
+            query: {
+                time_s: number;
+            };
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    asset_skeleton_api_assets__asset_id__skeleton_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     lineage_api_assets__asset_id__lineage_get: {
         parameters: {
             query?: never;
@@ -1011,6 +1144,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ParentOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    producer_api_assets__asset_id__job_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"] | null;
                 };
             };
             /** @description Validation Error */

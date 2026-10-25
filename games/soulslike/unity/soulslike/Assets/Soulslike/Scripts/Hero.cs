@@ -70,7 +70,7 @@ namespace Soulslike
             if (keyboard.digit1Key.wasPressedThisFrame) Arm(Weapon.Sword);
             else if (keyboard.digit2Key.wasPressedThisFrame) Arm(Weapon.Hammer);
             else if (keyboard.digit3Key.wasPressedThisFrame) Arm(Weapon.Hands);
-            if (keyboard.rKey.wasPressedThisFrame && !Body.Busy && Flasks > 0 && Health.Current < Health.max)
+            if (keyboard.rKey.wasPressedThisFrame && Body.Idle && Flasks > 0 && Health.Current < Health.max)
             {
                 Flasks--;
                 Health.Heal(flaskHeal);
@@ -79,7 +79,7 @@ namespace Soulslike
 
         void Arm(Weapon held)
         {
-            if (Body.Busy || held == weapon) return;
+            if (!Body.Idle || held == weapon) return;
             weapon = held;
             Body.Equip(weapon, height);
         }

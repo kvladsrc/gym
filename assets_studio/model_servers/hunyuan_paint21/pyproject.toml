@@ -1,0 +1,74 @@
+[project]
+name = "hunyuan-paint21-model-server"
+version = "0.1.0"
+description = "Paints a 3D mesh from its image with PBR materials for the asset studio: Hunyuan3D-Paint 2.1, offloaded to RAM."
+# PyTorch 2.8 / CUDA 12.9: the rasterizer is compiled with the toolkit's nvcc
+# (12.9), which must match (as for hunyuan_paint).
+requires-python = "==3.11.*"
+dependencies = [
+  "assets-studio-processing",
+  "model-server-sdk",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  # What hy3dpaint imports, at upstream's versions where it matters (its
+  # custom pipeline is written for diffusers 0.30).
+  "diffusers==0.30.0",
+  "transformers==4.46.0",
+  "huggingface-hub==0.30.2",
+  "accelerate>=1.1.1",
+  "einops>=0.8",
+  "omegaconf>=2.3",
+  "numpy==1.26.4",
+  "scipy>=1.13",
+  "scikit-image>=0.24",
+  "opencv-python-headless>=4.10,<4.12",
+  "trimesh>=4.4",
+  "pymeshlab>=2023.12",
+  "xatlas>=0.0.9",
+  "fast-simplification",
+  "pygltflib>=1.16",
+  "open3d>=0.18",
+  "timm",
+  "pytorch-lightning==1.9.5",
+  "safetensors>=0.4",
+  "Pillow>=10.4",
+  # RealESRGAN x4plus through spandrel, not realesrgan/basicsr (sdists that
+  # import torch to build, and pull gfpgan and facexlib).
+  "spandrel==0.4.2",
+  "bpy==4.3.0",
+  "rembg==2.0.57",
+  "onnxruntime==1.20.1",
+  # Building the rasterizer and the inpainting module (just setup).
+  # < 81: pytorch-lightning 1.9 imports pkg_resources.
+  "setuptools>=69,<81",
+  "wheel",
+  "ninja",
+  "pybind11>=2.12",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+hunyuan-paint21-model-server = "hunyuan_paint21_model_server.__main__:main"
+
+[tool.uv.sources]
+assets-studio-processing = { path = "../../asset_processing", editable = true }
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+bpy = { index = "blender" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[[tool.uv.index]]
+name = "blender"
+url = "https://download.blender.org/pypi/"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

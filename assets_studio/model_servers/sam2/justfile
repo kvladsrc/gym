@@ -1,0 +1,20 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/sam2"
+runner := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
+
+default:
+    @just --justfile {{ justfile() }} --list
+
+setup:
+    {{ runner }} uv sync --extra test
+
+[positional-arguments]
+serve *args:
+    {{ runner }} uv run --no-sync sam2-model-server "$@"
+
+doctor:
+    {{ runner }} uv run --no-sync python -m sam2_model_server.doctor
+
+test:
+    {{ runner }} uv run --no-sync pytest -q tests

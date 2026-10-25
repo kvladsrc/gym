@@ -12,6 +12,8 @@ image models, 3D models); every combination becomes a chain of jobs
     uv run python sweep/sweep.py tag SPEC.toml     # tag finished results (repeatable)
     uv run python sweep/sweep.py status SPEC.toml
     uv run python sweep/sweep.py paint SPEC.toml   # paint shape-only meshes from their images
+    uv run python sweep/sweep.py gallery SPEC.toml # a page comparing the models side by side
+    uv run python sweep/sweep.py extend SPEC.toml  # queue 3D models added to the spec since
 
 A category with ``images`` (asset ids of concepts already in the studio)
 instead of subjects remakes 3D from those images: no text-to-image job, no
@@ -34,6 +36,8 @@ import urllib.request
 from collections import Counter
 from pathlib import Path
 from typing import Any
+
+import gallery
 
 STUDIO = os.environ.get("STUDIO_URL", "http://127.0.0.1:9000")
 SWEEPS = (
@@ -141,6 +145,30 @@ def queue(spec: dict[str, Any], manifest: Path) -> None:
     print(f"queued {len(entries)} images and {meshes} meshes; manifest {manifest}")
 
 
+def extend(spec: dict[str, Any], manifest: Path) -> None:
+    """Queue, for every image of a queued sweep, the 3D models of the spec it
+    has no job for yet (a model added to the spec after `queue`); then
+    `paint` paints the new shapes."""
+    data = json.loads(manifest.read_text())
+    queued = 0
+    for entry in data["entries"]:
+        have = {m["model"] for m in entry["meshes"]}
+        wanted = spec["categories"][entry["category"]].get("3d", spec["3d_models"])
+        missing = [model for model in wanted if model not in have]
+        if not missing:
+            continue
+        if entry["image_job"]:
+            image = {"dependencies": {"image": {"job_id": entry["image_job"], "output_index": 0}}}
+        else:
+            image = {"inputs": {"image": entry["image_asset"]}}
+        category = {**spec["categories"][entry["category"]], "3d": missing}
+        only = {**spec, "categories": {entry["category"]: category}}
+        entry["meshes"] += mesh_jobs(only, entry["category"], image)
+        queued += len(missing)
+        manifest.write_text(json.dumps(data, indent=1))  # after every image
+    print(f"queued {queued} meshes")
+
+
 def tags_of(name: str, entry: dict[str, Any], model: str | None) -> list[str]:
     tags = [
         f"sweep:{name}",
@@ -174,17 +202,20 @@ def tag(manifest: Path) -> None:
 
 
 # Reconstructions without colour, painted by the paint server (3d-paint).
-SHAPE_ONLY = ("hunyuan3d",)
+SHAPE_ONLY = ("hunyuan3d", "hunyuan3d21", "triposg")
 
 
-def paint(manifest: Path) -> None:
+def paint(spec: dict[str, Any], manifest: Path) -> None:
     """Queue 3d-paint for every shape-only mesh of the sweep, with the image it
-    was made from; recorded as the mesh model "<model>+paint"."""
+    was made from, by each painter of the spec's ``painters`` table (default:
+    the server ``paint``); recorded as the mesh model "<model>+<painter>".
+    A painter can be limited to some shape models with ``shapes = [...]``."""
     data = json.loads(manifest.read_text())
-    # Paint jobs already in the studio, by the mesh job they paint: a rerun
+    painters = spec.get("painters", {"paint": {"server": "paint"}})
+    # Paint jobs already in the studio, by the mesh job and server: a rerun
     # (or a run that stopped halfway) adds none twice.
     existing = {
-        job["dependencies"]["mesh"]["job_id"]: job["id"]
+        (job["dependencies"]["mesh"]["job_id"], job["server"]): job["id"]
         for job in call("GET", "/api/jobs?limit=1000")
         if job["task"] == "3d-paint" and "mesh" in job["dependencies"]
     }
@@ -192,32 +223,36 @@ def paint(manifest: Path) -> None:
     for entry in data["entries"]:
         have = {m["model"] for m in entry["meshes"]}
         for mesh in list(entry["meshes"]):
-            painted = f"{mesh['model']}+paint"
-            if mesh["model"] not in SHAPE_ONLY or painted in have:
+            if mesh["model"] not in SHAPE_ONLY:
                 continue
-            if mesh["job"] in existing:
-                entry["meshes"].append({"model": painted, "job": existing[mesh["job"]]})
-                continue
-            if call("GET", f"/api/jobs/{mesh['job']}")["status"] in ("failed", "cancelled"):
-                continue
-            dependencies = {"mesh": {"job_id": mesh["job"], "output_index": 0}}
-            if entry["image_job"]:
-                dependencies["image"] = {"job_id": entry["image_job"], "output_index": 0}
-            job = call(
-                "POST",
-                "/api/jobs",
-                {
-                    "server": "paint",
-                    "task": "3d-paint",
-                    "params": {},
-                    "dependencies": dependencies,
-                    # An image already in the studio: an input, not a job's output.
-                    "inputs": {"image": entry["image_asset"]} if not entry["image_job"] else {},
-                },
-            )
-            entry["meshes"].append({"model": painted, "job": job["id"]})
-            queued += 1
-            manifest.write_text(json.dumps(data, indent=1))  # after every job
+            for name, painter in painters.items():
+                painted = f"{mesh['model']}+{name}"
+                if painted in have or mesh["model"] not in painter.get("shapes", SHAPE_ONLY):
+                    continue
+                if (mesh["job"], painter["server"]) in existing:
+                    job_id = existing[(mesh["job"], painter["server"])]
+                    entry["meshes"].append({"model": painted, "job": job_id})
+                    continue
+                if call("GET", f"/api/jobs/{mesh['job']}")["status"] in ("failed", "cancelled"):
+                    continue
+                dependencies = {"mesh": {"job_id": mesh["job"], "output_index": 0}}
+                if entry["image_job"]:
+                    dependencies["image"] = {"job_id": entry["image_job"], "output_index": 0}
+                job = call(
+                    "POST",
+                    "/api/jobs",
+                    {
+                        "server": painter["server"],
+                        "task": "3d-paint",
+                        "params": painter.get("params", {}),
+                        "dependencies": dependencies,
+                        # An image already in the studio: an input, not a job's output.
+                        "inputs": {"image": entry["image_asset"]} if not entry["image_job"] else {},
+                    },
+                )
+                entry["meshes"].append({"model": painted, "job": job["id"]})
+                queued += 1
+                manifest.write_text(json.dumps(data, indent=1))  # after every job
     manifest.write_text(json.dumps(data, indent=1))
     print(f"queued {queued} paint jobs")
 
@@ -235,7 +270,7 @@ def status(manifest: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Queue and tag combinations of asset axes.")
-    parser.add_argument("command", choices=["queue", "tag", "status", "paint"])
+    parser.add_argument("command", choices=["queue", "extend", "tag", "status", "paint", "gallery"])
     parser.add_argument("spec", type=Path)
     args = parser.parse_args()
     spec = tomllib.loads(args.spec.read_text())
@@ -243,9 +278,11 @@ def main() -> None:
     try:
         {
             "queue": lambda: queue(spec, manifest),
+            "extend": lambda: extend(spec, manifest),
             "tag": lambda: tag(manifest),
             "status": lambda: status(manifest),
-            "paint": lambda: paint(manifest),
+            "paint": lambda: paint(spec, manifest),
+            "gallery": lambda: print(gallery.build(call, STUDIO, manifest)),
         }[args.command]()
     except urllib.error.HTTPError as error:
         sys.exit(f"the studio refused: HTTP {error.code}: {error.read().decode()[:300]}")

@@ -64,6 +64,9 @@ class ModelInfo(_Response):
     revision: str | None = None
     license: str | None = None
     source: str | None = None
+    # Technical facts for the studio's model panel, label -> value, e.g. {"parameters": "20 B",
+    # "quantization": "Q8_0 GGUF", "offloading": "sequential CPU offload", "peak VRAM": "7.4 GB"}.
+    details: dict[str, str] | None = None
 
 
 class InputSpec(_Response):

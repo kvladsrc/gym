@@ -1,0 +1,57 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Heavy files live outside the Dropbox-synced working copy.
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+source := cache / "kimodo-source"
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/kimodo_model_server/server.py`
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/kimodo"
+export KIMODO_DATA := cache / "kimodo"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+# Meta-Llama-3-8B-Instruct (the text encoder's base) is gated: request access on Hugging Face.
+export HF_TOKEN := env("HF_TOKEN", env("HUGGINGFACE_TOKEN", ""))
+
+root := quote(justfile_directory() / "../../..")
+gpu_shell := "nix develop " + root + "#assets-studio-gpu --command"
+# With a C++ compiler: only to build MotionCorrection.
+cuda_shell := "nix develop " + root + "#assets-studio-cuda --command"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned Kimodo source, create the environment, build Kimodo (with MotionCorrection)
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then \
+        git clone --no-checkout https://github.com/nv-tlabs/kimodo.git "{{ source }}"; \
+    fi
+    git -C "{{ source }}" cat-file -e "{{ revision }}^{commit}" 2>/dev/null \
+        || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ gpu_shell }} uv sync --extra test
+    # MotionCorrection's Scalar.h uses abs() without including <stdlib.h>; the
+    # CMake cache of an earlier build would keep its flags.
+    rm -rf "{{ source }}/build"
+    {{ cuda_shell }} env PATH="$UV_PROJECT_ENVIRONMENT/bin:$PATH" CXXFLAGS="-include stdlib.h" \
+        uv pip install --python "$UV_PROJECT_ENVIRONMENT" --no-build-isolation --no-deps "{{ source }}"
+
+# Download Kimodo, the LLM2Vec adapters and Llama-3-8B (~17 GB; network only, needs HF_TOKEN)
+download:
+    {{ gpu_shell }} uv run --no-sync python -c "from kimodo_model_server.server import download; download()"
+
+# Download Kimodo-SMPLX-RP-v1 (gated: accept its terms on Hugging Face first; needs HF_TOKEN)
+download-smplx:
+    {{ gpu_shell }} env HF_TOKEN="$HF_TOKEN" uv run --no-sync python -c "from kimodo_model_server.server import download; download('smplx')"
+
+# Report PyTorch, the CUDA device, Kimodo, bpy and whether the weights are downloaded
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m kimodo_model_server.doctor
+
+# Serve on 127.0.0.1:9118 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync kimodo-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

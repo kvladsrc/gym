@@ -1,0 +1,53 @@
+[project]
+name = "triposg-model-server"
+version = "0.1.0"
+description = "Image-to-3D model server for the asset studio, based on TripoSG (shape only)."
+# PyTorch 2.8 / CUDA 12.9, like Hunyuan3D-Paint: diso (the marching cubes of
+# the decoder) is compiled with the toolkit's nvcc (12.9), which must match.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  # What the triposg package imports.
+  "diffusers>=0.32,<0.36",
+  "transformers>=4.48,<5",
+  "accelerate>=1.2",
+  "einops>=0.8",
+  "omegaconf>=2.3",
+  "jaxtyping>=0.2.36",
+  "typeguard>=4.4",
+  "scipy>=1.13",
+  "scikit-image>=0.24",
+  "huggingface-hub>=0.26,<1",
+  "numpy==1.26.4",
+  "trimesh>=4.4",
+  "pymeshlab>=2023.12",
+  "Pillow>=10.4",
+  "rembg==2.0.57",
+  "onnxruntime==1.20.1",
+  # Building diso (just setup).
+  "setuptools>=69",
+  "wheel",
+  "ninja",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+triposg-model-server = "triposg_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

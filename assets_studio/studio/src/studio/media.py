@@ -73,6 +73,8 @@ def for_storage(data: bytes, mime: str) -> tuple[bytes, str]:
 def to_canonical(data: bytes, mime: str) -> tuple[bytes, str]:
     """Convert to the canonical format of the file's kind (every server accepts it)."""
     kind = MIME_KINDS[mime]
+    if kind is AssetKind.MOTION:
+        raise UnsupportedMedia(f"{mime} is not converted: SMPL-X and SOMA are different bodies")
     canonical = CANONICAL_MIME[kind]
     if kind is AssetKind.TEXT:
         return normalize_text(data), canonical
@@ -166,6 +168,11 @@ def _probe(data: bytes, mime: str) -> list[dict[str, object]]:
     if not any(stream.get("codec_type") == "video" for stream in streams):
         raise UnsupportedMedia("the file has no video stream")
     return streams
+
+
+def video_frame(data: bytes, mime: str, time_s: float) -> bytes:
+    """The frame shown at ``time_s`` of a video, as PNG: decoded up to it, not a key frame."""
+    return _ffmpeg(data, mime, ".png", ["-ss", f"{time_s:.3f}", "-frames:v", "1", "-an"])
 
 
 def _ffmpeg(data: bytes, mime: str, suffix: str, options: list[str]) -> bytes:

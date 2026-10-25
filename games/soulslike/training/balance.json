@@ -14,6 +14,12 @@
       "stagger": 0.3
     }
   },
+  "evade": {
+    "from": 0.2,
+    "to": 0.6,
+    "cancel": 0.2,
+    "note": "a roll's or quick move's untouchable part: phases 2-3 of 5 (0.2-0.6). At 0.2 the network did not find it in 4 M steps; widened to 0.1, the roll rose to its top actions, and it went back. A blow touching the body then is evaded (adrenaline). A blow may be dropped for an evade in its first fifth (its wind-up, phase 1)"
+  },
   "rules": [
     {
       "held": "hands",

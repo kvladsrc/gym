@@ -29,7 +29,10 @@ import numpy as np
 from PIL import Image
 
 STUDIO = os.environ.get("STUDIO_URL", "http://127.0.0.1:9000")
-ART = Path(__file__).resolve().parent.parent / "unity/soulslike/Assets/Soulslike/Art/Textures"
+ART = (
+    Path(__file__).resolve().parent.parent
+    / "unity/soulslike/Assets/Soulslike/Art/Textures"
+)
 
 
 def fetch(asset: str) -> Image.Image:
@@ -57,23 +60,39 @@ def tileable(a: np.ndarray) -> np.ndarray:
 
 
 def detail(asset: str, out: Path) -> None:
-    rgb = np.asarray(fetch(asset).convert("RGB").resize((1024, 1024), Image.LANCZOS), dtype=np.float64) / 255
+    rgb = (
+        np.asarray(
+            fetch(asset).convert("RGB").resize((1024, 1024), Image.LANCZOS),
+            dtype=np.float64,
+        )
+        / 255
+    )
     light = rgb @ np.array([0.299, 0.587, 0.114])
     light = tileable(light)
     fine = light - blur(light, 24)  # without the broad shading
     grey = np.clip(0.5 + fine / (fine.std() * 6.5), 0, 1)  # ±3 sd in [0.04, 0.96]
     out.mkdir(parents=True, exist_ok=True)
-    Image.fromarray((np.dstack([grey] * 3) * 255).astype(np.uint8)).save(out / "GroundDetail.png")
+    Image.fromarray((np.dstack([grey] * 3) * 255).astype(np.uint8)).save(
+        out / "GroundDetail.png"
+    )
     height = blur(grey, 1.0)
     dx = (np.roll(height, -1, axis=1) - np.roll(height, 1, axis=1)) * 4
     dy = (np.roll(height, -1, axis=0) - np.roll(height, 1, axis=0)) * 4
     normal = np.dstack([-dx, dy, np.ones_like(dx)])
     normal /= np.linalg.norm(normal, axis=2, keepdims=True)
-    Image.fromarray(((normal * 0.5 + 0.5) * 255).astype(np.uint8)).save(out / "GroundDetailNormal.png")
+    Image.fromarray(((normal * 0.5 + 0.5) * 255).astype(np.uint8)).save(
+        out / "GroundDetailNormal.png"
+    )
 
 
 def layer(asset: str, out: Path) -> None:
-    rgb = np.asarray(fetch(asset).convert("RGB").resize((1024, 1024), Image.LANCZOS), dtype=np.float64) / 255
+    rgb = (
+        np.asarray(
+            fetch(asset).convert("RGB").resize((1024, 1024), Image.LANCZOS),
+            dtype=np.float64,
+        )
+        / 255
+    )
     flat = np.empty_like(rgb)
     light = rgb @ np.array([0.299, 0.587, 0.114])
     broad = blur(light, 90)  # the vignette and lighter middle, not the detail

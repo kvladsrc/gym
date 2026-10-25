@@ -55,7 +55,7 @@ def test_video_signatures() -> None:
 
 
 def test_every_kind_has_a_canonical_format() -> None:
-    assert set(CANONICAL_MIME) == set(AssetKind)
+    assert set(CANONICAL_MIME) == set(AssetKind) - {AssetKind.MOTION}  # no conversion
     assert CANONICAL_MIME[AssetKind.TEXT] == "text/plain"
     assert CANONICAL_MIME[AssetKind.VIDEO] == "video/mp4"
 
@@ -180,7 +180,7 @@ def test_upgrade_keeps_assets_tags_and_references(tmp_path: Path) -> None:
 
     database = Database(path)
     connection = database.connection
-    assert database.schema_version == 7
+    assert database.schema_version == 8
     assert connection.execute("SELECT tag FROM asset_tags").fetchall()[0][0] == "мох"
     assert connection.execute("SELECT asset_id FROM job_inputs").fetchall()[0][0] == "a1"
     assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
@@ -535,3 +535,55 @@ def test_tags_cascade_after_the_rebuild(tmp_path: Path) -> None:
     connection.execute("DELETE FROM assets WHERE id = 'a1'")
     assert connection.execute("SELECT count(*) FROM asset_tags").fetchone()[0] == 0
     database.close()
+
+
+# Motion (ADR-009)
+
+SMPLX = json.dumps({"format": "studio.smplx-motion.v1", "fps": 30, "frames": 1}).encode()
+SOMA = json.dumps({"format": "studio.soma-motion.v1", "fps": 30, "frames": 1}).encode()
+
+
+def test_native_motions_are_detected_by_their_format() -> None:
+    assert detect_mime(SMPLX) == media.SMPLX_MOTION
+    assert detect_mime(SOMA) == media.SOMA_MOTION
+    assert MIME_KINDS[media.SOMA_MOTION] is AssetKind.MOTION
+    # other JSON stays text: observations, constraints
+    assert detect_mime(b'{"format": "studio.pose-observations.v1"}') == "text/plain"
+    assert detect_mime(b"[1, 2]") == "text/plain"
+    with pytest.raises(UnsupportedMedia):
+        to_canonical(SOMA, media.SOMA_MOTION)  # SMPL-X and SOMA are different bodies
+
+
+def test_motions_stored_as_text_become_motion_assets_once(tmp_path: Path) -> None:
+    from studio.config import StudioConfig
+    from studio.core import Studio
+
+    config = StudioConfig(data_dir=tmp_path)
+    studio = Studio(config)
+    motion = studio.library.import_bytes(SMPLX)
+    note = studio.library.import_bytes(b"a note\n")
+    studio.close()
+    assert (motion.kind, motion.mime) == ("motion", media.SMPLX_MOTION)
+    # as a studio before 0008 stored it: text, a .txt file
+    connection = sqlite3.connect(tmp_path / "studio.sqlite3")
+    connection.execute(
+        "UPDATE assets SET kind = 'text', mime = 'text/plain' WHERE id = ?", (motion.id,)
+    )
+    connection.execute("PRAGMA user_version = 7")
+    connection.commit()
+    connection.close()
+    blobs = tmp_path / "blobs" / motion.blob_sha256[:2]
+    (blobs / f"{motion.blob_sha256}.json").rename(blobs / f"{motion.blob_sha256}.txt")
+
+    studio = Studio(config)
+    try:
+        retyped = studio.library.asset(motion.id)
+        assert retyped is not None
+        assert (retyped.kind, retyped.mime) == ("motion", media.SMPLX_MOTION)
+        assert studio.library.file(retyped).read_bytes() == SMPLX
+        assert not (blobs / f"{motion.blob_sha256}.txt").exists()
+        unchanged = studio.library.asset(note.id)
+        assert unchanged is not None
+        assert unchanged.kind == "text"
+    finally:
+        studio.close()

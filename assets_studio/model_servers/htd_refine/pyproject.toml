@@ -1,0 +1,20 @@
+[project]
+name = "htd-refine-model-server"
+version = "0.1.0"
+description = "Native GVHMR motion refinement with HTD-Refine."
+requires-python = "==3.11.*"
+dependencies = ["assets-studio-processing", "model-server-sdk[video]"]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+htd-refine-model-server = "htd_refine_model_server.__main__:main"
+
+[tool.uv.sources]
+assets-studio-processing = { path = "../../asset_processing", editable = true }
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

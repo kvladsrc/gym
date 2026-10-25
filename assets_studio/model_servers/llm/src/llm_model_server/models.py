@@ -20,6 +20,8 @@ class ModelSpec:
     top_p: float
     # Extra chat template arguments when thinking is on (e.g. its effort).
     thinking_kwargs: tuple[tuple[str, str], ...] = ()
+    # Vision encoder/projector matching these language weights, when available.
+    projector: str | None = None
 
 
 MODELS = {
@@ -52,6 +54,7 @@ MODELS = {
             top_p=0.95,
             # The template's default is "xhigh": thousands of tokens of thought.
             thinking_kwargs=(("reasoning_effort", "low"),),
+            projector="mmproj-F16.gguf",
         ),
     )
 }

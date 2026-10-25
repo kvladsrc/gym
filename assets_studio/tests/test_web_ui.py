@@ -136,3 +136,20 @@ def test_web_ui_walkthrough(tmp_path: Path) -> None:
     finally:
         image.stop()
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+def test_3d_and_animation_sections(tmp_path: Path) -> None:
+    """The browser fixture declares FBX and native JSON tasks on one server."""
+    studio = Studio(StudioConfig(data_dir=tmp_path))
+    app = create_studio_app(studio, web_dir=WEB / "dist")
+    with live_server(app) as url:
+        completed = subprocess.run(
+            ["node", "e2e/sections.mjs", url],
+            cwd=WEB,
+            env={**os.environ, "CHROME": str(CHROME)},
+            capture_output=True,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+    assert completed.returncode == 0, completed.stdout + completed.stderr

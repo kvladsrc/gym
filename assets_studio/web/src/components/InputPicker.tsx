@@ -122,6 +122,7 @@ export function InputPicker({
       {picking && kind && (
         <LibraryPicker
           kind={kind}
+          mimes={kind === "motion" ? spec.mime : undefined}
           onClose={() => setPicking(false)}
           onPick={(picked) => {
             onChange(picked.id);

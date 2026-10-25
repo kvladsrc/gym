@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "title": "Персонаж: риг и анимация из текста",
+  "nodes": [
+    {
+      "id": "mesh",
+      "kind": "asset",
+      "asset_id": "choose-mesh-from-library",
+      "title": "Сетка персонажа (выберите ассет)",
+      "x": 70,
+      "y": 70
+    },
+    {
+      "id": "rig",
+      "kind": "task",
+      "server": "rig",
+      "task": "3d-to-rig",
+      "title": "Make-It-Animatable",
+      "x": 370,
+      "y": 70,
+      "params": {
+        "rest_pose": "t-pose",
+        "input_pose": "auto",
+        "fingers": false
+      },
+      "inputs": { "mesh": { "node": "mesh" } }
+    },
+    {
+      "id": "motion",
+      "kind": "task",
+      "server": "motion",
+      "task": "text-to-motion",
+      "title": "Kimodo",
+      "x": 370,
+      "y": 330,
+      "prompt": "A person walks forward.",
+      "params": { "seconds": 4 },
+      "inputs": {}
+    },
+    {
+      "id": "apply",
+      "kind": "task",
+      "server": "animation_tools",
+      "task": "retarget-motion",
+      "title": "Анимация на персонаже",
+      "x": 700,
+      "y": 110,
+      "params": { "root_motion": "in-place", "method": "auto" },
+      "inputs": { "rig": { "node": "rig" }, "motion": { "node": "motion" } }
+    }
+  ]
+}

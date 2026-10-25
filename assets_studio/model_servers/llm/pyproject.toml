@@ -5,7 +5,7 @@ description = "Text generation model server for the asset studio (GGUF models th
 # No PyTorch: the model runs in llama.cpp's own server, started as a child process.
 requires-python = ">=3.11"
 dependencies = [
-  "model-server-sdk",
+  "model-server-sdk[images]",
   "huggingface_hub[hf_xet]>=1.0",
 ]
 

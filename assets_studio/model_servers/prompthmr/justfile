@@ -1,0 +1,28 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+source := cache / "prompthmr-source"
+revision := "3b566b7dbb28ce506c7ea972c18693f4c705ce8c"  # pragma: allowlist secret
+runner := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/prompthmr"
+
+default:
+    @just --justfile {{ justfile() }} --list
+
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then git clone --filter=blob:none --no-checkout https://github.com/yufu-wang/PromptHMR.git "{{ source }}"; fi
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ runner }} uv sync --extra test
+    cd worker && {{ runner }} env UV_PROJECT_ENVIRONMENT="{{ cache }}/venvs/prompthmr-worker" uv sync
+
+download:
+    {{ runner }} uv run --no-sync python -m prompthmr_model_server.download
+
+doctor:
+    {{ runner }} uv run --no-sync python -m prompthmr_model_server.doctor
+
+[positional-arguments]
+serve *args:
+    {{ runner }} uv run --no-sync prompthmr-model-server "$@"
+
+test:
+    {{ runner }} uv run --no-sync pytest -q tests

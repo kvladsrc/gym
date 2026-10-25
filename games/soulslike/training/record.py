@@ -25,7 +25,9 @@ import onnxruntime as ort
 from mlagents_envs.base_env import ActionTuple
 from mlagents_envs.environment import UnityEnvironment
 from mlagents_envs.exception import UnityException
-from mlagents_envs.side_channel.engine_configuration_channel import EngineConfigurationChannel
+from mlagents_envs.side_channel.engine_configuration_channel import (
+    EngineConfigurationChannel,
+)
 from mlagents_envs.side_channel.side_channel import SideChannel
 
 HERE = Path(__file__).resolve().parent
@@ -88,30 +90,46 @@ class Policy:
         options.intra_op_num_threads = 1
         options.inter_op_num_threads = 1
         options.add_session_config_entry("session.intra_op.allow_spinning", "0")
-        self.session = ort.InferenceSession(str(path), options, providers=["CPUExecutionProvider"])
+        self.session = ort.InferenceSession(
+            str(path), options, providers=["CPUExecutionProvider"]
+        )
         self.inputs = {i.name: i for i in self.session.get_inputs()}
-        self.output = "deterministic_discrete_actions" if deterministic else "discrete_actions"
+        self.output = (
+            "deterministic_discrete_actions" if deterministic else "discrete_actions"
+        )
         self.memory_size = 0
         if "recurrent_in" in self.inputs:
             size = self.inputs["recurrent_in"].shape[-1]
-            self.memory_size = size if isinstance(size, int) else int(np.asarray(self.session.run(["memory_size"], {})[0]).ravel()[0])
+            self.memory_size = (
+                size
+                if isinstance(size, int)
+                else int(
+                    np.asarray(self.session.run(["memory_size"], {})[0]).ravel()[0]
+                )
+            )
         self.memories: dict[int, np.ndarray] = {}
 
     def act(self, steps) -> np.ndarray:
         feed = {f"obs_{i}": obs.astype(np.float32) for i, obs in enumerate(steps.obs)}
         # ML-Agents masks: True = not allowed; the model wants 1 = allowed.
         masks = np.concatenate(steps.action_mask, axis=1) if steps.action_mask else None
-        feed["action_masks"] = (1 - masks).astype(np.float32) if masks is not None else None
+        feed["action_masks"] = (
+            (1 - masks).astype(np.float32) if masks is not None else None
+        )
         outputs = [self.output]
         if self.memory_size:
             blank = np.zeros((1, self.memory_size), dtype=np.float32)
-            feed["recurrent_in"] = np.stack([self.memories.get(int(a), blank) for a in steps.agent_id])
+            feed["recurrent_in"] = np.stack(
+                [self.memories.get(int(a), blank) for a in steps.agent_id]
+            )
             outputs.append("recurrent_out")
         feed = {k: v for k, v in feed.items() if k in self.inputs and v is not None}
         results = self.session.run(outputs, feed)
         if self.memory_size:
             for agent, memory in zip(steps.agent_id, results[1]):
-                self.memories[int(agent)] = np.asarray(memory, dtype=np.float32).reshape(1, self.memory_size)
+                self.memories[int(agent)] = np.asarray(
+                    memory, dtype=np.float32
+                ).reshape(1, self.memory_size)
         return np.asarray(results[0], dtype=np.int32)
 
     def forget(self, agents) -> None:
@@ -123,14 +141,19 @@ class Policy:
 def newest_models(results: Path) -> dict[str, Path]:
     """The newest model of each behaviour the run trained (the duel: one,
     "Fighter", for both sides)."""
-    behaviors = sorted(d.name for d in results.iterdir()
-                       if d.is_dir() and any(d.glob(f"{d.name}-*.onnx")))
+    behaviors = sorted(
+        d.name
+        for d in results.iterdir()
+        if d.is_dir() and any(d.glob(f"{d.name}-*.onnx"))
+    )
     if not behaviors:
         sys.exit(f"no models in {results}")
     return {name: newest(results, name) for name in behaviors}
 
 
-def load(results: Path, deterministic: bool) -> tuple[dict[str, Path], dict[str, "Policy"]]:
+def load(
+    results: Path, deterministic: bool
+) -> tuple[dict[str, Path], dict[str, "Policy"]]:
     models = newest_models(results)
     return models, {name: Policy(path, deterministic) for name, path in models.items()}
 
@@ -139,19 +162,32 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("run", help="the run id (results/<run>)")
     parser.add_argument("--seconds", type=float, default=60.0, help="game time filmed")
-    parser.add_argument("--deterministic", action="store_true", help="always the likeliest action")
-    parser.add_argument("--watch", action="store_true",
-                        help="show the fight in the window, in real time, until it is closed "
-                             "(or Ctrl+C); nothing is written; a newer model is taken up each minute")
+    parser.add_argument(
+        "--deterministic", action="store_true", help="always the likeliest action"
+    )
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="show the fight in the window, in real time, until it is closed "
+        "(or Ctrl+C); nothing is written; a newer model is taken up each minute",
+    )
     parser.add_argument("--port", type=int, default=6005)
-    parser.add_argument("--seed", type=int, default=None,
-                        help="Unity's random seed (sizes, weapons, the arena's layout); a new one by default")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Unity's random seed (sizes, weapons, the arena's layout); a new one by default",
+    )
     args = parser.parse_args()
 
     results = HERE / "results" / args.run
     models, policies = load(results, args.deterministic)
-    step = min(int(re.search(r"-(\d+)", p.name).group(1)) if re.search(r"-(\d+)", p.name) else 0
-               for p in models.values())
+    step = min(
+        int(re.search(r"-(\d+)", p.name).group(1))
+        if re.search(r"-(\d+)", p.name)
+        else 0
+        for p in models.values()
+    )
     for name, path in models.items():
         print(f"{name}: {path.relative_to(HERE)}")
 
@@ -172,16 +208,22 @@ def main() -> None:
     )
     if args.watch:
         # Real time, as a game runs.
-        engine.set_configuration_parameters(time_scale=1.0, capture_frame_rate=0, target_frame_rate=60)
+        engine.set_configuration_parameters(
+            time_scale=1.0, capture_frame_rate=0, target_frame_rate=60
+        )
     else:
-        engine.set_configuration_parameters(time_scale=1.0, capture_frame_rate=60, target_frame_rate=-1)
+        engine.set_configuration_parameters(
+            time_scale=1.0, capture_frame_rate=60, target_frame_rate=-1
+        )
     stop = Stop()
     try:
         env.reset()
         steps = 0
         reloaded = time.monotonic()
         stepped = 0
-        while not stop.asked and (args.watch or steps < int(args.seconds * STEPS_PER_SECOND)):
+        while not stop.asked and (
+            args.watch or steps < int(args.seconds * STEPS_PER_SECOND)
+        ):
             for behavior in env.behavior_specs:
                 decisions, ended = env.get_steps(behavior)
                 policy = policies[behavior.split("?")[0]]
@@ -214,9 +256,27 @@ def main() -> None:
     videos = results / "videos"
     videos.mkdir(exist_ok=True)
     out = videos / f"step-{step}.mp4"
-    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-framerate", "30",
-                    "-i", str(frames / "frame%05d.jpg"), "-c:v", "libx264", "-pix_fmt", "yuv420p",
-                    "-crf", "20", str(out)], check=True)
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            "-framerate",
+            "30",
+            "-i",
+            str(frames / "frame%05d.jpg"),
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-crf",
+            "20",
+            str(out),
+        ],
+        check=True,
+    )
     shutil.rmtree(frames)
     print(f"written {out.relative_to(HERE)}")
 

@@ -1,0 +1,23 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/htd_refine"
+runner := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
+
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Separate server and worker environments; reuse UV's downloaded package cache.
+setup:
+    {{ runner }} uv sync --extra test
+    cd worker && {{ runner }} env UV_PROJECT_ENVIRONMENT="{{ cache }}/venvs/htd-refine-worker" uv sync
+
+[positional-arguments]
+serve *args:
+    {{ runner }} uv run --no-sync htd-refine-model-server "$@"
+
+test:
+    {{ runner }} uv run --no-sync pytest -q tests
+
+# Validate the pinned source, worker and cached/licensed model files without allocating GPU memory.
+doctor:
+    {{ runner }} uv run --no-sync python -c "from htd_refine_model_server.server import HTDRefineServer; s = HTDRefineServer(); s.load(); print('HTD-Refine source, worker and weights ready')"

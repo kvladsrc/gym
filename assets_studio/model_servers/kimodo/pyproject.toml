@@ -1,0 +1,62 @@
+[project]
+name = "kimodo-model-server"
+version = "0.1.0"
+description = "Text-to-motion server for the asset studio: NVIDIA Kimodo animates a humanoid skeleton from a description."
+# PyTorch 2.8 / CUDA 12.9 like the other servers; bpy 4.3 (the FBX export) is
+# for Python 3.11 only.
+requires-python = "==3.11.*"
+dependencies = [
+  "assets-studio-processing",
+  "model-server-sdk",
+  "torch==2.8.0",
+  # Kimodo's own dependencies (pyproject.toml), without the Gradio demo; the
+  # package itself is built by `just setup` (a C++ extension, MotionCorrection).
+  "hydra-core>=1.3",
+  "omegaconf>=2.3",
+  "numpy>=1.23,<2",
+  "scipy>=1.10",
+  "transformers==5.1.0",
+  "peft>=0.18",
+  "accelerate>=1.2",
+  "einops>=0.7",
+  "tqdm>=4.0",
+  "packaging>=21.0",
+  "pydantic>=2.0",
+  "filelock>=3.20.3",
+  "trimesh>=3.21.7",
+  "pillow>=9.0",
+  "bvhio",
+  "huggingface_hub",
+  "bpy==4.3.0",
+  # Building MotionCorrection (just setup).
+  "setuptools>=69",
+  "wheel",
+  "cmake>=3.15",
+  "pybind11>=2.11",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+kimodo-model-server = "kimodo_model_server.__main__:main"
+
+[tool.uv.sources]
+assets-studio-processing = { path = "../../asset_processing", editable = true }
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+bpy = { index = "blender" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[[tool.uv.index]]
+name = "blender"
+url = "https://download.blender.org/pypi/"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

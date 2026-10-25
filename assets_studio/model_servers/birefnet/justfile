@@ -1,0 +1,34 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Heavy files live outside the Dropbox-synced working copy.
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/birefnet"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+
+gpu_shell := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Create the environment
+setup:
+    {{ gpu_shell }} uv sync --extra test
+
+# Download the weights of every variant (~2.7 GB, network only, no GPU)
+download:
+    {{ gpu_shell }} uv run --no-sync python -c "from birefnet_model_server.server import download; download()"
+
+# Report PyTorch, the CUDA device and which variants are downloaded
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m birefnet_model_server.doctor
+
+# Serve on 127.0.0.1:9121 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync birefnet-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

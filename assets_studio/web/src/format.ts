@@ -3,6 +3,43 @@ import type { Asset, InputSpec, Job } from "./api/client";
 import { has, language, t } from "./i18n";
 
 /** A task's label; a task the interface does not know shows its name. */
+// Everything about motion goes to Animation whatever its file format: generating it
+// ("…-to-motion", "…-to-native-motion", "…-to-soma-motion"), poses ("image-to-pose"),
+// in-betweening, retargeting and observations (2D keypoints) — FBX is shared with rigs,
+// native JSON with text.
+export function isMotionTask(name: string): boolean {
+  return (
+    /(^|-)(motion|pose|pose-observations)$/.test(name) ||
+    name.startsWith("retarget-")
+  );
+}
+
+/** Text larger than this is data, not something to read: it is never fetched for a preview. */
+const READABLE_TEXT_BYTES = 256 * 1024;
+
+/** The task that made an asset (its "task:…" tag), if any. */
+export function assetTask(asset: Asset): string | undefined {
+  return asset.tags
+    .find((tag) => tag.startsWith("task:"))
+    ?.slice("task:".length);
+}
+
+/** Motion of any format: motion assets (SMPL-X, SOMA), FBX clips, 2D observations. */
+export function isMotionAsset(asset: Asset): boolean {
+  if (asset.kind === "motion") return true;
+  const task = assetTask(asset);
+  return task !== undefined && isMotionTask(task);
+}
+
+/** Text a person reads (LLM answers, descriptions); motion and other big JSON are not. */
+export function isReadableText(asset: Asset): boolean {
+  return (
+    asset.kind === "text" &&
+    !isMotionAsset(asset) &&
+    asset.size_bytes <= READABLE_TEXT_BYTES
+  );
+}
+
 export const taskLabel = (task: string) => {
   const key = `task.${task}`;
   return has(key) ? t(key) : task;
@@ -24,8 +61,13 @@ export const kindLabel = (kind: string) => {
   return has(key) ? t(key) : kind;
 };
 
+/** Body motion and poses, one type per body model (SMPL-X, SOMA). */
+export const isMotionMime = (mime: string) =>
+  /^application\/vnd\.studio\.[a-z0-9]+-motion\+json$/.test(mime);
+
 /** Asset kind accepted by an input, judged by its MIME patterns. */
 export function inputKind(spec: InputSpec): string | null {
+  if (spec.mime.length && spec.mime.every(isMotionMime)) return "motion";
   const type = spec.mime[0]?.split("/")[0];
   const kinds: Record<string, string> = {
     image: "image",
@@ -46,6 +88,7 @@ const STORABLE: Record<string, string> = {
   mesh: "model/gltf-binary,model/x-fbx,.glb,.fbx",
   video: "video/mp4,video/webm,.mp4,.webm",
   text: "text/plain,.txt",
+  motion: "application/json,.json",
 };
 
 /** The file chooser filter for an input. */
