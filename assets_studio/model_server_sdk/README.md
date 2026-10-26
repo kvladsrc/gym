@@ -1,15 +1,15 @@
 # model_server_sdk
 
-SDK для серверов моделей студии ассетов. Реализует
-[контракт v1](../docs/adr/0001-model-server-contract.md): фоновую загрузку
-модели, `/v1/info`, `/v1/generate`, валидацию, коды ошибок, seed и
-блокировку одновременных генераций. Поддерживает Python 3.11+.
+SDK for Asset Studio model servers. Implements
+[contract v1](../docs/adr/0001-model-server-contract.md): background model loading,
+`/v1/info`, `/v1/generate`, validation, error codes, seeds and generation
+serialization. Supports Python 3.11+.
 
-## Как написать сервер модели
+## Writing a model server
 
-Сервер — отдельный проект в `model_servers/<имя>/` со своим
-`pyproject.toml` и `uv.lock`. Тяжёлые зависимости (PyTorch, CUDA) живут
-только там и не попадают в рабочее окружение студии.
+A server is a separate project in `model_servers/<name>/`, with its own
+`pyproject.toml` and `uv.lock`. Heavy dependencies (PyTorch, CUDA) stay there
+and do not enter Studio's workspace environment.
 
 ```toml
 # model_servers/example/pyproject.toml
@@ -30,7 +30,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 ```
 
-Реализация — описание задач и два метода:
+Implementation consists of task declarations and two methods:
 
 ```python
 from pydantic import BaseModel, Field
@@ -48,8 +48,8 @@ from model_server_sdk import (
 
 
 class Params(BaseModel):
-    # У каждого параметра обязательно есть значение по умолчанию.
-    resolution: int = Field(default=256, ge=64, le=512, description="Сетка")
+    # Every parameter must have a default value.
+    resolution: int = Field(default=256, ge=64, le=512, description="Grid")
 
 
 class ExampleServer(ModelServer):
@@ -71,13 +71,13 @@ class ExampleServer(ModelServer):
         ),
     ]
 
-    def load(self) -> None: ...  # загрузить веса; один раз, в фоне
+    def load(self) -> None: ...  # load weights once, in the background
 
     def generate(self, job: Job) -> list[Output]:
         assert isinstance(job.params, Params)
         image = job.inputs["image"].data
         results = []
-        for seed in job.seeds:  # ровно len(job.seeds) результатов, по порядку
+        for seed in job.seeds:  # exactly len(job.seeds) outputs, in order
             results.append(Output("model/gltf-binary", run_model(image, seed, job.params)))
         return results
 
@@ -86,43 +86,39 @@ def main() -> None:
     serve(lambda _: ExampleServer(), default_port=9102, description="Example")
 ```
 
-Правила:
+Rules:
 
-- `generate` возвращает **ровно** `len(job.seeds)` результатов, результат
-  `i` — для `job.seeds[i]`. SDK сам добавит `seed` в `meta`.
-- **Результат зависит только от своего seed.** Один генератор на seed,
-  а не один на весь батч:
+- `generate` returns **exactly** `len(job.seeds)` outputs; output `i` corresponds
+  to `job.seeds[i]`. The SDK adds `seed` to `meta`.
+- **Each result depends only on its own seed.** Use one generator per seed,
+  not one for the whole batch:
 
   ```python
   generators = [torch.Generator("cuda").manual_seed(seed) for seed in job.seeds]
   images = pipe(prompt, num_images_per_prompt=len(generators), generator=generators).images
   ```
 
-  Неправильно: `generator=torch.Generator().manual_seed(job.seeds[0])` для
-  всего батча — тогда кандидат `i` не воспроизводится отдельным запросом.
-- Параметры — плоские поля `str`, `int`, `float`, `bool` или `Literal[...]`,
-  у каждого есть значение по умолчанию; без `Optional`, списков, вложенных
-  моделей, `Enum`-классов и псевдонимов. SDK проверяет это при старте.
-- Вход с картинкой обязан принимать `image/png`, с аудио — `audio/wav`,
-  с 3D — `model/gltf-binary`. Остальные форматы можно принимать
-  дополнительно.
-- Модель не справилась с корректным запросом → `GenerationError`
-  (`retryable=True`, если повтор может помочь, например при нехватке
-  памяти). Вход формально корректен, но не подходит модели →
-  `InvalidInput`. Любое другое исключение станет ошибкой `internal`.
-- `load` и все вызовы `generate` выполняются по очереди в одном
-  выделенном потоке: потоковые настройки из `load` сохраняются. `load`
-  может занимать сколько угодно: `/v1/info` в это время отвечает `loading`.
-- Значения в `meta` должны сериализоваться в JSON: `float(x)`, а не
-  `numpy.float32`.
-- Сервер слушает `127.0.0.1`. Порт задаётся `--port` или
-  `MODEL_SERVER_PORT`.
+  Wrong: `generator=torch.Generator().manual_seed(job.seeds[0])` for the entire
+  batch; candidate `i` would not be reproducible in a separate request.
 
-### Основные параметры, текст и видео (ADR-003, SDK 1.3.0)
+- Parameters are flat `str`, `int`, `float`, `bool` or `Literal[...]` fields,
+  each with a default. No `Optional`, lists, nested models, `Enum` classes or
+  aliases. The SDK validates this at startup.
+- Image inputs must accept `image/png`, audio inputs `audio/wav`, and 3D inputs
+  `model/gltf-binary`. Additional formats are allowed.
+- Failure on a valid request → `GenerationError` (`retryable=True` if retrying
+  might help, such as OOM). Formally valid input unsuitable for the model →
+  `InvalidInput`. Any other exception becomes `internal`.
+- `load` and all `generate` calls run sequentially in one dedicated thread,
+  preserving thread-local settings from `load`. Loading has no time limit;
+  `/v1/info` reports `loading` meanwhile.
+- Values in `meta` must serialize to JSON: use `float(x)`, not `numpy.float32`.
+- The server listens on `127.0.0.1`; set its port with `--port` or `MODEL_SERVER_PORT`.
 
-- Параметр, который нужен почти всегда (сила изменения, длительность,
-  размер), помечается основным — студия показывает его сразу, а не в
-  «Дополнительно»:
+### Primary parameters, text and video (ADR-003, SDK 1.3.0)
+
+- Mark frequently needed parameters (strength, duration, size) as primary;
+  Studio shows them directly rather than under “Advanced”:
 
   ```python
   from model_server_sdk import PRIMARY
@@ -130,16 +126,15 @@ def main() -> None:
   strength: float = Field(default=0.5, ge=0, le=1, json_schema_extra=PRIMARY)
   ```
 
-- Новые известные задачи: `text-to-text`, `image-to-video`, `text-to-3d`.
-- Текст отдаётся как `text/plain` (UTF-8), видео — `video/mp4` (H.264,
-  `yuv420p`, `+faststart`): сервер кодирует его сам, студия проигрывает без
-  перекодирования. `media.SAMPLE_MP4` — образец такого ролика.
+- New known tasks: `text-to-text`, `image-to-video`, `text-to-3d`.
+- Return text as `text/plain` (UTF-8), video as `video/mp4` (H.264, `yuv420p`,
+  `+faststart`). The server encodes it; Studio plays it without transcoding.
+  `media.SAMPLE_MP4` is a sample clip.
 
-### Подписи на двух языках, прозрачность, песни (ADR-005, SDK 1.5.0)
+### Bilingual labels, transparency and songs (ADR-005, SDK 1.5.0)
 
-- `description` параметра — по-английски (его читают агенты и английский
-  интерфейс), подпись для русского интерфейса — в `ui()`, там же пометка
-  основного параметра:
+- Parameter `description` is English (read by agents and the English UI).
+  Russian labels and the primary marker belong in `ui()`:
 
   ```python
   from model_server_sdk import ui
@@ -156,79 +151,74 @@ def main() -> None:
   )
   ```
 
-  У входа — `InputSpec(..., description="First frame", labels={"ru": "Первый кадр"})`.
+  Inputs use `InputSpec(..., description="First frame", labels={"ru": "Первый кадр"})`.
+
 - `images.open_image(data, keep_alpha=True)` / `prepare_input(...,
-  keep_alpha=True)` — картинка с прозрачностью остаётся RGBA (для моделей,
-  которые сами читают альфу, как Qwen-Image).
-- Новая известная задача `text-to-song`: описание — текст песни, стиль —
-  параметр.
+  keep_alpha=True)` retain transparent images as RGBA (for models that read
+  alpha themselves, such as Qwen-Image).
+- New known task `text-to-song`: the prompt is lyrics, and style is a parameter.
 
-### Скелет персонажа (ADR-006, SDK 1.6.0)
+### Character skeletons (ADR-006, SDK 1.6.0)
 
-- Вид файла `model/x-fbx` (двоичный FBX, `media.FBX_MAGIC`) и известная
-  задача `3d-to-rig`: GLB-сетка персонажа → FBX со скелетом и весами.
+- File type `model/x-fbx` (binary FBX, `media.FBX_MAGIC`) and known task
+  `3d-to-rig`: character GLB → FBX with skeleton and skin weights.
 
-### Видео и большие модели (SDK 1.4.0)
+### Video and large models (SDK 1.4.0)
 
-- `model_server_sdk.video.encode_mp4(frames, width=, height=, fps=)` —
-  кадры RGB24 в канонический MP4 (H.264 High, yuv420p, `+faststart`),
-  побайтно воспроизводимо: те же кадры — те же байты. Нужен `ffmpeg`
-  (системный или из extra `video`, `imageio-ffmpeg`).
-- `model_server_sdk.offload` — хранилище блоков на диске для group offload
-  diffusers (FLUX, Wan): каталог по отпечатку версий, блокировка, отметка
-  `complete`, проверка места. Без зависимости от torch.
+- `model_server_sdk.video.encode_mp4(frames, width=, height=, fps=)` converts
+  RGB24 frames to canonical MP4 (H.264 High, yuv420p, `+faststart`), byte-reproducibly:
+  identical frames give identical bytes. Requires `ffmpeg` (system installation
+  or `video` extra, `imageio-ffmpeg`).
+- `model_server_sdk.offload` provides disk block storage for diffusers group
+  offload (FLUX, Wan): version-fingerprinted directories, locking, `complete`
+  markers and disk-space checks. No torch dependency.
 
-### Картинки: `model_server_sdk.images`
+### Images: `model_server_sdk.images`
 
-С версии 1.2.0, зависимость `model-server-sdk[images]` (Pillow). Общее для
-серверов картинок:
+Since 1.2.0, dependency `model-server-sdk[images]` (Pillow). Shared image helpers:
 
-- `RESOLUTIONS` — размеры SDXL/FLUX (~1 Мпикс) по имени `"1024x1024"` и т. п.;
-- `prepare_input(data)` — входная картинка: поворот по EXIF, прозрачность на
-  белом фоне, соотношение сторон не круче 1:4, ~1 Мпикс, стороны кратны 64;
-  нечитаемые данные — `InvalidInput`;
-- `check_denoising(steps, strength)` — отклоняет image-to-image, где SDXL не
-  сделает ни одного шага (у FLUX своё округление, см. его сервер);
-- `encode_png(image)` — PNG для `Output`.
+- `RESOLUTIONS`: SDXL/FLUX sizes (~1 MP) named `"1024x1024"`, etc.
+- `prepare_input(data)`: EXIF rotation, transparency composited on white,
+  aspect ratio limited to 1:4, ~1 MP, dimensions divisible by 64. Unreadable
+  data raises `InvalidInput`.
+- `check_denoising(steps, strength)`: rejects image-to-image where SDXL would
+  run zero steps (FLUX uses different rounding; see its server).
+- `encode_png(image)`: PNG for `Output`.
 
-## Проверка сервера
+## Checking a server
 
-Запустить сервер и проверить его на соответствие контракту:
+Start the server, then check contract compliance:
 
 ```sh
 just assets_studio check-server http://127.0.0.1:9102
 ```
 
-Проверка дожидается загрузки модели, вызывает каждую задачу с тестовыми
-входами и параметрами по умолчанию, проверяет ответы (число результатов,
-seed, MIME, сигнатуры файлов, фактические параметры) и пути ошибок.
-Отдельно проверяются правила seed: одинаковый запрос повторяется
-побитово, разные seed дают разные результаты, а результат из батча
-совпадает с одиночным запросом.
+The check waits for loading, calls every task with sample inputs and default
+parameters, and verifies responses (output count, seeds, MIME, file signatures,
+resolved parameters) and error paths. It also checks seed rules: repeated
+identical requests must be byte-reproducible, different seeds must differ, and
+batch outputs must match single requests.
 
-- Модель не воспроизводит результат при том же seed —
-  `--allow-nondeterministic` превращает ошибку в предупреждение. Обычно
-  это ошибка в коде сервера: генератор не получил seed.
-- Модель детерминирована по природе (например, Piper) —
-  `--allow-seed-independent` превращает ошибку seed в предупреждение.
-- GPU не всегда даёт побитово одинаковый результат в батче и поодиночке,
-  поэтому расхождение по умолчанию — предупреждение; `--strict-determinism`
-  делает его ошибкой.
-- Модель с параметрами по умолчанию генерирует слишком долго (видео 720p
-  × 5 с — около часа) — `--param seconds=1.0 --param size=480p` подставляет
-  свои значения во все генерации (значение — JSON или строка); проверка
-  ответа ждёт их вместо умолчаний.
+- If identical seeds are not reproducible, `--allow-nondeterministic` turns
+  the error into a warning. This usually indicates a server bug: the generator
+  did not receive the seed.
+- For inherently deterministic models (for example Piper),
+  `--allow-seed-independent` turns the seed error into a warning.
+- GPUs do not always produce byte-identical batch and single outputs, so
+  differences are warnings by default; `--strict-determinism` makes them errors.
+- If defaults are too slow (720p × 5-second video takes about an hour),
+  `--param seconds=1.0 --param size=480p` overrides all generations (values
+  are JSON or strings). Response checks expect these values instead of defaults.
 
-Прохождение без ошибок — условие приёмки сервера; каждое предупреждение
-нужно объяснить в отчёте о модели.
+Passing without errors is required for server acceptance; explain every warning
+in the model report.
 
-## Fake-сервер
+## Fake server
 
-`model_servers/fake` объявляет все известные задачи и возвращает
-детерминированные PNG, GLB и WAV без GPU. Параметры `delay_s` и `fail`
-имитируют медленную модель и ошибки; флаги `--load-delay`, `--load-error`,
-`--model-id` и `--task` — загрузку, её сбой, замену модели и подмножество
-задач.
+`model_servers/fake` declares every known task and returns deterministic PNG,
+GLB and WAV without a GPU. Parameters `delay_s` and `fail` simulate slow models
+and errors. Flags `--load-delay`, `--load-error`, `--model-id` and `--task`
+simulate loading, load failure, model replacement and task subsets.
 
 ```sh
 just assets_studio fake-server --port 9100

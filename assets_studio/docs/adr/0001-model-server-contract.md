@@ -1,28 +1,28 @@
-# ADR-001. Контракт сервера модели, версия 1
+# ADR-001. Model server contract, version 1
 
 <!-- markdownlint-disable MD013 -->
 
-Статус: принято (M1a). Расширено ADR-003 (текст, видео, основные параметры).
+Status: accepted (M1a). Extended by ADR-003 (text, video, primary parameters).
 
-## Контекст
+## Context
 
-Модели запускаются пользователем вручную как самостоятельные локальные
-HTTP-серверы. Студия их не запускает и не следит за ресурсами ноутбука:
-она знает адрес сервера, узнаёт, что он умеет, и отправляет задания.
-Чтобы новая модель подключалась без правки кода студии, все серверы
-реализуют один контракт, а описание возможностей сервер отдаёт сам.
+Users manually start models as independent local HTTP servers. Studio does
+not launch them or monitor laptop resources: it knows server addresses,
+discovers capabilities and submits jobs. To connect new models without
+changing Studio code, all servers implement one contract and describe their
+own capabilities.
 
-## Решение
+## Decision
 
-Контракт — два эндпоинта на `http://127.0.0.1:<порт>`. Тела запросов и
-ответов — JSON. Эталонное описание — pydantic-модели в
-`model_server_sdk/src/model_server_sdk/contract.py`; этот документ
-объясняет правила, которые моделями не выражаются.
+Two endpoints at `http://127.0.0.1:<port>`, with JSON request and response bodies.
+The reference definition is the Pydantic models in
+`model_server_sdk/src/model_server_sdk/contract.py`; this document covers rules
+not expressed by those models.
 
 ### `GET /v1/info`
 
-Самоописание и состояние. Всегда отвечает `200`, даже пока модель
-загружается или если загрузка упала: так студия может показать причину.
+Self-description and status. Always returns `200`, even while loading or after
+load failure, so Studio can display the reason.
 
 ```json
 {
@@ -46,41 +46,38 @@ HTTP-серверы. Студия их не запускает и не след�
 }
 ```
 
-- `status`: `loading` → `ready` ⇄ `busy`; `error`, если загрузка модели не
-  удалась (`status_message` содержит причину). Модель загружается в фоне
-  после старта сервера, поэтому `/v1/info` доступен сразу.
-- `error` и после генерации, сломавшей CUDA-контекст процесса (например,
-  нативная библиотека записала мимо буфера: дальше в этом процессе падает
-  любая генерация). SDK отвечает на неё `generation_failed` с
-  `retryable: true`, на следующие — `not_ready` с `retryable: true`, и через
-  секунду завершает процесс с кодом 75 (`EXIT_GPU_BROKEN`); launcher
-  перезапускает такой сервер сразу, а не через паузу после падения.
-- `task` — идентификатор из строчных латинских букв и цифр, части
-  разделяются `-` или `_`. Известные значения:
-  `text-to-image`, `image-to-image`, `image-to-3d`, `text-to-speech`,
-  `text-to-audio`, `audio-to-audio`. Для неизвестной задачи студия
-  показывает общую форму; новая задача не требует новой версии контракта.
-- `prompt`: `required`, `optional` или `none`.
-- `inputs` — входные файлы по ролям. `mime` — список допустимых типов;
-  разрешён шаблон `тип/*`. Вход, принимающий картинки, аудио или 3D,
-  **обязан принимать канонический формат** своего вида: `image/png`,
-  `audio/wav`, `model/gltf-binary`. Другие форматы (например, загруженный
-  пользователем JPEG) студия перед отправкой конвертирует в канонический.
-- `params_schema` — JSON Schema объекта параметров. Параметры — **плоские
-  скаляры** (`string`, `number`, `integer`, `boolean`) или перечисления
-  (`enum`), без вложенных объектов, списков, `$ref` и `anyOf`, и **у
-  каждого есть значение по умолчанию**. Поэтому запрос без `params` всегда
-  корректен, а студия строит по схеме форму «Дополнительно». Имена в
-  схеме совпадают с именами в запросе (без псевдонимов).
-- `max_count` — сколько результатов можно запросить за один вызов.
-- `output_mime` — какие типы файлов возвращает задача.
+- `status`: `loading` → `ready` ⇄ `busy`; `error` on model load failure, with
+  the reason in `status_message`. Loading runs in the background after startup,
+  so `/v1/info` is immediately available.
+- Also `error` after generation breaks the process's CUDA context (for example,
+  a native library writes outside a buffer, making all later generation fail).
+  The SDK returns `generation_failed` with `retryable: true` for that request,
+  then `not_ready` with `retryable: true` for subsequent requests. After one
+  second it exits with code 75 (`EXIT_GPU_BROKEN`); the launcher restarts it
+  immediately rather than waiting the usual crash delay.
+- `task` is a lowercase Latin letter/digit identifier with `-` or `_` separators.
+  Known values: `text-to-image`, `image-to-image`, `image-to-3d`, `text-to-speech`,
+  `text-to-audio`, `audio-to-audio`. Studio displays a generic form for unknown
+  tasks; new tasks need no contract version change.
+- `prompt`: `required`, `optional` or `none`.
+- `inputs`: role-based input files. `mime` lists accepted types; `type/*`
+  wildcards are allowed. Image, audio and 3D inputs **must accept their kind's
+  canonical format**: `image/png`, `audio/wav`, `model/gltf-binary`. Studio
+  converts other formats (such as uploaded JPEGs) before submission.
+- `params_schema`: parameter-object JSON Schema. Parameters are **flat scalars**
+  (`string`, `number`, `integer`, `boolean`) or enumerations (`enum`), without
+  nested objects, lists, `$ref` or `anyOf`. **Every parameter has a default**,
+  making requests without `params` valid and allowing Studio to build an
+  “Advanced” form. Schema and request names match, without aliases.
+- `max_count`: maximum outputs per call.
+- `output_mime`: output file types for the task.
 
 ### `POST /v1/generate`
 
 ```json
 {
   "task": "image-to-image",
-  "prompt": "мох на камне",
+  "prompt": "moss on stone",
   "inputs": [{"role": "image", "mime": "image/png", "data_b64": "…"}],
   "params": {"strength": 0.45},
   "count": 3,
@@ -88,7 +85,7 @@ HTTP-серверы. Студия их не запускает и не след�
 }
 ```
 
-Успешный ответ `200`:
+Successful `200` response:
 
 ```json
 {
@@ -105,94 +102,84 @@ HTTP-серверы. Студия их не запускает и не след�
 }
 ```
 
-Правила:
+Rules:
 
-- **Один запрос — ровно `count` результатов**, по одному файлу на
-  кандидата. Результат `i` получен с seed `seed + i` (по модулю 2³²) и
-  несёт его в `meta.seed`.
-- **Результат зависит только от своего seed.** Запрос с seed `seed + i` и
-  `count = 1` воспроизводит кандидата `i`; на этом держатся режимы
-  «Варианты» и эволюция. Для диффузионных моделей это значит: отдельный
-  генератор на каждый seed, а не один генератор на весь батч. Одинаковый
-  запрос даёт одинаковый результат. Разные seed
-  дают разные результаты, если модель не детерминирована по природе
-  (например, Piper). GPU не всегда даёт побитово одинаковый результат в
-  батче и поодиночке; это допустимо.
-- `params` в ответе — **фактические** параметры: значения запроса,
-  дополненные значениями по умолчанию. Вместе с `model` это снимок того,
-  чем сделан результат: умолчания сервера могут измениться.
-- Если `seed` не передан, сервер выбирает его сам и возвращает в `seed`.
-- `model` в ответе описывает модель, которая **фактически** выполнила
-  запрос. Студия сохраняет его как снимок, а не ответ `/v1/info`: сервер
-  на том же порту могли заменить между двумя запросами.
-- Роли входов в запросе уникальны. Неизвестные роли, неизвестные
-  параметры и лишние поля отклоняются.
-- Сервер выполняет одну генерацию за раз. Параллельный запрос получает
-  `409 busy`; `/v1/info` в это время отвечает `busy`.
-- Файлы передаются в base64 внутри JSON. На loopback для ассетов до
-  десятков мегабайт это проще multipart. Если помешает — версия 2.
-- Прогресса и отмены посреди генерации в версии 1 нет.
+- **One request returns exactly `count` outputs**, one file per candidate.
+  Output `i` uses seed `seed + i` modulo 2³² and records it in `meta.seed`.
+- **Each result depends only on its own seed.** Requesting `seed + i` with
+  `count = 1` reproduces candidate `i`, enabling Variants and evolution.
+  Diffusion models need one generator per seed, not one per batch. Identical
+  requests produce identical results. Different seeds differ unless the model
+  is inherently deterministic (for example Piper). GPU batch and single outputs
+  need not be byte-identical; this is allowed.
+- Response `params` are **effective** parameters: requested values plus defaults.
+  Together with `model`, they capture how the result was made, since server
+  defaults may change.
+- If omitted, the server chooses `seed` and returns it.
+- Response `model` identifies the model that **actually** ran. Studio stores
+  this snapshot, not `/v1/info`: the server at a port could have changed between
+  requests.
+- Input roles must be unique. Unknown roles, parameters and extra fields are rejected.
+- Only one generation runs at a time. Concurrent requests receive `409 busy`;
+  `/v1/info` reports `busy` meanwhile.
+- Files are base64 in JSON. For loopback assets up to tens of MB, this is
+  simpler than multipart. Reconsider for version 2 if it becomes a problem.
+- Version 1 has no generation progress or mid-generation cancellation.
 
-### Ошибки
+### Errors
 
-Тело любой ошибки, на любом пути, включая неизвестные:
+Every error, on any route including unknown routes, has this body:
 
 ```json
 {"error": {"code": "busy", "message": "…", "retryable": true}}
 ```
 
-| HTTP | `code` | `retryable` | Когда |
+| HTTP | `code` | `retryable` | When |
 | --- | --- | --- | --- |
-| 400 | `unsupported_task` | нет | сервер не объявлял такую задачу |
-| 404, 405 | `invalid_request` | нет | неизвестный путь или метод |
-| 409 | `busy` | да | идёт другая генерация |
-| 422 | `invalid_request` | нет | тело не по схеме, нет обязательного входа, неверный MIME, base64, `count > max_count`, неизвестный параметр |
-| 500 | `generation_failed` | по ситуации | модель не смогла выполнить корректный запрос |
-| 500 | `internal` | нет | ошибка в коде сервера |
-| 503 | `not_ready` | да при `loading` и сломанном GPU, нет при ошибке загрузки | модель не загружена или процесс перезапускается |
+| 400 | `unsupported_task` | No | Task not advertised by server |
+| 404, 405 | `invalid_request` | No | Unknown route or method |
+| 409 | `busy` | Yes | Another generation is running |
+| 422 | `invalid_request` | No | Invalid schema, missing required input, invalid MIME/base64, `count > max_count`, unknown parameter |
+| 500 | `generation_failed` | Depends | Model failed on a valid request |
+| 500 | `internal` | No | Server implementation error |
+| 503 | `not_ready` | Yes for `loading` or broken GPU; no for load failure | Model not loaded or process restarting |
 
-`retryable` означает: тот же запрос позже может пройти. Студия
-повторяет только такие ошибки.
+`retryable` means the same request may succeed later. Studio retries only
+these errors.
 
-`model.details` (необязательно, 2026-10-22) — технические сведения для панели модели
-в студии: «характеристика → значение», строками (размер, квантование, выгрузка в RAM,
-пиковая VRAM). Студия показывает их как есть и ничего по ним не решает.
+Optional `model.details` (2026-10-22) provides technical information for the
+model panel as string key/value pairs (size, quantization, RAM offload, peak
+VRAM). Studio displays it as supplied and makes no decisions from it.
 
-## Реализация
+## Implementation
 
-`model_server_sdk` реализует контракт целиком: фоновую загрузку,
-валидацию, коды ошибок, seed, блокировку одновременных запросов.
-Автор сервера описывает задачи (`TaskSpec` с pydantic-моделью
-параметров) и пишет два метода — `load()` и `generate(job)`. SDK
-проверяет объявления при старте по тем же правилам, что и `/v1/info`.
-`load` и все вызовы `generate` выполняются по очереди в одном выделенном
-потоке, поэтому потоковые настройки из `load` (например,
-`torch.set_grad_enabled(False)`) сохраняются.
+`model_server_sdk` implements the whole contract: background loading, validation,
+error codes, seeds and concurrent-request locking. Authors declare tasks
+(`TaskSpec` with Pydantic parameter models) and implement `load()` and
+`generate(job)`. The SDK checks declarations at startup using the same rules
+as `/v1/info`. Loading and generation run sequentially on one dedicated thread,
+preserving thread-local settings such as `torch.set_grad_enabled(False)`.
 
-Команда `python -m model_server_sdk.check URL` проверяет любой запущенный
-сервер на соответствие контракту; это критерий приёмки серверов в M0.
-Она проверяет объявления, генерацию каждой задачи, пути ошибок и правила
-seed:
+`python -m model_server_sdk.check URL` checks a running server against the
+contract, the M0 acceptance criterion. It checks declarations, each task's
+generation, error paths and seed rules:
 
-- два одинаковых запроса дают одинаковый результат, то есть seed
-  управляет случайностью. Иначе — ошибка (`--allow-nondeterministic`
-  превращает её в предупреждение);
-- разные seed дают разные результаты. Иначе — ошибка
-  (`--allow-seed-independent` для детерминированных моделей);
-- результат из батча совпадает с одиночным запросом. Иначе —
-  предупреждение (`--strict-determinism` делает его ошибкой).
+- Identical requests must repeat, proving seed control. Failure is an error
+  (`--allow-nondeterministic` downgrades it to a warning).
+- Different seeds must differ. Failure is an error (`--allow-seed-independent`
+  is available for deterministic models).
+- Batch results must match single requests. Differences are warnings
+  (`--strict-determinism` makes them errors).
 
-Предупреждения при приёмке нужно объяснить в отчёте.
+Explain acceptance warnings in the report.
 
-SDK поддерживает Python 3.11+: у некоторых моделей (TripoSR) закреплены
-сборки PyTorch под 3.11.
+The SDK supports Python 3.11+: some models (TripoSR) pin PyTorch builds for 3.11.
 
-## Альтернативы
+## Alternatives
 
-- **Готовые API** (OpenAI Images, ComfyUI). Не покрывают 3D и звук
-  единообразно и не описывают параметры для генерации формы.
-- **Асинхронные задания на сервере модели** (`POST` → id → опрос).
-  Очередь уже есть в студии; на loopback синхронный вызов проще и не
-  дублирует её состояние.
-- **Multipart вместо base64.** Экономит ~33% трафика, но усложняет
-  контракт и клиентов; на loopback выигрыш несущественен.
+- **Existing APIs** (OpenAI Images, ComfyUI) do not cover 3D and audio uniformly
+  or describe parameters for generated forms.
+- **Asynchronous model-server jobs** (`POST` → ID → polling). Studio already
+  owns a queue; synchronous loopback calls are simpler and avoid duplicated state.
+- **Multipart instead of base64** saves about 33% traffic but complicates the
+  contract and clients, with little loopback benefit.

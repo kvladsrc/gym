@@ -1,101 +1,95 @@
-# GVHMR: форма нейтрального тела и вращения рига
+# GVHMR: neutral body shape and rig rotations
 
-## Ошибка
+## Bug
 
-Имена Mixamo в BVH GVHMR обозначают суставы SMPL-X. Их нейтральные
-смещения описывают форму тела; направление от одного такого сустава к
-следующему не является командой согнуть кость целевого рига.
+Mixamo names in GVHMR BVH denote SMPL-X joints. Their neutral offsets describe
+body shape; directions between them are not commands to bend target bones.
 
-Прежний профиль `rotations` совмещал эти направления для всех костей.
-Кроме того, ориентация таза вычислялась из треугольника таз–бёдра–позвоночник,
-вместо использования исходного вращения таза. Терминальная голова получала
-поправку направления шеи. Поэтому даже BVH с нулевыми вращениями изгибал
-нейтральный позвоночник MIA: локальные изменения достигали 33–37°.
+The previous `rotations` profile aligned these directions for every bone.
+Pelvis orientation also came from a pelvis/hips/spine triangle rather than
+original pelvis rotation; terminal heads received neck-direction correction.
+Thus even zero-rotation BVH bent MIA's neutral spine, with 33–37° local changes.
 
-Предыдущая проверка локтей и коленей эту ошибку не исключала. Исправные
-веса и иерархия рига также не доказывают корректность переноса осевой цепи.
+Prior elbow/knee checks did not exclude this bug. Valid weights/hierarchy also
+do not prove correct axial-chain transfer.
 
-## Исправление
+## Fix
 
-GVHMR использует внутренний профиль `smpl` библиотеки `asset_processing`:
+GVHMR uses `asset_processing`'s internal `smpl` profile:
 
-- сохраняет нейтральную форму таза, позвоночника, шеи и головы целевого рига;
-- переносит полные исходные вращения относительно неё, включая кивки и повороты;
-- берёт вращение таза из источника, без наклона из геометрии нейтральных суставов;
-- сохраняет совмещение поз покоя конечностей, скручивание кистей, масштаб
-  перемещения и режимы `world`, `stationary`, `in-place`.
+- Retains target neutral pelvis, spine, neck and head shape.
+- Transfers full source rotations relative to it, including nods and turns.
+- Uses source pelvis rotation, not neutral-joint-derived tilt.
+- Retains limb rest alignment, wrist twist, translation scaling and `world`,
+  `stationary`, `in-place` modes.
 
-Профили Kimodo и MoCapAnything не переключаются на `smpl`. HTTP-контракт,
-схема параметров GVHMR и SDK не меняются.
+Kimodo/MoCapAnything do not switch to `smpl`. HTTP contract, GVHMR parameter
+schema and SDK remain unchanged.
 
-## Контроль sword_combo
+## sword_combo control
 
-Сравнение использует одно сохранённое предсказание GVHMR на видео после
-BiRefNet и тот же риг MIA. Повторная нейросетевая оценка не вносит различий.
-Оба варианта используют `stationary`, 114 кадров, 30 fps.
+Both variants reuse one saved GVHMR prediction from BiRefNet-cleaned video and
+the same MIA rig, avoiding neural rerun differences: `stationary`, 114 frames,
+30 fps.
 
-| Проверка | До | После |
+| Check | Before | After |
 | --- | ---: | ---: |
-| Максимальная ошибка вращения таза | 17,09° | <0,04° |
-| Spine | 6,37° | <0,04° |
-| Spine1 | 30,00° | <0,04° |
-| Spine2 | 15,43° | <0,04° |
-| Шея и голова | 14,81° | <0,04° |
-| Горизонтальный диапазон корня | <1e-6 м | <1e-6 м |
-| Диапазон поворота корня | 433,15° | 433,54° |
-| Вертикальный диапазон корня | 0,3683 м | 0,3683 м |
+| Maximum pelvis rotation error | 17.09° | <0.04° |
+| Spine | 6.37° | <0.04° |
+| Spine1 | 30.00° | <0.04° |
+| Spine2 | 15.43° | <0.04° |
+| Neck/head | 14.81° | <0.04° |
+| Horizontal root range | <1e-6 m | <1e-6 m |
+| Root heading range | 433.15° | 433.54° |
+| Vertical root range | 0.3683 m | 0.3683 m |
 
-Ошибки вращений сравниваются с исходными вращениями BVH в согласованных
-мировых осях, относительно собственной нейтральной позы каждого скелета.
-Это не сравнение с истинным движением актёра. Положения нейтральных суставов
-у разных тел намеренно не обязаны совпадать.
+Rotation errors compare original BVH rotations in aligned world axes relative
+to each skeleton's own neutral pose, not actor ground truth. Different bodies'
+neutral joint positions intentionally need not match.
 
-Для визуальной проверки исходный `prediction.pt` также отрисован как
-настоящая сетка SMPL-X, без рига MIA и без ретаргетинга. Опущенная голова
-и часть наклона корпуса уже видны в этой сетке. Исправление переноса не
-должно произвольно выпрямлять такие исходные движения. Полностью решённой
-проблему качества поз GVHMR считать нельзя.
+For visual review, original `prediction.pt` was also rendered as an actual
+SMPL-X mesh, without MIA or retargeting. Lowered head and some torso lean are
+already present there. Transfer fixes should not arbitrarily straighten source
+motion. GVHMR pose quality is not fully solved.
 
-Артефакты: `workspace/gvhmr_posture/`: `sword_combo_gvhmr_diagnostic.mp4`
-(SMPL-X / до / после), вариант `_slow`, сравнение из двух колонок,
-исправленный FBX и `sword_transfer_validation.json`.
+Artifacts: `workspace/gvhmr_posture/`, including
+`sword_combo_gvhmr_diagnostic.mp4` (SMPL-X / before / after), `_slow`, two-column
+comparison, fixed FBX and `sword_transfer_validation.json`.
 
-Blender-регрессия использует отличающиеся нейтральные смещения позвоночника
-и головы. Проверяет нейтральную позу, последующие вращения всех шести
-осевых костей, движение головы и кисти во всех трёх режимах корня.
+The Blender regression uses different neutral spine/head offsets and checks
+neutral pose, later rotations of all six axial bones, head/wrist movement and
+all three root modes.
 
-## Что отличается в старом хорошем примере Human
+## Differences in the older good Human example
 
-Проверены фактические FBX из `workspace/human`, а не только превью:
+Checked actual FBX files from `workspace/human`, not previews alone:
 
-| Файл | Изменение собственного вращения Head относительно первого кадра |
+| File | Head's own rotation change relative to first frame |
 | --- | ---: |
 | `guard_gvhmr_axe_comparison.fbx` | 0° |
 | `guard_gvhmr_world.fbx`, `guard_gvhmr_in_place.fbx` | 0° |
-| `guard_flow_gvhmr.fbx` | 54,98° |
-| Новый GVHMR на том же видео и подготовленном риге | 54,98° |
-| `guard_mocap_axe.fbx` | 28,03° |
+| `guard_flow_gvhmr.fbx` | 54.98° |
+| New GVHMR, same video/prepared rig | 54.98° |
+| `guard_mocap_axe.fbx` | 28.03° |
 
-У ранних GVHMR-экспортов также отсутствует собственное движение кистей.
-Это соответствует старому переносу по положениям суставов: терминальные
-кости следуют за родителем, но их предсказанные вращения теряются. Более
-поздний полный перенос сохраняет эти движения. Поэтому старое удачное
-превью не является проверкой качества предсказания ориентации головы GVHMR.
-Видимое вращение всей головы вместе с шеей при этом могло присутствовать.
-Этот вывод не относится к старому MoCapAnything: его голова анимирована.
+Early GVHMR exports also lack independent wrist motion. This matches old
+position-based transfer: terminal bones follow parents but lose predicted
+rotations. Later full transfer preserves them. The old good preview therefore
+does not validate GVHMR's predicted head orientation; visible head motion with
+the neck could still occur. This does not apply to old MoCapAnything, whose
+head is animated.
 
-Риг старого Human и подготовленный риг Sieg имеют те же 22 кости,
-иерархию и 24894 вершины. Максимальная разница нейтральных координат
-меньше 6e-7 м, нормализованных весов — меньше 2,4e-8. Подмена персонажа или
-другой скелет не объясняют различие этих примеров.
+The old Human rig and prepared Sieg rig share 22 bones, hierarchy and 24,894
+vertices. Maximum neutral-coordinate difference <6e-7 m; normalized-weight
+difference <2.4e-8. Character replacement or another skeleton does not explain
+the examples' differences.
 
-Вход Human содержит крупно снятого реального человека и почти неподвижную
-камеру. Sieg содержит маленького игрового персонажа, плащ, волосы, оружие,
-эффекты и движение камеры. Это дополнительные факторы для проверки,
-а не доказательство конкретной причины ошибки каждой предсказанной позы.
+Human input shows a large real person and nearly static camera. Sieg shows a
+small game character, cape, hair, weapon, effects and camera movement. These
+are factors to test, not proof of each pose error's cause.
 
-Подробные сравнения и аудит: `workspace/sieg/posture_batch/`, в частности
-`comparisons/human_old_vs_current.mp4`, `human_head_animation_audit.json`
-и `human_vs_sieg_rig.json`.
+Detailed comparisons/audit: `workspace/sieg/posture_batch/`, especially
+`comparisons/human_old_vs_current.mp4`, `human_head_animation_audit.json`,
+`human_vs_sieg_rig.json`.
 
-Следующий эксперимент: [четыре движения Sieg и контроль Human](sieg-posture-comparison.md).
+Next experiment: [four Sieg motions and Human control](sieg-posture-comparison.md).

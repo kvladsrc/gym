@@ -1,72 +1,66 @@
-# Процесс: перебор, оценки, очередь
+# Process: sweeps, ratings and the queue
 
 <!-- markdownlint-disable MD013 -->
 
-## Перебор и оценки
+## Sweeps and ratings
 
-- **Сначала в ширину.** `just sweep queue SPEC.toml` ставит в очередь все
-  сочетания осей спецификации (категория × стиль × жанр × модель картинки ×
-  модель 3D) и метит результаты осями (`category:`, `style:`, `genre:`,
-  `image:`, `3d:`, `sweep:`); `just sweep paint` докрашивает формы
-  Hunyuan3D и TripoSG; `just sweep tag` дометит закончившееся;
-  `just sweep gallery` собирает страницу сравнения
-  (`~/.local/share/assets-studio/sweeps/<name>/index.html`): картинка и
-  результат каждой модели в ряд, три вида на модель (Blender), сводка по
-  моделям (время, треугольники, замкнутость, оценки). Повторный запуск
-  дорисует закончившееся и подтянет новые оценки. С
-  `every_subject = true` спецификация — не поиск, а набор ассетов (каждый
-  предмет по разу); категория может задавать свои параметры картинки и
-  `3d = []` (только картинка).
-- **Оценки 0–5 в студии, анализ — по осям.** Средние по категории,
-  стилю, жанру, модели и их сочетаниям; парное сравнение моделей на одном
-  промпте честнее средних. Помните: оценка смешивает технику (артефакты)
-  и вкус (стиль) — смотрите на тенденции, а не на десятые.
-- **Отдельно оценивайте картинку и 3D:** лучшая картинка не всегда даёт
-  лучшую модель (у Qwen — из-за мелких деталей, см. [3d.md](3d.md)).
-- **Перегенерация — по оценкам:** 1–2 переписать с учётом причины
-  (пористое → крупные массы; монотонно → свои цвета каждому предмету),
-  4–5 разобрать и вынести приёмы в шаблон.
+- **Start broad.** `just sweep queue SPEC.toml` queues all combinations of
+  specification axes (category × style × genre × image model × 3D model) and
+  tags results with `category:`, `style:`, `genre:`, `image:`, `3d:`, `sweep:`.
+  `just sweep paint` paints Hunyuan3D and TripoSG shapes; `just sweep tag` tags
+  completed results; `just sweep gallery` builds a comparison page
+  (`~/.local/share/assets-studio/sweeps/<name>/index.html`): image and each
+  model's result in a row, three Blender views per model, and model summaries
+  (time, triangles, watertightness, ratings). Reruns render newly completed
+  results and update ratings. With `every_subject = true`, the spec describes
+  an asset set rather than a search (one of each subject); categories can
+  override image parameters and set `3d = []` for images only.
+- **Rate 0–5 in Studio; analyze by axis.** Compare averages by category, style,
+  genre, model and combinations. Paired model comparisons on the same prompt
+  are fairer than averages. Ratings mix technical quality (artifacts) and
+  taste (style); look for trends, not tenths of a point.
+- **Rate images and 3D separately:** the best image does not always produce
+  the best model (Qwen's fine details are one reason; see [3d.md](3d.md)).
+- **Regenerate based on ratings:** rewrite 1–2 results to address the cause
+  (porous → large masses; monotonous → individual object colors); analyze
+  4–5 results and incorporate successful techniques into templates.
 
-## Очередь и сервера моделей
+## Queue and model servers
 
-- `launcher` поднимает сервер под задания в очереди и держит одну модель на
-  GPU. Загруженный сервер выполняет все свои готовые задания, даже
-  добавленные позже чужих: очередь A, B, A, B, A, B — два запуска, не
-  шесть. Переключение неизбежно, только когда следующее задание A ждёт
-  результата B (цепочка одного ассета). Несколько цепочек всё равно идут
-  пачками по типу: сначала все картинки, потом все формы и т. д.
-- **Цепочки — через зависимости:** картинка → форма → покраска → риг одним
-  набором заданий, с выбором варианта в конце.
-- Запущенное задание студия не отменяет — только ожидающее.
-- Список заданий в API — не больше 1 000 последних. Задание, сделавшее
-  ассет (промпт, все параметры с умолчаниями, seed, входы, модель), — в
-  `GET /api/assets/{id}/job`, в `job_id` у `get_asset` по MCP и в блоке
-  «Как сделано» в библиотеке (там же — копирование промпта и всего запроса
-  в JSON).
-- Библиотека: вид «Сетка» или «Крупно» (как в разделе: один ассет во весь
-  экран, отобранный фильтрами список лентой снизу, ← → по нему; двойной
-  клик по карточке сетки открывает её крупно).
+- `launcher` starts servers for queued jobs and keeps one model on GPU. A
+  loaded server runs all ready jobs for it, even those added after other
+  models' jobs: A, B, A, B, A, B requires two starts, not six. Switching is
+  unavoidable only when the next A job waits for B's result (one asset's
+  chain). Multiple chains are still batched by stage: all images, then all
+  shapes, and so on.
+- **Use dependencies for chains:** image → shape → paint → rig as one job set,
+  choosing a variant at the end.
+- Studio cancels waiting jobs only, not running ones.
+- The API lists at most the latest 1,000 jobs. The producing job (prompt,
+  fully resolved parameters, seed, inputs, model) is available at
+  `GET /api/assets/{id}/job`, in `get_asset`'s MCP `job_id`, and in the library's
+  “How it was made” block (including prompt and full JSON request copying).
+- Library views: “Grid” or “Large” (as in a section: one asset fills the viewer,
+  filtered items form a strip below, ← → navigates it; double-click a grid
+  card to open it large).
 
-## Память (ноутбук: 30 ГБ ОЗУ, 8 ГБ видео)
+## Memory (laptop: 30 GB RAM, 8 GB VRAM)
 
-- Тяжёлые шаги не помещаются рядом: Paint ~13 ГБ ОЗУ (веса загружаются
-  отображением в память, иначе пик 14,6 ГБ и ядро убивает сервер),
-  YuE ~9 ГБ, экспорт уровня в Blender до ~8,5 ГБ, плюс открытые Unity и
-  Blender. Тяжёлый экспорт — со сторожем памяти, который остановит его
-  раньше системного OOM.
-- Ни в одном шаге нет предупреждения о размере: настройка, нормальная для
-  одного шага (форма без уменьшения, 657k треугольников), губит следующий
-  (развёртка Paint полчаса на CPU). Держите бюджеты треугольников по
-  цепочке.
+- Heavy stages do not fit together: Paint ~13 GB RAM (memory-mapped weights;
+  otherwise peak reaches 14.6 GB and the kernel kills the server), YuE ~9 GB,
+  Blender level export up to ~8.5 GB, plus open Unity and Blender instances.
+  Run heavy exports with a memory watchdog that stops them before system OOM.
+- No stage warns about size. A setting fine for one stage (unsimplified shape,
+  657K triangles) can cripple the next (Paint unwrap takes half an hour on CPU).
+  Maintain triangle budgets throughout the chain.
 
-## Чего студии не хватает (открыто)
+## Missing Studio features (open)
 
-- Нет прогресса у выполняемого задания (сервер знает свой шаг), и
-  результаты приходят только все разом: 4 картинки 2K ничего не
-  показывали 45 минут. `wait_for_job` по MCP ждёт молча, а Claude Code
-  обрывает инструмент, молчащий 300 с.
-- Конфигурацию студия читает только при старте: новый сервер — перезапуск.
-- У импортированного файла нет связи с сеткой и концептом, из которых он
-  сделан.
-- Нет режима карты высот, бесшовной текстуры и панорамы неба.
-- Описание `import_asset` в MCP перечисляет не все форматы (нет FBX).
+- Running jobs have no progress reporting (the server knows its step), and
+  results arrive all at once: four 2K images showed nothing for 45 minutes.
+  MCP `wait_for_job` waits silently, and Claude Code terminates tools silent
+  for 300 seconds.
+- Configuration loads only at startup; adding a server requires a restart.
+- Imported files have no link to their source mesh and concept.
+- No heightmap, seamless texture or sky panorama mode.
+- MCP `import_asset` documentation does not list all formats (FBX is missing).

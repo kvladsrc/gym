@@ -1,106 +1,96 @@
-# ADR-004. Разделы по виду результата, модель внутри раздела; удаление ассетов
+# ADR-004. Sections by output kind, models within sections; asset deletion
 
 <!-- markdownlint-disable MD013 -->
 
-Статус: принято (M8).
+Status: accepted (M8).
 
-## Контекст
+## Context
 
-В ADR-002 вкладка — это один сервер модели. С двумя моделями картинок
-(SDXL, FLUX) и двумя текстовыми (Gemma, Qwen) вкладок стало девять, а
-выбор «чем делать» оказался выбором вкладки. Пользователь попросил
-вкладки по типу задачи и выбор модели внутри. Кроме того, ассеты нельзя
-удалить: неудачные результаты копятся в библиотеке.
+In ADR-002 each tab represents one model server. Two image models (SDXL, FLUX)
+and two text models (Gemma, Qwen) brought this to nine tabs, making model choice
+a tab choice. The user requested task-type sections with model selection inside.
+Assets also could not be deleted, so failures accumulated in the library.
 
-## Решение
+## Decision
 
-### Конфиг: только серверы
+### Configuration: servers only
 
 ```toml
 [[servers]]
 id = "flux"
 url = "http://127.0.0.1:9104"
-# title — по умолчанию имя модели из /v1/info
-# timeout_s — как раньше (ADR-002)
+# title defaults to the model name from /v1/info
+# timeout_s is unchanged (ADR-002)
 ```
 
-`[[tabs]]` больше нет: вкладки строятся сами. Конфиг со старым ключом
-не загружается с понятной ошибкой. При переходе id вкладок становятся id
-серверов: задания ссылаются на них.
+Remove `[[tabs]]`: sections are built automatically. Old-key configurations
+fail with a clear error. Existing tab IDs become server IDs, preserving job
+references.
 
-### Разделы
+### Sections
 
-Раздел — вид результата задачи: **Картинки** (`image`), **3D** (`mesh`),
-**Звук** (`audio`), **Текст** (`text`), **Видео** (`video`). Задача
-попадает в раздел по виду своего первого `output_mime`; речь и звуки — оба
-в «Звуке». Внутри раздела — задачи, объявленные хоть одним сервером
-(«Текст → картинка», «Картинка → картинка»), и модели, которые умеют
-выбранную задачу, с индикатором доступности. Раздел без известных задач
-не показывается.
+A section corresponds to task output kind: **Images** (`image`), **3D** (`mesh`),
+**Audio** (`audio`), **Text** (`text`), **Video** (`video`). Classification uses
+the first `output_mime`; speech and sounds both belong to Audio. Each section
+contains tasks declared by at least one server (“Text → image”, “Image → image”)
+and models offering the selected task, with availability indicators. Sections
+without known tasks are hidden.
 
-Уточнение: **Анимации** (`animation`) выделены из 3D. Генерация движений
-(`…-to-motion`, `…-to-native-motion`), ретаргетинг, обрезка и прикрепление
-оружия показываются здесь независимо от выходного MIME: FBX общий с ригами,
-а native motion JSON имеет `text/plain`. Геометрия, покраска и подготовка
-рига остаются в 3D. Один сервер может объявлять задачи обоих разделов.
+Clarification: **Animations** (`animation`) is separate from 3D. Motion
+generation (`…-to-motion`, `…-to-native-motion`), retargeting, trimming and weapon
+attachment appear here regardless of output MIME: FBX is shared with rigs and
+native motion JSON uses `text/plain`. Geometry, painting and rig preparation
+stay in 3D. One server may declare tasks in both sections.
 
-Уточнение (2026-10-22): правило по имени задачи, без списка исключений. В «Анимации»
-всё, что кончается на `motion` (`…-to-motion`, `…-native-motion`, `…-soma-motion`,
-in-betweening) или на `pose` (`image-to-pose`), `retarget-…` и `video-to-pose-observations`. Прежний список пропускал
-новые задачи движения в «Текст».
-История определяется теми же правилами, включая задания удалённых серверов;
-существующие ассеты, задания, API и SDK не мигрируют. Общая библиотека сохранена.
+Clarification (2026-10-22): classification uses task names without an exception
+list. Animations includes names ending in `motion` (`…-to-motion`,
+`…-native-motion`, `…-soma-motion`, in-betweening) or `pose` (`image-to-pose`),
+`retarget-…`, and `video-to-pose-observations`. The old list misclassified new
+motion tasks as Text. History uses the same rules, including removed servers'
+jobs. Existing assets, jobs, API and SDK need no migration; the library stays shared.
 
-### Студия помнит серверы
+### Studio remembers servers
 
-Задачи сервера известны из его `/v1/info`. Чтобы остановленная модель не
-пропадала из раздела, студия хранит последний ответ каждого сервера в
-таблице `servers` (id, info, время). Это заодно закрывает отложенное в M4
-«помнить last_seen между перезапусками». Сервер, который ни разу не
-отвечал, показывается на главной странице списком «ещё не запускались».
+Capabilities come from `/v1/info`. To retain stopped models in sections,
+Studio caches each server's latest response in `servers` (ID, info, timestamp),
+also addressing M4's deferred persistence of last_seen across restarts. Servers
+that never responded appear under “Not started yet” on the home page.
 
-### Задания — по серверу
+### Jobs reference servers
 
-Задание ссылается на сервер (`jobs.server`, бывший `jobs.tab`: вкладка и
-была одним сервером, данные переносятся переименованием столбца). API:
-`GET /api/servers` вместо `/api/tabs`, `POST /api/jobs {server, task, …}`.
-MCP: `list_servers`, `generate(server, …)`.
+Jobs use `jobs.server`, formerly `jobs.tab`: a tab represented one server, so
+renaming the column migrates data. API: `GET /api/servers` replaces `/api/tabs`;
+`POST /api/jobs {server, task, …}`. MCP: `list_servers`, `generate(server, …)`.
 
-### Удаление ассетов
+### Asset deletion
 
-`DELETE /api/assets/{id}` помечает ассет удалённым (`assets.deleted_at`):
-он пропадает из библиотеки и поиска, в истории задания на его месте —
-заглушка. Родословная и задания остаются целыми. Файл блоба удаляется,
-когда на него не ссылается ни один живой ассет. Ассет, который нужен
-ждущему или идущему заданию — входом или как результат задания, от
-которого оно зависит, — удалить нельзя — `409`. Задание с удалённым входом
-не создаётся (проверка — в той же транзакции, что и запись задания).
+`DELETE /api/assets/{id}` soft-deletes (`assets.deleted_at`). The asset disappears
+from library/search and becomes a placeholder in job history. Provenance and
+jobs remain intact. Delete the blob once no live asset references it. Assets
+needed by queued/running jobs, as direct inputs or dependency outputs, cannot
+be deleted (`409`). Creating a job with deleted inputs is rejected in the same
+transaction as job insertion.
 
-### Удаление заданий
+### Job deletion
 
-`DELETE /api/jobs/{id}` убирает из истории неудачное или отменённое
-задание (`jobs.deleted_at`, миграция 0005); остальные — `409`. Как и
-ассет, задание помечается, а не стирается: повторы (`retry_of`) и
-зависимые задания продолжают на него ссылаться, `GET /api/jobs/{id}`
-его возвращает, список `GET /api/jobs` — нет. Удаление поднимает
-`version`, событие `job` убирает его из истории в интерфейсе.
-Повтор (`retry`) удаляет так же повторённое задание: в истории остаётся
-только новое.
+`DELETE /api/jobs/{id}` hides failed or cancelled jobs (`jobs.deleted_at`,
+migration 0005); other states return `409`. Like assets, jobs are marked rather
+than erased: retries (`retry_of`) and dependents retain references.
+`GET /api/jobs/{id}` still returns them, but `GET /api/jobs` omits them.
+Deletion increments `version`; the `job` event removes the row from UI history.
+Retry also soft-deletes the retried job, leaving only the new one in history.
 
-## Последствия
+## Consequences
 
-- Миграция 0004: `jobs.tab` → `jobs.server`, таблица `servers`, столбец
-  `assets.deleted_at`.
-- UI: маршруты разделов (`#/image`, `#/text`, …), черновик формы — на
-  раздел и задачу, выбранная модель запоминается; «отправить в…» — в
-  раздел, принимающий ассет.
-- Конфиг пользователя переписывается в `[[servers]]`.
+- Migration 0004: `jobs.tab` → `jobs.server`, `servers` table,
+  `assets.deleted_at` column.
+- UI: section routes (`#/image`, `#/text`, …), form drafts per section/task,
+  remembered selected model; “Send to…” targets a section accepting the asset.
+- Rewrite user configuration as `[[servers]]`.
 
-## Альтернативы
+## Alternatives
 
-- **Вкладка на каждую задачу X-to-X** (до девяти вкладок) — отвергнуто
-  пользователем: разделы по результату компактнее, эволюция X-to-X живёт
-  внутри одного раздела.
-- **Группы вкладок в конфиге** — лишняя ручная настройка: задачи сервер
-  объявляет сам.
-- **Жёсткое удаление ассетов** — ломает родословную и историю заданий.
+- **One tab per X-to-X task** (up to nine): rejected by the user. Output-based
+  sections are more compact; X-to-X evolution stays within a section.
+- **Configured tab groups:** unnecessary manual setup; servers declare tasks.
+- **Hard asset deletion:** breaks provenance and job history.

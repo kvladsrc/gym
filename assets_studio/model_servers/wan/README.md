@@ -2,54 +2,56 @@
 
 <!-- markdownlint-disable MD013 -->
 
-Видео из первого кадра (`image-to-video`, ADR-003) на основе
+Video from a first frame (`image-to-video`, ADR-003), based on
 [Wan2.2 TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B-Diffusers)
-(Apache-2.0): 24 кадра/с, ~720p, до 5 с; трансформер — в
-[GGUF Q8](https://huggingface.co/unsloth/Wan2.2-TI2V-5B-GGUF).
+(Apache-2.0): 24 fps, about 720p, up to 5 seconds, with a
+[GGUF Q8 transformer](https://huggingface.co/unsloth/Wan2.2-TI2V-5B-GGUF).
 
 ```sh
-just setup    # окружение Python 3.11 + PyTorch 2.5.1/CUDA 12.4 + diffusers + gguf
-just doctor   # GPU, ffmpeg, скачаны ли веса, хранилище блоков, место на диске
-just serve    # http://127.0.0.1:9108; первый запуск: ~22 ГБ скачать + ~11 ГБ хранилище
-just test     # без GPU и весов
+just setup    # Python 3.11 + PyTorch 2.5.1/CUDA 12.4 + diffusers + gguf environment
+just doctor   # GPU, ffmpeg, downloaded weights, block storage and disk space
+just serve    # http://127.0.0.1:9108; first start: ~22 GB download + ~11 GB storage
+just test     # no GPU or weights needed
 ```
 
-Из `model_servers/`: `just wan`.
+From `model_servers/`: `just wan`.
 
-## Параметры
+## Parameters
 
-- **Длительность** (1–5 с) и **размер** (720p — родной для модели; 480p —
-  быстрее, но модель обучена на 720p и чаще придумывает лишнее) —
-  основные. Стороны повторяют пропорции первого кадра (не круче 1:4), кадр
-  масштабируется и обрезается по центру, а не растягивается;
-- шаги (50), следование описанию (5,0), «чего избегать» — по умолчанию
-  стандартное отрицательное описание Wan на китайском, как в оригинале;
-- описание необязательно: что должно происходить в кадре. Лучше
-  по-английски.
+- **Duration** (1–5 seconds) and **size** (720p is native; 480p is faster but
+  the model was trained at 720p and invents extra details more often) are
+  primary parameters. Dimensions follow the first frame's aspect ratio
+  (no wider than 1:4); the frame is scaled and center-cropped, not stretched.
+- Steps (50), guidance (5.0) and negative prompt (Wan's original standard
+  Chinese negative prompt by default).
+- The optional prompt describes what should happen in the frame. English
+  works best.
 
-## Как это помещается в 8 ГБ
+## Fitting in 8 GB
 
-| Часть | Размер | Где |
+| Component | Size | Placement |
 | --- | --- | --- |
-| Трансформер 5B, GGUF Q8 | 5,4 ГБ | в обычной RAM; блоки закрепляются по ходу и идут на GPU по CUDA-потоку, следующий — пока считается текущий |
-| Текстовый кодировщик UMT5-XXL | 11,4 ГБ (bf16) | хранилище блоков на диске (`~/.cache/assets-studio/wan-offload`), раз на запрос |
-| VAE (fp32) | 2,8 ГБ | на GPU по слоям, кодирует и декодирует плитками |
+| 5B transformer, GGUF Q8 | 5.4 GB | Ordinary RAM; blocks are pinned as needed and streamed to GPU on a CUDA stream, prefetching the next while the current one computes |
+| UMT5-XXL text encoder | 11.4 GB (bf16) | Disk block storage (`~/.cache/assets-studio/wan-offload`), once per request |
+| VAE (fp32) | 2.8 GB | GPU layer by layer, tiled encoding and decoding |
 
-Видеопамять остаётся под активации: 5 с в 720p — это ~27 000 токенов (пик
-7,8 ГБ из 8): серверу нужна вся видеокарта — не запускайте рядом другие
-серверы моделей; при нехватке памяти — 480p. **Клип 720p × 5 с — около часа** (3643 с), 1 с в 480p — ~7 мин.
+VRAM is left for activations: 5 seconds at 720p is about 27,000 tokens
+(7.8 GB peak out of 8). The server needs the entire GPU; do not run other model
+servers alongside it. Use 480p if memory runs out.
+**A 720p × 5-second clip takes about an hour** (3643 seconds); 1 second at 480p
+is about 7 minutes.
 
-Как искали (клип 1 с, 608×608, 50 шагов):
+Experiments (1-second clip, 608×608, 50 steps):
 
-| Вариант | Время | Пик видеопамяти |
+| Variant | Time | Peak VRAM |
 | --- | --- | --- |
-| bf16-трансформер из дискового хранилища, без перекрытия | 768 с | 6,1 ГБ |
-| Q8 целиком на GPU | 229 с | 7,8 ГБ; 720p × 5 с — нехватка памяти |
-| Q8 в RAM, блоки с упреждением, закреплённая копия всей модели | 254 с | 4,8 ГБ; свободная RAM падала до 1 ГБ |
-| Q8 закреплён на месте один раз | 374 с | diffusers всё равно закрепляет заново: свободная RAM падала до 4 ГБ |
-| **Q8 в RAM, блоки закрепляются по ходу** | **413 с** | **4,8 ГБ; свободной RAM не меньше ~7 ГБ** |
+| bf16 transformer from disk, no overlap | 768 s | 6.1 GB |
+| Q8 entirely on GPU | 229 s | 7.8 GB; OOM at 720p × 5 s |
+| Q8 in RAM, prefetched blocks, pinned copy of entire model | 254 s | 4.8 GB; free RAM fell to 1 GB |
+| Q8 pinned in place once | 374 s | Diffusers pins again anyway; free RAM fell to 4 GB |
+| **Q8 in RAM, blocks pinned as needed** | **413 s** | **4.8 GB; at least ~7 GB free RAM** |
 
-Видео кодируется в канонический MP4 (H.264 High, yuv420p, BT.709 с
-тегами, `+faststart`, побайтно воспроизводимо) через
-`model_server_sdk.video`; нужен `ffmpeg` с `libx264` (системный или из extra
-`video` SDK) — `just doctor` показывает его версию и наличие `libx264`.
+Video is encoded as canonical MP4 (H.264 High, yuv420p, tagged BT.709,
+`+faststart`, byte-reproducible) through `model_server_sdk.video`. Requires
+`ffmpeg` with `libx264` (system installation or SDK `video` extra).
+`just doctor` reports the version and `libx264` availability.

@@ -1,32 +1,30 @@
-# ADR-006. Скелет персонажа: задача `3d-to-rig` и формат FBX
+# ADR-006. Character skeletons: the `3d-to-rig` task and FBX format
 
-Статус: принято.
+Status: accepted.
 
-## Контекст
+## Context
 
-Модели из картинки (TripoSR, SF3D, Hunyuan3D) — неподвижные сетки. Для
-анимаций Mixamo персонажу нужен скелет Mixamo и веса кожи. Это умеет
-модель (Make-It-Animatable), но её результат — FBX: Unity строит из
-FBX аватар Humanoid, на который ложатся анимации Mixamo; GLB Unity без
-пакета glTFast не открывает, а glTFast аватар Humanoid не
-строит. Студия хранила для 3D только GLB.
+Image-generated models (TripoSR, SF3D, Hunyuan3D) are static meshes. Mixamo
+animation requires a Mixamo skeleton and skin weights. Make-It-Animatable can
+produce these, but outputs FBX: Unity builds a Humanoid avatar from FBX that
+accepts Mixamo animations. Unity cannot open GLB without glTFast, and glTFast
+does not build Humanoid avatars. Studio previously stored only GLB for 3D.
 
-## Решение
+## Decision
 
-- Новый вид файла 3D: `model/x-fbx` (`.fbx`), только двоичный FBX
-  (подпись `Kaydara FBX Binary`), его пишут Blender, Mixamo и Unity.
-  Канонический формат 3D остаётся GLB: FBX в GLB студия не переводит, и
-  сервер, принимающий GLB, получить FBX не может — задание отклоняется с
-  понятной ошибкой.
-- Новая известная задача `3d-to-rig`: вход `mesh` (GLB), результат —
-  FBX со скелетом и весами. Раздел — 3D (по виду результата, ADR-004).
-- Интерфейс FBX не показывает (model-viewer умеет только glTF): вместо
-  просмотра — пояснение, файл скачивается кнопкой «Скачать».
-- Номер контракта не меняется: новый вид файла и задача — расширения,
-  старые серверы и клиенты их не встречают.
+- Add a 3D file type: `model/x-fbx` (`.fbx`), binary FBX only (signature
+  `Kaydara FBX Binary`), as written by Blender, Mixamo and Unity. GLB remains
+  the canonical 3D format. Studio does not convert FBX to GLB; GLB-only
+  servers cannot receive FBX, and such jobs are rejected with a clear error.
+- Add known task `3d-to-rig`: input `mesh` (GLB), output FBX with skeleton and
+  weights. Section: 3D (by result kind, ADR-004).
+- The UI does not preview FBX (model-viewer supports only glTF); it displays
+  an explanation instead, with a “Download” button.
+- The contract number stays unchanged: the new file type and task are
+  extensions that old servers and clients do not encounter.
 
-## Последствия
+## Consequences
 
-- Просмотр скелета в браузере — открытый вопрос: можно отдавать рядом GLB
-  со скином (FBX2glTF), когда понадобится.
-- ASCII FBX не принимается: импорт в библиотеку считает его текстом.
+- Browser skeleton preview remains open: a companion skinned GLB (FBX2glTF)
+  could be provided when needed.
+- ASCII FBX is not accepted: library import identifies it as text.

@@ -1,64 +1,61 @@
 # Qwen-Image model server
 
-Text-to-image и редактирование по инструкции (image-to-image) по контракту
-v1 на основе [Qwen-Image 2.1](https://huggingface.co/Qwen/Qwen-Image-2.1)
-с трансформером в [GGUF Q8](https://huggingface.co/unsloth/Qwen-Image-2.1-GGUF).
+Contract v1 text-to-image and instruction-based image editing (image-to-image),
+based on [Qwen-Image 2.1](https://huggingface.co/Qwen/Qwen-Image-2.1), with a
+[GGUF Q8 transformer](https://huggingface.co/unsloth/Qwen-Image-2.1-GGUF).
 
 ```sh
-just setup    # окружение Python 3.11 + PyTorch 2.9.1/CUDA 12.8 + diffusers (main)
-just doctor   # PyTorch, GPU, скачаны ли веса, состояние хранилища выгрузки
-just serve    # http://127.0.0.1:9109; первый запуск ~4 мин, ~50 ГБ на диске
-just test     # объявления, промпты, прозрачность, без GPU и весов
+just setup    # Python 3.11 + PyTorch 2.9.1/CUDA 12.8 + diffusers (main) environment
+just doctor   # PyTorch, GPU, downloaded weights and offload storage state
+just serve    # http://127.0.0.1:9109; first start ~4 min, ~50 GB on disk
+just test     # declarations, prompts, transparency; no GPU or weights needed
 ```
 
-Лицензия весов — Qwen Research License: исследования и прочее
-некоммерческое использование.
+Weight license: Qwen Research License, for research and other non-commercial use.
 
-## Что умеет
+## Capabilities
 
-- Картинки до нативных 2K (по умолчанию 2048²) и около 1 Мп.
-- Прозрачный фон: VAE модели декодирует альфа-канал. Флажок «Прозрачный
-  фон» включает формат описания из карточки модели; в PNG альфа
-  сохраняется, только если она запрошена (или была у редактируемой
-  картинки) и в результате есть прозрачные пиксели.
-- Текст на картинке — надписи выходят без ошибок.
-- Редактирование словами («сделай кристалл зелёным»): форма и композиция
-  исходной картинки сохраняются, размер — её пропорции на ~1 или ~4 Мп.
+- Images up to native 2K (default 2048²), and around 1 MP.
+- Transparent backgrounds: the model's VAE decodes alpha. “Transparent
+  background” enables the prompt format from the model card. PNG alpha is
+  retained only if requested (or present in the edited image) and the result
+  contains transparent pixels.
+- Image text: lettering is rendered correctly.
+- Instruction-based editing (“make the crystal green”): preserves the source
+  image's shape and composition, at its aspect ratio and around 1 or 4 MP.
 
-## Как это помещается в 8 ГБ
+## Fitting in 8 GB
 
-Трансформер 7B и кодировщик Qwen3-VL 8B весят ~31 ГБ в bf16.
+The 7B transformer and 8B Qwen3-VL encoder total about 31 GB in bf16.
 
-- Трансформер квантован в GGUF Q8 (7,6 ГБ), кодировщик — bf16 без
-  ненужной выходной головы (~16 ГБ).
-- Обе модели подгружаются на GPU по блокам из хранилища на диске
-  (`~/.cache/assets-studio/qwen_image-offload`, ~23 ГБ), как у FLUX. VAE
-  лежит на GPU и декодирует плитками по 768 px с перекрытием 128 px.
-- Кодировщик проходит один раз на запрос; при редактировании — тоже один
-  раз на все варианты.
-- Редактирование в 1K кеширует ключи и значения текста и исходной картинки
-  (~2,6 ГБ) на все шаги; в 2K кеш не помещается, и они пересчитываются.
+- Transformer: GGUF Q8 (7.6 GB); encoder: bf16 without the unused output head
+  (~16 GB).
+- Both models stream GPU blocks from disk (`~/.cache/assets-studio/qwen_image-offload`,
+  ~23 GB), as with FLUX. The VAE stays on GPU and decodes 768 px tiles with
+  128 px overlap.
+- The encoder runs once per request, including once for all editing variants.
+- At 1K, editing caches text and source-image keys and values (~2.6 GB) across
+  steps. At 2K the cache does not fit, so they are recomputed.
 
 | | 1K | 2K |
 | --- | --- | --- |
-| Text-to-image, 40 шагов | ~3,5 мин | ~12 мин |
-| Редактирование, 40 шагов | ~4 мин | ~27 мин |
-| Пик видеопамяти | 5,2 ГБ (правка 7,5) | 5,3 ГБ (правка 7,5) |
+| Text-to-image, 40 steps | ~3.5 min | ~12 min |
+| Editing, 40 steps | ~4 min | ~27 min |
+| Peak VRAM | 5.2 GB (editing 7.5) | 5.3 GB (editing 7.5) |
 
-Работает один: рядом с другими тяжёлыми серверами не помещается.
+Run alone: it does not fit alongside other heavy servers.
 
-## Что выяснилось по дороге
+## Integration findings
 
-- diffusers поддерживает модель пока только в ветке main: зафиксирован
-  коммит `578c9b2`; нужен torch 2.6+.
-- Конвертер чекпойнта делит слитые проекции через `chunk()`; половины
-  делят хранилище, и safetensors не может записать их в хранилище
-  выгрузки — каждая получает свою копию.
-- RMSNorm текстовой проекции хранится в GGUF как BF16; diffusers
-  раскодирует GGUF только внутри своих линейных слоёв, и норма видела
-  сырые байты (8192 «значения» на 4096 каналов) — такие параметры
-  раскодируются при загрузке.
-- Токен-эмбеддинг кодировщика вызывается до языковой модели — у него своя
-  группа выгрузки, иначе он оставался на CPU.
-- Альфа-канал VAE на непрозрачных картинках шумит (несколько процентов
-  пикселей 203–254) — прозрачностью считается только альфа ниже 128.
+- Diffusers supports the model only on main; commit `578c9b2` is pinned.
+  Requires torch 2.6+.
+- The checkpoint converter splits fused projections with `chunk()`. The halves
+  share storage, preventing safetensors from writing offload storage; each
+  receives its own copy.
+- Text projection RMSNorm is stored as BF16 in GGUF. Diffusers decodes GGUF
+  only inside its linear layers, so normalization saw raw bytes (8192 “values”
+  for 4096 channels). These parameters are decoded at load time.
+- The encoder's token embedding runs before the language model. It needs a
+  separate offload group; otherwise it stays on CPU.
+- VAE alpha is noisy on opaque images (a few percent of pixels at 203–254).
+  Only alpha below 128 counts as transparency.

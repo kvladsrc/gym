@@ -1,80 +1,72 @@
-# Ассеты в движке
+# Assets in the engine
 
 <!-- markdownlint-disable MD013 -->
 
-Примеры — из Unity 6 (URP), но причины общие для любого движка.
+Examples use Unity 6 (URP), but the underlying issues apply to any engine.
 
-## Импорт
+## Import
 
-- **Текстура в FBX.** Внедрённая (embedded) текстура должна иметь имя
-  файла: упакованная картинка без пути экспортируется под именем папки
-  медиа (`rigged.fbm`), и движок её не распознаёт — модель приходит белой.
-  Давайте упакованным картинкам уникальные имена (`<модель>.png`,
-  `texture-<хеш>.png`) и извлекайте их при импорте в папку рядом с моделью.
-- **Матовые материалы.** Paint запекает свет и тень в текстуру; глянец
-  импортированного материала по умолчанию выглядит пластиком
-  (smoothness ~0,1, metallic 0).
-- **GPU instancing** на материалах уровня: сотни копий травы и деревьев —
-  один вызов на сетку.
-- **Парящие персонажи.** Контроллер персонажа держит капсулу над землёй
-  (skin width ~8 см); опустите модель на эту величину.
+- **FBX textures.** Embedded textures need filenames: packed images without
+  paths export under the media folder name (`rigged.fbm`), which the engine
+  does not recognize, leaving models white. Assign unique image names
+  (`<model>.png`, `texture-<hash>.png`) and extract them beside the model on import.
+- **Matte materials.** Paint bakes light and shadow into the texture; default
+  imported gloss looks plastic (smoothness ~0.1, metallic 0).
+- Enable **GPU instancing** on level materials: hundreds of grass/tree copies
+  become one draw call per mesh.
+- **Floating characters.** The character controller holds its capsule above
+  ground (skin width ~8 cm); lower the model by that amount.
 
-## Коллизии
+## Collisions
 
-- `MeshCollider` из собственной сетки модели — без ручных невидимых тел.
-  Сетки Hunyuan3D замкнуты: сквозь них не проваливаются, контроллер
-  персонажа поднимается по неровной земле (до 45°, ступени 0,3 м).
-- Упрощённые тела — только для движущихся объектов (выпуклые), деревьев
-  (капсула на ствол: ветки не должны держать героя), травы (никаких) и
-  очень большой земли.
-- «Пол» для расстановки объектов и персонажей — только поверхности земли,
-  а не всё подряд: иначе босс встаёт на крышу часовни.
+- Use `MeshCollider` from the model's own mesh, without hand-made invisible
+  bodies. Hunyuan3D meshes are watertight: characters do not fall through,
+  and the controller climbs uneven terrain (up to 45°, 0.3 m steps).
+- Use simplified colliders only for moving objects (convex), trees (trunk
+  capsule; branches should not support the player), grass (none) and very
+  large terrain.
+- Placement “ground” must include terrain surfaces only, not everything;
+  otherwise the boss ends up on the chapel roof.
 
-## Уровень, собранный в Blender
+## Levels assembled in Blender
 
-Уровень удобно собирать руками из GLB студии и экспортировать скриптом:
+A convenient workflow is to assemble Studio GLBs manually and export by script:
 
-1. **Оригиналы, а не уменьшенные копии.** Сетки Paint разрезаны по швам
-   UV. Уменьшенные (Decimate) без сварки, они рвутся на каждом шве: дерево
-   в 4 200 треугольников вместо 40 000 и ~5 000 открытых рёбер. Не
-   уменьшайте модели в Blender; если нужно — сначала Merge by Distance.
-   Экспорт может сам вернуть оригиналы: модель студии узнаётся по байтам
-   своей текстуры, оригинал подгоняется к коробке копии (копии обычно
-   перецентрованы, иногда масштабированы).
-2. **Сварка → уменьшение по бюджету размера** (трава ~3k, предметы
-   6–10k, деревья ~12k, здания ~30k треугольников), один раз на общую
-   сетку, — и швы не расходятся.
-3. **Процедурные материалы Blender** (шум, цветовые рампы, тонировка
-   картинки через Mix) в FBX не переносятся: запекайте базовый цвет в
-   текстуру (одна запечка на общую сетку). Запечка 8192² держит гигабайты
-   float-буферов; 4096 хватает (300 м → ~7 см на пиксель).
-4. **Перевёрнутые поверхности.** Blender рисует обе стороны грани, игра —
-   только лицевую. Земля, вылепленная «вверх ногами», в игре невидима и
-   непроходима. Поверхность, смотрящую в основном вниз, переворачивайте при
-   экспорте.
-5. **Коллекции → родители**, свет → JSON рядом (тип, цвет, мощность):
-   движок понимает, где земля, где подлесок, где лес.
-6. **Ничего в коде игры не должно знать координат** — только имена
-   (костры, маршрутные точки, ступени к арене). Тогда переэкспорт
-   пересобирается сам.
+1. **Originals, not reduced copies.** Paint meshes are split at UV seams.
+   Decimating without welding tears every seam: a tree drops from 40,000 to
+   4,200 triangles with about 5,000 open edges. Do not reduce models in Blender
+   without Merge by Distance first. Export can restore originals automatically:
+   identify Studio models by texture bytes, then fit the original to the copy's
+   bounding box (copies are usually recentered and sometimes scaled).
+2. **Weld → reduce to a size-based budget** (grass ~3K, props 6–10K, trees ~12K,
+   buildings ~30K triangles), once per shared mesh, keeping seams intact.
+3. **Procedural Blender materials** (noise, color ramps, image tinting through
+   Mix) do not transfer to FBX. Bake base color to a texture (once per shared
+   mesh). An 8192² bake holds gigabytes of float buffers; 4096 is enough
+   (300 m → ~7 cm per pixel).
+4. **Inverted surfaces.** Blender shows both sides; games render front faces
+   only. Upside-down terrain becomes invisible and impassable. Flip surfaces
+   facing mostly downward on export.
+5. **Collections → parents**, lights → sidecar JSON (type, color, power): the
+   engine can distinguish terrain, undergrowth and forest.
+6. **Game code should know names, not coordinates** (bonfires, waypoints,
+   arena steps). Re-export can then rebuild everything automatically.
 
-## Производительность
+## Performance
 
-- Ноутбук с двумя видеокартами (Optimus): без PRIME offload игра идёт на
-  встроенной (`__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia`
-  для OpenGL, Vulkan выбирает дискретную сам). Проверка — строка
-  `Renderer` в логе игры.
-- Кадр уровня из 3 500 моделей был 7 млн треугольников и 5 000 вызовов.
-  Помогло: дальность камеры под туман (160 м), расстояния отрисовки по
-  слоям (подлесок 45 м, деревья 140 м), без теней у подлеска, автоматические
-  LOD сеток, 2 каскада теней вместо 4.
-- Статистика редактора завышена (сцена в окне редактора, тени, depth
-  prepass): считайте треугольники в кадре камеры.
+- Dual-GPU laptops (Optimus): without PRIME offload, games use the integrated
+  GPU (`__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia` for
+  OpenGL; Vulkan selects the discrete GPU itself). Check the game's `Renderer` log.
+- A 3,500-model level rendered 7M triangles and 5,000 draw calls. Improvements:
+  camera distance matched to fog (160 m), layer draw distances (undergrowth
+  45 m, trees 140 m), no undergrowth shadows, automatic mesh LODs, and 2 shadow
+  cascades instead of 4.
+- Editor statistics overcount (editor scene, shadows, depth prepass); count
+  triangles in the camera frame.
 
-## Свет и атмосфера
+## Lighting and atmosphere
 
-- Постобработка, которая прячет недостатки генерации: SSAO (модели
-  «садятся» на землю), лёгкое зерно (пятнистые текстуры), мягкое
-  размытие вдали, тёплый свет / холодные тени.
-- Туман цвета горизонта неба и низкий туман частицами вокруг героя
-  (на большом уровне — привязать к герою, иначе слишком редкий).
+- Post-processing helps hide generation flaws: SSAO grounds models, light
+  grain masks mottled textures, soft distance blur, warm light/cool shadows.
+- Match fog to the sky horizon color; add low particle fog around the player
+  (attach it to the player on large levels, otherwise it is too sparse).

@@ -1,39 +1,39 @@
 # Kimodo model server
 
-Задача `text-to-motion`: описание движения (по-английски) → анимация
-гуманоида (FBX: скелет в T-позе и движение, 30 кадров в секунду).
-[Kimodo](https://github.com/nv-tlabs/kimodo) (NVIDIA, 2026) — диффузионная
-модель движения, обучена на ~700 часах захвата движений; предложения через
-точку — движения подряд, с переходами.
+The `text-to-motion` task takes an English motion description and produces a
+humanoid animation (FBX: T-pose skeleton and motion at 30 fps).
+[Kimodo](https://github.com/nv-tlabs/kimodo) (NVIDIA, 2026) is a motion diffusion
+model trained on about 700 hours of motion capture. Period-separated sentences
+produce sequential movements with transitions.
 
 ```sh
-just setup     # исходники, окружение Python 3.11 + PyTorch 2.8/CUDA 12.9,
-               # сборка Kimodo с MotionCorrection (C++) в nix develop .#assets-studio-cuda
-just download  # Kimodo (~1,1 ГБ), адаптеры LLM2Vec, Llama-3-8B (~16 ГБ);
-               # нужен HF_TOKEN
+just setup     # source, Python 3.11 + PyTorch 2.8/CUDA 12.9 environment;
+               # build Kimodo with MotionCorrection (C++) in nix develop .#assets-studio-cuda
+just download  # Kimodo (~1.1 GB), LLM2Vec adapters, Llama-3-8B (~16 GB);
+               # requires HF_TOKEN
 just doctor
 just serve     # http://127.0.0.1:9118
-just test      # без GPU и весов
+just test      # no GPU or weights needed
 ```
 
-- Скелет Kimodo — SOMA (77 суставов); кости переименованы в имена Mixamo
-  (`mixamorig:Hips`…, `to_fbx.py`): Unity сам строит по ним аватар
-  Humanoid, и клип играет на любом гуманоиде, в том числе на ригах `mia`.
-- Текстовый кодировщик — LLM2Vec на Llama-3-8B-Instruct, на CPU (~16 ГБ
-  ОЗУ, один проход на промпт); на GPU только Kimodo (< 3 ГБ). Llama 3 —
-  закрытый репозиторий: доступ на Hugging Face одобряет Meta.
-- MotionCorrection (против проскальзывания ступней) собирается с
-  `-include stdlib.h`: её `Scalar.h` зовёт `abs()` без заголовка.
+- Kimodo uses SOMA (77 joints); bones are renamed to Mixamo names
+  (`mixamorig:Hips`…, `to_fbx.py`). Unity builds a Humanoid avatar automatically,
+  and the clip plays on any humanoid, including `mia` rigs.
+- The text encoder is LLM2Vec on Llama-3-8B-Instruct, on CPU (~16 GB RAM,
+  one pass per prompt). Only Kimodo is on GPU (<3 GB). Llama 3 is gated:
+  Meta approves Hugging Face access.
+- MotionCorrection (prevents foot sliding) builds with `-include stdlib.h`:
+  its `Scalar.h` calls `abs()` without the header.
 
-Лицензии: Kimodo — NVIDIA Open Model License (коммерческое использование
-разрешено, результаты не принадлежат NVIDIA); адаптеры LLM2Vec — MIT;
-Llama 3 — Meta Llama 3 Community License.
+Licenses: Kimodo — NVIDIA Open Model License (commercial use permitted;
+outputs do not belong to NVIDIA); LLM2Vec adapters — MIT; Llama 3 — Meta Llama 3
+Community License.
 
-Для готового FBX персонажа передайте результат Kimodo и риг MIA в
-[animation_tools](../animation_tools/README.md), задачу `retarget-motion`.
-Она учитывает позы покоя и пропорции, переносит вращения и возвращает
-персонажа с клипом. Цепочку можно сохранить в [studio flow](../../flow/README.md).
-Внешний вызов Blender-скрипта для этого не нужен.
+For a finished character FBX, pass Kimodo's output and the MIA rig to
+[animation_tools](../animation_tools/README.md), task `retarget-motion`. It
+accounts for rest poses and proportions, transfers rotations and returns the
+character with a clip. Save the chain in [Studio Flow](../../flow/README.md).
+No external Blender script invocation is needed.
 
 ## Sparse pose / hand / foot constraints
 

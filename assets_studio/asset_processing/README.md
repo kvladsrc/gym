@@ -1,14 +1,14 @@
 # Asset processing
 
-Общая обработка ассетов, независимая от HTTP-контракта модельных серверов:
-конвертация GLB → FBX, подготовка ригов и перенос движения через Blender.
-Модельные серверы используют этот пакет напрямую; `animation_tools`
-предоставляет подготовку и перенос как обычные задания студии.
+Shared asset processing independent of the model servers' HTTP contract:
+GLB → FBX conversion, rig preparation and motion transfer through Blender.
+Model servers use this package directly; `animation_tools` exposes preparation
+and transfer as ordinary Studio jobs.
 
-Пакет не зависит от SDK, PyTorch или установленного Python-модуля `bpy`.
-Blender импортируется только при выполнении соответствующих функций или
-скриптов в подготовленном окружении. `workspace` управляет временными
-файлами обработки и их необязательным сохранением для диагностики.
+The package does not depend on the SDK, PyTorch or an installed `bpy` Python
+module. Blender is imported only when the relevant functions or scripts run
+in a configured environment. `workspace` manages temporary processing files
+and optionally retains them for diagnostics.
 
-SDK отвечает за контракт и жизненный цикл сервера. Новые операции
-объявляются через существующие `TaskSpec` и схемы параметров без изменения SDK.
+The SDK handles the server contract and lifecycle. New operations use existing
+`TaskSpec` declarations and parameter schemas without changing the SDK.

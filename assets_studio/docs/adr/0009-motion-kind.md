@@ -1,43 +1,37 @@
-# ADR-009. Движение — отдельный вид ассета
+# ADR-009. Motion as a separate asset kind
 
-Статус: принято.
+Status: accepted.
 
-## Контекст
+## Context
 
-Нативные движения и позы студии (`studio.smplx-motion.v1` у GVHMR, Kimodo
-SMPL-X, PromptHMR,
-HTD-Refine; `studio.soma-motion.v1` у GEM-X) хранились как `text/plain`.
-Отличить их от
-описаний и прочего JSON можно было только по задаче, которая их создала. Библиотека
-показывала их как текст, а любой текстовый вход модели принимал любой JSON, в
-том числе
-движение чужого тела.
+Studio's native motions and poses (`studio.smplx-motion.v1` from GVHMR, Kimodo
+SMPL-X, PromptHMR and HTD-Refine; `studio.soma-motion.v1` from GEM-X) were stored
+as `text/plain`. Only the producing task distinguished them from descriptions
+and other JSON. The library displayed them as text, and every text input
+accepted arbitrary JSON, including motion for a different body model.
 
-## Решение
+## Decision
 
-Новый вид `motion` и по одному типу на модель тела:
+Introduce kind `motion` with one type per body model:
 
-- `application/vnd.studio.smplx-motion+json`, формат `studio.smplx-motion.v1`;
-- `application/vnd.studio.soma-motion+json`, формат `studio.soma-motion.v1`.
+- `application/vnd.studio.smplx-motion+json`, format `studio.smplx-motion.v1`;
+- `application/vnd.studio.soma-motion+json`, format `studio.soma-motion.v1`.
 
-Поза — это движение из одного кадра. Сигнатура типа — JSON-объект с этим
-значением `format`
-(`model_server_sdk.media`). Распознавание при импорте пробует эти типы раньше
-`text/plain`. Файлы хранятся с расширением `.json`.
+A pose is a single-frame motion. The signature is a JSON object with the
+corresponding `format` value (`model_server_sdk.media`). Import checks these
+types before `text/plain`. Files use the `.json` extension.
 
-Канонического типа у вида нет, и студия не конвертирует SMPL-X в SOMA или
-обратно: это разные
-тела, сервер объявляет, какое принимает. Выбор входа в UI показывает только движения
-объявленного типа.
+The kind has no canonical type. Studio does not convert SMPL-X to SOMA or vice
+versa: they are different bodies, and each server declares which it accepts.
+The input picker shows only motions of the declared type.
 
-Серверы движения объявляют эти типы на выходе и на входе. Ограничения Kimodo, 2D-наблюдения
-(`studio.pose-observations.v1`) и прочий служебный JSON остаются текстом.
+Motion servers declare these types for inputs and outputs. Kimodo constraints,
+2D observations (`studio.pose-observations.v1`) and other auxiliary JSON remain
+text.
 
-Миграция 0008 добавляет вид в CHECK таблицы `assets`. Сразу после неё студия
-один раз
-просматривает текстовые ассеты (`Library.retype_motions`) и переводит нативные
-движения в
-новый тип, перекладывая файл `.txt` в `.json`.
+Migration 0008 adds the kind to the `assets` table CHECK. Immediately afterward,
+Studio scans text assets once (`Library.retype_motions`) and retypes native
+motions, moving `.txt` files to `.json`.
 
-Фильтр «Анимации» в библиотеке показывает ассеты вида `motion` и, как раньше, FBX-клипы,
-созданные задачами движения.
+The library's “Animations” filter shows `motion` assets and, as before, FBX clips
+produced by motion tasks.

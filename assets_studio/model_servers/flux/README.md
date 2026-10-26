@@ -4,68 +4,66 @@
 > offload cache and local environment removed. Use Qwen-Image instead.
 > Source is retained for historical jobs; it is not an active launcher recipe.
 
-Text-to-image и image-to-image по контракту v1 на основе
+Contract v1 text-to-image and image-to-image based on
 [FLUX.1-schnell](https://huggingface.co/black-forest-labs/FLUX.1-schnell)
-(Apache-2.0) с трансформером в
-[GGUF Q8](https://huggingface.co/city96/FLUX.1-schnell-gguf).
+(Apache-2.0), with a
+[GGUF Q8 transformer](https://huggingface.co/city96/FLUX.1-schnell-gguf).
 
 ```sh
-just setup    # окружение Python 3.11 + PyTorch 2.5.1/CUDA 12.4 + diffusers + gguf
-just doctor   # PyTorch, GPU, задан ли токен, скачаны ли веса
-just serve    # http://127.0.0.1:9104; первый запуск ~2 мин, ~43 ГБ на диске
-just test     # объявления, без GPU и весов
+just setup    # Python 3.11 + PyTorch 2.5.1/CUDA 12.4 + diffusers + gguf environment
+just doctor   # PyTorch, GPU, token configuration and downloaded weights
+just serve    # http://127.0.0.1:9104; first start ~2 min, ~43 GB on disk
+just test     # declarations; no GPU or weights needed
 ```
 
-Веса FLUX закрыты на Hugging Face: аккаунт должен принять условия модели,
-а его токен — быть в `HF_TOKEN` (или `HUGGINGFACE_TOKEN`: рецепты передают
-его как `HF_TOKEN`).
+FLUX weights are gated on Hugging Face: accept the model terms with your
+account and set its token in `HF_TOKEN` (or `HUGGINGFACE_TOKEN`, which recipes
+pass as `HF_TOKEN`).
 
-## Как это помещается в 8 ГБ
+## Fitting in 8 GB
 
-Трансформер 12B и текстовый кодировщик T5 4.7B весят ~34 ГБ в bf16.
+The 12B transformer and 4.7B T5 text encoder total about 34 GB in bf16.
 
-- Трансформер квантован в GGUF Q8 — практически без потерь качества
-  (Q3 заметно проще в деталях; Q4 не помещается целиком).
-- Трансформер и T5 подгружаются на GPU по блокам (group offload); CLIP и
-  VAE лежат на GPU постоянно. Пик видеопамяти процесса ~5,3 ГБ (декодирование
-  1024² в VAE).
-- Выгруженные блоки лежат **на диске**, а не в оперативной памяти. В памяти
-  обе модели вместе (~22 ГБ) рядом с остальным рабочим столом не
-  помещались, и ядро убивало сервер. Теперь во время генерации свободно
-  ~18 ГБ оперативной памяти (при загрузке — не меньше ~10 ГБ).
-- Обычная выгрузка на CPU (`enable_model_cpu_offload` /
-  `enable_sequential_cpu_offload`) с GGUF не работает: accelerate не умеет
-  перемещать GGUF-параметры.
+- The transformer is quantized to GGUF Q8 with practically no quality loss
+  (Q3 loses noticeable detail; Q4 does not fit entirely on GPU).
+- Transformer and T5 blocks are moved to the GPU using group offload. CLIP
+  and VAE stay on GPU. Peak process VRAM is about 5.3 GB (VAE decoding at 1024²).
+- Offloaded blocks live **on disk**, not in RAM. Keeping both models in RAM
+  (~22 GB) alongside the desktop exhausted memory and the kernel killed the
+  server. Generation now leaves about 18 GB RAM free (at least ~10 GB while loading).
+- Ordinary CPU offload (`enable_model_cpu_offload` /
+  `enable_sequential_cpu_offload`) does not work with GGUF: accelerate cannot
+  move GGUF parameters.
 
-Цена — скорость: 55–70 с на картинку 1024² вместе с T5 (описание
-кодируется один раз на запрос, для всех вариантов; быстрее, когда блоки уже
-в дисковом кеше системы). Загрузка — ~35 с, первая — ~2 мин. Выбор сделан
-осознанно: качество важнее скорости.
+The tradeoff is speed: 55–70 seconds per 1024² image including T5 (the prompt
+is encoded once per request for all variants; faster with blocks in the OS
+page cache). Loading takes about 35 seconds, or ~2 minutes initially. Quality
+was deliberately prioritized over speed.
 
-## Хранилище блоков
+## Block storage
 
-`~/.cache/assets-studio/flux-offload/<отпечаток>` (~21 ГБ). diffusers
-переиспользует любой существующий файл блока без проверки, поэтому сервер:
+`~/.cache/assets-studio/flux-offload/<fingerprint>` (~21 GB). Diffusers reuses
+any existing block file without checking it, so the server:
 
-- называет каталог по ревизиям весов и версиям diffusers, transformers и
-  torch; при их смене хранилище пишется заново, старое удаляется;
-- считает хранилище готовым только с отметкой `complete`; прерванная первая
-  запись стирается и повторяется;
-- до записи проверяет, что свободно ≥ 23 ГБ;
-- держит блокировку: второй сервер FLUX не запустится, пока работает первый.
+- Names the directory using weight revisions and diffusers, transformers and
+  torch versions; changes rebuild storage and remove the old copy.
+- Treats storage as ready only with a `complete` marker; interrupted initial
+  writes are removed and retried.
+- Checks for ≥23 GB free before writing.
+- Holds a lock: a second FLUX server cannot start while the first is running.
 
-Удалить вручную можно в любой момент, когда сервер остановлен (`rm -rf
-~/.cache/assets-studio/flux-offload`); `just doctor` показывает его
-состояние и свободное место.
+You can remove it manually while the server is stopped (`rm -rf
+~/.cache/assets-studio/flux-offload`). `just doctor` reports its state and
+free disk space.
 
-## Ограничения
+## Limitations
 
-- schnell обучен на 4 шага; «следования описанию» и «чего избегать» нет
-  (модель дистиллирована без них).
-- Описание — до 256 токенов T5; лучше по-английски.
-- Image-to-image: при силе s выполняется `шаги − ⌊шаги × (1 − s)⌋` шагов,
-  то есть всегда хотя бы один (при 4 шагах и 0,6 — три). Описание
-  необязательно: без него получаются вариации исходной картинки.
-- После нехватки видеопамяти посреди генерации блок, который был на GPU
-  (несколько сотен МБ), остаётся там до следующего запроса к FLUX.
-- Нужна видеокарта CUDA; на CPU сервер не запускается.
+- schnell was trained for 4 steps; guidance and negative prompts are not
+  supported (the distilled model does not use them).
+- Prompts have a 256-token T5 limit; English works best.
+- Image-to-image with strength s runs `steps − ⌊steps × (1 − s)⌋` steps,
+  always at least one (4 steps at 0.6 runs three). The prompt is optional:
+  without one, it produces variations of the input image.
+- After an OOM during generation, the block on GPU (a few hundred MB) stays
+  there until the next FLUX request.
+- A CUDA GPU is required; the server does not run on CPU.

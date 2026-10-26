@@ -1,69 +1,65 @@
-# M0b (TripoSR) и M1b — журнал ревью
+# M0b (TripoSR) and M1b — review log
 
 <!-- markdownlint-disable MD013 -->
 
-Ревью объединено для экономии токенов: сервер TripoSR и ядро студии.
+Combined review to save tokens: TripoSR server and Studio core.
 
-## Итерация 1
+## Iteration 1
 
-Вердикт: **REVISE**, 2 блокирующих замечания и 10 рекомендаций.
+Verdict: **REVISE**, two blockers and ten recommendations.
 
-### Итерация 1: блокирующие
+### Iteration 1: blockers
 
-1. **Задание навсегда оставалось `running` после исключения.** Упавший
-   подписчик событий (например, закрытый SSE-поток в M2), ошибка диска или
-   SQLite между `start()` и `succeed()` оставляли задание, которое нельзя
-   ни отменить, ни повторить.
-   *Исправлено:* подписчики изолированы в `Studio._job_changed`; всё после
-   `start()` обёрнуто: любое исключение → `failed` с кодом `internal`.
-   Тесты: падающий подписчик, ошибка записи на диск.
-2. **Гонка при создании зависимого задания.** Если предшественник падал
-   между проверкой в `submit` и вставкой, новое задание навсегда оставалось
-   `queued`.
-   *Исправлено:* `add_job` перепроверяет предшественников внутри той же
-   транзакции `BEGIN IMMEDIATE`, что и `fail`/`cancel`, и сохраняет задание
-   сразу как `failed/dependency_failed`. Тест.
+1. **Exceptions left jobs permanently `running`.** A failing event subscriber
+   (such as a closed SSE stream in M2), disk error or SQLite error between
+   `start()` and `succeed()` left a job impossible to cancel or retry.
+   *Fixed:* isolate subscribers in `Studio._job_changed`; wrap everything after
+   `start()` so any exception becomes `failed/internal`. Tests: failing subscriber,
+   disk write failure.
+2. **Dependent job creation race.** A predecessor failing between `submit`
+   validation and insertion left the new job permanently `queued`.
+   *Fixed:* `add_job` rechecks predecessors in the same `BEGIN IMMEDIATE`
+   transaction as `fail`/`cancel`, inserting `failed/dependency_failed` immediately.
+   Tested.
 
-### Итерация 1: рекомендации
+### Iteration 1: recommendations
 
-| № | Суть | Решение |
+| # | Finding | Resolution |
 | --- | --- | --- |
-| 1 | `succeed` не проверял, что задание ещё `running`; два процесса на одну БД ломают восстановление | Проверка `rowcount` с откатом (`JobNotRunning`); эксклюзивная блокировка каталога данных (`DataDirectoryBusy`). Тесты |
-| 2 | События не покрывали `waiting_model` и отказы зависимых заданий | Переходы возвращают id изменённых заданий (`RETURNING`), события — для каждого. Тест |
-| 3 | Статус сервера «готов» во время долгой генерации | На время генерации статус — `busy`. Тест |
-| 4 | Повтор цепочки невозможен: зависимость на упавшее задание | `retry` берёт последний повтор предшественника, а упавший предшественник повторяет автоматически. Тест |
-| 5 | `ConnectTimeout` считался таймаутом генерации | `ConnectTimeout`/`PoolTimeout` → «не отправлено», задание ждёт сервер |
-| 6 | FIFO зависел от системных часов | Очередь упорядочена только по id (строго возрастающему) |
-| 7 | TripoSR: RGBA без удаления фона давал чёрный фон вместо серого | Прозрачные пиксели накладываются на серый фон обучения. Тест |
-| 8 | TripoSR: нехватка памяти из cuBLAS/cuDNN считалась `internal` | Распознаётся по сообщению, повторяемая ошибка. Тест |
-| 9 | `git fetch … \|\| true` скрывал ошибки | Загрузка только если ревизии нет локально, ошибки видны |
-| 10 | Пробелы в тестах | Тесты на каждое исправление выше |
+| 1 | `succeed` did not require `running`; two processes sharing a database broke recovery | Check `rowcount` with rollback (`JobNotRunning`); exclusive data-directory lock (`DataDirectoryBusy`). Tests |
+| 2 | Missing events for `waiting_model` and dependent failures | Transitions return changed IDs (`RETURNING`); emit each. Test |
+| 3 | Server stayed ready during long generation | Report `busy` during generation. Test |
+| 4 | Chain retry impossible with failed dependency | `retry` uses predecessor's latest retry, automatically retrying failed predecessors. Test |
+| 5 | `ConnectTimeout` treated as generation timeout | `ConnectTimeout`/`PoolTimeout` mean unsent; wait for server |
+| 6 | FIFO depended on wall clock | Order by strictly increasing IDs only |
+| 7 | TripoSR RGBA without background removal became black rather than grey | Composite transparency over training grey. Test |
+| 8 | TripoSR cuBLAS/cuDNN OOM classified as `internal` | Recognize message and return retryable error. Test |
+| 9 | `git fetch … \|\| true` hid errors | Fetch only when revision is absent locally; expose failures |
+| 10 | Test gaps | Test every fix above |
 
-## Итерация 2
+## Iteration 2
 
-Вердикт: **REVISE**, 1 блокирующее замечание и 3 рекомендации; все
-исправления итерации 1 подтверждены.
+Verdict: **REVISE**, one blocker and three recommendations. All iteration 1
+fixes confirmed.
 
-### Итерация 2: блокирующее
+### Iteration 2: blocker
 
-1. **Неожиданная ошибка при подготовке входов блокировала очередь
-   сервера.** Пропавший файл ассета или слишком большая картинка
-   (`DecompressionBombError`) оставляли задание в очереди, оно выбиралось
-   снова на каждом опросе и закрывало путь всем следующим.
-   *Исправлено:* любая ошибка подготовки → `failed/internal` с
-   сообщением. Тест: пропавший файл, независимое задание выполняется.
+1. **Unexpected input preparation errors blocked a server queue.** Missing
+   asset files or oversized images (`DecompressionBombError`) left jobs queued,
+   selected every poll and blocking later jobs.
+   *Fixed:* every preparation failure becomes `failed/internal` with a message.
+   Test: missing file followed by a successful independent job.
 
-### Итерация 2: рекомендации
+### Iteration 2: recommendations
 
-| № | Суть | Решение |
+| # | Finding | Resolution |
 | --- | --- | --- |
-| 1 | Повтор цепочки воскрешал отменённого пользователем предшественника | Повторяются только упавшие предшественники; отменённый — ошибка с подсказкой. Тест |
-| 2 | Задание может родиться упавшим (гонка с предшественником) | Описано в ADR-002 для клиентов API/MCP |
-| 3 | Блокировка каталога не освобождалась, если открытие БД упало | Освобождается при ошибке в конструкторе |
+| 1 | Chain retry revived user-cancelled predecessors | Retry only failed predecessors; cancelled ones cause an explanatory error. Test |
+| 2 | Creation can immediately return a failed job due to predecessor race | Documented in ADR-002 for API/MCP clients |
+| 3 | Data-directory lock leaked when database opening failed | Release on constructor failure |
 
-## Итерация 3
+## Iteration 3
 
-Вердикт: **ACCEPT**. Исправления итерации 2 подтверждены экспериментом
-критика. Учтена последняя рекомендация: перед повтором проверяется вся
-цепочка предшественников, поэтому отказ из-за отменённого задания ничего
-не ставит в очередь. Тест.
+Verdict: **ACCEPT**. The critic experimentally confirmed iteration 2 fixes.
+Final recommendation implemented: validate the entire predecessor chain before
+retrying, so a cancelled-predecessor rejection queues nothing. Tested.

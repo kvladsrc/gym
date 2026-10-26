@@ -1,38 +1,36 @@
-# ADR-002. Хранилище и очередь заданий
+# ADR-002. Storage and job queue
 
-Статус: принято (M1a), реализовано в M1b (`studio/`). Вкладки заменены
-серверами и разделами в ADR-004.
+Status: accepted (M1a), implemented in M1b (`studio/`). ADR-004 replaces tabs
+with servers and sections.
 
-## Контекст
+## Context
 
-Студия хранит ассеты, историю их происхождения и очередь заданий к
-серверам моделей (ADR-001). Работает один процесс студии на одном
-ноутбуке. Серверы моделей запускает пользователь; студия не знает, когда
-они появятся, и не следит за ресурсами.
+Studio stores assets, provenance and model-server job queues (ADR-001). One
+Studio process runs on one laptop. Users start model servers; Studio does not
+know when they will appear and does not monitor resources.
 
-## Решение
+## Decision
 
-### Где лежат данные
+### Data location
 
-Каталог данных — `$XDG_DATA_HOME/assets-studio` (по умолчанию
-`~/.local/share/assets-studio`), переопределяется в конфиге. Он не
-должен находиться в Dropbox. Внутри:
+The data directory is `$XDG_DATA_HOME/assets-studio` (default
+`~/.local/share/assets-studio`), overridable in config. It must not be inside
+Dropbox. Contents:
 
 ```text
-studio.sqlite3           # метаданные и очередь
-blobs/ab/abcdef….png     # файлы ассетов по sha256 содержимого
+studio.sqlite3           # metadata and queue
+blobs/ab/abcdef….png     # asset files addressed by content SHA-256
 ```
 
-Файл записывается во временный путь в том же каталоге и атомарно
-переименовывается. Одинаковое содержимое хранится один раз. Файлы
-никогда не перезаписываются и не меняются.
+Files are written to a temporary path in the same directory and atomically
+renamed. Identical content is stored once. Files are never overwritten or modified.
 
 ### SQLite
 
-Стандартный `sqlite3`, режим WAL, `foreign_keys=ON`, явный SQL без ORM.
-Схема меняется пронумерованными миграциями (`storage/migrations/NNNN_*.sql`);
-версия хранится в `PRAGMA user_version`. Время — UTC в ISO 8601.
-Идентификаторы — ULID-подобные строки, сортируемые по времени создания.
+Standard `sqlite3`, WAL mode, `foreign_keys=ON`, explicit SQL without an ORM.
+Numbered migrations (`storage/migrations/NNNN_*.sql`) evolve the schema;
+`PRAGMA user_version` stores its version. Timestamps are UTC ISO 8601.
+IDs are ULID-like strings sortable by creation time.
 
 ```sql
 CREATE TABLE assets (
@@ -45,7 +43,7 @@ CREATE TABLE assets (
   source_url  TEXT,
   title       TEXT,
   favorite    INTEGER NOT NULL DEFAULT 0,
-  meta        TEXT NOT NULL DEFAULT '{}',   -- JSON: seed, размеры, длительность…
+  meta        TEXT NOT NULL DEFAULT '{}',   -- JSON: seed, dimensions, duration…
   created_at  TEXT NOT NULL
 );
 
@@ -57,20 +55,20 @@ CREATE TABLE asset_tags (
 
 CREATE TABLE jobs (
   id              TEXT PRIMARY KEY,
-  tab             TEXT NOT NULL,            -- id вкладки из конфига
+  tab             TEXT NOT NULL,            -- configured tab ID
   task            TEXT NOT NULL,
   prompt          TEXT,
-  params          TEXT NOT NULL DEFAULT '{}',  -- как запрошено
+  params          TEXT NOT NULL DEFAULT '{}',  -- as requested
   count           INTEGER NOT NULL CHECK (count >= 1),
-  seed            INTEGER,                  -- после успеха: фактический seed
+  seed            INTEGER,                  -- effective seed after success
   status          TEXT NOT NULL CHECK (status IN (
                     'queued', 'waiting_model', 'running',
                     'succeeded', 'failed', 'cancelled')),
-  error_code      TEXT,                     -- код контракта или студии, см. ниже
+  error_code      TEXT,                     -- contract or Studio code; see below
   error_message   TEXT,
-  retryable_failures INTEGER NOT NULL DEFAULT 0,  -- подряд идущие повторяемые ошибки
-  model_snapshot  TEXT,                     -- JSON: поле model из ответа /v1/generate
-  effective_params TEXT,                    -- JSON: поле params из ответа (с умолчаниями)
+  retryable_failures INTEGER NOT NULL DEFAULT 0,  -- consecutive retryable failures
+  model_snapshot  TEXT,                     -- JSON: response model
+  effective_params TEXT,                    -- JSON: resolved params
   timing          TEXT,
   idempotency_key TEXT UNIQUE,
   retry_of        TEXT REFERENCES jobs(id),
@@ -83,7 +81,7 @@ CREATE INDEX jobs_status ON jobs(status, created_at);
 CREATE TABLE job_dependencies (
   job_id     TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
   depends_on TEXT NOT NULL REFERENCES jobs(id),
-  -- Какой результат предшественника и под какой ролью подать на вход.
+  -- Which predecessor output to supply, and under which input role.
   output_index INTEGER NOT NULL DEFAULT 0,
   input_role   TEXT NOT NULL,
   PRIMARY KEY (job_id, input_role)
@@ -103,9 +101,9 @@ CREATE TABLE job_outputs (
   PRIMARY KEY (job_id, position)
 );
 
--- Роль входа заполняется либо готовым ассетом (job_inputs), либо
--- результатом предшественника (job_dependencies), но не обоими сразу:
--- это проверяется при создании задания.
+-- An input role is filled by an existing asset (job_inputs) or
+-- a predecessor output (job_dependencies), never both:
+-- validated at job creation.
 
 CREATE TABLE lineage (
   parent_id TEXT NOT NULL REFERENCES assets(id),
@@ -116,68 +114,59 @@ CREATE TABLE lineage (
 );
 ```
 
-Таблицы эволюции (`evolutions`, `candidates`) проектируются в M5: к тому
-моменту будет понятно, чего требует интерфейс.
+Evolution tables (`evolutions`, `candidates`) are deferred to M5, when UI needs
+will be clearer.
 
-### Очередь
+### Queue
 
 ```text
 queued ──► waiting_model ──► running ──► succeeded
-   │            │               └──────► failed ──(retry)──► новое задание
+   │            │               └──────► failed ──(retry)──► new job
    └────────────┴──► cancelled
 ```
 
-- **Диспетчер** — фоновая задача в процессе студии. На каждый **адрес
-  сервера** одновременно выполняется не больше одного задания: сервер всё
-  равно обрабатывает запросы по одному, а несколько вкладок могут
-  указывать на один сервер (например, text-to-image и image-to-image).
-- Среди заданий одного сервера берётся самое раннее по `created_at`, у
-  которого все зависимости `succeeded`. Задание, ждущее зависимость, не
-  задерживает более поздние независимые задания. Если зависимость
-  `failed` или `cancelled`, задание переходит в `failed` с кодом
-  `dependency_failed`.
-- Сервер недоступен или отвечает `loading`/`error` → задание в
-  `waiting_model`. Как только `/v1/info` вернёт `ready`, задание уходит.
-- Ответ `busy` — нормальное состояние (например, запрос из `curl` или
-  другой программы): задание возвращается в `waiting_model` без
-  ограничения числа попыток.
-- Ошибка с `retryable: true` → задание возвращается в `waiting_model`;
-  после 3 таких ошибок подряд — `failed` с кодом и сообщением последней.
-- Любая другая ошибка → `failed` с `error_code` и `error_message` из
-  контракта.
-- Соединение оборвалось во время генерации (сервер упал) → `failed` с
-  кодом `connection_lost`. Автоматического повтора нет: неизвестно,
-  выполнилась ли генерация, а повтор мог бы снова уронить сервер.
-- Таймаута ожидания ответа по умолчанию нет: генерация может идти
-  минутами. Для вкладки его можно задать в конфиге (`timeout_s`); по
-  истечении — `failed` с кодом `timeout`.
-- При старте студии задания в `running` переводятся в `failed` с кодом
-  `interrupted`: ответ сервера уже потерян, а повторная отправка без
-  ведома пользователя могла бы задвоить генерацию.
-- Задание может быть создано сразу в статусе `failed/dependency_failed`:
-  если предшественник упал между проверкой запроса и записью задания.
-  Клиенты API и MCP должны смотреть на статус созданного задания.
-- Повтор упавшего задания — всегда **новое** задание с `retry_of`
-  (кнопка «Повторить» в UI или вызов API); история не переписывается.
-- Отмена возможна в `queued` и `waiting_model`. Генерацию, уже
-  отправленную серверу, контракт v1 прервать не умеет.
-- `idempotency_key` — повторный `POST /api/jobs` с тем же ключом
-  возвращает существующее задание вместо создания нового.
-- Результат сохраняется одной транзакцией: блобы записаны на диск до
-  начала транзакции, затем `assets`, `job_outputs`, `lineage` и статус
-  `succeeded`.
+- The **dispatcher** is a background task in Studio. At most one job runs per
+  **server address**: servers serialize requests anyway, and multiple tabs
+  can point to one server (for example text-to-image and image-to-image).
+- For a server, choose the earliest `created_at` job whose dependencies all
+  `succeeded`. Waiting dependencies do not block later independent jobs.
+  A `failed` or `cancelled` dependency makes the job `failed/dependency_failed`.
+- Unreachable server or `loading`/`error` → `waiting_model`. Send once
+  `/v1/info` reports `ready`.
+- `busy` is normal (for example from curl or another application): return to
+  `waiting_model`, without a retry limit.
+- `retryable: true` errors return to `waiting_model`; three consecutive such
+  failures produce `failed` with the last code and message.
+- Other errors produce `failed` with contract `error_code` and `error_message`.
+- Connection loss during generation (server crash) → `failed/connection_lost`.
+  No automatic retry: completion is unknown and retrying might crash it again.
+- No response timeout by default: generation may take minutes. A tab may
+  configure `timeout_s`; expiration produces `failed/timeout`.
+- At Studio startup, `running` jobs become `failed/interrupted`: their responses
+  are lost, and resubmission without user knowledge could duplicate generation.
+- Creation can immediately return `failed/dependency_failed` if a predecessor
+  failed between request validation and insertion. API and MCP clients must
+  inspect the created job's status.
+- Retrying a failed job always creates a **new** job with `retry_of` (UI “Retry”
+  or API); history is not rewritten.
+- Cancellation is allowed in `queued` and `waiting_model`. Contract v1 cannot
+  interrupt generation already submitted to a server.
+- `idempotency_key`: repeating `POST /api/jobs` with the same key returns the
+  existing job rather than creating another.
+- Results commit in one transaction: blobs are on disk first, then `assets`,
+  `job_outputs`, `lineage` and `succeeded` status are stored together.
 
-Коды ошибок студии дополняют коды контракта (ADR-001) в `error_code`:
+Studio adds these `error_code` values to contract codes (ADR-001):
 `dependency_failed`, `connection_lost`, `timeout`, `interrupted`,
-`invalid_response` (сервер ответил не по контракту).
+`invalid_response` (noncompliant server response).
 
-## Альтернативы
+## Alternatives
 
-- **ORM (SQLAlchemy).** Схема маленькая, явный SQL читается проще и
-  людьми, и моделями; миграции — обычные SQL-файлы.
-- **Отдельный процесс-Worker с lease/heartbeat.** Был нужен, пока студия
-  запускала модели. Теперь студия — один процесс, и `running` после
-  перезапуска однозначно означает прерванное задание.
-- **Файлы рядом с БД в человекочитаемых путях** (`assets/<название>.png`).
-  Контентная адресация исключает конфликты имён и дубли; человекочитаемые
-  имена даёт экспорт.
+- **ORM (SQLAlchemy).** The schema is small; explicit SQL is easier for people
+  and models to read, and migrations are plain SQL files.
+- **Separate worker process with leases/heartbeats.** Needed when Studio
+  launched models. With one process, `running` after restart unambiguously
+  means interruption.
+- **Human-readable asset paths beside the database** (`assets/<name>.png`).
+  Content addressing avoids name collisions and duplicates; export provides
+  readable names.

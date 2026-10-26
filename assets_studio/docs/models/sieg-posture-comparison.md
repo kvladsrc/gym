@@ -1,84 +1,80 @@
-# GVHMR: четыре движения Sieg и контроль Human
+# GVHMR: four Sieg motions and Human control
 
-Проверены стойка, ходьба, бег и прыжок из того же исходного видео.
-Риг MIA общий, профиль переноса `smpl`, режим `stationary`, seed 20261018.
-Каждый фрагмент GVHMR обработан с исходным фоном и после BiRefNet.
-MoCapAnything получает то же очищенное видео с `background_removed=true`.
-Видео из `workspace/human` повторно обработано тем же сервером.
+Tested stance, walk, run and jump from the same source video. Shared MIA rig,
+`smpl` transfer, `stationary`, seed 20261018. Each GVHMR segment ran with its
+original background and after BiRefNet. MoCapAnything received the same cleaned
+video with `background_removed=true`. `workspace/human` video was rerun on the
+same server.
 
-## Найденные различия
+## Differences found
 
-Риги Human и Sieg практически идентичны: 22 кости, 24894 вершины,
-разница нейтральных координат <6e-7 м, нормализованных весов <2,4e-8.
+Human/Sieg rigs are nearly identical: 22 bones, 24,894 vertices, neutral-position
+difference <6e-7 m, normalized-weight difference <2.4e-8.
 
-Однако ранний хороший GVHMR-экспорт Human не переносит собственные вращения
-головы и кистей: их изменение равно нулю на всех 120 кадрах. Голова следует
-за шеей. Поздний `guard_flow_gvhmr.fbx` и текущий полный перенос сохраняют
-изменение вращения Head до 54,98°. Поэтому раннее превью частично скрывало
-предсказание модели. Старый MoCapAnything сохраняет собственную анимацию
-головы до 28,03°; его результат нельзя объяснить этой особенностью экспорта.
+The early good Human GVHMR export lacks independent head/wrist rotations:
+zero change across all 120 frames, with the head following the neck. Later
+`guard_flow_gvhmr.fbx` and current full transfer preserve Head changes up to
+54.98°. The early preview partly hid model predictions. Old MoCapAnything
+retains up to 28.03° independent head animation; this export issue cannot
+explain its result.
 
-В Human человек занимает около 631 пикселя по высоте; в ходьбе и беге Sieg —
-226–332 пикселя. Уверенность ViTPose в точках головы ниже: медиана около
-0,69–0,86 против 0,97. Видимость лица, плащ, волосы, оружие и виртуальная
-камера являются дополнительными факторами. Уверенность сети не является
-доказательством точности её точек или позы.
+Human's person is about 631 pixels tall; Sieg walk/run figures are 226–332 pixels.
+ViTPose head-point confidence is lower: median ~0.69–0.86 versus 0.97. Face
+visibility, cape, hair, weapon and virtual camera are additional factors.
+Confidence is not proof of keypoint or pose accuracy.
 
-## Ошибка цепочки с удалением фона
+## Background-removal pipeline bug
 
-При `camera=moving` GVHMR использует visual odometry. В двух первых
-прогонах ходьбы и бега она получила белый фон BiRefNet и не смогла найти
-относительную позу камеры. Исходные клипы с фоном обрабатывались.
+For `camera=moving`, GVHMR uses visual odometry. First walk/run trials received
+BiRefNet's white background and failed to find a relative camera pose; original
+background clips succeeded.
 
-Сервер теперь принимает необязательный вход `camera_video`: синхронный
-оригинал с фоном. Поза определяется по `video`, камера — по `camera_video`.
-Проверяются одинаковые число кадров и размеры после нормализации к 30 fps.
-SDK и HTTP-контракт v1 не меняются: это обычный дополнительный InputSpec.
-Оба повторных задания с раздельными входами завершились успешно; проверка
-хешей подтверждает, что камера получила оригинал, а поза — очищенное видео.
+The server now accepts optional `camera_video`, a synchronized original with
+background. Pose uses `video`; camera uses `camera_video`. Frame counts and
+sizes must match after normalization to 30 fps. No SDK/contract v1 changes:
+an ordinary extra InputSpec. Both reruns with separate inputs succeeded; hashes
+confirm original camera input and cleaned pose input.
 
-Фрагмент «стойка» содержит приближение камеры. Дополнительный raw-прогон
-с `camera=moving` тоже не нашёл пригодную позу камеры. Это отдельная
-неудачная проверка, а не подтверждение, что удаление фона является единственной
-причиной сбоев VO. Успешная обработка белого фона также не доказывает
-правильность оценки движения камеры по движущемуся персонажу.
-Никакого автоматического переключения на `static` не добавлено.
+The stance segment includes camera zoom. An additional raw `camera=moving`
+trial also failed to find a usable camera pose: a separate failed control,
+not evidence that removal alone causes VO failures. Successful white-background
+processing likewise does not prove correct camera estimation from a moving
+character. No automatic fallback to `static` was added.
 
-## Результаты позы
+## Pose results
 
-Медианы на всём клипе; голова — наклон модельной оси +Z к горизонту,
-корпус — угол Hips→Neck с вертикалью. Эти величины описывают реконструкцию,
-а не ошибку относительно реального движения. Разные действия нельзя
-ранжировать по одному такому числу; наклон в ударе или прыжке может быть намеренным.
+Whole-clip medians. Head: model +Z-axis inclination to horizon; torso: Hips→Neck
+angle from vertical. These describe reconstruction, not error against real
+motion. Different actions cannot be ranked by one such number; attack/jump
+lean may be intentional.
 
-| Фрагмент | Голова: фон → BiRefNet | Корпус: фон → BiRefNet |
+| Segment | Head: background → BiRefNet | Torso: background → BiRefNet |
 | --- | ---: | ---: |
-| Стойка | 11,9° → 22,4° | 24,0° → 18,4° |
-| Ходьба | 31,0° → 29,0° | 12,8° → 15,1° |
-| Бег | 20,2° → 26,7° | 43,4° → 44,3° |
-| Прыжок | 3,2° → 21,0° | 32,2° → 35,9° |
-| Human: удар топором | 22,4° → 23,5° | 10,6° → 11,3° |
+| Stance | 11.9° → 22.4° | 24.0° → 18.4° |
+| Walk | 31.0° → 29.0° | 12.8° → 15.1° |
+| Run | 20.2° → 26.7° | 43.4° → 44.3° |
+| Jump | 3.2° → 21.0° | 32.2° → 35.9° |
+| Human: axe strike | 22.4° → 23.5° | 10.6° → 11.3° |
 
-Удаление фона не устранило особенность поз GVHMR и не дало стабильного
-улучшения. Визуально стойка и бег MoCapAnything выглядят прямее, но ходьба
-проблемна у обеих моделей. Восстановление позы по этому игровому видео
-остаётся ограничением; качество головы не следует оценивать по старому
-экспорту, в котором её собственное движение отсутствовало.
+Background removal neither eliminated GVHMR's pose tendency nor consistently
+improved results. MoCapAnything stance/run look more upright, but walking is
+problematic in both. Pose reconstruction from this game video remains a
+limitation; do not assess head quality using an old export without its own motion.
 
-## Артефакты и проверки
+## Artifacts and checks
 
-В `workspace/sieg/posture_batch/` сохранены:
+Saved in `workspace/sieg/posture_batch/`:
 
-- `index.html`: отдельные сравнения, исходные SMPL, Human и проверки камеры;
-- `sieg_four_motions_models.mp4`: исходник / MoCapAnything / GVHMR,
-  381 кадр, 12,7 с; вариант `_slow` — 762 кадра, 25,4 с;
-- `comparisons/human_old_vs_current.mp4`: исторический и полный перенос,
-  исходный FBX не менялся, для просмотра выровнены начальная поза и XY;
+- `index.html`: separate comparisons, native SMPL, Human and camera checks.
+- `sieg_four_motions_models.mp4`: source / MoCapAnything / GVHMR, 381 frames,
+  12.7 s; `_slow`: 762 frames, 25.4 s.
+- `comparisons/human_old_vs_current.mp4`: historical/full transfer; original
+  FBX unchanged, initial pose and XY aligned for viewing.
 - `input_and_posture_summary.json`, `human_head_animation_audit.json`,
-  `camera_routing_validation.json`, `validation.json` и снимки всех запусков.
+  `camera_routing_validation.json`, `validation.json` and all run snapshots.
 
-Всего 20 успешных заданий и три неудачных контрольных попытки; ходьба
-и бег с исправленной маршрутизацией повторены успешно. Проверены 15 новых
-FBX: 22 кости, конечные трансформации, нормализованные веса, ожидаемые кадры.
-История ошибок сохранена. Основной граф обновлён до версии 2 с исходной
-сценой во входах камеры. Полный `just check` и 15 тестов GVHMR прошли.
+20 successful jobs and three failed control attempts; walk/run reruns with
+corrected routing succeeded. Checked 15 new FBX files: 22 bones, finite
+transforms, normalized weights, expected frames. Failure history retained.
+Main graph updated to version 2 with original-scene camera inputs. Full
+`just check` and 15 GVHMR tests passed.

@@ -90,23 +90,20 @@ Each request retains its inputs, preprocessing, `body_motion.npz`, raw
 still remove their temporary files. The retained predictions let us compare
 SMPL forward kinematics, BVH and skinned output without rerunning inference.
 
-Ретаргетинг использует профиль `smpl` из `asset_processing`: сохраняет
-нейтральную форму позвоночника, шеи и головы целевого рига и переносит
-вращения относительно неё. Таз получает исходное вращение SMPL, а не наклон,
-вычисленный из расположения суставов. Это не выпрямляет наклоны, которые
-уже предсказаны самой моделью.
+Retargeting uses the `smpl` profile from `asset_processing`: it preserves the
+target rig's neutral spine, neck and head shape and transfers rotations relative
+to it. The pelvis receives the original SMPL rotation rather than a tilt derived
+from joint positions. This does not straighten leans already predicted by the model.
 
-Если перед GVHMR удаляется фон, а камера движется, подключите два видео:
-`video` — результат BiRefNet для определения позы, `camera_video` — тот же
-фрагмент с исходным фоном для оценки движения камеры. Они должны содержать
-одинаковые кадры с одинаковыми размерами. При `camera=static` отдельное
-видео камеры не используется. Без `camera_video` сохраняется прежняя
-обработка одного входного видео.
+If background removal precedes GVHMR and the camera moves, connect two videos:
+`video`, the BiRefNet result for pose estimation, and `camera_video`, the same
+segment with its original background for camera-motion estimation. They must
+have identical frames and dimensions. With `camera=static`, the separate camera
+video is not used. Without `camera_video`, the previous single-video behavior remains.
 
-Белый фон не содержит ориентиров сцены. Visual odometry может завершиться
-ошибкой или принять движение персонажа за движение камеры. Если пригодная
-поза камеры не найдена, задание завершается с объяснением; сервер не
-переключается молча на неподвижную камеру.
+A white background has no scene landmarks. Visual odometry may fail or mistake
+character motion for camera motion. If no usable camera pose is found, the job
+fails with an explanation; the server does not silently switch to a static camera.
 
 `video-to-native-motion` accepts the same video/camera inputs without a rig and
 returns one `studio.smplx-motion.v1` JSON (`text/plain`). It contains the native

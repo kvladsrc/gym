@@ -1,82 +1,74 @@
-# M7b: image-to-video (видео из первого кадра)
+# M7b: image-to-video (video from a first frame)
 
 <!-- markdownlint-disable MD013 -->
 
-## Итог
+## Outcome
 
-Сервер — **Wan2.2 TI2V-5B** (`model_servers/wan`, `just wan`, порт 9108):
-Apache-2.0, 24 кадра/с, ~720p, до 5 с; трансформер — GGUF Q8.
+**Wan2.2 TI2V-5B** (`model_servers/wan`, `just wan`, port 9108): Apache-2.0,
+24 fps, about 720p, up to 5 seconds; GGUF Q8 transformer.
 
-## Кандидаты (на 2026-10-01)
+## Candidates (as of 2026-10-01)
 
-| Модель | Почему (не) взята |
+| Model | Selection rationale |
 | --- | --- |
-| **Wan2.2 TI2V-5B** | взята: 5B, diffusers, Apache-2.0, Q8 — 5,4 ГБ |
-| Wan2.2 I2V-A14B | два эксперта по 14B: по оценке — от получаса до часа на клип даже в Q8; кандидат, если 5B не хватит |
-| LTX-2.5 (июль 2026) | трансформер 22B (42 ГБ bf16) + кодировщик Gemma 4 12B (26 ГБ) — не помещается |
-| HunyuanVideo-1.5, FramePack | лицензия Tencent не действует в ЕС |
-| CogVideoX 1.5 | устарела (2024) |
+| **Wan2.2 TI2V-5B** | Selected: 5B, diffusers, Apache-2.0, Q8 is 5.4 GB |
+| Wan2.2 I2V-A14B | Two 14B experts: estimated 30–60 min per clip even in Q8; fallback if 5B is insufficient |
+| LTX-2.5 (July 2026) | 22B transformer (42 GB bf16) + Gemma 4 12B encoder (26 GB), does not fit |
+| HunyuanVideo-1.5, FramePack | Tencent license excludes the EU |
+| CogVideoX 1.5 | Outdated (2024) |
 
-## Как поместили в 8 ГБ (клип 1 с, 608×608, 50 шагов)
+## Fitting in 8 GB (1-second clip, 608×608, 50 steps)
 
-| Вариант | Время | Пик видеопамяти | Что не так |
+| Variant | Time | Peak VRAM | Issue |
 | --- | --- | --- | --- |
-| bf16-трансформер из дискового хранилища | 768 с | 6,1 ГБ | GPU ждёт данные: 10 ГБ на каждый из ~100 проходов |
-| Q8 целиком на GPU | 229 с | 7,8 ГБ | 720p × 5 с — нехватка видеопамяти (+1,8 ГБ активаций) |
-| Q8 в закреплённой RAM, блоки с упреждением | 254 с | 4,8 ГБ | закреплённая копия всей модели: свободная RAM падала до 1 ГБ |
-| Q8 закреплён на месте один раз | 374 с | 4,8 ГБ | diffusers всё равно закрепляет заново: свободная RAM до 4 ГБ |
-| **то же, закрепление по ходу** | **413 с** | **4,8 ГБ** | медленнее, но свободной RAM не меньше ~7 ГБ |
+| bf16 transformer from disk | 768 s | 6.1 GB | GPU waits for 10 GB per each of ~100 passes |
+| Q8 entirely on GPU | 229 s | 7.8 GB | 720p × 5 s runs out of VRAM (+1.8 GB activations) |
+| Q8 in pinned RAM, prefetched blocks | 254 s | 4.8 GB | Pinned copy of entire model; free RAM fell to 1 GB |
+| Q8 pinned in place once | 374 s | 4.8 GB | Diffusers pins again; free RAM fell to 4 GB |
+| **Same, pinning as needed** | **413 s** | **4.8 GB** | Slower, but at least ~7 GB free RAM |
 
-Кроме того: таблица токенов UMT5 (2,1 ГБ) не помещалась рядом с
-трансформером на GPU — с упреждающей подгрузкой трансформер на GPU не
-держится целиком, и это ушло само. После каждого запроса закреплённая
-память отдаётся (`torch._C._host_emptyCache`).
+The UMT5 embedding table (2.1 GB) also failed to fit beside the transformer.
+Prefetching avoids keeping the full transformer on GPU, resolving this.
+Pinned memory is released after each request (`torch._C._host_emptyCache`).
 
-## Качество
+## Quality
 
-- 480p (608×608 из квадратного кадра), 1 с: первый кадр сохранён, но в
-  кадр въехал посторонний предмет — модель обучена на 720p.
-- **720p (928×928), 5 с: 3012 с (50 мин)** — фонарь стоит, свечение мягко
-  меняется, без лишнего (замер до перехода на закрепление по ходу).
-- Те же seed и параметры дают побайтно тот же MP4 (три прогона).
+- 480p (608×608 from a square frame), 1 second: first frame preserved, but an
+  unrelated object entered the frame; the model was trained at 720p.
+- **720p (928×928), 5 seconds: 3012 s (50 min)**: stationary lantern with gently
+  changing glow and no extras (measured before switching to on-demand pinning).
+- Identical seeds/parameters give byte-identical MP4s (three runs).
 
-## Проверка контракта
+## Contract check
 
 `just check-server http://127.0.0.1:9108 --timeout 3600 --param
-seconds=1.0 --param size=480p` — **10/10 без предупреждений** (два клипа за 813 с). С
-умолчаниями (720p × 5 с) проверка шла бы несколько часов; для этого в
-проверку добавлен `--param`.
+seconds=1.0 --param size=480p`: **10/10 without warnings** (two clips in 813 s).
+Defaults (720p × 5 s) would take several hours to check, motivating `--param`.
 
-**720p × 5 с в итоговой конфигурации: 3643 с (61 мин)**, свободной RAM не
-меньше 5 ГБ, пик видеопамяти 7,8 ГБ (почти всё — активации). Цвет — BT.709
-с тегами.
+**720p × 5 s with final configuration: 3643 s (61 min)**, at least 5 GB free RAM,
+7.8 GB peak VRAM (mostly activations). Tagged BT.709 color.
 
-## Ревью
+## Review
 
-Критик, итерация 1 — REVISE:
+Critic, iteration 1: REVISE.
 
-1. **Цвет.** ffmpeg переводил кадры в YUV матрицей BT.601 и не ставил
-   теги; браузер показывает HD-видео без тегов как BT.709 — красные и
-   зелёные сдвигались во всех клипах. Ошибка была в SDK, её унаследовал бы
-   любой видеосервер. Теперь — BT.709 с тегами (красный: Y/U/V 63/102/240
-   вместо 81/90/240), общие настройки для SDK и студии; студия
-   перекодирует загруженное видео без тегов BT.709.
-2. Описание памяти в README и докстринге отставало от последней
-   конфигурации.
+1. **Color.** ffmpeg used BT.601 RGB → YUV without tags; browsers interpret
+   untagged HD as BT.709, shifting reds/greens in every clip. The SDK bug would
+   affect every video server. Fixed with tagged BT.709 (red Y/U/V 63/102/240
+   instead of 81/90/240), shared SDK/Studio options; Studio transcodes uploaded
+   video lacking BT.709 tags.
+2. README/docstring memory descriptions lagged behind final configuration.
 
-Приняты рекомендации: первый кадр обрезается по центру, а не
-растягивается (16:9 на 480p растягивался на 4,4 %), пропорции не круче
-1:4 (100:1 давал бы 9472×64); число кадров — ближайшее 4k+1 (1,1 с
-давала 29 кадров вместо 25); отрицательное описание — оригинальное
-китайское; сообщения ffmpeg — в файл (переполненный канал мог повесить
-кодирование); фиксированное число потоков x264 (те же байты на любой
-машине); `doctor` показывает версию ffmpeg и `libx264`; удалены неиспользуемые
-веса bf16 из кеша (19 ГБ).
+Recommendations implemented: center-crop first frame rather than stretching
+(16:9 at 480p stretched 4.4%); aspect ratio at most 1:4 (100:1 would yield
+9472×64); nearest 4k+1 frame count (1.1 seconds previously gave 29 instead of
+25 frames); original Chinese negative prompt; ffmpeg logs to file (a full pipe
+could hang encoding); fixed x264 thread count (identical bytes across machines);
+`doctor` reports ffmpeg/libx264; removed unused bf16 weight cache (19 GB).
 
-Итерация 2 — REVISE: после первой правки студия перекодировала каждое
-видео без цветовых тегов, а ffmpeg считал такой источник BT.601 — у HD
-(почти всегда BT.709 на деле) цвета сдвигались в другую сторону (красный
-58/105/229). Теперь источник без тегов считается BT.709 выше 576 строк,
-иначе BT.601 — как у проигрывателей; тест — красный 720p и 240p.
+Iteration 2: REVISE. The first fix transcoded every untagged video but let
+ffmpeg assume BT.601. HD (usually actually BT.709) shifted colors the other way
+(red 58/105/229). Untagged sources are now BT.709 above 576 lines, otherwise
+BT.601, matching players. Tests cover red 720p and 240p inputs.
 
-Итерация 3 — ACCEPT.
+Iteration 3: ACCEPT.

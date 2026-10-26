@@ -1,39 +1,39 @@
 # Hi3D v1.0 model server
 
-Задача `3d-refine`: грубая сетка + картинка, по которой она сделана → сетка
-высокого разрешения (GLB без цвета).
-[Hi3D v1.0](https://github.com/hi3d-official/Hi3Dv1.0) (бывший Sparc3D,
-открыт 23.10.2026) не создаёт форму с нуля: он перестраивает поверхность
-грубой сетки на разреженной решётке 512³, 1024³ или 1536³ — один, два или три
-прохода трансформера на 1,8 млрд параметров, после каждого VAE. Грубая сетка —
-из `image-to-3d` (Hunyuan3D-2.1), цвет потом — `3d-paint`.
+The `3d-refine` task takes a coarse mesh and its source image and produces a
+high-resolution mesh (GLB without color).
+[Hi3D v1.0](https://github.com/hi3d-official/Hi3Dv1.0) (formerly Sparc3D,
+released October 23, 2026) does not generate a shape from scratch: it rebuilds
+the coarse mesh surface on a sparse 512³, 1024³ or 1536³ grid, using one, two
+or three passes of a 1.8B transformer, each followed by a VAE. The coarse mesh
+comes from `image-to-3d` (Hunyuan3D-2.1); color is added later with `3d-paint`.
 
 ```sh
-just setup     # исходники, окружение Python 3.11 + PyTorch 2.5.0/CUDA 12.4
-just download  # артефакт конвейера (~7,7 ГБ)
+just setup     # source, Python 3.11 + PyTorch 2.5.0/CUDA 12.4 environment
+just download  # pipeline artifact (~7.7 GB)
 just doctor
 just serve     # http://127.0.0.1:9130
-just test      # без GPU и весов
+just test      # no GPU or weights needed
 ```
 
-- Upstream проверен только на H20 с 96 ГБ. Здесь части конвейера по
-  очереди занимают GPU (кодировщики картинки → трансформер прохода → VAE),
-  остальное ждёт в ОЗУ; веса как опубликованы (трансформеры в fp16).
-  Свой `enable_sequential_cpu_offload` upstream гоняет слои по одному на
-  каждом шаге; сервер переносит каждую часть раз за фазу.
-- Upstream объявляет Python 3.10; сервер запускает его на 3.11 (как SDK) с
-  ровно теми ядрами, на которых проверены веса: torch 2.5.0+cu124,
-  flash-attn 2.7.4.post1 (готовое колесо), spconv-cu120 2.3.6, transformers
-  4.46.3. Исходники подключаются по закреплённой ревизии, не ставятся.
-- Hi3D нормирует результат к единичному радиусу; `keep_placement` (по
-  умолчанию) ставит его на место и в размер грубой сетки. Сам он упрощает
-  итог до 1 млн треугольников (2 млн на 1536³); `max_faces` ставит меньшую
-  цель этому же упрощению — от полной поверхности, а не второй проход. Перед
-  покраской ставьте столько, сколько она оставит (Paint 2.1 — до 200 тыс.).
-- Веса и кодировщики DINOv2/CLIP лежат в `HI3D_WEIGHTS`
-  (`~/.cache/assets-studio/hi3d`), кодировщики скачиваются при первой
-  загрузке.
+- Upstream was tested only on an H20 with 96 GB. Here, pipeline components
+  take turns on the GPU (image encoders → pass transformer → VAE); the rest
+  wait in RAM. Weights are used as published (transformers in fp16).
+  Upstream's `enable_sequential_cpu_offload` moves individual layers on every
+  step; this server moves each component once per phase.
+- Upstream specifies Python 3.10; the server runs on 3.11 (like the SDK),
+  using the exact kernels tested with the weights: torch 2.5.0+cu124,
+  flash-attn 2.7.4.post1 (prebuilt wheel), spconv-cu120 2.3.6, transformers
+  4.46.3. Source is loaded from a pinned revision rather than installed.
+- Hi3D normalizes its result to a unit radius; `keep_placement` (enabled by
+  default) restores the coarse mesh's position and size. Hi3D itself simplifies
+  the result to 1M triangles (2M at 1536³); `max_faces` lowers the target for
+  that same simplification of the full surface, rather than adding a second
+  pass. Before painting, set it to the painter's retained budget (Paint 2.1:
+  up to 200K).
+- Weights and DINOv2/CLIP encoders live in `HI3D_WEIGHTS`
+  (`~/.cache/assets-studio/hi3d`); encoders download on first load.
 
-Лицензия: Hi3D Open License Agreement 1.0. Коммерческое использование
-разрешено; выше 200 000 пользователей в месяц или 1 млн долларов выручки в
-месяц нужна отдельная лицензия; интеграция показывает «Powered by Hi3D 1.0».
+License: Hi3D Open License Agreement 1.0. Commercial use is permitted; above
+200,000 monthly users or $1M monthly revenue a separate license is required.
+The integration displays “Powered by Hi3D 1.0”.

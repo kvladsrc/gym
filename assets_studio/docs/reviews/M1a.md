@@ -1,88 +1,79 @@
-# M1a — журнал ревью
+# M1a — review log
 
 <!-- markdownlint-disable MD013 -->
 
-Критик — отдельный саб-агент; не более 5 итераций «предложение → критика
-→ исправление».
+The critic was a separate sub-agent; at most five proposal → critique → fix
+iterations.
 
-## Итерация 1
+## Iteration 1
 
-Вердикт: **REVISE**, 2 блокирующих замечания и 13 рекомендаций.
+Verdict: **REVISE**, two blockers and thirteen recommendations.
 
-### Итерация 1: блокирующие
+### Iteration 1: blockers
 
-1. **Проверка не видела правило seed.** SDK сам пишет `meta.seed`, поэтому
-   проверка `meta.seed` проходила всегда. Сервер с одним генератором на
-   батч или игнорирующий seed получал PASS.
-   *Исправлено:* проверка сравнивает результат из батча с одиночным
-   запросом для того же seed и результаты для разных seed. Если
-   результат не зависит от seed, это ошибка (флаг
-   `--allow-seed-independent` для детерминированных моделей). Расхождение
-   батча и одиночного запроса — предупреждение, а с
-   `--strict-determinism` — ошибка: GPU не всегда побитово
-   детерминирован. Добавлены негативные тесты: сервер, игнорирующий seed,
-   и сервер с одним генератором на батч. Правило описано в ADR-001 и в
-   README SDK с примером для diffusers.
-2. **Не все ошибки в формате контракта.** Несериализуемый `meta`, не
-   `Output` из `generate()`, неизвестный путь давали `text/plain` или
-   `{"detail": …}`.
-   *Исправлено:* результаты сериализуются и проверяются внутри
-   обработки ошибок; добавлены обработчики `Exception` и HTTP-ошибок
-   Starlette. Тесты на каждый случай.
+1. **The checker did not enforce seed behavior.** The SDK writes `meta.seed`,
+   so checking that field always passed, even for ignored seeds or one batch
+   generator.
+   *Fixed:* compare batch outputs with single requests at the same seed, and
+   compare different seeds. Seed independence is an error (`--allow-seed-independent`
+   for deterministic models). Batch/single differences are warnings unless
+   `--strict-determinism`, since GPUs need not be byte-deterministic. Negative
+   tests cover ignored seeds and one generator per batch. ADR-001 and SDK
+   README document the rule with a diffusers example.
+2. **Some errors violated the contract.** Nonserializable `meta`, non-`Output`
+   returns and unknown routes produced `text/plain` or `{"detail": …}`.
+   *Fixed:* serialize/validate outputs inside error handling; add `Exception`
+   and Starlette HTTP error handlers. Each case tested.
 
-### Итерация 1: рекомендации
+### Iteration 1: recommendations
 
-| № | Суть | Решение |
+| # | Finding | Resolution |
 | --- | --- | --- |
-| 1 | SDK и проверка по-разному понимали корректные параметры (`default_factory`, псевдонимы) | Общее правило `params_schema_problems` в `contract.py`: плоские скаляры или `enum`, у каждого есть default, без псевдонимов. Одно правило для SDK и для проверки |
-| 2 | `load` и `generate` в разных потоках; `SystemExit` в `load` оставлял `loading` навсегда | Один выделенный поток для модели; `BaseException` в `load` → `error`. Тесты |
-| 3 | Ответ не содержал фактических параметров | `params` в `GenerateResponse`, колонка `effective_params` в ADR-002 |
-| 4 | Проверка падала с трейсбеком при обрыве соединения; не ждала незапущенный сервер | Транспортные ошибки превращаются в строку FAIL; ожидание `--wait` распространяется на недоступность сервера |
-| 5 | Нет образцов и сигнатур для JPEG/WebP/MP3/FLAC/OGG | Канонические форматы входов (`image/png`, `audio/wav`, `model/gltf-binary`) стали обязательными — образец есть всегда. Сигнатуры добавлены; неизвестный тип результата — предупреждение |
-| 6 | Пробы ошибок только для первой задачи; нет тестов, что проверка ловит нарушения | Пробы для каждой задачи, включая «лишний промпт», «нет промпта» и неизвестный путь. Тесты с прокси, портящим ответы |
-| 7 | Не проверено, что при обрыве клиента блокировка держится | Тест с живым сервером |
-| 8 | Очередь «одно задание на вкладку» — гонка при общем сервере; `busy` расходовал попытки | ADR-002: одно задание на адрес сервера; `busy` без лимита; поведение после 3 повторяемых ошибок |
-| 9 | Не описаны обрыв соединения и таймауты; план и ADR расходились в повторе | ADR-002: `connection_lost`, `timeout` (по умолчанию таймаута нет), список кодов студии; план согласован с ADR |
-| 10 | Ключ `job_dependencies` допускал два источника для одной роли | Ключ `(job_id, input_role)`, роли в `job_inputs` и `job_dependencies` взаимоисключающие; ожидающее задание не блокирует независимые |
-| 11 | ADR описывал `task` иначе, чем код | Формулировка приведена к коду |
-| 12 | §5.2 и §5.4 плана устарели | Разделы сокращены и ссылаются на ADR |
-| 13 | Версия SDK не поднята; Python 3.11 проверялся только pyright | Версия 1.1.0; `just check` запускает тесты SDK на Python 3.11 |
+| 1 | SDK/checker disagreed on parameters (`default_factory`, aliases) | Shared `params_schema_problems` in `contract.py`: flat scalars/enums, defaults, no aliases |
+| 2 | Different `load`/`generate` threads; `SystemExit` during loading left permanent `loading` | One dedicated model thread; load `BaseException` becomes `error`. Tests |
+| 3 | Effective parameters missing | `GenerateResponse.params`, ADR-002 `effective_params` column |
+| 4 | Checker traceback on disconnection; did not wait for unstarted servers | Transport errors become FAIL lines; `--wait` also covers unavailable servers |
+| 5 | Missing JPEG/WebP/MP3/FLAC/OGG samples/signatures | Require canonical inputs (`image/png`, `audio/wav`, `model/gltf-binary`) so samples always exist; add signatures; warn on unknown output types |
+| 6 | Error probes only covered first task; no violation-detection tests | Probe every task, extra/missing prompts and unknown routes; corrupting-proxy tests |
+| 7 | Lock retention after client disconnect unverified | Live-server test |
+| 8 | Per-tab dispatch raced on shared servers; `busy` consumed retries | ADR-002: one job per server address; unlimited `busy`; document three-retry behavior |
+| 9 | Missing connection-loss/timeout semantics; plan/ADR retry disagreement | ADR-002 defines `connection_lost`, `timeout` (none by default), Studio codes; align plan |
+| 10 | `job_dependencies` allowed two sources for a role | Key `(job_id, input_role)`; `job_inputs`/`job_dependencies` mutually exclusive; waiting jobs do not block independent ones |
+| 11 | ADR task description differed from code | Align wording |
+| 12 | Plan §5.2/§5.4 outdated | Shorten and reference ADRs |
+| 13 | SDK version unchanged; Python 3.11 checked only by pyright | Version 1.1.0; `just check` runs SDK tests on Python 3.11 |
 
-## Итерация 2
+## Iteration 2
 
-Вердикт: **REVISE**, 1 блокирующее замечание и 5 рекомендаций. Все
-исправления итерации 1 подтверждены, регрессий, кроме указанной, нет.
+Verdict: **REVISE**, one blocker and five recommendations. All iteration 1
+fixes confirmed; no regressions except the one noted below.
 
-### Итерация 2: блокирующее
+### Iteration 2: blocker
 
-1. **Сервер без seed и с настоящей случайностью проходил проверку.**
-   Проверка «разные seed — разные результаты» ловила только
-   детерминированный сервер, игнорирующий seed. Типичная ошибка —
-   генератор без seed — давала лишь предупреждение о расхождении батча.
-   *Исправлено:* одиночный запрос повторяется дважды; расхождение —
-   ошибка (`--allow-nondeterministic` для исключений). Это сравнение при
-   одном размере батча, поэтому довод о численной неточности GPU к нему
-   не относится. Негативный тест с генератором без seed.
+1. **Genuinely random servers without seeds passed.** Different-seed comparisons
+   caught only deterministic seed-ignoring servers. An unseeded generator
+   received only a batch-mismatch warning.
+   *Fixed:* repeat the single request twice; differences are errors
+   (`--allow-nondeterministic` for exceptions). Same batch size means GPU
+   batch numerical differences are irrelevant. Negative unseeded-generator test.
 
-### Итерация 2: рекомендации
+### Iteration 2: recommendations
 
-| № | Суть | Решение |
+| # | Finding | Resolution |
 | --- | --- | --- |
-| 1 | Регрессия: `ThreadPoolExecutor` не давал выйти по Ctrl+C, пока идёт `load` | Свой поток-демон с очередью (`_ModelThread`); тест: SIGINT во время 60-секундной загрузки завершает процесс сразу |
-| 2 | `BaseException` в `generate` давал текстовый 500 | Перехватывается и отображается в `internal`. Тест с `SystemExit` |
-| 3 | Предупреждение о батче можно сделать информативнее | Текст теперь различает случаи: одиночные запросы повторяются, значит расхождение — численное или из-за общего генератора. Численное сравнение PNG/WAV отложено: без декодеров в SDK это лишний код |
-| 4 | Блокировка не освобождалась, если постановка в очередь упала | Освобождение при ошибке постановки; дальше — колбэк завершения future |
-| 5 | «Future exception was never retrieved» при отключении клиента | Колбэк забирает исключение |
+| 1 | Regression: `ThreadPoolExecutor` prevented Ctrl+C exit during `load` | Dedicated daemon thread/queue (`_ModelThread`); SIGINT test during 60-second load exits immediately |
+| 2 | `generate` `BaseException` produced plain 500 | Catch as `internal`; `SystemExit` test |
+| 3 | Batch warning could be clearer | Distinguish reproducible single requests from numerical/shared-generator mismatch; defer numerical PNG/WAV comparison to avoid decoder code in SDK |
+| 4 | Lock leaked if queue submission failed | Release on submission failure; afterward use future completion callback |
+| 5 | “Future exception was never retrieved” after disconnect | Callback consumes exception |
 
-## Итерация 3
+## Iteration 3
 
-Вердикт: **ACCEPT**. Блокирующих замечаний нет; критик экспериментально
-подтвердил исправления итерации 2: сервер без seed получает FAIL,
-`SystemExit` в `generate` возвращает ошибку контракта, SIGINT во время
-загрузки завершает процесс за доли секунды, утечек блокировки нет.
+Verdict: **ACCEPT**. No blockers. Critic experiments confirmed unseeded servers
+FAIL, `generate` `SystemExit` returns a contract error, SIGINT during loading
+exits within fractions of a second, and locks do not leak.
 
-Рекомендация учтена: если одинаковые запросы дают разные результаты
-(при `--allow-nondeterministic`), проверка зависимости от seed помечается
-как «не проверяемо» (предупреждение), а сообщение о батче не утверждает,
-что одиночные запросы повторяются. Численное сравнение PNG/WAV отложено;
-критик согласился.
+Final recommendation: if identical requests differ under
+`--allow-nondeterministic`, mark seed dependence “not verifiable” with a warning,
+and do not claim single requests repeat in the batch warning. Numerical PNG/WAV
+comparison deferred with critic agreement.

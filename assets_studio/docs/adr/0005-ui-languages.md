@@ -1,55 +1,47 @@
-# ADR-005. Интерфейс на двух языках; контракт 1.2: подписи параметров
+# ADR-005. Bilingual UI; contract 1.2: parameter labels
 
-Статус: принято (M8).
+Status: accepted (M8).
 
-## Контекст
+## Context
 
-Интерфейс студии — только по-русски. Нужен английский (M8, п. 2) с
-переключателем. Строки самого интерфейса — забота веб-клиента. Но подписи
-параметров («Размер», «Шаги», «Стиль») приходят от серверов моделей в
-`description` схемы параметров (ADR-001) — по-русски. Их же читают агенты
-через MCP, которым английский понятнее.
+Studio's UI is Russian-only. M8 item 2 requests English with a language switch.
+UI strings belong to the web client, but parameter labels (“Size”, “Steps”,
+“Style”) come from server schema `description` fields (ADR-001), currently in
+Russian. Agents also read them through MCP and understand English better.
 
-## Решение
+## Decision
 
-### Интерфейс
+### UI
 
-Строки интерфейса — в словарях `web/src/i18n.ts` (`ru`, `en`), ключи —
-английские идентификаторы; `t("key", {параметры})`. Язык — сигнал с
-выбором в верхней панели, запоминается в браузере; по умолчанию — язык
-браузера, если это русский, иначе английский. `<html lang>` меняется
-вместе с языком. Названия задач, разделов, состояний, единицы и даты —
-тоже из словарей.
+Strings live in `web/src/i18n.ts` dictionaries (`ru`, `en`), keyed by English
+identifiers: `t("key", {parameters})`. Language is a signal selected in the top
+bar and remembered in the browser; default to Russian for Russian browsers,
+otherwise English. Update `<html lang>` with it. Task/section/state names,
+units and dates also come from dictionaries.
 
-### Контракт 1.2: подписи параметров
+### Contract 1.2: parameter labels
 
-- `description` свойства схемы параметров — **по-английски**: его читают
-  агенты (MCP, REST) и английский интерфейс.
-- Необязательное `"x-labels": {"ru": "Размер"}` — подписи на других языках
-  для интерфейса. Интерфейс показывает `x-labels[язык]`, иначе
-  `description`, иначе `title`, иначе имя параметра.
-- Пометка расширяет схему, как `x-primary` (ADR-003): серверы без неё
-  остаются совместимыми, номер версии контракта (`contract`) не меняется.
-- SDK: `ui(ru="Размер", primary=True)` собирает `json_schema_extra`
-  (заменяет прямое использование `PRIMARY`, которое остаётся для
-  совместимости). Схема с `x-labels`, где значения не строки, не проходит
-  проверку SDK.
+- Parameter schema `description` is **English**, used by agents (MCP, REST)
+  and the English UI.
+- Optional `"x-labels": {"ru": "Размер"}` supplies other-language labels. UI
+  fallback order: `x-labels[language]`, `description`, `title`, parameter name.
+- This extends schemas like `x-primary` (ADR-003): servers without it remain
+  compatible; protocol `contract` does not change.
+- SDK `ui(ru="Размер", primary=True)` builds `json_schema_extra`, replacing
+  direct `PRIMARY` usage (retained for compatibility). Non-string `x-labels`
+  values fail SDK validation.
 
-Все серверы репозитория переводятся на английские `description` с русскими
-`x-labels`.
+All repository servers migrate to English `description` with Russian `x-labels`.
 
-## Последствия
+## Consequences
 
-- Сообщения об ошибках от студии и серверов остаются английскими (они и
-  сейчас английские) — переводится только интерфейс.
-- Тексты, которые пишет пользователь (описания, названия ассетов), не
-  переводятся.
+- Studio/server errors stay English (as they already are); only UI is translated.
+- User-written prompts and asset titles are not translated.
 
-## Альтернативы
+## Alternatives
 
-- **Заголовок `Accept-Language` у `/v1/info`** — сервер отдавал бы схему на
-  языке клиента. Студия кеширует `/v1/info` (ADR-004) — пришлось бы
-  хранить по копии на язык; агенты получали бы непредсказуемый язык.
-- **Перевод подписей в студии по имени параметра** — словарь знал бы
-  параметры всех моделей; новый сервер без правки студии показывал бы
-  сырые имена.
+- **`Accept-Language` on `/v1/info`** would return client-language schemas.
+  Studio caches `/v1/info` (ADR-004), requiring one copy per language, while
+  agents would receive unpredictable languages.
+- **Translate parameter names in Studio:** a dictionary would need to know
+  every model's parameters; new servers would show raw names until Studio changed.

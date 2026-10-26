@@ -1,80 +1,78 @@
 # Studio flow
 
-Отдельный локальный сервис и редактор сохранённых графов заданий.
+A separate local service and editor for saved job graphs.
 
 ```sh
 cd assets_studio
 just sync
 just web-build
-just studio                 # библиотека и очередь, :9000
-just launcher               # запуск моделей по заданиям очереди
-just flow                   # редактор графов, http://127.0.0.1:9001
+just studio                 # library and queue, :9000
+just launcher               # starts models for queued jobs
+just flow                   # graph editor, http://127.0.0.1:9001
 ```
 
-`just flow --studio http://127.0.0.1:9000 --port 9001` меняет адреса;
-`--database PATH` — путь к базе графов. По умолчанию это
-`$XDG_DATA_HOME/assets-studio/flow.sqlite3` (или `~/.local/share/...`), вне Dropbox.
-Модели по-прежнему настраиваются в `studio.toml`.
+`just flow --studio http://127.0.0.1:9000 --port 9001` changes the addresses;
+`--database PATH` changes graph storage. The default is
+`$XDG_DATA_HOME/assets-studio/flow.sqlite3` (or `~/.local/share/...`), outside
+Dropbox. Models are still configured in `studio.toml`.
 
-## Работа с графом
+## Working with a graph
 
-1. Добавьте входы из библиотеки и нужные задачи слева.
-2. Выберите узел и укажите для каждой роли входа узел-источник. В списке
-   предлагаются совместимые MIME-типы; у результата с несколькими вариантами
-   можно выбрать номер выхода, начиная с нуля.
-3. Заполните промпт и параметры. Карточки перетаскиваются за верхнюю полосу;
-   «Разложить граф» располагает их по зависимостям.
-4. Сохраните граф и нажмите «Запустить». При запуске создаётся неизменяемый
-   снимок: последующее редактирование не меняет уже запущенную цепочку.
-5. Выберите узел запуска, чтобы увидеть ошибку или скачать его результаты.
-   После возврата к редактированию тот же граф можно запустить снова.
+1. Add library inputs and the required tasks from the left panel.
+2. Select a node and assign a source node to each input role. Choices are
+   filtered by compatible MIME types; multi-output results allow choosing a
+   zero-based output index.
+3. Fill in prompts and parameters. Drag cards by their top bar; “Arrange graph”
+   lays them out by dependency.
+4. Save the graph and click “Run”. A run creates an immutable snapshot; later
+   edits do not change an already submitted chain.
+5. Select a run node to inspect errors or download results. Return to editing
+   to run the same graph again.
 
-Графы можно экспортировать и импортировать как JSON. Пример
-[`examples/character.json`](examples/character.json) соединяет две ветви:
-сетка → MIA и текст → Kimodo; затем переносит движение Kimodo на результат MIA.
-После импорта выберите настоящий ассет сетки вместо placeholder.
+Graphs export and import as JSON. The
+[`examples/character.json`](examples/character.json) example connects two
+branches: mesh → MIA and text → Kimodo, then transfers Kimodo motion onto MIA's
+result. After importing, replace the placeholder with an actual mesh asset.
 
-Редактор использует обнаруженные студией возможности серверов. Новый сервер
-нужно один раз запустить, затем обновить список моделей. Сервер может быть
-выключен в момент запуска графа: задания дождутся его, launcher запустит его.
+The editor uses server capabilities discovered by Studio. Start a new server
+once, then refresh the model list. Servers may be stopped when a graph is
+submitted: jobs wait for them, and the launcher starts them.
 
-## Разделение ответственности
+## Responsibilities
 
-- `studio` хранит ассеты, происхождение, задания и зависимости; выполняет очередь.
-- `launcher` видит готовые к работе задания и запускает нужные серверы.
-- `studio flow` хранит определения графов, их версии и квитанции запуска;
-  создаёт обычные задания через публичный REST API студии. Модели и процессы
-  он не запускает и вторую очередь выполнения не заводит.
+- `studio` stores assets, provenance, jobs and dependencies, and executes the queue.
+- `launcher` sees runnable jobs and starts the required servers.
+- `studio flow` stores graph definitions, versions and submission receipts,
+  creating ordinary jobs through Studio's public REST API. It does not launch
+  models or processes or maintain a second execution queue.
 
-Узлы бывают входами из библиотеки и заданиями. Рёбра — входные роли заданий:
-прямой `asset_id` или `dependencies[role]={job_id,output_index}`. Поддерживаются
-разветвления и объединения. Циклы, отсутствующие источники и неправильные
-индексы отклоняются при сохранении; перед запуском дополнительно проверяются
-задачи, параметры, обязательные входы и совместимость форматов.
+Nodes are library inputs or jobs. Edges represent job input roles: direct
+`asset_id` or `dependencies[role]={job_id,output_index}`. Branching and merging
+are supported. Cycles, missing sources and invalid indices are rejected on
+save. Before running, tasks, parameters, required inputs and format compatibility
+are also validated.
 
-На каждую пару «запуск, узел» приходится постоянный ключ идемпотентности.
-Если соединение оборвётся после принятия задания студией или процесс flow
-перезапустится, повторная отправка вернёт то же задание. Уже записанные
-квитанции пропускаются. Прерывание сервиса flow не прерывает принятые
-студией задания. Отмена запуска отправляет отмену его заданиям; если студия
-временно недоступна, отмена продолжится после восстановления соединения.
+Each run/node pair has a stable idempotency key. If a connection breaks after
+Studio accepts a job, or Flow restarts, resubmission returns the same job.
+Recorded receipts are skipped. Stopping Flow does not stop jobs already
+accepted by Studio. Cancelling a run requests cancellation of its jobs; if
+Studio is temporarily unavailable, cancellation resumes when connectivity returns.
 
-Ошибка постоянного запроса останавливает отправку оставшихся узлов и
-сохраняется вместе с уже созданными заданиями. Исправленный граф запускается
-как новый запуск. Результаты выполненных заданий остаются в библиотеке.
-Снимки запусков сохраняются даже после удаления определения графа.
+A permanent request error stops submission of remaining nodes and is saved
+alongside already created jobs. A corrected graph starts a new run. Completed
+results remain in the library. Run snapshots survive deletion of graph definitions.
 
-Снимок фиксирует параметры и связи; ревизии моделей сохраняет сама студия
-в заданиях. Это не закрепляет будущую версию модели для повторных запусков.
+Snapshots fix parameters and edges; Studio records model revisions in jobs.
+This does not pin future model versions for reruns.
 
-## Проверки
+## Checks
 
 ```sh
-just flow-test               # граф, SQLite, восстановление и ошибки HTTP
-just test flow/tests/test_ui.py  # браузерный сценарий, если доступен Chrome
+just flow-test               # graph, SQLite, recovery and HTTP errors
+just test flow/tests/test_ui.py  # browser walkthrough if Chrome is available
 ```
 
-Браузерная проверка использует отдельную студию с fake-моделью: создание,
-соединение и перемещение узлов, сохранение, перезагрузка страницы, два
-запуска через настоящую очередь и скачивание результата. Для разработки UI:
-`cd web && npm run dev`, затем `/flow.html`; API flow должен слушать :9001.
+The browser check uses a separate Studio with a fake model: node creation,
+connection and dragging, saving, reloading, two runs through the real queue
+and result download. For UI development: `cd web && npm run dev`, then
+`/flow.html`; the Flow API must listen on :9001.

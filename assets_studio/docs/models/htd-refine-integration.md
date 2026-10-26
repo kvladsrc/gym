@@ -1,163 +1,148 @@
-# HTD-Refine после GVHMR: проверка совместимости
+# HTD-Refine after GVHMR: compatibility check
 
-**Текущее состояние (20 октября 2026):** HTD подключён отдельным сервером
-`htd_refine`, задача `refine-native-motion`, порт 9127, автоматический запуск
-через launcher. В Studio относится к Animations; доступен в Flow. Реальные
-задания на 60 и 300 кадрах прошли. Сервер и worker имеют отдельные окружения;
-SDK и окружение GVHMR не менялись. Инструкции: `model_servers/htd_refine/README.md`.
-Ниже сохранены этапы проверки и результаты первоначального пилота.
+**Current status (October 20, 2026):** HTD is integrated as server `htd_refine`,
+task `refine-native-motion`, port 9127, automatically started by the launcher.
+It appears under Animations and in Flow. Real 60/300-frame jobs passed. Server
+and worker have separate environments; SDK and GVHMR environment are unchanged.
+Instructions: `model_servers/htd_refine/README.md`. Initial checks and pilot
+findings are retained below.
 
-Входы — точное исходное видео и необъединённый native GVHMR с полным SMPL-X.
-Пока поддерживается статичная камера, 4–300 кадров при 30 fps. После HTD окна
-нужно соединить обратно в исходный сегмент и только затем переносить на MIA.
-Оконные raw/refined параметры не выдаются за параметры целого объединённого клипа.
+Inputs are the exact source video and unmerged native GVHMR with full SMPL-X.
+Currently supports static cameras, 4–300 frames at 30 fps. After HTD, rejoin
+windows into the source segment before transferring to MIA. Window-level
+raw/refined parameters must not be presented as whole merged-clip parameters.
 
-Проверена ревизия `2fcd6ddef3c4eb75a636062245f80a0136c09b7e`
-[официального репозитория](https://github.com/ant-research/HTD-Refine).
-Выполнен реальный пилот PVA-Net и оптимизации на статичном Human
-(120 кадров, 30 fps). Результаты и сравнение: `workspace/sword_prof/htd_refine/`.
+Tested revision `2fcd6ddef3c4eb75a636062245f80a0136c09b7e` of the
+[official repository](https://github.com/ant-research/HTD-Refine). Ran a real
+PVA-Net/optimization pilot on static Human (120 frames, 30 fps). Results and
+comparison: `workspace/sword_prof/htd_refine/`.
 
-## Место в цепочке
+## Position in the pipeline
 
 ```text
-видео 30 fps + выбранный человек
+30 fps video + selected person
               ↓
-       GVHMR: исходный SMPL-X ──────────────┐
-              ↓                           │
- HTD-Refine: видео + SMPL-X + K + камера    │ контрольная ветка
-              ↓                           │
-    уточнённые параметры SMPL-X            │
-              ↓                           ↓
-         одинаковый перенос на MIA → два сравнимых FBX
+       GVHMR: original SMPL-X ──────────────┐
+              ↓                            │
+ HTD-Refine: video + SMPL-X + K + camera    │ control branch
+              ↓                            │
+       refined SMPL-X parameters           │
+              ↓                            ↓
+         identical MIA transfer → two comparable FBX files
 ```
 
-Уточнение выполняется **до переноса на персонажа** и до удаления пути
-режимами `stationary` / `in-place`. Готовый FBX стражника не содержит
-исходные параметры формы SMPL-X и калибровку камеры. Поэтому произвольный
-FBX MoCapAnything нельзя считать готовым входом HTD-Refine: потребуется
-отдельное восстановление/подгонка SMPL, качество которого тоже надо измерять.
+Refinement runs **before target-character transfer** and before `stationary` /
+`in-place` travel removal. A finished guard FBX lacks original SMPL-X shape
+parameters and camera calibration. Arbitrary MoCapAnything FBX is therefore
+not ready-made HTD input; separate SMPL recovery/fitting and quality measurement
+would be needed.
 
-## Что проверено на наших данных
+## Checks on our data
 
-Без изменения окружения или SDK загружен официальный
-[`utils/gvhmr.py`](https://github.com/ant-research/HTD-Refine/blob/2fcd6ddef3c4eb75a636062245f80a0136c09b7e/utils/gvhmr.py).
-Его загрузчик принял сохранённые предсказания Human (120 кадров) и ходьбы
-Sieg (90 кадров). Он уже понимает используемые нами названия полей.
+Loaded official
+[`utils/gvhmr.py`](https://github.com/ant-research/HTD-Refine/blob/2fcd6ddef3c4eb75a636062245f80a0136c09b7e/utils/gvhmr.py)
+without SDK/environment changes. Its loader accepted saved Human (120 frames)
+and Sieg walking (90 frames) predictions, already understanding our field names.
 
-В обоих случаях доступны:
+Both provide:
 
-- глобальные и камерные параметры SMPL-X;
-- вращение корня, 63 компоненты позы тела, 10 коэффициентов формы, перенос;
-- матрица внутренних параметров камеры на каждом кадре.
+- Global and camera-space SMPL-X parameters.
+- Root rotation, 63 body-pose components, 10 shape coefficients, translation.
+- Per-frame camera intrinsics.
 
-Отчёт с размерами тензоров, хешами и путями к исходным файлам:
-`workspace/sword_prof/htd_refine/input_compatibility.json`.
-Этот отчёт проверяет только формат; отдельный полный пилот Human описан ниже.
+Tensor shapes, hashes and source paths:
+`workspace/sword_prof/htd_refine/input_compatibility.json`. This checks format
+only; the full Human pilot is below.
 
-Явной `T_w2c` в проверенных пакетах нет. Для движущейся камеры официальный
+Checked packages lack explicit `T_w2c`. For moving cameras, official
 [`demo_optimization.py`](https://github.com/ant-research/HTD-Refine/blob/2fcd6ddef3c4eb75a636062245f80a0136c09b7e/scripts/demo_optimization.py)
-требует синхронную внешнюю траекторию. Восстанавливать её неявно из двух
-поз человека или подменять неподвижной камерой нельзя. Для первого пилота
-подходит Human либо фрагмент BOHEMA с неподвижной камерой.
+requires a synchronized external trajectory. Do not implicitly recover it from
+two human poses or substitute a static camera. Human or a static BOHEMA segment
+is suitable for the first pilot.
 
-Нужны одинаковые кадры, человек и `K` для PVA и оптимизации. Калибровка
-GVHMR оценочная, её нельзя называть измеренной. Видеодемо HTD использует
-30 fps; наши мокапы уже нормализуются к этой частоте.
+PVA and optimization require identical frames, person and `K`. GVHMR calibration
+is estimated, not measured. HTD demos use 30 fps; our mocap already normalizes
+to that rate.
 
-## Ожидаемый эффект и критерии проверки
+## Expected effects and evaluation
 
-PVA-Net оценивает временные характеристики движения, после чего оптимизатор
-уточняет SMPL. В нашей задаче надо отдельно оценить дрожание, постановку
-стоп, сохранение выпада, пиковую скорость рук и позу корпуса/головы.
-Более плавное движение само по себе не доказывает улучшение фехтования.
+PVA-Net estimates temporal motion properties; optimization then refines SMPL.
+Separately assess jitter, foot placement, lunge retention, peak hand speed and
+torso/head pose. Smoother motion alone does not prove improved fencing.
 
-По [таблице авторов](https://zju3dv.github.io/htd-refine/), для GVHMR на
-EMDB-2 jitter уменьшается с 17,2 до 7,2, но FS меняется с 4,0 до 5,7.
-На RICH jitter уменьшается с 13,0 до 3,6, FS остаётся 3,3. Поэтому нельзя
-обещать одновременное улучшение всех характеристик. Постоянная ошибка
-ориентации головы также не обязана исчезнуть: это пока наша гипотеза для
-проверки, а не заявленный результат на фехтовании.
+The [authors' table](https://zju3dv.github.io/htd-refine/) reports GVHMR EMDB-2
+jitter 17.2 → 7.2, but FS 4.0 → 5.7. On RICH, jitter 13.0 → 3.6 and FS remains
+3.3. Do not promise simultaneous improvement in every measure. Constant head
+orientation errors may persist; fixing them is our hypothesis, not an established
+fencing result.
 
-## Реализация в Studio без изменений SDK
+## Studio integration without SDK changes
 
-Предлагаемая граница — отдельный сервер HTD с собственным worker-окружением.
-Его входы: видео, исходное движение SMPL-X и, при необходимости, явная
-камера; выход — уточнённое движение SMPL-X. Перенос на MIA выполняется
-отдельным завершающим узлом.
+Proposed boundary: a separate HTD server/worker environment. Inputs: video,
+native SMPL-X motion and explicit camera when required; output: refined SMPL-X
+motion. MIA transfer is a separate final node.
 
-Текущий `video-to-motion` GVHMR оставляем совместимым. Для цепочки нужен
-отдельный экспорт исходного движения; добавлять второй результат к одному
-seed существующего задания без проверки правил количества выходов нельзя.
-Подходящий вариант — отдельная задача с одним версионированным JSON-пакетом
-движения в поддерживаемом `text/plain`, который интерпретируют только
-модельные серверы. SDK не должен знать структуру SMPL или алгоритм refinement.
-Окончательный формат стоит фиксировать после реального пилота.
+Retain compatible GVHMR `video-to-motion`. Native motion needs separate export;
+do not add a second output per seed without checking output-count rules.
+A suitable option is a separate task returning one versioned motion JSON in
+supported `text/plain`, interpreted only by model servers. The SDK should not
+know SMPL structure or refinement algorithms. Finalize format after a real pilot.
 
-Обычные задания сейчас удаляют временные предсказания после FBX. Сохранённые
-для диагностики Human/Sieg позволяют начать пилот без повторного мокапа.
-Для новых цепочек исходный пакет должен стать штатным артефактом библиотеки,
-а не зависимостью от debug-каталога.
+Ordinary jobs delete temporary predictions after FBX. Diagnostic Human/Sieg
+files allow the pilot without rerunning capture. For new chains, native packages
+must become normal library artifacts, not debug-directory dependencies.
 
-У нас уже есть worker GVHMR с Python 3.10, torch 2.3/CUDA 12.1 и PyTorch3D —
-стек близок к указанному авторами HTD. Расширять его на месте не следует:
-отдельное окружение сохранит воспроизводимость работающего GVHMR. В
-HTD `pyproject.toml` зависимости пусты; `requirements.txt` содержит версии
-стека. Для пилота использован существующий совместимый интерпретатор GVHMR
-без установки пакетов в его окружение; `video-reader-rs==0.2.1` установлен
-в отдельный overlay. Официальные веса PVA-Net скачаны в кеш HTD.
+Our existing GVHMR worker uses Python 3.10, torch 2.3/CUDA 12.1 and PyTorch3D,
+close to HTD's stack. Do not extend it in place; isolation preserves working
+GVHMR reproducibility. HTD's `pyproject.toml` has empty dependencies; versions
+are in `requirements.txt`. The pilot used the existing compatible interpreter
+without installing into GVHMR's environment; `video-reader-rs==0.2.1` was added
+in a separate overlay. Official PVA-Net weights were downloaded into HTD cache.
 
-Практический следующий тест: один статичный клип, исходный SMPL-X → HTD,
-потом тот же профиль переноса и камера превью для двух веток. Только после
-сравнения качества и памяти имеет смысл подключать весь набор и камеры
-в движении.
+Next practical test: one static clip, original SMPL-X → HTD, then identical
+transfer profile/preview camera for both branches. Compare quality/memory before
+expanding the set or moving cameras.
 
-## Результат пилота Human (19 октября 2026)
+## Human pilot result (October 19, 2026)
 
-Официальные PVA-Net и оптимизатор выполнены на всех 120 кадрах с исходными
-рамками человека и K, статичной камерой, стандартными параметрами оптимизации.
-ViTPose обрабатывает независимые изображения пакетами по четыре; временное
-окно PVA остаётся 120 кадров, overlap 30. PVA заняла 13,85 с, пиковая
-выделенная Torch CUDA-память — 5,01 GiB (не вся память процесса).
-Обе ветки перенесены тем же профилем `smpl` на один MIA-риг стражника,
-режим `stationary`, без дополнительных правок позы.
+Official PVA-Net/optimizer ran all 120 frames with original person boxes and
+K, static camera and default optimization. ViTPose processes independent images
+in batches of four; PVA temporal window stays 120 frames, overlap 30. PVA took
+13.85 seconds, peak Torch-allocated CUDA memory 5.01 GiB (not full process memory).
+Both branches transferred to one MIA guard with `smpl`, `stationary`, no extra
+pose edits.
 
-Собственные диагностические показатели, **без эталонного 3D**, не метрики
-статьи: средняя норма третьей разности суставов относительно таза
-уменьшилась с 457,10 до 153,35 м/с³ (−66,5%). Пиковая скорость запястий
-относительно таза упала с 10,61 до 7,45 м/с (−29,8%). Прокси наклона
-головы по оси SMPL +Z вырос с медианы 22,41° до 33,00°, а наклон корпуса —
-с 10,60° до 13,09°. Это указывает на сглаживание, но не на исправление
-позы: усиливать HTD по умолчанию на всех движениях сейчас не следует.
+Custom diagnostics, **without 3D ground truth**, not paper metrics: mean pelvis-relative
+joint third-difference norm fell 457.10 → 153.35 m/s³ (−66.5%). Peak pelvis-relative
+wrist speed fell 10.61 → 7.45 m/s (−29.8%). SMPL +Z head-down proxy median rose
+22.41° → 33.00°; torso lean 10.60° → 13.09°. This indicates smoothing, not pose
+correction; stronger default HTD across all motions is unwarranted.
 
-Артефакты: `human_pva.pt`, `human_optimization/clip/opt_results.pt`,
-`before.fbx`, `after.fbx`, `comparison_metrics.json`,
-`human_htd_comparison.mp4`. Для production остаются штатный экспорт
-исходного SMPL-X, отдельный сервер/окружение и узлы Flow; пилот сам по себе
-не означает, что HTD уже подключена в Studio. SDK не менялся.
+Artifacts: `human_pva.pt`, `human_optimization/clip/opt_results.pt`, `before.fbx`,
+`after.fbx`, `comparison_metrics.json`, `human_htd_comparison.mp4`. Production
+still requires standard native SMPL-X export, separate server/environment and
+Flow nodes. This pilot alone does not mean HTD is integrated. SDK unchanged.
 
-## Эксперимент Longsword (20 октября 2026)
+## Longsword experiment (October 20, 2026)
 
-Три синхронных клипа по 120 кадров: стойка 172,4–176,4 с, динамичная серия
-57,7–61,7 с и резкое изменение позы 647,7–651,7 с. Повторного GVHMR не было:
-использованы сохранённые предсказания окон, прошедших проверку рамок человека.
-HTD получила те же кадры, рамки и K, статичную камеру и стандартные параметры.
-Контрольные параметры совпадают с исходными точно (`input_preservation.json`).
+Three synchronized 120-frame clips: stance 172.4–176.4 s, dynamic sequence
+57.7–61.7 s, abrupt pose change 647.7–651.7 s. No GVHMR rerun: reused saved
+window predictions that passed person-box checks. HTD received identical frames,
+boxes, K, static camera and default settings. Control parameters exactly match
+the originals (`input_preservation.json`).
 
-Показатель дрожания относительно таза снизился на 67,1%, 68,4% и 77,1%.
-Пиковая скорость кистей изменилась на −1,9%, −0,7% и −73,2% соответственно.
-В третьем случае максимум упал с 22,0 до 5,9 м/с, но p95 скорости вырос на
-79,4%: уменьшение пика не доказывает улучшения. P95 изменения положения
-кистей составляет 10–14 см; поза и путь также меняются. Это диагностические
-показатели без эталонного 3D, не оценка точности или доказательство сохранения удара.
+Pelvis-relative jitter proxy fell 67.1%, 68.4%, 77.1%. Peak wrist speed changed
+−1.9%, −0.7%, −73.2%. In the third case, peak fell 22.0 → 5.9 m/s, but p95 speed
+rose 79.4%: a lower peak does not prove improvement. P95 wrist displacement is
+10–14 cm; pose/path also change. These are no-ground-truth diagnostics, not
+accuracy or strike-preservation evidence.
 
-Обе ветки перенесены на KPop MIA одним профилем `bone-directions`, режимом
-`world`, с одинаковым двухручным мечом. Для сравнения применены общие камера,
-масштаб и начальное выравнивание по контрольной ветке. Все 12 заданий переноса
-и экипировки в трёх сохранённых Studio Flow завершились успешно.
+Both branches transferred to KPop MIA using `bone-directions`, `world`, identical
+two-handed swords, shared camera/scale and initial control-branch alignment.
+All 12 transfer/equip jobs in three saved Studio Flows succeeded.
 
-Артефакты: `workspace/longsword_htd_experiment/index.html`,
-`comparison_reel.mp4`, `htd_comparisons.zip` (12 FBX), `metrics.json` и
-`verification.json`. Превью добавлены в Studio с тегом `experiment:longsword-htd`.
-Исходная библиотека сохранена. HTD выполнялась как отдельный офлайн-эксперимент;
-нового HTD-сервера/узла обработки в Studio пока нет. Launcher не останавливался,
-SDK и установленные зависимости не менялись.
+Artifacts: `workspace/longsword_htd_experiment/index.html`, `comparison_reel.mp4`,
+`htd_comparisons.zip` (12 FBX), `metrics.json`, `verification.json`. Previews were
+added to Studio with `experiment:longsword-htd`. Original library retained.
+HTD ran as a separate offline experiment; at that point no HTD server/node
+existed in Studio. Launcher stayed running; SDK/installed dependencies unchanged.
