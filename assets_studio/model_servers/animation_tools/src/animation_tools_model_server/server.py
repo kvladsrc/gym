@@ -77,19 +77,19 @@ class RetopoParams(BaseModel):
         default=20_000,
         ge=500,
         le=200_000,
-        description="Target faces: quads for QuadriFlow (the GLB has twice as many triangles)",
+        description="Target faces: quads for QuadriFlow/AutoRemesher, triangles for Decimate",
         json_schema_extra=ui(
-            ru="Цель граней: квадов у QuadriFlow (в GLB треугольников вдвое больше)",
+            ru="Цель: квады у QuadriFlow/AutoRemesher, треугольники у Decimate",
             primary=True,
         ),
     )
-    method: Literal["quadriflow", "decimate"] = Field(
+    method: Literal["quadriflow", "decimate", "autoremesher"] = Field(
         default="quadriflow",
         description="quadriflow: quads along the shape (over a voxel remesh); "
-        "decimate: collapse edges, triangles, any input",
+        "decimate: collapse edges; autoremesher: AutoRemesher quad layout without voxel remesh",
         json_schema_extra=ui(
             ru="quadriflow — квады по форме (через воксельный ремеш); "
-            "decimate — схлопывание рёбер, треугольники, любой вход"
+            "decimate — схлопывание рёбер; autoremesher — квады без воксельного ремеша"
         ),
     )
 
@@ -256,7 +256,7 @@ class AnimationToolsServer(ModelServer):
     model = ModelInfo(
         id="animation-tools",
         name="Animation tools (Blender)",
-        revision="15",
+        revision="16",
         license="Repository code; Blender: GPL-3.0-or-later",
     )
     tasks = (PREPARE, RETARGET, NATIVE_RETARGET, RETOPO, BAKE)

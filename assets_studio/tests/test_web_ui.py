@@ -153,3 +153,20 @@ def test_3d_and_animation_sections(tmp_path: Path) -> None:
             check=False,
         )
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+def test_mesh_inspection(tmp_path: Path) -> None:
+    """Actual GLB renderer: wire overlay, clay, original materials and camera."""
+    studio = Studio(StudioConfig(data_dir=tmp_path))
+    app = create_studio_app(studio, web_dir=WEB / "dist")
+    with live_server(app) as url:
+        completed = subprocess.run(
+            ["node", "e2e/mesh-inspection.mjs", url],
+            cwd=WEB,
+            env={**os.environ, "CHROME": str(CHROME)},
+            capture_output=True,
+            text=True,
+            timeout=90,
+            check=False,
+        )
+    assert completed.returncode == 0, completed.stdout + completed.stderr

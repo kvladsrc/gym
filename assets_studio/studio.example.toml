@@ -105,6 +105,11 @@ title = "Hunyuan3D-Paint 2.1"
 url = "http://127.0.0.1:9120"
 
 [[servers]]
+id = "trellis2_paint"
+title = "TRELLIS.2 Paint"
+url = "http://127.0.0.1:9131"
+
+[[servers]]
 id = "birefnet"
 title = "BiRefNet"
 url = "http://127.0.0.1:9121"

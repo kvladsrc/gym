@@ -1,0 +1,35 @@
+[project]
+name = "trellis2-paint-model-server"
+version = "0.1.0"
+description = "TRELLIS.2 texture-only server: PBR materials on an existing mesh."
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk", "torch==2.8.0", "torchvision==0.23.0",
+  "xformers==0.0.32.post2", "transformers==4.57.3",
+  "huggingface-hub>=0.34,<1", "safetensors>=0.4", "numpy==1.26.4",
+  "scipy>=1.13", "Pillow>=10.4", "opencv-python-headless>=4.10,<4.12",
+  "trimesh>=4.4", "plyfile", "einops>=0.8", "easydict", "zstandard",
+  "imageio", "tqdm", "kornia", "timm", "setuptools>=69", "wheel", "ninja",
+  "pybind11>=2.12",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+trellis2-paint-model-server = "trellis2_paint_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+xformers = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

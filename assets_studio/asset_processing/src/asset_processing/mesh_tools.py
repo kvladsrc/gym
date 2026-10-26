@@ -1,6 +1,6 @@
 """Retopology and normal baking, a Blender script (blender -b -P mesh_tools.py -- ...).
 
-    retopo IN.glb OUT.glb FACES METHOD        METHOD: quadriflow | decimate
+    retopo IN.glb OUT.glb FACES METHOD        METHOD: quadriflow | decimate | autoremesher
     bake HIGH.glb LOW.glb OUT.glb SIZE RAY    RAY: ray distance, a share of the size
 
 Prints ``MESH_REPORT {json}`` when done, ``MESH_INVALID <reason>`` for an input
@@ -23,7 +23,10 @@ it cannot use.
 """
 
 import json
+import os
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -175,6 +178,8 @@ def retopo(source: Path, target: Path, faces: int, method: str) -> None:
     across = None
     if method == "quadriflow":
         across = quadriflow(obj, faces)
+    elif method == "autoremesher":
+        obj = autoremesher(obj, faces)
     else:
         modifier = obj.modifiers.new("decimate", "DECIMATE")
         modifier.ratio = min(1.0, faces / max(source_triangles, 1))
@@ -189,6 +194,66 @@ def retopo(source: Path, target: Path, faces: int, method: str) -> None:
         triangles=triangles(obj),
     )
     export(obj, target, materials=False)
+
+
+def autoremesher(obj: Any, faces: int) -> Any:
+    """The standalone CPU AutoRemesher, keeping its quad layout until GLB export."""
+    binary = Path(
+        os.environ.get("AUTOREMESHER", "~/.cache/assets-studio/autoremesher/squashfs-root/AppRun")
+    ).expanduser()
+    if not binary.is_file():
+        invalid("AutoRemesher is not installed; set AUTOREMESHER to its executable")
+    with tempfile.TemporaryDirectory(prefix="autoremesher-") as directory:
+        source, target = Path(directory) / "input.obj", Path(directory) / "output.obj"
+        activate(obj)
+        bpy.ops.wm.obj_export(
+            filepath=str(source),
+            export_selected_objects=True,
+            export_materials=False,
+            export_normals=False,
+            forward_axis="NEGATIVE_Z",
+            up_axis="Y",
+        )
+        environment = {**os.environ, "QT_QPA_PLATFORM": "xcb"}
+        done = subprocess.run(  # noqa: S603 -- configured binary, fixed argv, no shell
+            [
+                str(binary),
+                "--input",
+                str(source),
+                "--output",
+                str(target),
+                "--target-quads",
+                str(faces),
+                "--edge-scaling",
+                "1",
+                "--sharp-edge",
+                "90",
+                "--smooth-normal",
+                "0",
+                "--adaptivity",
+                "1",
+                "--anisotropy",
+                "1",
+            ],
+            env=environment,
+            capture_output=True,
+            text=True,
+            timeout=540,
+            check=False,
+        )
+        if done.returncode or not target.is_file():
+            raise RuntimeError(f"AutoRemesher failed ({done.returncode}): {done.stderr[-2000:]}")
+        bpy.data.objects.remove(obj, do_unlink=True)
+        bpy.ops.wm.obj_import(filepath=str(target), forward_axis="NEGATIVE_Z", up_axis="Y")
+        meshes = [o for o in bpy.context.selected_objects if o.type == "MESH"]
+        if not meshes:
+            invalid("AutoRemesher produced no mesh")
+        activate(*meshes)
+        if len(meshes) > 1:
+            bpy.ops.object.join()
+        result = bpy.context.view_layer.objects.active
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+        return result
 
 
 def put_over(obj: Any, reference: Any) -> None:

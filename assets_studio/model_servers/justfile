@@ -4,7 +4,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 # these recipes only dispatch to them. `just <model>` starts the server,
 # extra arguments go to it (e.g. `just qwen_image --port 9200`).
 
-servers := "qwen_image birefnet sam2 hunyuan3d21 hi3d hunyuan_paint21 mia skintokens unirig kimodo mocapanything gvhmr gemx htd_refine prompthmr animation_tools xtts stable_audio yue2 llm wan"
+servers := "qwen_image birefnet sam2 hunyuan3d21 hi3d trellis2_paint hunyuan_paint21 mia skintokens unirig kimodo mocapanything gvhmr gemx htd_refine prompthmr animation_tools xtts stable_audio yue2 llm wan"
 
 # Show the available commands
 default:
@@ -36,6 +36,11 @@ hi3d *args:
 [positional-arguments]
 hunyuan_paint21 *args:
     just --justfile hunyuan_paint21/justfile serve "$@"
+
+# TRELLIS.2: PBR texturing of an existing mesh, preserves its surface (port 9131)
+[positional-arguments]
+trellis2_paint *args:
+    just --justfile trellis2_paint/justfile serve "$@"
 
 # Make-It-Animatable v2: a Mixamo skeleton for a character mesh (port 9113; needs HF_TOKEN)
 [positional-arguments]
