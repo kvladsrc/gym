@@ -1,121 +1,116 @@
 # Animation tools
 
-Детерминированная обработка рига и анимации через Blender, доступная как
-обычный сервер студии. Нейросети, веса и CUDA не нужны. Для отрисовки
-предпросмотра этот сервер не используется.
+Deterministic rig and animation processing through Blender, exposed as an
+ordinary Studio server. No neural networks, weights or CUDA required. This
+server is not used for preview rendering.
 
 ```sh
 just setup
 just doctor
 just serve                  # 127.0.0.1:9124
-just test                   # контракт и обработка ошибок
-just integration            # настоящие FBX и Blender, без GPU-моделей
+just test                   # contract and error handling
+just integration            # real FBX and Blender, no GPU models
 ```
 
-Студия и launcher знают сервер как `animation_tools`. `BLENDER` задаёт
-исполняемый файл; иначе он ищется в PATH и стандартном Nix-профиле.
-Python-окружение находится в `~/.cache/assets-studio/venvs/animation_tools`.
+Studio and the launcher know the server as `animation_tools`. `BLENDER` selects
+the executable; otherwise it is found in PATH and the standard Nix profile.
+The Python environment is in `~/.cache/assets-studio/venvs/animation_tools`.
 
-## Задачи
+## Tasks
 
-`3d-retopo` уменьшает готовую GLB-сетку перед покраской. В `method` доступны
-`decimate` (цель в треугольниках), `quadriflow` и `autoremesher` (цель в
-квадах; фактическое число может отличаться). AutoRemesher работает напрямую
-с поверхностью, без предварительного воксельного ремеша. GLB хранит результат
-треугольниками; исходное число квадов сохраняется в метаданных задания.
+`3d-retopo` reduces a finished GLB mesh before painting. `method` offers
+`decimate` (target in triangles), `quadriflow` and `autoremesher` (target in
+quads; actual counts may differ). AutoRemesher works directly on the surface,
+without an initial voxel remesh. GLB stores triangles; the original quad count
+is retained in job metadata.
 
-Для AutoRemesher нужен установленный CLI. По умолчанию используется
-`~/.cache/assets-studio/autoremesher/squashfs-root/AppRun`; другой путь
-задаётся `AUTOREMESHER`. AppImage 1.2.0 требует доступный X-дисплей даже в
-CLI-режиме. Стандартная локальная Studio наследует его от рабочего стола.
+AutoRemesher requires an installed CLI. The default is
+`~/.cache/assets-studio/autoremesher/squashfs-root/AppRun`; use `AUTOREMESHER`
+for another path. AppImage 1.2.0 requires an X display even in CLI mode.
+The standard local Studio inherits it from the desktop.
 
-`3d-bake-normals` запекает детали исходной high-сетки в normal map уже
-покрашенной low-сетки с UV. Для сравнения покрасчиков передавайте один и тот
-же high и одинаковые настройки запекания.
+`3d-bake-normals` bakes details from the source high-resolution mesh into a
+normal map for an already painted low-resolution mesh with UVs. To compare
+painters, use the same high-resolution source and bake settings.
 
-Три задачи: подготовка рига, перенос анимации с именами костей Mixamo
-(Kimodo-SOMA, Mixamo)
-и перенос нативного движения SMPL-X. Обрезка, склейка окон и прикрепление оружия
-удалены
-(2026-10-22): процедура стоек режет отрезки до захвата, переходы делает Kimodo,
-меч
-ставится в подгонке позы.
+Three animation tasks cover rig preparation, motion transfer using Mixamo
+bone names (Kimodo-SOMA, Mixamo), and native SMPL-X motion transfer. Trimming,
+window stitching and weapon attachment were removed on 2026-10-22: the stance
+procedure trims segments before capture, Kimodo generates transitions, and
+pose fitting places the sword.
 
-- **prepare-rig**: персонаж FBX/GLB со скелетом → FBX без старой анимации,
-  в собственной позе покоя. Проверяются кости, единственность корня,
-  привязка меша, отсутствие вершин без весов; веса нормализуются. Топология,
-  пропорции, поза покоя, масштаб и координаты модели сохраняются. Это не
-  нейросетевое исправление плохого расположения суставов и не перевод
-  произвольного животного в скелет Mixamo.
-- **retarget-motion**: риг FBX/GLB + анимация FBX/GLB → персонаж с анимацией
-  FBX. Подготовка рига выполняется автоматически внутри этого задания:
-  отдельный `prepare-rig` перед ним не обязателен. Поддерживаются гуманоиды
-  с именами костей Mixamo, включая MIA, Kimodo и захват движения студии.
-  Префиксы вроде `mixamorig:` сопоставлению не мешают.
+- **prepare-rig**: character FBX/GLB with a skeleton → FBX without old animation,
+  in its own rest pose. Checks bones, a single root, mesh binding and vertices
+  without weights; normalizes weights. Preserves topology, proportions, rest
+  pose, scale and coordinates. It does not use a neural network to fix poor
+  joint placement or convert arbitrary animals to Mixamo skeletons.
+- **retarget-motion**: rig FBX/GLB + animation FBX/GLB → animated character FBX.
+  Rig preparation happens automatically; a separate `prepare-rig` is optional.
+  Supports humanoids with Mixamo bone names, including MIA, Kimodo and Studio
+  mocap. Prefixes such as `mixamorig:` do not interfere with matching.
 
-`root_motion=in-place` оставляет вертикальное движение, крен и наклон,
-убирая горизонтальный путь и повороты курса. `stationary` убирает только
-горизонтальный путь, сохраняя развороты и вращение атаки; `world` сохраняет
-и путь, и курс.
+`root_motion=in-place` retains vertical movement, roll and pitch, removing
+horizontal travel and heading changes. `stationary` removes only horizontal
+travel, keeping turns and attack rotation. `world` keeps travel and heading.
 
-`method=auto` переносит полные вращения с поправкой на разные направления
-костей в позах покоя. Сохраняются вращения конечных костей, в том числе
-кистей, и скручивание конечностей. Перемещение масштабируется по длинам ног
-в позе покоя, а не по приседанию в первом кадре. `positions` — запасной
-режим: направления костей берутся по суставам, скручивание не переносится.
-Для контуров без вращений конечных суставов он не может восстановить их.
+`method=auto` transfers full rotations with corrections for different rest-pose
+bone directions. It preserves end-bone rotations, including wrists, and limb
+twist. Translation is scaled using rest-pose leg lengths, not first-frame
+crouching. `positions` is a fallback: bone directions come from joints, without
+twist transfer. It cannot recover end-joint rotations from a representation
+that lacks them.
 
-Для общего скелета животного MoCapAnything использует собственный
-перенос вращений в рамках `video-to-motion`: отдельный ретаргетинг на
-произвольное другое животное здесь не реализован.
+For general animal skeletons, MoCapAnything transfers rotations itself within
+`video-to-motion`; retargeting to an arbitrary different animal is not
+implemented here.
 
-## Как пользоваться
+## Usage
 
-- MIA → GVHMR или MoCapAnything: передайте результат риггинга как `rig`,
-  видео — как `video`. Их подготовительные операции уже внутри серверов.
-- MIA + Kimodo: передайте риг MIA и скелетную анимацию Kimodo в
-  `retarget-motion`. Раньше для этого вызывался `retarget.py` вручную.
-- Старый анимированный риг также допустим: его анимация и поза сбрасываются
-  перед переносом. Сетка и веса остаются от выбранного персонажа.
-- Mixamo-клип можно передать вместо Kimodo. Для персонажей с пальцами
-  перенесутся совпадающие кости пальцев; отсутствующие сохранят позу покоя.
+- MIA → GVHMR or MoCapAnything: pass the rigging result as `rig` and the video
+  as `video`. Their preparation operations are already built into the servers.
+- MIA + Kimodo: pass the MIA rig and Kimodo skeletal animation to
+  `retarget-motion`. Previously this required running `retarget.py` manually.
+- Old animated rigs are also accepted: animation and pose are reset before
+  transfer. The chosen character's mesh and weights are retained.
+- A Mixamo clip can replace Kimodo. Matching finger bones transfer for
+  characters with fingers; missing ones retain their rest pose.
 
-Обе операции доступны в UI студии и в [studio flow](../../flow/README.md),
-результаты и история происхождения хранятся в общей библиотеке.
+Both operations are available in Studio UI and [Studio Flow](../../flow/README.md).
+Results and provenance are stored in the shared library.
 
-Регрессия Blender создаёт T-позу цели со старой анимацией, A-позу источника
-и движение со скручиванием кисти. Проверяются нормализация весов, сброс
-старого клипа, десять кадров без потерь, перенос вращения кисти и величина
-перемещения для `world`, `stationary` и `in-place`, а также сохранение
-вертикального движения и поворотов для общего скелета MoCapAnything.
+The Blender regression creates a T-pose target with old animation, an A-pose
+source and wrist-twisting motion. It checks weight normalization, old-clip
+removal, ten frames without loss, wrist rotation transfer and translation for
+`world`, `stationary` and `in-place`, plus vertical movement and turn preservation
+for MoCapAnything's general skeleton.
 
-Проверено также на реальных результатах MIA (гуманоид), SkinTokens и UniRig
-(четвероногие): подготовка не требует индивидуального Blender-скрипта.
-Полный сохранённый граф MIA + Kimodo + перенос на стражника вернул
-анимированный FBX на 120 кадров; все позы конечны, ошибка суммы весов < 1e-6.
+Also tested on actual MIA humanoids and SkinTokens/UniRig quadrupeds: preparation
+needs no per-model Blender script. A complete saved MIA + Kimodo + guard-transfer
+graph returned a 120-frame animated FBX; every pose was finite and the weight
+sum error was <1e-6.
 
-## Нативное движение SMPL-X
+## Native SMPL-X motion
 
-`retarget-native-motion`: риг FBX/GLB + `studio.smplx-motion.v1` (`text/plain`)
-→ FBX. Параметры движения и BVH сохраняются до переноса отдельно. По умолчанию
-`root_motion=stationary`, `rest_alignment=bone-directions`. Переносятся 22
-сустава тела; пальцы и лицо отсутствуют в этом профиле.
+`retarget-native-motion`: FBX/GLB rig + `studio.smplx-motion.v1` (`text/plain`)
+→ FBX. Motion parameters and BVH are retained separately before transfer.
+Defaults: `root_motion=stationary`, `rest_alignment=bone-directions`. Transfers
+22 body joints; fingers and face are absent from this profile.
 
-Профиль SMPL сохраняет нейтральную ориентацию таза, позвоночника, шеи, головы
-и **ключиц**, продолжая переносить их реальные вращения. Согласование
-направлений нейтральных ключиц SMPL и Mixamo раньше добавляло ненужное поднятие
-плеч даже на нулевой позе; это исправлено. Перенос Mixamo/Kimodo не менялся.
+The SMPL profile preserves neutral orientations of the pelvis, spine, neck,
+head and **clavicles**, while still transferring their actual rotations.
+Aligning neutral SMPL and Mixamo clavicle directions previously raised the
+shoulders unnecessarily even at zero pose; this is fixed. Mixamo/Kimodo
+transfer is unchanged.
 
-`rest_alignment=matched-neutral` дополнительно сохраняет нейтральные
-направления конечностей. Используйте только когда исходная поверхность цели
-уже находится в той же нейтральной позе, что и SMPL. Для произвольной A-позы
-это не универсальная настройка. Проверка и покадровые примеры находятся
-в `workspace/rigging_lab/`.
+`rest_alignment=matched-neutral` also preserves neutral limb directions. Use
+it only when the target's original surface is already in the same neutral
+pose as SMPL. It is not universal for arbitrary A-poses. Checks and frame-by-frame
+examples are in `workspace/rigging_lab/`.
 
-Объяснение сетки, костей, весов и переноса:
-[пайплайн анимации](../../docs/animation-pipeline.md).
+For meshes, bones, weights and transfer, see the
+[animation pipeline](../../docs/animation-pipeline.md).
 
-Профиль SMPL также сохраняет нейтральную ориентацию стоп и носков. Наклон
-между голеностопом и носком отражает анатомию и форму обуви; его согласование
-раньше давало стражнику лишние ~23° даже при нулевой позе SMPL. Настоящие
-вращения стоп/носков сохраняются; это проверяется Blender-регрессиями.
+The SMPL profile also preserves neutral foot and toe orientations. The angle
+from ankle to toe reflects anatomy and footwear; aligning it previously added
+about 23° to the guard even at zero SMPL pose. Actual foot/toe rotations are
+retained, covered by Blender regressions.

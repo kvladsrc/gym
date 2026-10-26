@@ -1,120 +1,109 @@
-# Студия ассетов — план работ
+# Asset Studio — work plan
 
 <!-- markdownlint-disable MD013 -->
 
-Рабочий план на основе концепта из [README.md](README.md). Документ
-фиксирует ключевые решения, границы первой версии, майлстоуны с
-критериями приёмки и порядок параллельной работы агентов.
+Working plan based on [README.md](README.md). Records key decisions, first-version
+scope, milestones with acceptance criteria and parallel-agent workflow.
 
-## 1. Суть
+## 1. Purpose
 
-Локальная студия, в которой человек (через веб-UI) и агент (через
-REST/MCP) отправляют задания генеративным моделям — картинки, 3D,
-русская речь, звуки — и получают результаты в общую библиотеку ассетов
-с историей происхождения.
+A local studio where people (web UI) and agents (REST/MCP) submit jobs to
+generative models for images, 3D, Russian speech and sounds, storing results
+in a shared asset library with provenance.
 
-Модели работают как **самостоятельные локальные серверы**, которые
-пользователь запускает вручную. Студия ими не управляет: она знает их
-адреса, показывает доступность и отправляет задания. Для X-to-X
-модальностей есть **эволюционный режим**: 3 кандидата → выбор →
-следующее поколение с мутациями.
+Models run as **independent local servers**, manually started by the user.
+Studio does not manage them: it knows their addresses, displays availability
+and submits jobs. X-to-X modalities have an **evolution mode**: three candidates
+→ selection → next generation with mutations.
 
-## 2. Принятые решения
+## 2. Decisions
 
-| Вопрос | Решение |
+| Question | Decision |
 | --- | --- |
-| Назначение | Хобби: студия не публикуется, игры не продаются. Некоммерческие лицензии моделей допустимы. |
-| Язык речи | Преимущественно русский. |
-| Доступ | Только этот ноутбук: всё слушает `127.0.0.1`, авторизации нет. |
-| Существующие скрипты (`games/platformer` — удалён после переноса TripoSR в студию, `local_llm`) | Код не переносим, пишем с нуля под заранее понятные цели. Берём **знания**: TripoSR запускается локально, закреплённые версии torch/CUDA, обход сборки `torchmcubes` через CPU marching cubes, особенности Vulkan и llama.cpp на этой машине. |
-| Запуск моделей | Вручную, отдельными серверами. Студия только подключается к ним. |
-| Эволюция | В v1 только X-to-X. LLM-мутации промптов возможны позже как отдельная функция. |
-| Ресурсы ноутбука | **Не забота студии.** Студия не следит за VRAM, не ограничивает число запущенных серверов и не строит функции вокруг железа. Какие серверы и сколько держать одновременно, решает пользователь. |
-| `asset_lab` | Остаётся как есть; в студию не мигрирует. |
+| Purpose | Hobby: Studio is not published and games are not sold. Non-commercial model licenses are acceptable. |
+| Speech language | Mainly Russian. |
+| Access | This laptop only: everything listens on `127.0.0.1`, without authentication. |
+| Existing scripts (`games/platformer`, removed after TripoSR moved into Studio; `local_llm`) | Do not migrate code; write from scratch for clear goals. Reuse **knowledge**: local TripoSR, pinned torch/CUDA, CPU marching cubes to avoid building `torchmcubes`, Vulkan and llama.cpp behavior on this machine. |
+| Model startup | Manual, separate servers. Studio only connects. |
+| Evolution | X-to-X only in v1. LLM prompt mutations may come later as a separate feature. |
+| Laptop resources | **Not Studio's responsibility.** No VRAM monitoring, server-count limits or hardware-centered features. Users decide which/how many servers stay loaded. |
+| `asset_lab` | Unchanged; not migrated into Studio. |
 
-## 3. Ограничения окружения
+## 3. Environment constraints
 
-| Ограничение | Следствие |
+| Constraint | Consequence |
 | --- | --- |
-| RTX 3070 Laptop, 8 ГБ VRAM, 30 ГБ RAM | Касается только выбора моделей в M0: сервер модели должен запускаться на этом ноутбуке. На архитектуру и функции студии не влияет. |
-| Модели с несовместимыми зависимостями | У каждого сервера модели своё окружение (`uv` + lock-файл). Ядро студии не зависит от torch. |
-| Рабочая копия лежит в Dropbox | Веса, база и артефакты — **вне Dropbox** (настраиваемые пути, по умолчанию XDG-каталоги). |
-| В песочнице агента GPU может быть скрыт | Студия тестируется с **fake-сервером модели** без GPU; GPU-проверки — отдельная команда. |
+| RTX 3070 Laptop, 8 GB VRAM, 30 GB RAM | Affects M0 model selection only: servers must run here. Does not dictate Studio architecture/features. |
+| Incompatible model dependencies | Each server has its own environment (`uv` + lockfile). Studio core has no torch dependency. |
+| Checkout inside Dropbox | Weights, database and artifacts **outside Dropbox**, configurable paths defaulting to XDG directories. |
+| Agent sandbox may hide GPU | Test Studio with a GPU-free **fake model server**; GPU checks are separate. |
 
-## 4. Границы первой версии
+## 4. First-version scope
 
-**Входит:** text-to-image и image-to-image, image-to-3D, text-to-3D как
-цепочка «текст → картинка → 3D», text-to-speech (русский),
-text-to-audio (звуковые эффекты и короткая музыка), библиотека ассетов,
-очередь, REST + MCP, эволюция для image-to-image (и audio-to-audio, если
-модель из M0 это поддерживает).
+**Included:** text-to-image/image-to-image, image-to-3D, text-to-3D as text →
+image → 3D, Russian text-to-speech, text-to-audio (effects and short music),
+asset library, queue, REST + MCP, image-to-image evolution (and audio-to-audio
+if supported by M0's model).
 
-**Не входит в v1:** запуск и остановка моделей из студии, LLM-вкладка и
-LLM-мутации, авторизация, облачные API, дообучение, риггинг и анимация,
-видео, нативные text-to-3D модели.
+**Excluded from v1:** model startup/shutdown from Studio, LLM tab/mutations,
+authentication, cloud APIs, fine-tuning, rigging/animation, video, native
+text-to-3D models.
 
-## 5. Архитектура
+## 5. Architecture
 
-### 5.1 Компоненты
+### 5.1 Components
 
 ```mermaid
 flowchart LR
   UI[Web UI] -->|REST + SSE| S
-  Agent[Агент] -->|MCP| S
-  subgraph S[Студия: один процесс]
-    API[API + MCP] --> SVC[Сервисы]
-    SVC --> D[Диспетчер очереди]
+  Agent[Agent] -->|MCP| S
+  subgraph S[Studio: one process]
+    API[API + MCP] --> SVC[Services]
+    SVC --> D[Queue dispatcher]
   end
-  SVC --> DB[(SQLite: мета + очередь)]
-  SVC --> BLOB[(Файлы ассетов)]
-  D -->|HTTP, контракт v1| M1[Сервер: картинки]
-  D -->|HTTP| M2[Сервер: 3D]
-  D -->|HTTP| M3[Сервер: речь / звук]
-  U((Пользователь)) -. just serve .-> M1
+  SVC --> DB[(SQLite: metadata and queue)]
+  SVC --> BLOB[(Asset files)]
+  D -->|HTTP, contract v1| M1[Image server]
+  D -->|HTTP| M2[3D server]
+  D -->|HTTP| M3[Speech/audio server]
+  U((User)) -. just serve .-> M1
 ```
 
-- **Студия** — один процесс (FastAPI): HTTP API, MCP, раздача UI и
-  файлов, а также фоновый **диспетчер**, который берёт задания из
-  очереди в SQLite и отправляет их серверам моделей. Отдельный процесс
-  Worker не нужен: студия ничего не запускает.
-- **Сервер модели** — самостоятельная программа в своём окружении,
-  запускается командой `just serve` в своём каталоге. Модель
-  загружается при старте. Сервер реализует общий HTTP-контракт (§5.2)
-  и сам описывает, что умеет.
+- **Studio:** one FastAPI process for HTTP API, MCP, UI/files and a background
+  **dispatcher** that sends SQLite-queued jobs to model servers. No separate
+  worker process: Studio does not launch anything.
+- **Model server:** an independent program/environment, started with `just serve`
+  in its directory. Loads the model at startup, implements the shared HTTP
+  contract (§5.2) and describes its capabilities.
 
-Бонус разделения: агент может поставить задание, когда сервер ещё не
-запущен. Задание ждёт в очереди в статусе «ожидает модель» и уходит
-на сервер, как только тот стал доступен.
+Separation lets agents queue jobs before servers start. Jobs wait in “waiting
+for model” and dispatch once the server is available.
 
-### 5.2 Контракт сервера модели (ключевой)
+### 5.2 Model server contract (essential)
 
-Все серверы моделей реализуют один маленький HTTP-контракт, поэтому новую
-модель студия подхватывает без правки своего кода. Эталон —
-[ADR-001](docs/adr/0001-model-server-contract.md) и
-`model_server_sdk/src/model_server_sdk/contract.py`. Коротко:
+Every server implements one small HTTP contract, so new models need no Studio
+code changes. Reference: [ADR-001](docs/adr/0001-model-server-contract.md) and
+`model_server_sdk/src/model_server_sdk/contract.py`. Overview:
 
-- `GET /v1/info` — состояние (`loading | ready | busy | error`), модель и
-  список задач. Для каждой задачи указаны: нужен ли промпт, входы по
-  ролям, JSON Schema параметров, `max_count` и типы результатов.
-- `POST /v1/generate` — синхронная генерация `count` результатов. Файлы
-  передаются в base64. Ответ содержит модель, фактические параметры и
-  seed каждого результата.
-- Единый формат ошибок с флагом `retryable`; параллельный запрос
-  получает `409 busy`.
+- `GET /v1/info`: state (`loading | ready | busy | error`), model and tasks.
+  Each task declares prompt requirements, role-based inputs, parameter JSON
+  Schema, `max_count` and output types.
+- `POST /v1/generate`: synchronous generation of `count` results; base64 files.
+  Response includes model, effective parameters and each result's seed.
+- Shared errors with `retryable`; concurrent requests receive `409 busy`.
 
-**SDK сервера модели** (`model_server_sdk`) реализует контракт целиком.
-Автор сервера пишет только `load()` и `generate(job)` —
-см. [model_server_sdk/README.md](model_server_sdk/README.md). Команда
-`python -m model_server_sdk.check URL` проверяет любой сервер на
-соответствие контракту.
+The **model server SDK** (`model_server_sdk`) implements the entire contract.
+Authors implement only `load()` and `generate(job)`; see
+[model_server_sdk/README.md](model_server_sdk/README.md).
+`python -m model_server_sdk.check URL` checks any server's compliance.
 
-### 5.3 Серверы и разделы
+### 5.3 Servers and sections
 
-> С M8 (ADR-004) вкладки строятся сами: конфиг перечисляет серверы, а
-> разделы — по виду результата (картинки, 3D, звук, текст, видео); модель
-> выбирается внутри раздела. Ниже — исходный замысел M1.
+> Since M8 (ADR-004), sections are automatic: config lists servers, sections
+> follow result kinds (images, 3D, audio, text, video), and models are selected
+> inside sections. The original M1 design follows.
 
-Серверы описаны в конфиге студии, а не зашиты в код:
+Servers are configured, not hardcoded:
 
 ```toml
 # ~/.config/assets-studio/studio.toml
@@ -128,334 +117,291 @@ id = "mesh"
 url = "http://127.0.0.1:9102"
 ```
 
-Интерфейс вкладки строится по `tasks` из `/v1/info`. Для каждого типа
-задачи в UI есть шаблон: text-to-image, image-to-image, image-to-3d,
-text-to-speech, text-to-audio, audio-to-audio. Форма
-«Дополнительно» строится по `params_schema`. Чтобы заменить модель,
-достаточно остановить один сервер и запустить другой на том же порту;
-вкладка сама покажет новую модель и её параметры.
+Tab UI comes from `/v1/info` tasks. Templates cover text-to-image, image-to-image,
+image-to-3d, text-to-speech, text-to-audio and audio-to-audio. “Advanced” is
+built from `params_schema`. Replacing a model requires only stopping its server
+and starting another on the same port; the tab shows the new model/parameters.
 
-Индикатор в шапке вкладки: серый — сервер недоступен (с подсказкой,
-какую команду запустить), жёлтый — загружается или занят, зелёный —
-готов, красный — ошибка.
+Header indicators: grey unavailable (with startup-command hint), yellow
+loading/busy, green ready, red error.
 
-### 5.4 Хранилище и очередь
+### 5.4 Storage and queue
 
-Эталон — [ADR-002](docs/adr/0002-storage-and-queue.md). Коротко:
+Reference: [ADR-002](docs/adr/0002-storage-and-queue.md). Overview:
 
-- SQLite (WAL, явный SQL, пронумерованные миграции) для метаданных и
-  очереди; файлы ассетов — контентно-адресуемые блобы по sha256.
-  Каталог данных — вне Dropbox.
-- Каждое задание хранит снимок модели и фактические параметры из ответа
-  `/v1/generate`: модели меняются вручную, и снимок — единственный способ
-  понять, чем сделан результат.
-- Очередь: `queued → waiting_model → running → succeeded | failed |
-  cancelled`. Одно задание в работе на адрес сервера; задания ждут, пока
-  сервер не станет `ready`. На зависимостях между заданиями строится
-  text-to-3D (картинка → 3D).
-- Упавшее или прерванное задание повторяется как новое задание, а не
-  переписывается.
+- SQLite (WAL, explicit SQL, numbered migrations) stores metadata/queue;
+  content-addressed SHA-256 blobs store files. Data lives outside Dropbox.
+- Jobs store `/v1/generate` model snapshots and effective parameters. Models
+  change manually; snapshots are the only way to identify what made a result.
+- Queue: `queued → waiting_model → running → succeeded | failed | cancelled`.
+  One running job per server address, waiting for `ready`. Dependencies build
+  text-to-3D (image → 3D).
+- Failed/interrupted jobs retry as new jobs, without rewriting history.
 
-### 5.5 Эволюционный режим (X-to-X)
+### 5.5 Evolution mode (X-to-X)
 
-- **Image-to-image.** Кандидаты поколения — img2img от выбранной
-  картинки, каждый с новым seed. «Сила мутации» (слабая / средняя /
-  сильная) задаёт `strength`. Промпт пользователь может поправить руками
-  перед следующим поколением: это направленная мутация без LLM.
-- **Audio-to-audio** — так же, если сервер звука объявил эту задачу
-  (Stable Audio Open умеет генерировать от начального аудио; проверяется в M0d).
-- Одно поколение = одно задание с `count = 3`: модель вызывается один
-  раз на поколение.
-- История — дерево: ветвление возможно от любого кандидата любого поколения.
-- Для text-to-X без эволюции есть простой режим **«Варианты»**: N
-  результатов с разными seed в одном задании.
+- **Image-to-image:** next-generation candidates derive from the selected
+  image, each with a new seed. Mutation strength (weak/medium/strong) sets
+  `strength`. Users may edit prompts before the next generation: directed
+  mutation without an LLM.
+- **Audio-to-audio:** same, if declared by the audio server (Stable Audio Open
+  accepts initial audio; verified in M0d).
+- One generation = one job with `count = 3`, one model call per generation.
+- History is a tree; branch from any candidate of any generation.
+- Text-to-X without evolution has **Variants**: N differently seeded results
+  in one job.
 
-Эволюция не привязана к конкретной вкладке. Она доступна везде, где
-сервер объявил X-to-X задачу.
+Evolution is not tied to a tab; it is available wherever a server declares X-to-X.
 
-### 5.6 API и MCP
+### 5.6 API and MCP
 
-REST (из OpenAPI генерируются TS-типы для UI):
+REST (OpenAPI generates UI TypeScript types):
 
-- `GET /api/servers` — серверы моделей, их живой статус и задачи (ADR-004)
-- `POST /api/jobs`, `GET /api/jobs/{id}`, `GET /api/jobs?status=`, `POST /api/jobs/{id}/cancel`, `POST /api/jobs/{id}/retry`
-- `GET /api/events` — SSE: статусы заданий и серверов
-- `GET /api/assets`, `POST /api/assets` (файл или URL), `GET /api/assets/{id}/file`, `GET /api/assets/{id}/lineage`
-- `POST /api/evolutions`, `POST /api/evolutions/{id}/next` (выбор кандидата, сила мутации, правка промпта)
+- `GET /api/servers`: model servers, live status and tasks (ADR-004).
+- `POST /api/jobs`, `GET /api/jobs/{id}`, `GET /api/jobs?status=`, `POST /api/jobs/{id}/cancel`, `POST /api/jobs/{id}/retry`.
+- `GET /api/events`: SSE job/server status.
+- `GET /api/assets`, `POST /api/assets` (file or URL), `GET /api/assets/{id}/file`, `GET /api/assets/{id}/lineage`.
+- `POST /api/evolutions`, `POST /api/evolutions/{id}/next`: candidate selection,
+  mutation strength, prompt edits.
 
-MCP-инструменты повторяют сценарии: `list_servers` (включая, какие
-модели сейчас доступны), `generate`, `wait_for_job` (long-poll с
-таймаутом), `list_assets`, `get_asset` (включая локальный путь к файлу),
-`import_asset`, `start_evolution`, `next_generation`. Запросы
-поддерживают `idempotency_key`.
+MCP mirrors workflows: `list_servers` (including available models), `generate`,
+`wait_for_job` (timed long polling), `list_assets`, `get_asset` (including local
+file path), `import_asset`, `start_evolution`, `next_generation`. Requests
+support `idempotency_key`.
 
-MCP-сервер работает в процессе студии (streamable HTTP), чтобы UI и
-агент видели одну и ту же очередь.
+MCP runs within Studio (streamable HTTP), sharing one queue between UI and agents.
 
-### 5.7 Интерфейс
+### 5.7 Interface
 
-Ориентир — Mixamo. Верхняя панель: вкладки из конфига и
-**Библиотека**; у каждой вкладки индикатор доступности; справа в панели
-счётчик очереди. Все вкладки устроены одинаково:
+Inspired by Mixamo. Top bar: configured tabs and **Library**, availability per
+tab, queue counter on the right. Every tab has the same layout:
 
-- слева узкая колонка: промпт или вход, 2–3 главных параметра,
-  свёрнутое «Дополнительно», кнопки «Сгенерировать», «Варианты» и
-  «Эволюция» (последняя — только для X-to-X);
-- в центре крупное превью: картинка, `model-viewer` для GLB, плеер с
-  волной для аудио;
-- снизу лента истории вкладки.
+- Narrow left column: prompt/input, 2–3 main parameters, collapsed Advanced,
+  Generate, Variants and Evolution (X-to-X only).
+- Large center preview: image, GLB `model-viewer`, audio waveform/player.
+- Tab history strip below.
 
-Вход для image-to-X: перетаскивание файла, URL или выбор из библиотеки.
-Любой результат передаётся в другую вкладку кнопкой («→ 3D»).
+Image-to-X inputs: drag-and-drop, URL or library picker. Send any result to
+another tab with a button (“→ 3D”).
 
-Стек: Vite + TypeScript + Preact, без UI-кита. `model-viewer` и
-`wavesurfer.js` собираются в бандл, без CDN.
+Stack: Vite + TypeScript + Preact, no UI kit. Bundle `model-viewer` and
+`wavesurfer.js`, without CDN.
 
-### 5.8 Раскладка кода
+### 5.8 Code layout
 
 ```text
 assets_studio/
   README.md, PLAN.md, flake.nix, justfile
-  docs/adr/                # контракт v1, схема БД, …
-  docs/models/             # отчёты M0
-  docs/reviews/            # журналы ревью критиком
-  studio/                  # Python-пакет студии (без torch)
-    domain/                # сущности и правила, без I/O
+  docs/adr/                # contract v1, database schema, ...
+  docs/models/             # M0 reports
+  docs/reviews/            # critic review logs
+  studio/                  # Studio Python package, no torch
+    domain/                # entities and rules, no I/O
     storage/               # db.py, migrations/, blobs.py
-    dispatch/              # очередь, диспетчер, клиент контракта, опрос /v1/info
-    services/              # generation, evolution, library — единая точка для API и MCP
+    dispatch/              # queue, dispatcher, contract client, /v1/info polling
+    services/              # generation, evolution, library; shared API/MCP entry
     api/  mcp/
-  model_server_sdk/        # общий пакет для серверов моделей
+  model_server_sdk/        # shared model-server package
   model_servers/
-    fake/                  # детерминированный сервер для тестов, без GPU
-    <имя>/                 # pyproject + uv.lock, server.py, justfile (serve, doctor)
+    fake/                  # deterministic test server, no GPU
+    <name>/                # pyproject + uv.lock, server.py, justfile (serve, doctor)
   web/
   tests/
 ```
 
-Правила зависимостей: `domain` ни от чего не зависит; `api` и `mcp`
-зависят только от `services`; `studio` и `model_servers` общаются только
-по HTTP-контракту (`model_server_sdk` содержит pydantic-модели контракта,
-их импортирует и студия). Правила проверяются в CI (import-linter).
+Dependency rules: `domain` depends on nothing; `api`/`mcp` depend only on
+`services`; `studio`/`model_servers` communicate only through HTTP
+(`model_server_sdk` contains contract Pydantic models, also imported by Studio).
+CI checks rules with import-linter.
 
-Инструменты: Python 3.12+ для студии, `ruff`, `pyright` в strict для
-`studio/` и SDK, `pytest`; `tsc`, `eslint` для `web/`. Собственный
-`flake.nix` по образцу `local_llm`.
+Tooling: Python 3.12+ for Studio, `ruff`, strict `pyright` for `studio/` and SDK,
+`pytest`; `tsc`, `eslint` for `web/`. Own `flake.nix` based on `local_llm`.
 
-## 6. Майлстоуны
+## 6. Milestones
 
 ```mermaid
 flowchart LR
-  A[M1a Контракт v1 + SDK + fake] --> M0[M0 Серверы моделей<br/>4 потока параллельно]
-  A --> B[M1b Ядро студии]
-  B --> C[M2 API + MCP]
-  B --> D[M3 UI-каркас]
-  M0 --> E[M4 Вкладки на реальных моделях]
+  A[M1a Contract v1, SDK, fake] --> M0[M0 Model servers<br/>4 parallel tracks]
+  A --> B[M1b Studio core]
+  B --> C[M2 API and MCP]
+  B --> D[M3 UI shell]
+  M0 --> E[M4 Real-model tabs]
   C --> E
   D --> E
-  E --> F[M5 Эволюция]
-  F --> G[M6 Полировка]
+  E --> F[M5 Evolution]
+  F --> G[M6 Polish]
 ```
 
-Сначала фиксируется контракт и SDK (M1a). Тогда серверы моделей в M0
-сразу пишутся на контракте, а не как одноразовые PoC-скрипты.
-Результаты M0 могут изменить контракт: это разрешено до закрытия M4.
+Fix contract/SDK first (M1a), so M0 servers use the contract from the outset
+rather than disposable PoCs. M0 findings may change the contract until M4 closes.
 
-### M1a. Контракт v1, SDK, fake-сервер (последовательно, первым)
+### M1a. Contract v1, SDK, fake server (sequential, first)
 
-- ADR-001: контракт сервера модели (§5.2).
-- ADR-002: схема БД и очереди (§5.4).
-- `model_server_sdk`; `model_servers/fake`: объявляет все типы
-  задач, возвращает детерминированные картинки, GLB и WAV, умеет
-  имитировать задержку, `busy` и ошибки.
+- ADR-001: model-server contract (§5.2).
+- ADR-002: database/queue schema (§5.4).
+- `model_server_sdk`; `model_servers/fake`: all task types, deterministic
+  images/GLB/WAV, simulated delays, `busy` and errors.
 
-**Приёмка:** контрактные тесты проходят на fake-сервере; ADR прошли ревью критика.
+**Acceptance:** fake-server contract tests pass; ADRs reviewed by critic.
 
-### M0. Серверы моделей (4 параллельных потока)
+### M0. Model servers (four parallel tracks)
 
-В каждом потоке агент находит кандидатов на Hugging Face, проверяет
-2–3 лучших и оформляет победителя как сервер на SDK. Отчёт
-`docs/models/<поток>.md` для каждого кандидата: лицензия, ревизия,
-пиковая VRAM (справочно), время загрузки и генерации, 3–5 примеров результата, вывод.
+Each track's agent finds Hugging Face candidates, tests the best 2–3, packages
+the winner on the SDK, and writes `docs/models/<track>.md`: each candidate's
+license, revision, peak VRAM (informational), load/generation time, 3–5 outputs
+and conclusion.
 
-Стартовые кандидаты. Их нужно перепроверить: список составлен по
-состоянию знаний на середину 2026 года.
+Initial candidates need rechecking: this list reflects mid-2026 knowledge.
 
-| Поток | Кандидаты | На что смотреть |
+| Track | Candidates | Evaluation |
 | --- | --- | --- |
-| M0a text-to-image + image-to-image | FLUX.1-schnell / dev в NF4 или GGUF; SDXL-семейство; SD 3.5 Medium | Влезает ли FLUX в 8 ГБ без мучительного offload; качество img2img — на нём держится эволюция |
-| M0b image-to-3D | TripoSR (эталон, заведомо работает); Stable Fast 3D; Hunyuan3D-2mini; TRELLIS | Лицензия Hunyuan3D не действует на территории ЕС — решает пользователь; TRELLIS, вероятно, не влезет в 8 ГБ |
-| M0c text-to-speech (русский) | Silero TTS; XTTS-v2 (клонирование голоса); русские дообучения F5-TTS; Fish Speech / OpenAudio; Piper (CPU) | Естественность русской речи, ударения, клонирование по образцу, работа на CPU |
-| M0d text-to-audio + audio-to-audio | Stable Audio Open 1.0 / Small; AudioLDM 2; MusicGen | Качество SFX; длительность; есть ли генерация от начального аудио для эволюции |
+| M0a text-to-image + image-to-image | FLUX.1-schnell/dev NF4 or GGUF; SDXL family; SD 3.5 Medium | Can FLUX fit 8 GB without painful offload? img2img quality underpins evolution |
+| M0b image-to-3D | TripoSR (known-working baseline); Stable Fast 3D; Hunyuan3D-2mini; TRELLIS | Hunyuan3D excludes EU use; user decides. TRELLIS likely exceeds 8 GB |
+| M0c Russian text-to-speech | Silero TTS; XTTS-v2 voice cloning; Russian F5-TTS fine-tunes; Fish Speech/OpenAudio; Piper CPU | Natural Russian, stress, voice cloning, CPU operation |
+| M0d text-to-audio + audio-to-audio | Stable Audio Open 1.0/Small; AudioLDM 2; MusicGen | SFX quality, duration, initial-audio generation for evolution |
 
-Состояние на 2026-09-30: M0a — SDXL и FLUX.1-schnell Q8; M0b — TripoSR;
-M0c — XTTS-v2; M0d — Stable Audio Open 1.0 (с музыкой до 47 с).
-Вкладки названы по моделям.
+Status 2026-09-30: M0a SDXL/FLUX.1-schnell Q8; M0b TripoSR; M0c XTTS-v2;
+M0d Stable Audio Open 1.0 (music up to 47 seconds). Tabs are model-named.
 
-**Приёмка по потоку:** отчёт; сервер-победитель проходит `just doctor`
-(видит устройство, загружает модель) и контрактный smoke-тест на этой
-машине.
+**Track acceptance:** report; winning server passes `just doctor` (device
+visibility, model load) and contract smoke test on this machine.
 
-### M1b. Ядро студии (параллельно с M0)
+### M1b. Studio core (parallel with M0)
 
-Хранилище, миграции, блобы, конфиг вкладок, опрос `/v1/info`,
-диспетчер (одно задание на вкладку, `waiting_model`, `depends_on`,
-идемпотентность, пометка прерванных заданий), сервисы генерации и
-библиотеки.
+Storage, migrations, blobs, tab config, `/v1/info` polling, dispatcher (one job
+per tab, `waiting_model`, `depends_on`, idempotency, interrupted-job marking),
+generation/library services.
 
-**Приёмка:** интеграционные тесты на fake-сервере: задание ждёт
-незапущенный сервер и выполняется после его старта; сервер упал
-посреди задания — оно помечено `failed (connection_lost)`, а повтор
-создаёт новое задание; `busy` не расходует попытки; цепочка из двух
-заданий на разных серверах; идемпотентность; импорт по URL с
-ограничением размера и MIME.
+**Acceptance:** fake-server integration tests: wait for unstarted server, then
+run after startup; crash during job → `failed (connection_lost)`, retry creates
+a new job; `busy` does not consume retries; two-server dependency chain;
+idempotency; URL import with size/MIME limits.
 
-### M2. API + MCP (после M1b; параллельно с M3)
+### M2. API + MCP (after M1b, parallel with M3)
 
-REST, SSE, OpenAPI, генерация TS-типов, MCP в процессе студии.
+REST, SSE, OpenAPI, generated TS types, in-process MCP.
 
-**Приёмка:** e2e-тест: агент через MCP узнаёт доступные вкладки, ставит
-задание fake-серверу, дожидается его и получает путь к файлу; тот же
-сценарий проходит через REST.
+**Acceptance:** MCP end-to-end: discover tabs, submit fake job, wait, get file
+path; same scenario through REST.
 
-### M3. UI-каркас (после M1b; параллельно с M2, на моках OpenAPI)
+### M3. UI shell (after M1b, parallel with M2, using OpenAPI mocks)
 
-Верхняя панель из конфига с индикаторами, шаблоны задач, форма по JSON
-Schema, библиотека (фильтры, избранное, lineage), просмотрщики картинок,
-GLB и аудио, лента истории, передача результата в другую вкладку.
+Configured top bar/indicators, task templates, JSON Schema forms, library
+(filters, favorites, lineage), image/GLB/audio viewers, history strip,
+result transfer between tabs.
 
-**Приёмка:** все шаблоны задач работают с fake-сервером; индикатор
-переключается при остановке и запуске сервера; ширина 1280 px без
-горизонтальной прокрутки; UI-ревью критиком по скриншотам.
+**Acceptance:** every template works with fake server; indicators follow server
+stop/start; 1280 px without horizontal scrolling; critic screenshot UI review.
 
-### M4. Вкладки на реальных моделях (по модальностям параллельно)
+### M4. Real-model tabs (parallel by modality)
 
-Подключение серверов из M0, конфиг вкладок по умолчанию, доводка
-шаблонов под реальные параметры. В 3D-вкладке кнопка «Из текста»
-создаёт цепочку text-to-image → image-to-3D.
+Connect M0 servers, default tab config, adapt templates to real parameters.
+The 3D tab's “From text” creates text-to-image → image-to-3D.
 
-Перенесено из ревью M3: студия помнит задачи сервера (`last_seen`)
-только в памяти; если студию запускают раньше серверов моделей, форму
-вкладки нужно сохранять между перезапусками (например, в БД).
+Deferred from M3 review: server tasks (`last_seen`) are memory-only; persist
+forms across restarts (for example in database) when Studio starts before servers.
 
-**Приёмка:** на реальном GPU каждая вкладка проходит сценарий «запустить
-сервер → индикатор зелёный → вход → результат в библиотеке →
-скачивание»; результат одной вкладки передаётся в другую; при замене
-сервера модели на тот же порт вкладка показывает новую модель без
-перезапуска студии.
+**Acceptance:** each real-GPU tab passes start server → green indicator → input
+→ library result → download; cross-tab result transfer; replacing server on
+the same port updates model without restarting Studio.
 
-### M5. Эволюционный режим
+### M5. Evolution mode
 
-Сервис эволюции (§5.5), UI: три карточки кандидатов, выбор, сила
-мутации, правка промпта, дерево поколений с ветвлением. MCP:
-`start_evolution` и `next_generation`.
+Evolution service (§5.5); UI with three candidate cards, selection, mutation
+strength, prompt edits, branching generation tree. MCP: `start_evolution`,
+`next_generation`.
 
-**Приёмка:** 5 поколений image-to-image подряд; ветвление от кандидата
-старого поколения; время поколения указано в отчёте; audio-to-audio —
-если M0d подтвердил поддержку.
+**Acceptance:** five consecutive image-to-image generations; branch from an
+older candidate; generation time in report; audio-to-audio if confirmed by M0d.
 
-### M6. Полировка
+### M6. Polish
 
-Редактирование вкладок в UI (запись в конфиг), подсказка команды
-запуска для недоступного сервера, очистка неиспользуемых блобов,
-резервная копия БД, одна команда `just studio` для запуска студии.
+Edit tabs in UI (write config), unavailable-server startup hints, unused-blob
+cleanup, database backup, one `just studio` startup command.
 
-### M7. Новые модальности (добавлены 2026-09-30)
+### M7. New modalities (added 2026-09-30)
 
-Запрос пользователя после M0a–M0d. Каждый поток устроен как M0: кандидаты,
-отчёт `docs/models/<поток>.md`, сервер-победитель на SDK, проверка
-контракта, ревью критиком. Качество важнее скорости.
+User request after M0a–M0d. Each track follows M0: candidates, report at
+`docs/models/<track>.md`, SDK-based winner, contract check, critic review.
+Quality over speed.
 
-**Сначала — ADR 0003 «Контракт v1.1»** (обратно совместимое расширение;
-сделано 2026-10-01, `docs/adr/0003-contract-text-video.md`):
+**First: ADR 0003 “Contract v1.1”** (backward-compatible extension, completed
+2026-10-01, `docs/adr/0003-contract-text-video.md`):
 
-- задачи `text-to-text`, `image-to-video`, `text-to-3d`;
-- канонические форматы `text/plain` (UTF-8) и `video/mp4` (H.264), их
-  сигнатуры в SDK и fake-сервере;
-- в UI: просмотр текста (с копированием) и видеоплеер; `text-to-text`
-  как X-to-X — доступен эволюционному режиму.
-- «основные» параметры задачи (например, длительность звука, сила
-  изменения) — пометка в схеме параметров; UI показывает их сразу, а не
-  в «Дополнительно»;
-- импорт звука в библиотеку с перекодированием в WAV (FLAC, OGG, MP3):
-  сейчас студия принимает только WAV.
+- Tasks `text-to-text`, `image-to-video`, `text-to-3d`.
+- Canonical `text/plain` UTF-8 and `video/mp4` H.264, signatures in SDK/fake server.
+- UI: copyable text preview/video player; X-to-X `text-to-text` supports evolution.
+- Primary task parameters (duration, strength) marked in schema and shown
+  immediately, outside Advanced.
+- Audio import with WAV transcoding (FLAC, OGG, MP3); Studio currently accepts
+  only WAV.
 
-| Поток | Кандидаты | На что смотреть |
+| Track | Candidates | Evaluation |
 | --- | --- | --- |
-| M7a text-to-text (LLM) — готово: Gemma 4 12B, Qwen3.8 27B | Qwen3 8B / 14B; Gemma 3 12B; Mistral Small 3.x — GGUF через llama.cpp (часть слоёв на GPU, остальное в RAM) | Качество русского; токены/с при 8 ГБ VRAM + ~18 ГБ RAM; длина контекста; детерминизм при seed |
-| M7b image-to-video (от первого кадра) — готово: Wan2.2 TI2V-5B (720p × 5 с ≈ 1 ч) | FramePack (рассчитан на 6 ГБ); Wan 2.2 TI2V-5B; Wan 2.1 I2V-14B в GGUF с group offload (как FLUX); LTX-Video | Качество движения и сохранение первого кадра; длительность и fps; минуты на клип — приемлемо |
-| M7c text-to-3D | Цепочка FLUX → TripoSR через `depends_on` (уже есть в ядре); нативные: Hunyuan3D-2 (t2i + форма), TRELLIS text | Нужна ли отдельная модель, или цепочка из двух вкладок даёт лучше; лицензия Hunyuan3D (ЕС) решает пользователь |
+| M7a text-to-text (LLM), done: Gemma 4 12B, Qwen3.8 27B | Qwen3 8B/14B; Gemma 3 12B; Mistral Small 3.x GGUF through llama.cpp, some layers on GPU/rest RAM | Russian quality, tokens/s with 8 GB VRAM/~18 GB RAM, context, seeded determinism |
+| M7b first-frame image-to-video, done: Wan2.2 TI2V-5B (720p × 5 s ≈ 1 h) | FramePack (6 GB target); Wan 2.2 TI2V-5B; Wan 2.1 I2V-14B GGUF group offload like FLUX; LTX-Video | Motion/first-frame fidelity, duration/fps; minutes per clip acceptable |
+| M7c text-to-3D | FLUX → TripoSR via existing `depends_on`; native Hunyuan3D-2 (t2i + shape), TRELLIS text | Separate model versus two-tab chain; user decides on Hunyuan3D EU license |
 
-M7c начинается с цепочки: она не требует новой модели и сразу проверяет
-выбор кандидатов в нативных моделях.
+M7c starts with the chain: no new model, immediate baseline for native candidates.
 
-### M8. Предложения пользователя (2026-10-01)
+### M8. User suggestions (2026-10-01)
 
-1. **Сделано (ADR-004).** **Удаление ассетов** (кнопка в библиотеке и в истории вкладки):
-   ассет пропадает из библиотеки, файл — когда на него больше никто не
-   ссылается (задания, родословная). Вместе с «очисткой неиспользуемых
-   блобов» из M6.
-2. **Сделано (ADR-005).** **Локализация интерфейса (EN, RU)**: строки UI —
-   в словарях `web/src/i18n.ts`, переключатель в верхней панели (по
-   умолчанию — язык браузера); подписи параметров — английский
-   `description` и русский `x-labels` (`ui(ru=...)` в SDK).
-3. **Сделано (ADR-004).** **Вкладки по типу задачи, модель — внутри вкладки** («Картинки»:
-   SDXL / FLUX, «Текст»: Gemma / Qwen, …). Меняет конфиг вкладок (вкладка
-   → список серверов), задания хранят сервер, а не только вкладку
-   (миграция БД), «отправить в…» становится проще. Нужен ADR.
-4. **Сделано.** **Тёмная тема**: вторая палитра CSS-переменных,
-   `prefers-color-scheme` и переключатель «как в системе / светлая /
-   тёмная» с запоминанием.
-5. **Сделано.** **Картинка в реальном размере**: по щелчку на превью —
-   просмотр «Вписать / 100 % / 200 %» на шахматном фоне (видна
-   прозрачность); 100 % — пиксель картинки на пиксель экрана.
-6. **Zuul CI** — сделано, проверить, когда вернётся кластер. Задание
-   `assets-studio-check` (`zuul.d/checks.yaml`,
-   `production/playbooks/assets-studio-check.yaml`): `just assets_studio
-   check` — студия, SDK, fake-сервер, сборка и линт UI. На билд-ноду
-   добавлены только `uv`, `just` и `python311`; без Chrome и `ffmpeg`
-   браузерный проход и тесты медиа пропускаются. Серверы моделей (CUDA)
-   в CI не проверяются — их `just test` локально. Локально воспроизведено:
-   Python 3.14 без скачивания интерпретаторов + 3.11 из nix — всё зелёное.
-   Плюс ruff для `assets_studio/` в pre-commit (`pre-submit-check`).
+1. **Done (ADR-004): asset deletion** from library/tab history. Remove from
+   library, delete file when no job/provenance reference remains. Together
+   with M6 unused-blob cleanup.
+2. **Done (ADR-005): EN/RU localization.** `web/src/i18n.ts`, top-bar switch,
+   browser-language default; English parameter `description`, Russian `x-labels`
+   (`ui(ru=...)` in SDK).
+3. **Done (ADR-004): task-type tabs with model selection inside** (Images:
+   SDXL/FLUX; Text: Gemma/Qwen). Config changes tab → server list; jobs store
+   server rather than only tab (database migration); simpler send-to. Needs ADR.
+4. **Done: dark theme.** Second CSS-variable palette, `prefers-color-scheme`,
+   remembered system/light/dark switch.
+5. **Done: actual-size images.** Preview opens Fit / 100% / 200% on transparency
+   checkerboard; 100% maps image pixels to screen pixels.
+6. **Zuul CI:** done; verify when cluster returns. Job `assets-studio-check`
+   (`zuul.d/checks.yaml`, `production/playbooks/assets-studio-check.yaml`):
+   `just assets_studio check` covers Studio, SDK, fake server, UI build/lint.
+   Build node adds only `uv`, `just`, `python311`; without Chrome/ffmpeg,
+   browser/media tests skip. CUDA model servers are not checked in CI; run
+   their `just test` locally. Locally reproduced with Python 3.14 without
+   interpreter downloads and Nix 3.11: all green. Also ruff for `assets_studio/`
+   in pre-commit (`pre-submit-check`).
 
-### Отложенный технический долг SDK (решение 2026-10-01)
+### Deferred SDK technical debt (decision 2026-10-01)
 
-Вернуться после моделей M7 и основного плана (M4–M6):
+Revisit after M7 models and main plan M4–M6:
 
-- прогресс и отмена посреди генерации (контракт v2): LLM отвечает минутами,
-  видео — дольше; сейчас «Отменить» снимает задание только из очереди;
-- жизненный цикл сервера в SDK: `close()` при остановке, перевод статуса в
-  `error` после загрузки, явная гарантия «модель живёт в одном потоке весь
-  срок процесса» (на ней держится PDEATHSIG в сервере LLM);
-- конвертация видео при импорте — внутри запроса, до 10 мин без индикации;
-- проверка системного `ffmpeg` при запуске студии; правила распознавания
-  форматов частично в SDK, частично в студии.
+- Mid-generation progress/cancellation (contract v2): LLM takes minutes,
+  video longer; Cancel currently removes queued jobs only.
+- SDK lifecycle: `close()` on shutdown, post-load transition to `error`, explicit
+  guarantee of one model thread throughout process lifetime (LLM PDEATHSIG
+  depends on it).
+- Video import conversion occurs inside requests, up to ten minutes without
+  progress indication.
+- Check system `ffmpeg` at startup; format detection rules split between SDK
+  and Studio.
 
-## 7. Процесс работы агентов
+## 7. Agent workflow
 
-- Каждый майлстоун (и каждый поток M0/M4) — отдельная ветка или
-  worktree. Агент работает только в своей зоне раскладки (§5.8);
-  контракт и схема БД меняются только через ADR.
-- **Ревью критиком.** По завершении шага отдельный саб-агент-критик
-  получает дифф, критерии приёмки и действующие ADR. Он возвращает
-  блокирующие замечания и рекомендации. Цикл «предложение → критика →
-  исправление» — **не более 5 итераций**. Если после пятой остались
-  блокирующие замечания, решение принимает пользователь. Журнал:
-  `docs/reviews/<майлстоун>.md`.
-- Критик проверяет: соответствие критериям приёмки, правила
-  зависимостей, отсутствие обходных решений (hardcode путей и моделей,
-  глушение ошибок, `sleep` вместо синхронизации), тесты на новое
-  поведение, актуальность документации.
-- GPU-проверки агент выполняет, только если `doctor` видит устройство.
-  Иначе он явно пишет в отчёте, что GPU-часть не проверена.
+- Each milestone (and M0/M4 track) uses a separate branch/worktree. Agents
+  stay within their layout area (§5.8); contract/schema changes require ADRs.
+- **Critic review:** a separate critic sub-agent receives diff, acceptance
+  criteria and active ADRs after each stage. It returns blockers/recommendations.
+  Proposal → critique → fix cycle: **at most five iterations**. Remaining
+  blockers after five go to the user. Log: `docs/reviews/<milestone>.md`.
+- Critic checks acceptance, dependency rules, no workarounds (hardcoded paths/
+  models, suppressed errors, sleeps instead of synchronization), behavior tests
+  and up-to-date documentation.
+- Run GPU checks only if `doctor` detects the device; otherwise explicitly
+  report unverified GPU behavior.
 
-## 8. Риски
+## 8. Risks
 
-| Риск | Мера |
+| Risk | Mitigation |
 | --- | --- |
-| Лучшие модели не запускаются на этом ноутбуке | Квантование, offload, выбор по замерам M0. Это вопрос выбора сервера модели, а не студии |
-| Качество русской речи у открытых моделей | Отдельный поток M0c с прослушиванием; допускается несколько серверов речи на выбор |
-| Модели меняются вручную, и результаты становится трудно воспроизвести | `model_snapshot` в каждом задании |
-| Нет отмены посреди генерации | Осознанное ограничение v1; при необходимости — контракт v2 |
-| Гигабайты весов синхронизируются через Dropbox | Данные и кеш по умолчанию вне рабочей копии |
+| Best models do not run on this laptop | Quantization, offload, M0 measurements; model-server choice, not Studio design |
+| Open-model Russian speech quality | Dedicated listening track M0c; allow multiple speech servers |
+| Manual model replacement harms reproducibility | Per-job `model_snapshot` |
+| No mid-generation cancellation | Deliberate v1 limit; contract v2 if needed |
+| GB of weights synced through Dropbox | Data/cache default outside checkout |

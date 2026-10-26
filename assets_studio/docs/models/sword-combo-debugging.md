@@ -1,68 +1,63 @@
-# Sword combo: контроль захвата и переноса
+# Sword combo: capture and transfer control
 
-Проверка 2026-10-18 на `workspace/sieg`: фрагмент 32,4–36,2 с, 114 кадров
-при 30 кадрах/с, существующий стражник MIA с 22 костями Mixamo.
+Check on 2026-10-18 in `workspace/sieg`: segment 32.4–36.2 s, 114 frames at
+30 fps, existing MIA guard with 22 Mixamo bones.
 
-## Два исправления
+## Two fixes
 
-`in-place` удаляет горизонтальный путь **и поворот тела**. Для ходьбы,
-которой управляет игра, это ожидаемо; для вращающейся атаки это убирало
-само движение комбо. Добавлен `stationary`: путь убирается, вращение,
-наклон, крен и вертикальное движение остаются. На контрольном фрагменте
-диапазон поворота таза вырос с менее 0,1° до примерно 433° у обеих моделей,
-при горизонтальном перемещении корня менее 1e-6 м.
+`in-place` removes horizontal travel **and body heading**. Expected for
+game-controlled locomotion, but it removed turning from the combo attack.
+Added `stationary`: remove travel, retain heading, pitch, roll and vertical
+movement. On the control segment, pelvis heading range rose from <0.1° to
+about 433° for both models; horizontal root translation remained <1e-6 m.
 
-MoCapAnything повторно сегментировал RGB-видео после BiRefNet. Параметр
-`background_removed=true` сохраняет готовые пиксели на белом фоне и меняет
-только кадрирование с отступом. Сегментация опорного рендера рига остаётся
-прежней. В графе:
+MoCapAnything re-segmented RGB after BiRefNet. `background_removed=true` retains
+prepared pixels on white, changing only padded cropping. Rig-reference render
+segmentation is unchanged. Graph:
 
 ```text
-видео → BiRefNet / video-to-video → MoCapAnything / video-to-motion
+video → BiRefNet / video-to-video → MoCapAnything / video-to-motion
                                      background_removed=true
                                      root_motion=stationary
                                  → GVHMR / video-to-motion
                                      camera=static
                                      root_motion=stationary
-готовый риг MIA ───────────────────→ rig обеих задач
+ready MIA rig ────────────────────→ rig input of both tasks
 ```
 
-## Отделение ошибок модели от ошибок переноса
+## Separating prediction from transfer errors
 
-Для диагностических прогонов `ASSETS_STUDIO_DEBUG_DIR` сохраняет отдельную
-рабочую папку каждого запроса. По умолчанию файлы временные и удаляются.
-GVHMR дополнительно сохраняет исходные axis-angle, суставы и предсказание;
-MoCapAnything — позиции, вращения, BVH и журнал стадий.
+For diagnostic runs, `ASSETS_STUDIO_DEBUG_DIR` retains one workspace per
+request. By default files are temporary/deleted. GVHMR also saves original
+axis-angle, joints and prediction; MoCapAnything saves positions, rotations,
+BVH and stage logs.
 
-Проверены кости поверх сетки, распределение весов по сторонам, несколько
-поз и все кадры движения. Перестановки левых/правых конечностей не найдены.
-Веса нормализованы; это не является доказательством идеальной деформации
-мягких тканей или доспехов.
+Checked bones over mesh, side-specific weight distributions, sample poses
+and every motion frame. No left/right swaps found. Weights are normalized,
+which does not prove perfect soft-tissue or armor deformation.
 
-Прямая кинематика исходного SMPL и импортированный BVH GVHMR совпадают
-по суставам с максимальной ошибкой 2,8 мкм. Максимальная разница углов
-локтей/коленей между BVH и финальным FBX меньше 0,02° у обеих моделей.
-Эта проверка не охватывала позвоночник, таз и голову: по локтям/коленям
-нельзя заключать, что перенос всего корпуса исправен. Последующая проверка
-нейтрального SMPL обнаружила искусственные изгибы именно при переносе;
-см. [исправление нейтральной позы GVHMR](gvhmr-rest-pose.md). Удаление фона
-само по себе эту ошибку не устраняло. Кисти и контакт стоп требуют дальнейшей оценки;
-геометрия оружия/точки хвата моделям не задавались.
+Original SMPL forward kinematics and imported GVHMR BVH agree within 2.8 µm
+maximum joint error. BVH/final-FBX elbow/knee angles differ by <0.02° in both
+models. This omitted spine, pelvis and head: elbows/knees alone cannot validate
+all torso transfer. Later neutral-SMPL checks found artificial bends introduced
+by transfer; see [GVHMR neutral-pose fix](gvhmr-rest-pose.md). Background removal
+alone did not fix that. Hands/foot contacts need further evaluation; models
+received no weapon geometry or grip points.
 
-## Результаты и воспроизведение
+## Results and reproduction
 
-`workspace/sieg/debug/index.html` содержит видео, FBX, проекции костей и
-ссылки на сохранённые графы. Отдельно сохранены:
+`workspace/sieg/debug/index.html` contains video, FBX, bone projections and
+saved-graph links. Additional files:
 
-- `sword_combo_fixed.mp4` и `_slow.mp4`: подготовленный вход и stationary;
-- `sword_combo_before_after.mp4`: исходный вариант и оба изменения;
-- `sword_combo_background_only.mp4`: только эффект удаления фона, с одинаковым
-  режимом in-place в обоих рядах;
+- `sword_combo_fixed.mp4`, `_slow.mp4`: prepared input and stationary mode.
+- `sword_combo_before_after.mp4`: original and both changes.
+- `sword_combo_background_only.mp4`: removal effect only, same in-place mode
+  in both rows.
 - `root_motion_validation.json`, `*_transfer.json`, `gvhmr_bvh_roundtrip.json`:
-  численные проверки, не метрика точности захвата относительно исходного видео;
-- снимки запусков, параметры, задания и происхождение — в JSON и Studio/Flow.
+  numerical transfer checks, not capture-accuracy metrics against source video.
+- Run snapshots, parameters, jobs and provenance in JSON and Studio/Flow.
 
-Общий `just check` студии прошёл. Отдельные регрессии Blender проверяют
-разные позы покоя, терминальную кисть, устаревшую анимацию цели, нормализацию
-весов и три режима перемещения. Для общего скелета MoCapAnything отдельно
-проверены сохранение поворота и вертикального движения в delta-переносе.
+Studio's full `just check` passed. Blender regressions cover different rest
+poses, terminal wrists, old target animation, weight normalization and all
+three root modes. MoCapAnything's general skeleton separately checks heading
+and vertical-motion preservation in delta transfer.

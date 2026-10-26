@@ -1,29 +1,28 @@
 # UniRig model server
 
-Задача `3d-to-rig`: модель (GLB) → та же модель со скелетом и весами кожи
-(FBX). [UniRig](https://github.com/VAST-AI-Research/UniRig) (VAST и Цинхуа,
-SIGGRAPH 2025): скелет предсказывает авторегрессионный трансформер
-(OPT-350m, 15 лучей), веса — вторая модель. Скелет любой формы, не Mixamo;
-преемник — сервер `skintokens`.
+The `3d-to-rig` task takes a model (GLB) and returns the same model with a
+skeleton and skin weights (FBX).
+[UniRig](https://github.com/VAST-AI-Research/UniRig) (VAST and Tsinghua,
+SIGGRAPH 2025) predicts the skeleton with an autoregressive transformer
+(OPT-350m, 15 beams) and weights with a second model. Skeletons can have any
+shape and are not Mixamo; its successor is the `skintokens` server.
 
 ```sh
-just setup     # исходники, окружение Python 3.11 + PyTorch 2.8/CUDA 12.9,
-               # flash-attn, spconv, torch-scatter/cluster, bpy 4.2 готовыми колёсами
-just download  # чекпоинты (~5,8 ГБ) и конфиг OPT-350m (только сеть)
+just setup     # source, Python 3.11 + PyTorch 2.8/CUDA 12.9 environment;
+               # prebuilt flash-attn, spconv, torch-scatter/cluster, bpy 4.2 wheels
+just download  # checkpoints (~5.8 GB) and OPT-350m config (network only)
 just doctor
 just serve     # http://127.0.0.1:9117
-just test      # без GPU и весов
+just test      # no GPU or weights needed
 ```
 
-- Задание — цепочка скриптов upstream, каждый шаг отдельным процессом в
-  каталоге исходников: извлечь сетку → скелет → извлечь снова → кожа →
-  перенести на исходную модель (текстура сохраняется) → FBX
-  (`asset_processing.blender`). Скрипты `launch/` не вызываются: они делают
-  `pip install`.
-- upstream на каждом запуске спрашивает Hub о чекпоинтах без ревизии;
-  шаги идут с `HF_HUB_OFFLINE=1`, и он берёт закреплённые копии из
-  `experiments/`.
-- Слияние upstream пишет FBX без текстур; поэтому слияние — в GLB, а FBX
-  собирает `asset_processing.blender`.
+- A job runs a chain of upstream scripts, each in a separate process in the
+  source directory: extract mesh → skeleton → extract again → skin → transfer
+  to the original model (texture retained) → FBX (`asset_processing.blender`).
+  The `launch/` scripts are not called because they run `pip install`.
+- Upstream queries the Hub for unpinned checkpoints on every run. Steps use
+  `HF_HUB_OFFLINE=1`, so it uses pinned copies from `experiments/`.
+- Upstream's merge writes FBX without textures. Instead, merging produces GLB
+  and `asset_processing.blender` builds the FBX.
 
-Лицензия: MIT (обучен на Articulation-XL 2.0).
+License: MIT (trained on Articulation-XL 2.0).

@@ -1,64 +1,55 @@
-# ADR-008. Сохранённые графы и обработка анимаций
+# ADR-008. Saved graphs and animation processing
 
-Статус: принято.
+Status: accepted.
 
-## Контекст
+## Context
 
-Риггинг и генерация движения — разные операции. MIA создаёт
-гуманоидный скелет и веса; SkinTokens и UniRig создают скелет по
-форме. Kimodo создаёт движение на собственном скелете SOMA,
-переименованном в Mixamo. Одних совпадающих имён недостаточно:
-пропорции, позы покоя, оси и длины костей различаются. Для переноса
-Kimodo на персонажа использовался отдельный Blender-скрипт. У цепочки
-нет сохранённого определения, хотя её задания и родословная ассетов
-уже сохраняются в студии.
+Rigging and motion generation are separate. MIA creates humanoid skeletons
+and weights; SkinTokens and UniRig create shape-specific skeletons. Kimodo
+generates motion on SOMA renamed to Mixamo. Matching names alone is insufficient:
+proportions, rest poses, axes and bone lengths differ. Applying Kimodo to a
+character required a separate Blender script. The chain lacked a saved
+definition, although Studio already stored its jobs and asset provenance.
 
-При проверке стражника не обнаружены отсутствующие веса или сломанная
-иерархия. Выявлены ненормализованные суммы весов (до 1,7 %), коллизии
-имён дополнительных суставов SOMA с Mixamo, потеря вращений конечных
-костей в режиме aim и риск потери кадра из-за округления
-импортированного диапазона вниз. Эти проблемы относятся к подготовке и
-переносу, их не следует исправлять индивидуальными скриптами после
-задания.
+Guard inspection found no missing weights or broken hierarchy, but did find
+unnormalized weight sums (up to 1.7%), extra SOMA joint-name collisions with
+Mixamo, lost end-bone rotations in aim mode and potential frame loss from
+rounding imported ranges down. These are preparation/transfer problems and
+should not require per-asset scripts after jobs.
 
-## Решение
+## Decision
 
-`studio flow` — отдельный HTTP-сервис и UI, использующий публичный API
-студии. Он хранит определения DAG, версии и неизменяемые снимки
-запусков.  При запуске он создаёт обычные задания с существующими
-зависимостями; расписание выполнения и библиотека остаются в studio,
-запуск процессов — в launcher. Повторный запуск создаёт новые
-задания. Восстановление незаконченной отправки использует постоянные
-ключи идемпотентности.
+`studio flow` is a separate HTTP service/UI using Studio's public API. It
+stores DAG definitions, versions and immutable run snapshots. Running creates
+ordinary jobs with existing dependencies; scheduling and library stay in Studio,
+process startup in the launcher. Reruns create new jobs. Interrupted submissions
+recover using stable idempotency keys.
 
-`animation_tools` — обычный сервер контракта v1 с Blender как обработчиком,
-без нейросетевой модели. Он объявляет `prepare-rig` и `retarget-motion`.
-Первый проверяет и нормализует существующий риг, второй сам готовит риг и
-переносит движение. Эти операции автоматически доступны в обычном UI,
-API и графах. Отдельный шаг подготовки перед переносом не обязателен.
+`animation_tools` is an ordinary contract v1 server using Blender, without a
+neural model. It declares `prepare-rig` and `retarget-motion`: the former checks
+and normalizes rigs, the latter prepares rigs internally and transfers motion.
+These operations automatically appear in UI, API and graphs. Separate preparation
+before transfer is optional.
 
-Общий Blender-код находится в отдельном пакете `asset_processing`,
-независимом от SDK и HTTP-контракта. Модельные серверы используют его
-как библиотеку; `animation_tools` предоставляет эти операции как
-задания студии. SDK не зависит от этого пакета и не содержит обработки
-ригов или анимаций.
+Shared Blender code lives in `asset_processing`, independent of SDK and HTTP
+contract. Model servers use it as a library; `animation_tools` exposes its
+operations as jobs. The SDK neither depends on it nor processes rigs/animation.
 
-Пакет выполняет сброс прежней позы и анимации, проверку структуры,
-нормализацию весов и перенос полных вращений. Для несовпадающих поз
-покоя учитываются направления соответствующих костей. Для источников,
-где полезны только положения суставов, остаётся явный режим positions.
-GVHMR использует перенос вращений; MoCapAnything сохраняет перенос на
-собственный скелет рига. Числа кадров округляются до ближайшего
-целого, при экспорте анимационные ключи не упрощаются.
+The package resets old pose/animation, validates structure, normalizes weights
+and transfers full rotations. Different rest poses are handled through matched
+bone directions. Explicit positions mode remains for sources with useful joint
+positions only. GVHMR transfers rotations; MoCapAnything keeps transfer onto
+its own rig skeleton. Frame counts round to the nearest integer, and export
+does not simplify animation keys.
 
-Имена `text-to-motion`, `video-to-motion`, `prepare-rig` и `retarget-motion`
-объявляются самими серверами через существующий `TaskSpec`. Новые поля
-HTTP-контракта и дополнения к `KnownTask` для них не требуются.
+Servers declare `text-to-motion`, `video-to-motion`, `prepare-rig` and
+`retarget-motion` through existing `TaskSpec`. No new HTTP fields or `KnownTask`
+additions are needed.
 
-## Границы
+## Boundaries
 
-Эти операции не угадывают недостающие веса, не переименовывают произвольный
-скелет животного в гуманоид и не восстанавливают контакт с оружием, которого
-нет во входах. Неизвестная структура или вершины без весов отклоняются
-с объяснением. Качество нейросетевого предсказания и постановку стоп нужно
-проверять отдельно от исправности переноса и сохранности ключей.
+These operations do not infer missing weights, rename arbitrary animal
+skeletons into humanoids, or restore weapon contacts absent from inputs.
+Unknown structures and unweighted vertices fail with explanations. Neural
+prediction quality and foot placement must be checked separately from correct
+transfer and key preservation.

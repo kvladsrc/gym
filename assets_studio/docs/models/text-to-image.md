@@ -1,136 +1,128 @@
-# M0a. Text-to-image и image-to-image
+# M0a. Text-to-image and image-to-image
 
 <!-- markdownlint-disable MD013 -->
 
-## SDXL base 1.0 — сервер удалён (октябрь 2026)
+## SDXL base 1.0 — server removed (October 2026)
 
-Удалён вместе с TripoSR и Stable Fast 3D: Qwen-Image и FLUX рисуют лучше,
-а SDXL, как и FLUX, не слушает запреты (плащи, оружие в руках у персонажей
-под риг; см. [руководство](../guides/3d.md)). Замеры ниже — для истории.
+Removed with TripoSR and Stable Fast 3D: Qwen-Image and FLUX give better images.
+Like FLUX, SDXL ignores prohibitions (capes, held weapons on rig-ready characters;
+see [guide](../guides/3d.md)). Measurements retained for history.
 
-Проверено 30 сентября 2026 на RTX 3070 Laptop (8 ГБ).
-
-| | |
-| --- | --- |
-| Лицензия | CreativeML Open RAIL++-M; VAE sdxl-vae-fp16-fix — MIT |
-| Ревизии | base `46216598`, VAE `207b116d` |
-| Веса | ~7 ГБ (только fp16) |
-| Первая загрузка | ~6 мин вместе со скачиванием; дальше — из кеша |
-| text-to-image 1024², 30 шагов | ~23 с на вариант |
-| image-to-image 1024², сила 0.55 (по умолчанию 0.5) | ~14 с на вариант |
-| 4 варианта text-to-image | ~92 с |
-| Пик видеопамяти | ~5,4 ГБ; между вызовами модели на CPU (~0,5 ГБ занято) |
-| Проверка контракта | 17 проверок, 0 ошибок, 0 предупреждений (варианты воспроизводятся побитово) |
-
-Качество для игровых ассетов хорошее: стилизованные предметы с рисованной
-фактурой. Image-to-image при силе ~0,5 сохраняет форму и композицию и
-меняет детали — то, что нужно эволюционному режиму.
-
-### Что выяснилось по дороге
-
-- `StableDiffusionXLImg2ImgPipeline.from_pipe()` перестраивает цепочку
-  выгрузки на CPU так, что текстовые кодировщики остаются на GPU, пока
-  загружается UNet, — нехватка памяти на 8 ГБ. Второй конвейер собирается
-  из компонентов первого (`Pipeline(**pipeline.components)`): те же веса и
-  хуки, пик 5,4 ГБ.
-- Нарезка внимания и тайлинг VAE не понадобились.
-- Описания лучше писать по-английски: CLIP-кодировщики SDXL плохо
-  понимают русский. Перевод описаний (например, через Gemma из
-  `local_llm`) — возможное улучшение студии.
-
-### Ревью
-
-Критик нашёл три ошибки, исправлены с тестами: image-to-image с нулём
-шагов расшумления (`шаги × сила < 1`) падал внутренней ошибкой — теперь
-понятный отказ; прозрачность палитровых и серых PNG давала чёрный фон;
-очень узкие картинки раздувались до нескольких мегапикселей — пропорции
-ограничены 1:4. Проверено вживую на GPU.
-
-Вторая итерация: после нехватки памяти кадры упавшего вызова (с их
-активациями) удерживались исключением, и кеш не возвращался; теперь
-сохраняется только текст ошибки. Вживую: при занятых другим процессом
-4,5 ГБ запрос получает повторяемый отказ, а сервер после него держит
-~200 МБ. Третья итерация — **ACCEPT**.
-
-## FLUX.1-schnell (Q8) — сервер готов
-
-Второй сервер картинок (`model_servers/flux`, порт 9104). SDXL остаётся.
+Tested September 30, 2026 on an RTX 3070 Laptop (8 GB).
 
 | | |
 | --- | --- |
-| Лицензия | Apache-2.0 (веса закрыты: нужен токен и принятие условий) |
-| Ревизии | base `741f7c3c`, GGUF `f495746e` |
-| Трансформер | GGUF Q8 (12,7 ГБ), T5 — bf16 (9,5 ГБ) |
-| Картинка 1024², 4 шага | 55–70 с вместе с T5; загрузка ~35 с (первая ~2 мин) |
-| Пик видеопамяти | ~5,3 ГБ на весь процесс (блоки по очереди, CLIP и VAE постоянно) |
-| Оперативная память | блоки на диске (~21 ГБ); свободно ≥ 18 ГБ при генерации, ≥ 10 ГБ при загрузке |
-| Первый запуск | ~22 ГБ скачивания + ~21 ГБ хранилища блоков |
-| Проверка контракта | 17/17 без предупреждений |
+| License | CreativeML Open RAIL++-M; sdxl-vae-fp16-fix VAE: MIT |
+| Revisions | Base `46216598`, VAE `207b116d` |
+| Weights | ~7 GB (fp16 only) |
+| First load | ~6 min including download; cached afterward |
+| text-to-image 1024², 30 steps | ~23 s per variant |
+| image-to-image 1024², strength 0.55 (default 0.5) | ~14 s per variant |
+| Four text-to-image variants | ~92 s |
+| Peak VRAM | ~5.4 GB; models on CPU between calls (~0.5 GB retained) |
+| Contract check | 17 checks, 0 errors, 0 warnings (bit-reproducible variants) |
 
-### Сравнение на одном описании и seed
+Good game-asset quality: stylized props with painted texture. Image-to-image
+at ~0.5 strength keeps shape/composition and changes details, suitable for evolution.
 
-Описание: «a mossy stone lantern, stylized game asset, soft hand-painted
-texture, centered, plain light background».
+### Integration findings
 
-- **SDXL** добавил лес и камни, которых не просили.
-- **FLUX Q3** — ровно то, что описано: фонарь по центру на светлом фоне,
-  светящееся стекло.
-- **FLUX Q8** — то же, но чище детали: ковка навершия, мох, основание.
+- `StableDiffusionXLImg2ImgPipeline.from_pipe()` rebuilds CPU offload so text
+  encoders remain on GPU while UNet loads, exceeding 8 GB. Build the second
+  pipeline from first-pipeline components (`Pipeline(**pipeline.components)`)
+  to share weights/hooks: 5.4 GB peak.
+- Attention slicing and tiled VAE were unnecessary.
+- Prefer English prompts: SDXL CLIP encoders handle Russian poorly. Prompt
+  translation (for example with Gemma from `local_llm`) is a possible improvement.
 
-Выбран Q8: качество важнее скорости.
+### Review
 
-### Как искали конфигурацию (замеры)
+Three critic findings fixed with tests: zero-denoising-step image-to-image
+(`steps × strength < 1`) now rejects clearly rather than failing internally;
+palette/grayscale PNG transparency no longer becomes black; very narrow inputs
+no longer expand to several MP, with aspect ratio capped at 1:4. GPU-tested.
 
-| Вариант | Результат |
-| --- | --- |
-| T5 на CPU (bf16) | 545 с на описание: у Ryzen 5900HX нет аппаратного bf16 |
-| T5 на GPU по блокам | 9 с, пик 0,94 ГБ |
-| Q3 + обычная выгрузка на CPU | 90 с, пик 5,6 ГБ |
-| Q4 + обычная выгрузка на CPU | не помещается (7,66 ГБ) |
-| Q8 + послойная выгрузка accelerate | не работает с GGUF |
-| Q8 + group offload по блокам, блоки в RAM | в отдельных процессах 100 с, пик 2,55 ГБ; вместе с T5 в одном процессе — ~22 ГБ RAM, ядро убивает сервер |
-| **Q8 + group offload, блоки на диске** | **70 с, RAM не ниже 18 ГБ свободной; картинка побитово совпадает** |
+Second iteration: OOM exceptions retained failed call frames/activations,
+preventing cache release. Store only error text. Live test with another process
+using 4.5 GB: request returns a retryable failure and server retains ~200 MB.
+Third iteration: **ACCEPT**.
 
-## Qwen-Image 2.1 (Q8) — сервер готов
+## FLUX.1-schnell (Q8) — server ready
 
-Третий сервер картинок (`model_servers/qwen_image`, порт 9109): прозрачный
-фон, текст на картинке, редактирование словами. SDXL и FLUX остаются.
-Проверено 2 октября 2026 на RTX 3070 Laptop (8 ГБ).
+Second image server (`model_servers/flux`, port 9104). SDXL retained at this stage.
 
 | | |
 | --- | --- |
-| Лицензия | Qwen Research License (некоммерческое использование) |
-| Ревизии | base `d26bb612`, GGUF `2c31ccd3`; diffusers main `578c9b2` |
-| Трансформер | GGUF Q8 (7,6 ГБ); кодировщик Qwen3-VL 8B — bf16 (~16 ГБ) |
-| Загрузка | ~100 с; первая (запись хранилища ~23 ГБ) ~2 мин |
-| Text-to-image, 40 шагов | 1024² ~3,5 мин (5 с/шаг); 2048² ~12 мин (17 с/шаг) |
-| Редактирование, 40 шагов | 1K ~4 мин; 2K ~27 мин (без кеша ключей и значений) |
-| Пик видеопамяти | 5,2–5,3 ГБ; редактирование — 7,5 ГБ |
-| Свободно ОЗУ во время генерации | ≥15,5 ГБ |
+| License | Apache-2.0 (gated weights: token and terms acceptance required) |
+| Revisions | Base `741f7c3c`, GGUF `f495746e` |
+| Transformer | GGUF Q8 (12.7 GB), T5 bf16 (9.5 GB) |
+| 1024² image, four steps | 55–70 s including T5; load ~35 s (first ~2 min) |
+| Peak VRAM | ~5.3 GB process-wide (blocks alternate, CLIP/VAE stay loaded) |
+| RAM | Blocks on disk (~21 GB); ≥18 GB free during generation, ≥10 GB loading |
+| First start | ~22 GB download + ~21 GB block storage |
+| Contract check | 17/17 without warnings |
 
-Качество — лучшее из трёх серверов картинок. Предмет на однотонном фоне —
-чистый рисованный игровой ассет; надпись «THE MOSSY LANTERN» на вывеске —
-без единой ошибки; зелье с прозрачным фоном — 49 % пикселей прозрачны,
-50 % непрозрачны, полупрозрачная кромка <1 %. Редактирование («кристалл
-изумрудный, немного мха на крышке») сохраняет форму и композицию. В 2K
-детали настоящие: на кропе в полном разрешении — отдельные камни и листья.
-По умолчанию — 2K: качество важнее скорости; 1K в 3–6 раз быстрее.
+### Same-prompt/seed comparison
 
-Подробности и что выяснилось по дороге — в
-[README сервера](../../model_servers/qwen_image/README.md).
+Prompt: “a mossy stone lantern, stylized game asset, soft hand-painted texture,
+centered, plain light background”.
 
-## Не проверены
+- **SDXL:** added unrequested forest and rocks.
+- **FLUX Q3:** exactly the description, centered lantern on light background,
+  glowing glass.
+- **FLUX Q8:** same, with cleaner finial metalwork, moss and base.
 
-## Ревью FLUX
+Chose Q8: quality over speed.
 
-Критик, 2 итерации, ACCEPT.
+### Configuration experiments
 
-1. Хранилище блоков на диске переиспользовалось без проверки: после
-   прерванного первого запуска сервер был «готов», но каждая генерация
-   падала; после смены ревизии или библиотек старые блоки могли тихо
-   давать неверные картинки. Теперь — отпечаток версий в имени каталога,
-   отметка `complete` (после `sync`), блокировка, проверка места
-   (теперь общий модуль SDK `model_server_sdk.offload`).
-2. Image-to-image считал шаги по формуле SDXL: при настройках по умолчанию
-   в метаданных 2 шага вместо 3, часть допустимых запросов отклонялась.
-   Теперь своя формула, сверенная тестом с diffusers.
+| Variant | Outcome |
+| --- | --- |
+| T5 on CPU (bf16) | 545 s per prompt; Ryzen 5900HX lacks hardware bf16 |
+| T5 GPU blocks | 9 s, 0.94 GB peak |
+| Q3 + ordinary CPU offload | 90 s, 5.6 GB peak |
+| Q4 + ordinary CPU offload | Does not fit (7.66 GB) |
+| Q8 + accelerate layer offload | Unsupported with GGUF |
+| Q8 + group offload, RAM blocks | Separate processes: 100 s, 2.55 GB peak; together with T5: ~22 GB RAM, kernel kills server |
+| **Q8 + group offload, disk blocks** | **70 s, ≥18 GB free RAM; bit-identical image** |
+
+## Qwen-Image 2.1 (Q8) — server ready
+
+Third image server (`model_servers/qwen_image`, port 9109): transparency,
+lettering and instruction editing. SDXL/FLUX retained at this stage. Tested
+October 2, 2026 on an RTX 3070 Laptop (8 GB).
+
+| | |
+| --- | --- |
+| License | Qwen Research License (non-commercial) |
+| Revisions | Base `d26bb612`, GGUF `2c31ccd3`; diffusers main `578c9b2` |
+| Transformer | GGUF Q8 (7.6 GB); Qwen3-VL 8B encoder bf16 (~16 GB) |
+| Loading | ~100 s; first offload-storage write (~23 GB): ~2 min |
+| Text-to-image, 40 steps | 1024² ~3.5 min (5 s/step); 2048² ~12 min (17 s/step) |
+| Editing, 40 steps | 1K ~4 min; 2K ~27 min (no key/value cache) |
+| Peak VRAM | 5.2–5.3 GB; editing 7.5 GB |
+| Free RAM during generation | ≥15.5 GB |
+
+Best quality of the three image servers. Plain-background props are clean
+painted game assets. “THE MOSSY LANTERN” signage has no errors. Transparent
+potion: 49% transparent, 50% opaque pixels, <1% translucent edge. Editing
+(“emerald crystal, a little moss on the lid”) retains shape/composition. 2K
+contains real detail: individual stones/leaves at full-resolution crops.
+Default 2K prioritizes quality; 1K is 3–6× faster.
+
+Details and integration findings: [server README](../../model_servers/qwen_image/README.md).
+
+## Not tested
+
+## FLUX review
+
+Critic: two iterations, ACCEPT.
+
+1. Disk blocks were reused without validation: interrupted initial starts
+   reported ready but every generation failed; revised weights/libraries
+   could silently produce wrong images from stale blocks. Now uses a version
+   fingerprint directory, `complete` marker after `sync`, locking and disk-space
+   checks (shared SDK `model_server_sdk.offload`).
+2. Image-to-image used SDXL step rounding: defaults reported two instead of
+   three steps and rejected some valid requests. Now uses its own formula,
+   tested against diffusers.

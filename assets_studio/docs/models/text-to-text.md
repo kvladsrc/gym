@@ -1,69 +1,65 @@
 # M7a: text-to-text (LLM)
 
-## Итог
+## Outcome
 
-Сервер `model_servers/llm` (llama.cpp b11312 + GGUF), две модели —
-у каждой своя вкладка:
+`model_servers/llm` (llama.cpp b11312 + GGUF), two models with separate tabs:
 
-- **Gemma 4 12B, Q8_0** — по умолчанию (`just gemma`, порт 9106);
-- **Qwen3.8 27B, UD-Q4_K_M** — богаче, медленнее (`just qwen`, порт 9107).
+- **Gemma 4 12B, Q8_0**: default (`just gemma`, port 9106).
+- **Qwen3.8 27B, UD-Q4_K_M**: richer, slower (`just qwen`, port 9107).
 
-Проверка контракта — 10/10 без предупреждений у обеих (кеш промпта
-выключен: тот же seed повторяет ответ побайтно).
+Both passed contract checks 10/10 without warnings (prompt caching disabled,
+so identical seeds repeat responses byte for byte).
 
-## Кандидаты (официальные выпуски на 2026-10-01)
+## Candidates (official releases as of 2026-10-01)
 
-Списки популярного на Hugging Face полны пересборок («uncensored»,
-дистилляции); брались только модели от авторов.
+Hugging Face popularity lists contain many repacks (“uncensored”, distilled);
+only author-published models were considered.
 
-| Модель | Почему (не) взята |
+| Model | Selection rationale |
 | --- | --- |
-| Gemma 4 12B (Google, май 2026) | взята: Q8 почти без потерь, 6,6 ГБ на GPU |
-| Qwen3.8 27B (Alibaba, авг 2026) | взята: новейшая плотная, в Q4 — 16,5 ГБ |
-| Qwen3.6 35B-A3B (MoE) | не проверена: 22 ГБ в Q4, впритык к свободной RAM |
-| GLM-5.3-Flash | 321 млрд параметров — не для ноутбука |
-| Gemma 4 26B-A4B, 31B | не проверены; 31B плотная — медленнее Qwen3.8 27B |
+| Gemma 4 12B (Google, May 2026) | Selected: Q8 nearly lossless, 6.6 GB on GPU |
+| Qwen3.8 27B (Alibaba, August 2026) | Selected: latest dense model, 16.5 GB in Q4 |
+| Qwen3.6 35B-A3B (MoE) | Untested: 22 GB in Q4, barely fits free RAM |
+| GLM-5.3-Flash | 321B parameters, unsuitable for a laptop |
+| Gemma 4 26B-A4B, 31B | Untested; dense 31B is slower than Qwen3.8 27B |
 
-## Запуск
+## Runtime
 
-llama.cpp выпускает готовые сборки для Linux с CUDA 12.8 — компилятор не
-нужен; драйвер 595 их поддерживает. Сборка закреплена по контрольным
-суммам из GitHub. Слои распределяет сам llama.cpp (`--fit`).
+llama.cpp publishes prebuilt Linux CUDA 12.8 binaries; no compiler is needed,
+and driver 595 supports them. The build is pinned with GitHub checksums.
+llama.cpp assigns layers itself (`--fit`).
 
 | | Gemma 4 12B Q8 | Qwen3.8 27B Q4 |
 | --- | --- | --- |
-| Загрузка | 18 с | 21 с |
-| Видеопамять | 6,6 ГБ | 6,3 ГБ |
-| Свободная RAM при работе | ≥ 19 ГБ | ≥ 17 ГБ |
-| Скорость | 4,8–5,4 токена/с | 3,1–3,5 токена/с |
+| Load time | 18 s | 21 s |
+| VRAM | 6.6 GB | 6.3 GB |
+| Free RAM while running | ≥19 GB | ≥17 GB |
+| Speed | 4.8–5.4 tokens/s | 3.1–3.5 tokens/s |
 
-## Сравнение (seed 7 и 11)
+## Comparison (seeds 7 and 11)
 
-Семь заданий: названия таверн, реплика кузнеца, описание предмета,
-сокращение текста, побочное задание, диалог с вариантами ответа, меню
-паузы. Тексты — в журнале сессии; выводы:
+Seven tasks: tavern names, blacksmith line, item description, shortening text,
+side quest, branching dialogue and pause menu. Texts are in the session log.
+Findings:
 
-- **Gemma 4 12B** — грамотная и ровная, но проще: в меню паузы забыла
-  «Продолжить». Один сбой токена («в егонутри»).
-- **Qwen3.8 27B** — образнее и живее: имена мест, характер торговца,
-  «неприятно тёплый, словно в его недрах застыло дыхание спящего зверя».
-  Но в Q4 ошибается в управлении и роде: «Костяной Гнезд», «управляет
-  топь», «густой от спора».
+- **Gemma 4 12B**: fluent and consistent but simpler; omitted “Resume” in the
+  pause menu. One token corruption (“в егонутри”, a malformed Russian phrase).
+- **Qwen3.8 27B**: more vivid place names and merchant characterization, with
+  imagery such as “unpleasantly warm, as though the breath of a sleeping beast
+  had frozen within it”. But Q4 makes Russian gender/government errors:
+  “Костяной Гнезд”, “управляет топь”, “густой от спора”.
 
-Сравнение повторено с сэмплированием из карточек моделей (temperature 1,0,
-top_k 64 у Gemma и 20 у Qwen, min_p 0) — первый раз шло temperature 0,8 и
-умолчания llama.cpp. Gemma стала живее («пульсируя в такт замедляющемуся
-сердцебиению владельца»), сбоев токенов не было. Ошибки Qwen3.8 остались
-(«Тихий Казнь», «жительны деревни») — это квантование Q4, а не
-сэмплирование.
+Repeated with model-card sampling (temperature 1.0, top_k 64 for Gemma and 20
+for Qwen, min_p 0); the first run used temperature 0.8 and llama.cpp defaults.
+Gemma became more vivid (“pulsing in time with its owner's slowing heartbeat”),
+without corrupted tokens. Qwen3.8 retained grammatical errors (“Тихий Казнь”,
+“жительны деревни”), attributed here to Q4 quantization rather than sampling.
 
-Однозначного победителя нет — оставлены обе. Q5/Q6 у Qwen3.8 (20–22 ГБ)
-не поместились бы в свободную RAM без подкачки. Не проверены и могут быть
-быстрее обеих: Qwen3.6 35B-A3B и Gemma 4 26B-A4B (MoE: активны 3–4 млрд
-параметров, эксперты — в RAM).
+No clear winner; both retained. Qwen3.8 Q5/Q6 (20–22 GB) would exceed free RAM
+without swapping. Untested alternatives potentially faster than both: Qwen3.6
+35B-A3B and Gemma 4 26B-A4B (MoE, 3–4B active parameters, experts in RAM).
 
-## Проверено
+## Verified
 
-- Остановка сервера (Ctrl+C) завершает `llama-server`; `kill -9` сервера —
-  тоже (SIGTERM от ядра через `PR_SET_PDEATHSIG`), видеопамять
-  освобождается.
+- Stopping the server with Ctrl+C also stops `llama-server`; `kill -9` does
+  too (kernel SIGTERM via `PR_SET_PDEATHSIG`), releasing VRAM.

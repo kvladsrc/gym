@@ -1,31 +1,31 @@
 # Hunyuan3D-2.1 Shape model server
 
-Задача `image-to-3d`: картинка → форма (GLB без цвета).
-[Hunyuan3D-2.1](https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1) Shape — самая
-большая открытая модель формы Hunyuan3D (июнь 2025): DiT на 3,3 млрд
-параметров против 0,6 млрд у 2mini, тот же рецепт. Цвет — через `3d-paint`
-(свой PBR-покрасчик 2.1 требует ~21 ГБ видеопамяти).
+The `image-to-3d` task takes an image and produces a shape (GLB without color).
+[Hunyuan3D-2.1](https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1) Shape is the
+largest open Hunyuan3D shape model (June 2025): a 3.3B DiT versus 2mini's 0.6B,
+using the same recipe. Color comes from `3d-paint` (its own 2.1 PBR painter
+requires about 21 GB of VRAM).
 
 ```sh
-just setup     # исходники, окружение Python 3.11 + PyTorch 2.5.1/CUDA 12.4
-just download  # чекпоинт DiT с VAE и кодировщиком картинки (~7,4 ГБ)
+just setup     # source, Python 3.11 + PyTorch 2.5.1/CUDA 12.4 environment
+just download  # DiT checkpoint, VAE and image encoder (~7.4 GB)
 just doctor
 just serve     # http://127.0.0.1:9119
-just test      # без GPU и весов
+just test      # no GPU or weights needed
 ```
 
-- Официально ~10 ГБ видеопамяти. Здесь части конвейера по очереди
-  занимают GPU (кодировщик картинки → DiT → VAE), остальное ждёт в ОЗУ;
-  веса в fp16, без квантования. Пик ~7,1 ГБ, загрузка 34 с.
-- Свой `enable_model_cpu_offload` у upstream — копия из diffusers и здесь
-  не работает (у конвейера нет `components`), а хуки accelerate пропустили
-  бы VAE (его зовут через `latents2mesh`, не `forward`): сервер сам
-  оборачивает `encode_cond`, `prepare_latents` и `_export`.
-- Один seed даёт ту же форму (те же числа вершин и треугольников, те же
-  границы), но не тот же GLB до байта: недетерминированные ядра GPU.
-  Проверка контракта — с `--allow-nondeterministic`.
-- Веса лежат в `HY3DGEN_MODELS` (`~/.cache/assets-studio/hy3dgen`) — там же
-  VAE 2.1, который использует `mia`.
+- Official requirement: about 10 GB VRAM. Here, pipeline components take turns
+  on the GPU (image encoder → DiT → VAE); the rest wait in RAM. Weights are
+  fp16 without quantization. Peak: about 7.1 GB; load time: 34 seconds.
+- Upstream's `enable_model_cpu_offload` is copied from diffusers and does not
+  work here (the pipeline has no `components`). Accelerate hooks would skip
+  the VAE (called through `latents2mesh`, not `forward`), so the server wraps
+  `encode_cond`, `prepare_latents` and `_export` itself.
+- The same seed produces the same shape (vertex and triangle counts and
+  bounds), but not a byte-identical GLB, due to nondeterministic GPU kernels.
+  Run the contract check with `--allow-nondeterministic`.
+- Weights live in `HY3DGEN_MODELS` (`~/.cache/assets-studio/hy3dgen`), alongside
+  the 2.1 VAE used by `mia`.
 
-Лицензия: Tencent Hunyuan 3D 2.1 Community License (не действует в ЕС,
-Великобритании и Южной Корее), как у 2.0.
+License: Tencent Hunyuan 3D 2.1 Community License (excludes the EU, UK and
+South Korea), as with 2.0.

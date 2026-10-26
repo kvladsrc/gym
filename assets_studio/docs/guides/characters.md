@@ -1,97 +1,88 @@
-# Персонажи: концепт под риг, риг, анимация
+# Characters: rig-ready concepts, rigs and animation
 
 <!-- markdownlint-disable MD013 -->
 
-## Цепочка
+## Pipeline
 
-Концепт (Qwen-Image) → Hunyuan3D-2mini (`max_faces` 40000) → Paint →
-`3d-to-rig` (Make-It-Animatable: скелет Mixamo, 52 кости
-`mixamorig:*`, веса) → движок → клипы Mixamo. Риг — последним и только
-для гуманоидов; предметы и землю не ригуют.
+Concept (Qwen-Image) → Hunyuan3D-2mini (`max_faces` 40000) → Paint → `3d-to-rig`
+(Make-It-Animatable: Mixamo skeleton, 52 `mixamorig:*` bones and weights) →
+engine → Mixamo clips. Rigging is last, for humanoids only; props and terrain
+need no rigs.
 
-Не гуманоиды (звери, птицы, предметы) — сервер `skintokens`: скелет по
-форме, без клипов Mixamo ([сравнение](../models/3d-to-rig.md)).
+For non-humanoids (animals, birds, objects), use `skintokens`: shape-specific
+skeletons without Mixamo clips ([comparison](../models/3d-to-rig.md)).
 
-## Концепт под риг
+## Rig-ready concepts
 
-> Full body single *(кто)*, orthographic FRONT view at eye level,
+> Full body single *(character)*, orthographic FRONT view at eye level,
 > perfectly symmetrical neutral A-pose, arms straight diagonally down 45
 > degrees away from the body, open empty hands, legs apart with a clear gap
-> between the thighs down to the crotch, feet flat on the ground. *(тело,
-> одежда, 2–3 цвета)* One cohesive figure. No tail, no wings, no cape, no
+> between the thighs down to the crotch, feet flat on the ground. *(Body,
+> clothing, 2–3 colors.)* One cohesive figure. No tail, no wings, no cape, no
 > skirt, no robe, no weapons, no loose straps, nothing floating. Stylized
 > hand-painted game character art, strong chunky silhouette, broad clean
 > color areas. Neutral matte diffuse studio lighting, no harsh cast
 > shadows. Entire figure visible with generous margins, centered on plain
 > white background. No text.
 
-Почему каждое из этих правил:
+Why these rules matter:
 
-- **Пустые руки.** Оружие в руке риг размазывает по кисти и предплечью —
-  гнётся как резина. Оружие — отдельная модель на кости кисти, положение
-  берётся из костей пальцев.
-- **Ничего ниже пояса, что закрывает ноги** (юбка, мантия, длинный плащ):
-  колени риг ставит туда, где ткань похожа на ноги, — ноги выходят
-  короткими.
-- **Без хвоста, крыльев, плаща, свисающих ремней:** риг цепляет их к
-  ближайшим костям, в анимации они превращаются в «паутину».
-- **A-поза, вид строго спереди, ноги врозь** — риг ищет суставы по
-  силуэту.
-- Рисунок, нарисованный не по шаблону (даже детский), можно сначала
-  перерисовать image-to-image в A-позу и простой стиль, а потом вести по
-  цепочке.
+- **Empty hands.** Rigging spreads held weapons across hand and forearm weights,
+  making them bend like rubber. Use a separate weapon on the hand bone, positioned
+  from finger bones.
+- **Nothing below the waist hiding legs** (skirts, robes, long capes): the
+  rig places knees where fabric resembles legs, producing short legs.
+- **No tails, wings, capes or loose straps:** the rig binds them to nearby
+  bones, producing webs during animation.
+- **A-pose, exact front view, legs apart:** the rig finds joints from the silhouette.
+- Drawings outside the template (even children's drawings) can first be edited
+  image-to-image into A-pose and a simple style, then run through the pipeline.
 
-## Сетка после рига
+## Mesh after rigging
 
-Рекомендуемая цепочка отдаёт сетку уже сваренной и гладкой. Если сетка
-пришла несваренной (каждый треугольник со своими вершинами: 144k вершин на
-60k треугольников) и с плоскими нормалями, в игре она гранёная, с тёмными
-линиями по рёбрам. Лечится сваркой вершин по позиции (веса у вершин в одной
-точке одинаковые — шов в анимации не расходится) и гладкими нормалями.
+The recommended pipeline returns welded meshes with smooth shading. Unwelded
+meshes (independent triangle vertices: 144K vertices for 60K triangles) with
+flat normals look faceted in-game with dark edge lines. Weld vertices by
+position (coincident vertices have identical weights, keeping animated seams
+closed) and use smooth normals.
 
-## Анимация
+## Animation
 
-Повторяемые цепочки собираются в [studio flow](../../flow/README.md):
-сетка → MIA, параллельно текст → Kimodo, затем оба выхода →
-`animation_tools / retarget-motion`. Подготовка весов, сброс прежней
-анимации и перенос вращений выполняются внутри задания. Для видео риг
-MIA можно напрямую передать в GVHMR или MoCapAnything: у них этот шаг
-уже встроен. Отдельные скрипты для применения клипа не нужны.
+Build repeatable chains in [Studio Flow](../../flow/README.md): mesh → MIA,
+text → Kimodo in parallel, then both outputs → `animation_tools / retarget-motion`.
+Weight preparation, old-animation reset and rotation transfer happen inside
+the task. For video, pass MIA rigs directly to GVHMR or MoCapAnything; this
+step is already integrated. No separate clip-application scripts are needed.
 
-Движение человека из видео можно перенести на риг Make-It-Animatable через
-[GVHMR](../../model_servers/gvhmr/README.md): видео MP4 и риг FBX/GLB →
-анимированный FBX. Нужен один человек в полный рост, один план до 10 с.
-`camera` задаёт неподвижную или движущуюся камеру; `root_motion=in-place`
-оставляет движение на месте, `world` сохраняет путь. Пальцы и лицо модель
-не анимирует. Для запуска нужен зарегистрированный SMPL-X. Проверены захват движения
-из четырёхсекундного видео, оба режима камеры и импорт FBX в Unity 6.6
-с проверкой изменения поз костей.
+Video motion transfers onto Make-It-Animatable rigs with
+[GVHMR](../../model_servers/gvhmr/README.md): MP4 video + FBX/GLB rig → animated
+FBX. Requires one full-body person in a continuous shot up to 10 seconds.
+`camera` selects static or moving camera; `root_motion=in-place` keeps motion
+in place, `world` preserves travel. Fingers and face are not animated.
+Registered SMPL-X is required. Tested capture from a four-second video, both
+camera modes, and FBX import into Unity 6.6 with bone-pose changes verified.
 
-- **Generic, не Humanoid.** Ретаргетинг Humanoid в Unity сделал ноги
-  деревянными: в беге колено сгибалось до 72° вместо 32° у Mixamo. Как
-  Generic, клипы играют кость в кость (32…163°, как на сайте Mixamo).
-  Animator — на узле над бёдрами (`Armature`), откуда начинаются пути
-  клипов.
-- **Клипы — на месте, вручную.** Generic root motion не убирал дрейф бёдер:
-  они убегали на 2,8 м вперёд и отскакивали каждую петлю. Копия клипа с
-  вычтенным линейным дрейфом бёдер по земле (прыжок — и с вычтенным
-  подъёмом бёдер, высоту даёт физика) держит бёдра в ±8 см от тела.
-- **Любой клип Mixamo подходит любому ригу** из `3d-to-rig`: скелет общий.
-  Наборы скачиваются без скина, одиночные клипы — под загруженный в Mixamo
-  риг.
-- **Скорость шага — из клипа.** Бег перематывается под скорость
-  персонажа по собственному root motion клипа; иначе ноги скользят.
-  Быстрее бега (спринт) — отдельный клип, не тот же бег ускоренный.
-- **Момент удара — из клипа.** Удар засчитывается в момент, когда руки и
-  ноги вращаются быстрее всего (сумма угловых скоростей костей конечностей
-  между 15 и 85 % клипа) — не в фиксированное время. Работает для мечей,
-  заклинаний и пинков без ручной разметки.
-- **Несколько атак на персонажа** (состояние на клип, выбор по
-  параметру-индексу), не одна и та же дважды подряд — бой перестаёт быть
-  однообразным.
-- **Стойка ≠ передвижение.** Боевые стойки, качающиеся на месте (ginga из
-  капоэйры, «forward» в ней — раскачка с шагом), как ходьба выглядят
-  «статично». Стойку — в покой между атаками; ходить и бегать — обычными
-  клипами.
-- В наборах Mixamo кувырок с места только один — «falling to roll»
-  (Action Adventure): первые 1,4 с.
+- **Generic, not Humanoid.** Unity Humanoid retargeting stiffened legs: running
+  knees bent to 72° instead of Mixamo's 32°. Generic plays bone for bone
+  (32…163°, matching Mixamo's site). Put Animator on the node above the hips
+  (`Armature`), where clip paths begin.
+- **Make clips in-place manually.** Generic root motion failed to remove hip
+  drift: hips moved 2.8 m forward and snapped back every loop. Subtract linear
+  ground-plane hip drift from a clip copy (for jumps also remove hip rise,
+  leaving height to physics) to keep hips within ±8 cm of the body.
+- **Any Mixamo clip works with any `3d-to-rig` rig:** the skeleton is shared.
+  Download packs without skin; individual clips target a rig uploaded to Mixamo.
+- **Derive step speed from the clip.** Scale running playback to character
+  speed using the clip's own root motion; otherwise feet slide. Sprinting
+  needs a separate clip rather than sped-up running.
+- **Derive hit timing from the clip.** Register impact when arms and legs
+  rotate fastest (sum limb-bone angular speeds across 15–85% of the clip),
+  rather than at a fixed time. Works for swords, spells and kicks without
+  manual annotation.
+- **Multiple attacks per character** (one state per clip, selected by an index),
+  never the same twice in a row, make combat less repetitive.
+- **Stance is not locomotion.** Swaying stationary stances (capoeira ginga;
+  its “forward” means rocking with a step) look static as walking. Use them
+  for idle between attacks and ordinary clips for walking/running.
+- Mixamo has only one standing roll in its packs: “falling to roll” (Action
+  Adventure), first 1.4 seconds.

@@ -1,9 +1,9 @@
-# SAM 2.1: выбранный персонаж в видео
+# SAM 2.1: a selected character in video
 
-`video-to-video`, порт 9125. Входы: `video` — исходный MP4 до 10 с,
-1080p/60 fps; `reference` — первый кадр, на котором оставлен только нужный
-персонаж на белом или прозрачном фоне. Размер опорной картинки может
-отличаться, кадрирование и поза должны сохраняться.
+`video-to-video`, port 9125. Inputs: `video`, the original MP4 up to 10 seconds,
+1080p/60 fps; `reference`, the first frame with only the target character on a
+white or transparent background. Reference dimensions may differ, but framing
+and pose must be preserved.
 
 ```sh
 just setup
@@ -11,47 +11,45 @@ just serve
 just test
 ```
 
-Модель `facebook/sam2.1-hiera-small`, Apache-2.0, фиксированная ревизия
-`ee5bba1d82bb8749febdf90f45e84b687142ba03`. Веса около 176 МиБ.
-Готовность и метаданные доступны сразу; веса загружаются при первом валидном
-задании на потоке SDK. Окружение изолировано от остальных серверов.
+Model: `facebook/sam2.1-hiera-small`, Apache-2.0, pinned revision
+`ee5bba1d82bb8749febdf90f45e84b687142ba03`. Weights: about 176 MiB.
+Readiness and metadata are available immediately; weights load on the first
+valid job in the SDK worker thread. The environment is isolated from other servers.
 
-## Цепочка для мокапа
+## Mocap workflow
 
-1. Вырезать непрерывный фрагмент, где видны тело, стопы и руки.
-2. Первый кадр → Qwen image-to-image: оставить нужного человека на белом,
-   сохранить позу, масштаб и положение. Начать с `size=1K, steps=10`.
-3. Исходный фрагмент + результат Qwen → SAM 2 → один человек на белом.
-4. Полученное видео → MoCapAnything (`background_removed=true`) и GVHMR.
-   Для движущейся камеры передать синхронный оригинал в `camera_video` GVHMR.
+1. Cut a continuous segment with visible body, feet and hands.
+2. First frame → Qwen image-to-image: keep the target person on white,
+   preserving pose, scale and placement. Start with `size=1K, steps=10`.
+3. Original segment + Qwen output → SAM 2 → one person on white.
+4. Result → MoCapAnything (`background_removed=true`) and GVHMR. For a moving
+   camera, pass the synchronized original into GVHMR's `camera_video`.
 
-Редактор используется один раз на фрагмент. Из его результата берутся
-рамка тела и внутренние точки. Затем SAM заново сегментирует **оригинал**
-и распространяет выделение по кадрам. Сгенерированные анатомия, одежда,
-меч и движения не копируются. Выход сохраняет исходные координаты, размер,
-число кадров и частоту; перед сжатием H.264 цветные пиксели принадлежат
-исходному видео. Звук удаляется.
+The editor runs once per segment. Its output supplies a body box and interior
+points. SAM then re-segments the **original** and propagates the selection
+across frames. Generated anatomy, clothing, sword and movement are not copied.
+Output preserves original coordinates, dimensions, frame count and frame rate.
+Before H.264 compression, colored pixels come from the source video. Audio is removed.
 
-В Studio Flow это обычный узел с двумя входами, без изменений SDK.
-Добавить сервер из `studio.example.toml`; launcher знает рецепт `sam2`.
+In Studio Flow this is an ordinary two-input node, with no SDK changes.
+Add the server from `studio.example.toml`; the launcher knows the `sam2` recipe.
 
-## Ограничения
+## Limitations
 
-Первый кадр должен однозначно выделять человека. Если редактор увеличил,
-переместил или существенно изменил позу, нужна другая опорная картинка.
-Проверка пропорций обнаруживает только часть таких ошибок. Трекер не
-восстанавливает скрытые конечности, может потерять тонкий меч или выбрать
-неверный объект при тесном контакте. Просматривать очищенное видео до
-оценки качества мокапа; не считать успешное задание доказательством
-правильной сегментации. Пустой трек вызывает ошибку с номером кадра. По
-умолчанию включено
-`require_full_subject=true`: опорное тело должно занимать хотя бы четверть
-высоты изображения, а трек не должен обрезаться у края кадра. Тонкий конец
-меча не считается обрезанным телом. Для других задач эту проверку можно
-отключить; она не заменяет просмотр и не обнаруживает каждую ошибку позы.
+The first frame must identify the person unambiguously. If the editor scaled,
+moved or substantially changed their pose, use another reference. Aspect-ratio
+checks detect only some such errors. The tracker cannot reconstruct hidden
+limbs, may lose a thin sword, or select the wrong object during close contact.
+Review the cleaned video before judging mocap quality; a successful job does
+not prove correct segmentation. An empty track fails with its frame number.
 
-API соответствует обычному контракту v1. Пример реального набора:
-`workspace/sword_prof/flow.json` и `manifest.json`.
+`require_full_subject=true` is enabled by default: the reference body must
+occupy at least a quarter of the image height, and the track must not be clipped
+at the frame edge. A thin sword tip does not count as a clipped body. Other
+uses can disable this check; it does not replace review or catch every pose error.
 
-Источники API: [Transformers SAM2 Video](https://huggingface.co/docs/transformers/model_doc/sam2_video)
-и [исходная модель Meta](https://github.com/facebookresearch/sam2).
+The API follows ordinary contract v1. A real example is in
+`workspace/sword_prof/flow.json` and `manifest.json`.
+
+API sources: [Transformers SAM2 Video](https://huggingface.co/docs/transformers/model_doc/sam2_video)
+and [Meta's original model](https://github.com/facebookresearch/sam2).

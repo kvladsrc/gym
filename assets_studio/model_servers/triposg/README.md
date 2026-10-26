@@ -2,30 +2,31 @@
 
 > Retired from the active Studio catalog; weights and local environment removed.
 
-Задача `image-to-3d`: картинка → форма (GLB без цвета). На основе
-[TripoSG](https://github.com/VAST-AI-Research/TripoSG) от VAST (авторы
-Tripo): трансформер rectified flow на 1,5 млрд параметров выбирает
-латентное представление формы по картинке, VAE достраивает поверхность на
-сетке 512³. Диффузионная модель, как Hunyuan3D: seed даёт разные варианты.
-Цвет — через `3d-paint` (Hunyuan3D-Paint).
+The `image-to-3d` task turns an image into a shape (GLB without color). Based on
+[TripoSG](https://github.com/VAST-AI-Research/TripoSG) from VAST (Tripo's authors):
+a 1.5B rectified-flow transformer samples a shape latent from the image, and a
+VAE reconstructs the surface on a 512³ grid. Like Hunyuan3D, it is a diffusion
+model: different seeds give different variants. Add color with `3d-paint`
+(Hunyuan3D-Paint).
 
 ```sh
-just setup     # исходники, окружение Python 3.11 + PyTorch 2.8/CUDA 12.9,
-               # сборка diso в nix develop .#assets-studio-cuda
-just download  # веса (~8 ГБ fp32, только сеть)
+just setup     # source, Python 3.11 + PyTorch 2.8/CUDA 12.9 environment;
+               # build diso in nix develop .#assets-studio-cuda
+just download  # weights (~8 GB fp32, network only)
 just doctor
 just serve     # http://127.0.0.1:9115
-just test      # без GPU и весов
+just test      # no GPU or weights needed
 ```
 
-- Коммерческие Tripo 2.x/3.x закрыты (только API); TripoSG — открытая
-  модель Tripo, её README требует 8 ГБ видеопамяти.
-- Веса в fp32, сервер держит их в fp16 (~4 ГБ) целиком на GPU.
-- Картинку готовят как при обучении: объект без фона, обрезан, по центру
-  квадрата с полями 10 % на белом. Фон убирает rembg (IS-Net, как у
-  Hunyuan3D), а не BRIA RMBG-1.4 из скриптов TripoSG: у той лицензия
-  некоммерческая.
-- diso (marching cubes на CUDA) собирается nvcc из nixpkgs (12.9), отсюда
-  PyTorch для CUDA 12.9, как у Hunyuan3D-Paint.
+- Commercial Tripo 2.x/3.x models are closed (API only). TripoSG is Tripo's
+  open model; its README requires 8 GB VRAM.
+- Published weights are fp32; the server keeps them entirely on GPU in fp16
+  (~4 GB).
+- Images are prepared as in training: background removed, object cropped and
+  centered in a white square with 10% padding. Background removal uses rembg
+  (IS-Net, as in Hunyuan3D), rather than TripoSG scripts' BRIA RMBG-1.4, whose
+  license is non-commercial.
+- diso (CUDA marching cubes) builds with nixpkgs' nvcc (12.9), hence PyTorch
+  for CUDA 12.9, as with Hunyuan3D-Paint.
 
-Лицензия: MIT (код и веса).
+License: MIT (code and weights).

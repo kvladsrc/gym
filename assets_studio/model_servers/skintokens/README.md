@@ -1,31 +1,32 @@
 # SkinTokens model server
 
-Задача `3d-to-rig`: модель (GLB) → та же модель со скелетом и весами кожи
-(FBX). [SkinTokens](https://github.com/VAST-AI-Research/SkinTokens) (VAST и
-Цинхуа, 2026; преемник UniRig) пишет скелет и веса одной
-последовательностью токенов (трансформер Qwen3 0.6B): скелет следует форме —
-четвероногое, птица, дерево, сундук. Это не скелет Mixamo: для гуманоидов
-под анимации Mixamo — сервер `mia`.
+The `3d-to-rig` task takes a model (GLB) and returns the same model with a
+skeleton and skin weights (FBX).
+[SkinTokens](https://github.com/VAST-AI-Research/SkinTokens) (VAST and Tsinghua,
+2026; successor to UniRig) generates skeleton and weights in one token
+sequence (Qwen3 0.6B transformer). Skeletons follow the shape: quadrupeds,
+birds, trees, chests. These are not Mixamo skeletons; use `mia` for humanoids
+with Mixamo animations.
 
 ```sh
-just setup     # исходники, окружение Python 3.11 + PyTorch 2.8/CUDA 12.9,
-               # flash-attn и bpy 4.3 готовыми колёсами
-just download  # чекпоинты (~1,6 ГБ) и конфиг Qwen3 (только сеть)
+just setup     # source, Python 3.11 + PyTorch 2.8/CUDA 12.9 environment;
+               # prebuilt flash-attn and bpy 4.3 wheels
+just download  # checkpoints (~1.6 GB) and Qwen3 config (network only)
 just doctor
 just serve     # http://127.0.0.1:9116
-just test      # без GPU и весов
+just test      # no GPU or weights needed
 ```
 
-- Каждое задание — дочерний процесс (`rig.py`) в каталоге исходников: bpy
-  должен работать в главном потоке, пути у upstream относительные. Модель
-  загружается на задание.
-- Демо upstream ходит к bpy через вспомогательный сервер, который слушает
-  все интерфейсы и распаковывает pickle из запроса (исполнение кода из
-  сети). Он не используется.
-- Скелет предсказывается по сетке и переносится на исходную модель
-  (текстура сохраняется), затем GLB → FBX (`asset_processing.blender`:
-  именованные текстуры для Unity, сваренные вершины, гладкое затенение).
-- README upstream просит ≥ 14 ГБ видеопамяти (поиск лучом шириной 10);
-  `num_beams` можно уменьшить.
+- Each job runs a child process (`rig.py`) in the source directory: bpy must
+  run on the main thread, and upstream paths are relative. The model loads
+  for each job.
+- The upstream demo accesses bpy through a helper server that listens on all
+  interfaces and unpickles request data (network code execution). It is not used.
+- The skeleton is predicted from the mesh and transferred onto the original
+  model (retaining its texture), followed by GLB → FBX
+  (`asset_processing.blender`: named textures for Unity, welded vertices,
+  smooth shading).
+- The upstream README requests ≥14 GB VRAM (beam width 10); `num_beams` can
+  be reduced.
 
-Лицензия: MIT.
+License: MIT.

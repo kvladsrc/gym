@@ -1,29 +1,28 @@
-# ADR-007. Оценки и теги ассетов
+# ADR-007. Asset ratings and tags
 
-Статус: принято.
+Status: accepted.
 
-## Контекст
+## Context
 
-Поиск удачных комбинаций (стиль × жанр × модель картинки × модель 3D)
-даёт десятки вариантов одного ассета. Их нужно оценивать и находить по
-осям перебора; избранное (да/нет) для этого мало.
+Searching combinations (style × genre × image model × 3D model) produces dozens
+of variants per asset. These need ratings and filtering by search axes;
+a favorite flag alone is insufficient.
 
-## Решение
+## Decision
 
-- `assets.rating` — целое 0–5 или `NULL` (не оценён), миграция 0006.
-  `PATCH /api/assets/{id}` с `"rating": n`; явный `null` снимает оценку,
-  отсутствие поля её не трогает.
-- Теги — таблица `asset_tags` (была с 0001, не использовалась), теперь в
-  API: `tags` в `AssetOut`, `PATCH` с `"tags": [...]` заменяет все теги.
-  Тег — строчные буквы без пробелов по краям, до 64 символов, по
-  соглашению `ось:значение` (`style:cartoon`, `model:hunyuan3d`).
-- `GET /api/assets?tag=…&tag=…&min_rating=n&unrated=true`: все теги
-  должны совпасть.
+- `assets.rating`: integer 0–5 or `NULL` (unrated), migration 0006.
+  `PATCH /api/assets/{id}` with `"rating": n`; explicit `null` clears the
+  rating, while an omitted field leaves it unchanged.
+- Tags use `asset_tags` (present since 0001 but unused), now exposed through
+  the API: `tags` in `AssetOut`; `PATCH` with `"tags": [...]` replaces all tags.
+  Tags are lowercase, trimmed, up to 64 characters, conventionally
+  `axis:value` (`style:cartoon`, `model:hunyuan3d`).
+- `GET /api/assets?tag=…&tag=…&min_rating=n&unrated=true`: all tags must match.
 - MCP: `list_assets(tags, min_rating, unrated)`, `rate_asset`.
-- Интерфейс: кнопки 0–5 рядом с избранным; теги в карточке ассета;
-  в библиотеке — фильтр по тегам и оценке.
+- UI: buttons 0–5 beside favorites, tags in asset details, library filters
+  for tags and ratings.
 
-## Последствия
+## Consequences
 
-- Теги ставит тот, кто запускает перебор (сейчас — скрипт поверх REST);
-  студия задания с осями перебора пока не знает.
+- Tags are assigned by whoever runs the sweep (currently a REST script);
+  Studio does not yet understand jobs with sweep axes.

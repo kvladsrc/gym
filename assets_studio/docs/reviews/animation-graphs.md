@@ -1,208 +1,196 @@
-# Ревью графов анимации — 19 октября 2026
+# Animation graph review — October 19, 2026
 
-**Вывод:** архитектура Studio → launcher → Flow подходит для этой работы.
-Проблема в содержании экспериментов: нейросетевой захват, перенос и игровая
-доводка объединены в один результат; качество источника и каждого перехода
-не проверяется отдельно. Добавление ещё одной модели после FBX это не исправит.
+**Finding:** Studio → launcher → Flow is suitable. The experiment design is the
+problem: neural capture, transfer and game polish are merged into one result,
+without separately checking source quality and each transition. Adding another
+model after FBX will not fix this.
 
-Проверены все **16 сохранённых Flow**, код адаптеров и переноса, параметры
-заданий, прежние численные отчёты и шесть новых текстовых отчётов локальной
-Qwen3.8. Изображения/видео в контекст агента не загружались. Снимок графов:
-`workspace/animation_graph_review/flow_snapshot.json`; сводка — `inventory.json`.
-Здесь подтверждённые свойства реализации отделены от гипотез о качестве.
+Reviewed all **16 saved Flows**, adapter/transfer code, job parameters, earlier
+numeric reports and six new local Qwen3.8 text reports. No images/video were
+loaded into agent context. Graph snapshot:
+`workspace/animation_graph_review/flow_snapshot.json`; summary: `inventory.json`.
+Confirmed implementation properties are separated from quality hypotheses below.
 
-## Как фактически устроен главный граф
+## Actual main graph
 
-`7d2156f19a3c4223b45c98dbb8e7aa72`, ревизия 4: пять фрагментов, 19 задач.
-Есть четыре Qwen-Image, пять SAM 2, пять GVHMR и пять MoCapAnything.
-Для одного фрагмента используется уже сохранённая исправленная референсная
-картинка вместо нового задания редактирования.
+`7d2156f19a3c4223b45c98dbb8e7aa72`, revision 4: five segments, 19 tasks.
+Four Qwen-Image, five SAM 2, five GVHMR and five MoCapAnything jobs. One segment
+reuses a saved corrected reference rather than generating another edit.
 
 ```mermaid
 flowchart LR
-    F[Опорный кадр] --> E[Qwen-Image: оставить человека]
-    E --> S[SAM 2: выделить исходные пиксели]
-    V[Короткий исходный фрагмент] --> S
-    S --> G[GVHMR: поза и скрытый перенос]
-    S --> M[MoCapAnything: поза и скрытый перенос]
-    R[Готовый риг MIA] --> G
+    F[Reference frame] --> E[Qwen-Image: retain person]
+    E --> S[SAM 2: select original pixels]
+    V[Short original segment] --> S
+    S --> G[GVHMR: pose and hidden transfer]
+    S --> M[MoCapAnything: pose and hidden transfer]
+    R[Prepared MIA rig] --> G
     R --> M
-    V -. камера для moving .-> G
-    G --> A[FBX персонажа]
-    M --> B[FBX персонажа]
+    V -. camera for moving .-> G
+    G --> A[Character FBX]
+    M --> B[Character FBX]
 ```
 
-Важно: Qwen-Image **не перерисовывает весь мокап-вход**. Её результат задаёт
-выбор человека в SAM; композит строится из оригинальных пикселей.
-Это уже лучше независимого генеративного редактирования кадров.
-В moving-ветке `feint_steps` оригинал действительно подан в `camera_video`;
-текущий граф не оценивает камеру только по белому фону. `root_motion=world`
-сохраняет путь/повороты. Старое удаление поворота режимом `in-place` не надо
-повторно объявлять причиной текущего фехтовального набора.
+Qwen-Image **does not redraw the whole mocap input**. Its result selects the
+person for SAM; the composite uses original pixels, better than independently
+editing generated frames. The moving `feint_steps` branch really passes the
+original into `camera_video`; camera estimation does not rely only on white.
+`root_motion=world` retains travel/turns. Old `in-place` turn removal should not
+be reintroduced as the explanation for this current fencing set.
 
-## Подтверждённые проблемы и пробелы
+## Confirmed problems and gaps
 
-| Приоритет | Наблюдение | Что это означает | Изменение |
+| Priority | Observation | Meaning | Change |
 | --- | --- | --- | --- |
-| P0 | Обычный GVHMR job возвращает только FBX; native prediction и камера живут во временной папке | Не удаётся надёжно локализовать ошибку между реконструкцией и переносом без нового прогона | Сделать исходное движение штатным артефактом до retarget |
-| P0 | Проверяются конечность трансформов, число кадров и нормировка весов | Эти проверки не доказывают верную позу или пригодность движения | Разделить техническую валидность и приёмку движения |
-| P1 | В основном графе sword_prof обе модели получают только сегментированное видео | Нельзя установить, помогла ли сегментация именно здесь | Добавить untreated/crop-only контроль с тем же человеком и временем |
-| P1 | Вход SAM требует отредактированный референс на белом | Выбор человека зависит от генеративного шага, который уже выдавал неполное тело | Принимать точку/box/готовую маску/track ID непосредственно на оригинале |
-| P1 | Короткий клип обрезается до temporal inference; диапазоны — 0,8–3 с | Контекст до атаки и после неё теряется; особенно подозрителен клип на 24 model-кадра | Сначала захват с временными запасами, затем обрезка готового движения |
-| P1 | Превью 3D нормализует начальные heading и pelvis, исходник сохраняет свою камеру | Прямое сравнение силуэтов смешивает позу и различие ракурсов | Отдельный incam overlay и отдельное одинаковое превью native/target |
-| P1 | Ни один узел не получает оружие, точки хвата или состояния контакта | Двуручный хват не обеспечивается предсказанием вращений рук | После переноса добавить управляемый grip/IK solve с известными anchors |
-| P1 | У рабочего стражника 22 кости; в полном MIA-графе `fingers=false` | Более точная модель пальцев сама по себе не даст пальцев на этой цели | Для нужных рук отдельно подготовить подходящий rig/геометрию и хват |
-| P1 | Refinement оценивался в том числе по снижению дрожания | Сглаживание может скрыть потерю ударной скорости и ухудшение позы | Оценивать позу, контакты и timing отдельно; HTD оставить optional |
+| P0 | Ordinary GVHMR jobs return only FBX; native prediction/camera are temporary | Cannot reliably locate reconstruction versus transfer errors without rerunning | Make source motion a standard pre-retarget artifact |
+| P0 | Checks cover finite transforms, frame counts, normalized weights | They do not prove correct or usable motion | Separate technical validity from motion acceptance |
+| P1 | Both models in main sword_prof graph receive segmented video only | Cannot establish whether segmentation helped here | Add same-person/time untreated or crop-only control |
+| P1 | SAM needs an edited white-background reference | Selection depends on a generative stage that already produced incomplete bodies | Accept point/box/mask/track ID directly on original |
+| P1 | Clips trimmed to 0.8–3 s before temporal inference | Lost pre/post-attack context; 24-model-frame clip especially suspect | Capture with temporal margins, then trim motion |
+| P1 | 3D previews normalize initial heading/pelvis while source keeps its camera | Silhouette comparison mixes pose and viewpoint | Separate camera-space overlay and matched native/target previews |
+| P1 | No node receives weapon, grip points or contact states | Arm rotations alone cannot guarantee two-handed grip | Controlled post-transfer grip/IK solve with known anchors |
+| P1 | Working guard has 22 bones; full MIA graph uses `fingers=false` | Better finger prediction cannot add target fingers | Prepare appropriate hand rig/geometry and grip separately |
+| P1 | Refinement partly judged by reduced jitter | Smoothing can hide lost strike speed and worse pose | Judge pose, contacts and timing separately; keep HTD optional |
 
-Нормализованные веса могут быть анатомически неверными. Но работающая
-MIA + Mixamo ветка — аргумент **не переделывать весь риг вслепую**.
-Сначала нужно проверить отдельный переход SMPL → MIA и исходный SMPL.
-Подмена модели риггинга не исправит ошибку исходной реконструкции.
+Normalized weights may be anatomically wrong, but the working MIA + Mixamo
+branch argues **against blindly rebuilding every rig**. Check source SMPL and
+SMPL → MIA transfer first. Changing riggers cannot fix source reconstruction.
 
-## Что показали имеющиеся численные данные
+## Existing numerical evidence
 
-1. У Human head-keypoint confidence около 0,96, размер человека около 631 px;
-   у некоторых Sieg — около 0,69–0,86 и 226–332 px. Это разные условия
-   наблюдения. Confidence — оценка детектора, не доказательство верной 3D-позы.
-2. Удаление фона не даёт монотонного выигрыша: например, у jump медианный
-   наклон корпуса меняется с 32,2° до 35,9°, у walk — с 12,8° до 15,1°.
-   Для Human — 10,6° → 11,3°. Это диагностические прокси без эталонного 3D;
-   они не поддерживают предположение «чистый фон обязательно лучше», но сами
-   по себе не доказывают, какая версия точнее. Исходный отчёт:
+1. Human head-keypoint confidence ~0.96, person ~631 px; some Sieg ~0.69–0.86,
+   226–332 px. Observation conditions differ. Detector confidence is not proof
+   of correct 3D pose.
+2. Background removal is not consistently better: jump torso median 32.2° →
+   35.9°, walk 12.8° → 15.1°, Human 10.6° → 11.3°. These no-ground-truth proxies
+   do not support “clean background is always better”, nor prove which version
+   is more accurate. Report:
    `workspace/sieg/posture_batch/input_and_posture_summary.json`.
-3. На сохранённых предсказаниях сравнен переход между камерной и глобальной
-   системами: `R_global(t) @ R_incam(t).T`. При настроенной статичной камере
-   он меняется относительно первого кадра до 8,83° на Human и 15,44° на jump,
-   хотя параметры локальной позы тела совпадают. Это **не ошибка переноса
-   на MIA**: разница уже есть в native prediction. Нужно проверить истинность
-   static-предположения и согласованность camera/world оценок; нельзя просто
-   подать камерные координаты в Y-up BVH. Для moving-камеры постоянство
-   этого преобразования вообще не ожидается. Отчёт:
+3. Saved camera/global predictions give `R_global(t) @ R_incam(t).T`. With a
+   configured static camera, it changes from the first frame by up to 8.83°
+   on Human and 15.44° on jump, despite matching local body poses. **This is
+   not an MIA transfer bug**: native predictions already differ. Check the
+   static assumption and camera/world consistency; do not simply put
+   camera-space coordinates into Y-up BVH. Moving cameras should not have
+   a constant transform. Report:
    `workspace/animation_graph_review/camera_space_consistency.json`.
-4. HTD на Human: root-relative jerk −66,5%, peak wrist speed −29,8%,
-   head-down proxy 22,4° → 33,0°. Автоматическое включение HTD не оправдано.
-5. Шесть локальных Qwen-отчётов сохранены в `workspace/qwen_video_review/`.
-   Каждое видео оценено лишь в двух точках. Они полезны для списка вопросов,
-   но не устанавливают причины и победителя; мелкие четыре колонки и разные
-   камеры дополнительно ограничивают такую оценку. Предположения Qwen о
-   «динамике» по двум кадрам нельзя принимать как измерение скорости.
+4. Human HTD: root-relative jerk −66.5%, peak wrist speed −29.8%, head-down
+   proxy 22.4° → 33.0°. Automatic HTD is unjustified.
+5. Six local Qwen reports in `workspace/qwen_video_review/`, each sampling
+   two points per video. Useful questions, not causes or winner selection;
+   small four-column layouts and differing cameras further limit assessment.
+   Qwen's two-frame claims about dynamics are not speed measurements.
 
-Проверка camera/world согласованности особенно важна: независимая статья
-[MoRo, разделы 5.4–5.5](https://arxiv.org/html/2601.16079v1) также рассматривает
-разницу camera- и world-результатов GVHMR/WHAM и компромисс между совпадением
-с видео и динамической правдоподобностью. Это объясняет необходимость двух
-проверок; не доказывает причину каждого нашего дефекта.
+Camera/world consistency particularly matters: independent
+[MoRo sections 5.4–5.5](https://arxiv.org/html/2601.16079v1) also discuss GVHMR/WHAM
+camera/world differences and video agreement versus dynamic plausibility.
+This motivates both checks, not a proven cause of every observed defect.
 
-## Где мы идём не тем путём
+## Where the approach goes wrong
 
-**Генеративное редактирование как обязательная подготовка.** Нужен стабильный
-выбор человека, а не более красивая картинка. Предпочтительны исходный RGB,
-track ID, box/mask prompts и сохранённая видимость. Сегментация полезна как
-разметка/условие; белый композит остаётся одной проверяемой веткой. Удалённые
-или перекрытые детали нельзя считать восстановленными реальными данными.
+**Mandatory generative preprocessing.** We need stable person selection, not
+prettier images. Prefer original RGB, track ID, box/mask prompts and retained
+visibility. Segmentation is useful annotation/conditioning; white composites
+remain an experimental branch. Removed/occluded detail is not recovered real data.
 
-**Отрезать действие слишком рано.** Обработать, например, тот же интервал
-с 1–2 с до/после в пределах лимита сервера, а конечный игровой клип выделить
-после захвата. Это гипотеза для A/B, не установленная причина текущего наклона
-головы. Удлинение до произвольного фиксированного числа кадров не гарантирует
-исправления; оригинальные 25 fps не превращаются в настоящий 30/60-fps захват
-от повторения кадров. Для быстрых рук важны исходная частота и выдержка.
+**Trimming actions too early.** Test the same interval with 1–2 seconds before
+and after, within server limits, then trim the game clip after capture. This
+is an A/B hypothesis, not an established cause of head lean. Arbitrary fixed
+frame counts do not guarantee fixes; duplicating original 25 fps does not
+create true 30/60-fps capture. Fast hands need actual source frame rate and
+shutter speed.
 
-**Считать mocap готовой игровой анимацией.** Перенос вращений на другие
-пропорции меняет положение кистей/стоп. Сохранить вращения недостаточно для
-контакта с одним жёстким мечом. Нужны два grip anchors, ведущая рука/оружие,
-IK второй руки, ограничения локтя и интервалы контакта. Простое сближение
-кистей без оси оружия/ориентации ладоней не задаёт двуручный хват.
-[Two Bone IK Unity](https://docs.unity3d.com/Packages/com.unity.animation.rigging@1.3/manual/constraints/TwoBoneIKConstraint.html)
-описывает управление конечностью через target и hint; применение к хвату
-здесь — инженерная рекомендация, а не обещание восстановить скрытый меч.
+**Treating mocap as finished game animation.** Transferring rotations between
+proportions moves hands/feet. Rotation preservation cannot ensure contact with
+one rigid sword. Need two grip anchors, a leading hand/weapon, off-hand IK,
+elbow constraints and contact intervals. Bringing wrists together without
+weapon axis/palm orientation does not define two-handed grip.
+[Unity Two Bone IK](https://docs.unity3d.com/Packages/com.unity.animation.rigging@1.3/manual/constraints/TwoBoneIKConstraint.html)
+describes target/hint limb control; applying it to grip is an engineering
+recommendation, not a promise to recover an occluded sword.
 
-**Добавлять ещё одно сглаживание.** GVHMR уже запускает `postproc=True`,
-`pp_static_joint[_cam]` и `process_ik`. Нет основания утверждать, что у него
-совсем отсутствует коррекция опоры. Отдельный solve нужен на **целевом** риге
-после изменения пропорций и с контактами оружия. Для отрыва стоп он не должен
-принудительно приклеивать обе ноги к полу.
+**Adding more smoothing.** GVHMR already runs `postproc=True`,
+`pp_static_joint[_cam]` and `process_ik`; claiming no support correction is
+unfounded. A separate **target-rig** solve is needed after proportion changes,
+with weapon contacts. Do not glue both feet down during airborne motion.
 
-## Предлагаемый граф
+## Proposed graph
 
 ```mermaid
 flowchart TD
-    A[Оригинал + fps и таймкоды] --> B[Выбор человека: track + mask/box + visibility]
-    B --> C[Более длинный рабочий интервал с запасом]
-    C --> D[Native human motion + K + camera + confidence]
+    A[Original plus fps and timecodes]
+    A --> B[Person selection: track, mask/box, visibility]
+    B --> C[Longer working interval with margins]
+    C --> D[Native human motion, K, camera, confidence]
     A --> D
-    D --> E{Проверка source pose с камерой исходника}
-    E -->|не проходит| X[Исправить выбор/вход/модель; не маскировать retarget-ом]
-    E -->|проходит| F[Одинаковый проверенный перенос на MIA]
-    R[Риг и grip-профиль оружия] --> F
-    F --> G[Контакты целевого тела: руки, оружие, опора]
-    G --> H[Обрезка действия и выбор root-motion режима]
-    H --> I[FBX + численный отчёт + локальные текстовые наблюдения]
+    D --> E{Source pose check with original camera}
+    E -->|fails| X[Fix selection/input/model; do not hide with retargeting]
+    E -->|passes| F[Identical validated MIA transfer]
+    R[Rig and weapon grip profile] --> F
+    F --> G[Target contacts: hands, weapon, support]
+    G --> H[Action trim and root-motion selection]
+    H --> I[FBX, numeric report, local text observations]
 ```
 
-Это **проект следующего эксперимента**, не уже установленный pipeline.
-Большинство добавлений — артефакты, проверки и детерминированная обработка,
-а не ещё несколько тяжёлых нейросетей. Нельзя превратить каждый блок в новый
-«псевдосервер» без необходимости: подготовку/solve можно разместить в
-существующем `animation_tools`, модельные стадии — в отдельных окружениях.
+This is **the next experiment's design**, not an installed pipeline. Most
+additions are artifacts, checks and deterministic processing, not more heavy
+networks. Do not make every block an unnecessary pseudo-server: preparation
+and solving can live in `animation_tools`, model stages in isolated environments.
 
-Для GVHMR логично разделить «native motion» и «motion → target FBX» на две
-задачи с одним выходом каждая. Пакет native motion версионируется сервером;
-формат SMPL/MHR не должен попадать в SDK. Текущий `video-to-motion` можно
-сохранить как совместимый shortcut. HTD возможна между native motion и
-retarget, только после отдельного A/B. Для MoCapAnything нужно сохранять
-его native joints/rotations/rig metadata, не притворяться, что это SMPL.
+Split GVHMR native motion and motion → target FBX into two one-output tasks.
+Version native packages in servers; SMPL/MHR formats do not belong in the SDK.
+Keep `video-to-motion` as a compatible shortcut. HTD can sit before retargeting
+only after separate A/B testing. Preserve MoCapAnything's native joints,
+rotations and rig metadata rather than pretending it is SMPL.
 
-## Кандидаты вместо текущего захвата
+## Capture alternatives
 
-Это кандидаты на проверку, **не измеренные победители на sword_prof**.
+Candidates for testing, **not measured sword_prof winners**:
 
-| Кандидат | Почему соответствует нашей проблеме | Ограничения и решение |
+| Candidate | Relevance | Limitations and decision |
 | --- | --- | --- |
-| **PromptHMR-video + BEDLAM2 checkpoints** | Оригинальный RGB + box/mask prompts, несколько людей, video/world pipeline | Первый кандидат для смены получения позы/выбора человека. В опубликованном коде temporal head основан на GVHMR, поэтому это не полностью независимый захват. Default batch 16 при 896 px не подтверждён на наших 8 ГБ; нужен batch-1/последовательный пилот |
-| **MoRo, 3DV 2026** | Специально моделирует перекрытия и последовательность движения; выпущены код, веса и custom-video demo | Независимый кандидат для одного статичного фехтовального теста. Не предсказывает пальцы/лицо. Demo world-view предполагает identity camera, moving-ветку надо интегрировать отдельно; 70 FPS у авторов измерены на H200, не на нашей карте |
-| **SAM 3D Body** | Независимая оценка тела, кистей и стоп, prompts; полезен для проверки редких поз | Это single-image модель, не готовый temporal/world mocap. MHR вместо SMPL — нужен корректный адаптер; покадровый запуск сам по себе создаёт риск дрожания. Сначала маленький диагностический пилот, не массовая замена |
-| **SAM-Body4D** | Уже объединяет сегментацию, восстановление перекрытий и SAM 3D Body во времени | Не первый локальный выбор: опубликованный single-person пример без completion — 14,49 GB; multi-person completion — 35–53 GB и около 27 минут на H800. Нужна существенная адаптация для 8 ГБ |
-| **WHAM** | Альтернативный контроль камеры, траектории и опоры | Полезны для конкретной camera/root гипотезы; возраст/другая архитектура не доказывают превосходства в фехтовании. Не подключать без сформулированного теста |
+| **PromptHMR-video + BEDLAM2 checkpoints** | Original RGB, box/mask prompts, multiple people, video/world pipeline | First pose/selection replacement candidate. Temporal head uses GVHMR, so not fully independent. Default batch 16 at 896 px unverified on 8 GB; needs batch-one/sequential pilot |
+| **MoRo, 3DV 2026** | Explicit occlusion and temporal modeling; released code, weights, custom-video demo | Independent static fencing test candidate. No fingers/face. Demo world view assumes identity camera; moving-camera integration separate. Authors' 70 FPS is on H200, not our GPU |
+| **SAM 3D Body** | Independent body/hand/foot estimation and prompts; useful for rare-pose checks | Single-image, not turnkey temporal/world capture. MHR rather than SMPL needs a correct adapter; framewise use risks jitter. Start with small diagnostic pilot |
+| **SAM-Body4D** | Combines segmentation, occlusion completion and temporal SAM 3D Body | Not first local choice: single-person without completion 14.49 GB; multiperson completion 35–53 GB, ~27 min on H800. Major 8 GB adaptation needed |
+| **WHAM** | Alternative camera, path and support control | Use for specific camera/root hypothesis; age or architecture does not prove fencing superiority. Do not integrate without a defined test |
 
-Источники проверены 19 октября 2026:
+Sources checked October 19, 2026:
 
-- [PromptHMR, официальный код и BEDLAM2 веса](https://github.com/yufu-wang/PromptHMR),
-  [использование GVHMR head, batch и masks](https://github.com/yufu-wang/PromptHMR/blob/3b566b7dbb28ce506c7ea972c18693f4c705ce8c/pipeline/phmr_vid.py).
-- [MoRo, официальный репозиторий](https://github.com/mikeqzy/MoRo),
-  [camera assumption в demo](https://github.com/mikeqzy/MoRo/blob/1f18c4f0d6db55d6b00327fb35c3e8d8d2fbfe82/demo.py),
-  [статья](https://arxiv.org/html/2601.16079v1).
-- [SAM 3D Body, официальный репозиторий Meta](https://github.com/facebookresearch/sam-3d-body).
+- [PromptHMR official code and BEDLAM2 weights](https://github.com/yufu-wang/PromptHMR),
+  [GVHMR head, batch and masks](https://github.com/yufu-wang/PromptHMR/blob/3b566b7dbb28ce506c7ea972c18693f4c705ce8c/pipeline/phmr_vid.py).
+- [MoRo official repository](https://github.com/mikeqzy/MoRo),
+  [demo camera assumption](https://github.com/mikeqzy/MoRo/blob/1f18c4f0d6db55d6b00327fb35c3e8d8d2fbfe82/demo.py),
+  [paper](https://arxiv.org/html/2601.16079v1).
+- [Meta SAM 3D Body](https://github.com/facebookresearch/sam-3d-body).
 - [SAM-Body4D](https://github.com/gaomingqi/sam-body4d),
-  [профиль памяти и времени](https://github.com/gaomingqi/sam-body4d/blob/21af1020979ef32ddf6be3597ef59a68bad2f1bf/assets/doc/resources.md).
-- [WHAM, официальный код](https://github.com/yohanshin/WHAM).
+  [memory/time profile](https://github.com/gaomingqi/sam-body4d/blob/21af1020979ef32ddf6be3597ef59a68bad2f1bf/assets/doc/resources.md).
+- [WHAM official code](https://github.com/yohanshin/WHAM).
 
-MoCapAnything V2 не надо ошибочно списывать как «только для животных»:
-[авторы показывают и человеческие скелеты](https://animotionlab.github.io/MoCapAnythingV2/).
-В нашем README описание было слишком узким. Но arbitrary-skeleton capture
-не гарантирует двуручного хвата; для человеческих действий отдельный
-human-specific контроль всё равно полезен. Kimodo решает другую задачу —
-генерацию движения по тексту, а не точное повторение исходного фехтования.
+Do not dismiss MoCapAnything V2 as animal-only:
+[the authors also show human skeletons](https://animotionlab.github.io/MoCapAnythingV2/).
+Our README was too narrow. Arbitrary-skeleton capture still does not guarantee
+two-handed grip; a human-specific control remains useful. Kimodo solves a
+different task: text-to-motion generation, not exact source-fencing reproduction.
 
-## Порядок действий
+## Action order
 
-1. **Сначала локализация ошибки:** сохранить native motion и camera; вывести
-   incam overlay и native/target в одинаковом ракурсе. Проверить source/target
-   позы на Human и одном sword_prof эпизоде. Никакого массового перерига.
-2. **Затем вход:** один и тот же track, raw/crop-only vs masked, с/без временных
-   запасов. Держать неизменными риг, модель, камеру и конечный диапазон.
-3. **Затем одна новая модель:** PromptHMR-video с маской на оригинальном RGB;
-   независимая проверка MoRo для перекрытий при статичной камере. Проверить
-   потребление памяти и native-позу прежде, чем подключать весь граф.
-4. **После приемлемого source motion:** grip/IK и проверка опоры на целевом
-   персонаже; экспорт игровых клипов. HTD не включать по умолчанию.
-5. **Приёмка:** пользователь подтверждает конкретный пилот, затем масштабируем
-   набор. Локальный VLM и технические тесты помогают, но не заменяют эту оценку.
+1. **Locate errors first:** retain native motion/camera; render camera-space
+   overlay and matched native/target views. Check Human and one sword_prof
+   episode. No mass rerigging.
+2. **Then input:** same track, raw/crop-only versus masked, with/without temporal
+   margins; hold rig, model, camera and final interval fixed.
+3. **Then one new model:** PromptHMR-video with original-RGB masks; independent
+   static-camera MoRo occlusion check. Validate memory and native pose before
+   expanding the graph.
+4. **After acceptable source motion:** grip/IK and target-body support checks,
+   then game-clip export. Do not enable HTD by default.
+5. **Acceptance:** user approves a concrete pilot before scaling. Local VLM
+   and technical tests help but do not replace that judgment.
 
-Массовые повторные прогоны и установка всех перечисленных моделей в рамках
-этого ревью не выполнялись. Самая вероятная картина — сочетание неоднозначного
-входа, camera/world оценок и отсутствия контактов после переноса; одной
-подтверждённой причиной всех дефектов текущие данные не располагают.
+This review did not mass-rerun jobs or install all candidates. The likely picture
+combines ambiguous input, camera/world estimates and missing post-transfer
+contacts; current evidence does not establish a single cause for all defects.
 
 ## PromptHMR controlled pilot (2026-10-19)
 
@@ -230,36 +218,31 @@ fencing control with visible feet and stable camera before scaling variants.
 PromptHMR's research-only license also prevents treating it as an unrestricted
 production replacement.
 
-## SMPL → MIA: подтверждённая ошибка ключиц (2026-10-19)
+## SMPL → MIA: confirmed clavicle bug (2026-10-19)
 
-Построен простой нетекстурированный манекен на геометрии SMPL-X и заново
-заригжен MIA. Контроль с известными суставами/весами отделил перенос от
-нейросетевого риггинга. Нулевые вращения SMPL поднимали оба плеча MIA примерно
-на 9,2 см: профиль `smpl` ошибочно применял нейтральное выравнивание направлений
-ключиц к уже нейтральному целевому телу. Теперь нейтральные ключицы сохраняются,
-а реальные вращения переносятся. Путь `rotations` для MIA + Mixamo не менялся.
+A simple untextured SMPL-X mannequin was rerigged with MIA. A control with known
+joints/weights separated transfer from neural rigging. Zero SMPL rotations
+raised both MIA shoulders about 9.2 cm: `smpl` wrongly applied neutral clavicle
+direction alignment to an already neutral target. Neutral clavicles are now
+preserved while actual rotations transfer. MIA + Mixamo `rotations` is unchanged.
 
-Среднее отклонение поверхности на 120 кадрах уменьшилось с 6,04 до 3,86 см
-для GVHMR и с 5,80 до 3,58 см для PromptHMR. Это сопоставление с нативным телом
-одной формы, не ground truth. Численные положения головы/груди при исправлении
-не менялись: этот фикс не решает исходную ошибку позы мокап-модели.
+Mean 120-frame surface deviation fell 6.04 → 3.86 cm for GVHMR and 5.80 → 3.58 cm
+for PromptHMR. This compares a same-shape native body, not ground truth. Numeric
+head/chest positions did not change; this does not fix source-model pose errors.
 
-Эксперимент, сохранённые графы, до/после на прежнем стражнике и автономный
-покадровый просмотр: `workspace/rigging_lab/README.md` и `index.html`.
-14 Blender-регрессий проверяют в том числе реальные вращения ключиц,
-нейтральную позу и три режима корня. Дополнительный `matched-neutral` режим
-доступен только для уже совпадающей нейтральной позы поверхности, не по умолчанию.
+Experiment, saved graphs, old-guard before/after and standalone frame review:
+`workspace/rigging_lab/README.md` and `index.html`. Fourteen Blender regressions
+cover actual clavicle rotations, neutral pose and three root modes. Optional
+`matched-neutral` is only for already matching neutral surfaces, not a default.
 
-Qwen получил 16 крупных сравнений конкретных кадров. Попытки свести несколько
-маленьких пар в один лист давали неверное число строк/кадров и исключены из
-доказательств. Даже крупные описания иногда утверждают изменение головы,
-которого нет в численных данных. Поэтому VLM не является автоматическим
-приёмочным тестом. SkinTokens и UniRig отложены по просьбе пользователя.
+Qwen received 16 large individual-frame comparisons. Contact sheets with small
+pairs misreported row/frame counts and were excluded. Even large descriptions
+sometimes claim head changes absent from numeric data. VLM is not an automatic
+acceptance test. SkinTokens/UniRig were deferred at the user's request.
 
-После исправления плеч отдельно воспроизведён дефект стоп стражника:
-нулевые вращения SMPL добавляли 23,09/23,73° к стопам и носкам. Разница наклона
-векторов ankle→toe в нейтральных скелетах ошибочно использовалась как угол
-подошвы. Профиль SMPL теперь сохраняет нейтральную ориентацию также стоп и
-носков, передавая их реальные вращения. Это общий фикс, без индивидуальных
-поправок стражника. Проверены все 120 кадров GVHMR/PromptHMR: головы, плечи
-и положения голеностопов не изменились. Артефакты `workspace/rigging_lab/feet_*`.
+After shoulder fixes, a separate guard-foot defect was reproduced: zero SMPL
+rotations added 23.09/23.73° to feet/toes. Different neutral ankle→toe vector
+tilts were wrongly treated as sole angles. SMPL now preserves neutral foot/toe
+orientation while transferring actual rotation. This is a general fix without
+individual guard offsets. Across all 120 GVHMR/PromptHMR frames, heads, shoulders
+and ankle positions stayed unchanged. Artifacts: `workspace/rigging_lab/feet_*`.

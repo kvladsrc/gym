@@ -1,148 +1,131 @@
-# Как персонаж получает движение
+# How a character receives motion
 
-В студии встречаются два разных вида «модели»: геометрическая модель
-персонажа и нейросеть, которая что-то предсказывает. SMPL-X — ещё один
-вид модели: параметрическое описание человеческого тела с уже
-согласованными геометрией, скелетом и деформациями. Эти понятия
-полезно различать.
+Studio uses “model” in different senses: a character's geometric model and a
+neural network that predicts something. SMPL-X is another kind: a parametric
+human body description with coordinated geometry, skeleton and deformations.
+Keeping these meanings separate is useful.
 
-## Поверхность, скелет и привязка
+## Surface, skeleton and binding
 
-**Mesh, или сетка** — поверхность из вершин, соединённых
-треугольниками.  Текстура задаёт цвет поверхности; сама по себе она не
-помогает ей двигаться.  Броня и одежда могут быть отдельными сетками,
-следующими одному скелету.
+A **mesh** is a surface of vertices connected by triangles. Textures provide
+surface color but do not make it move. Armor and clothes may be separate
+meshes following one skeleton.
 
-**Сустав** — точка, относительно которой поворачивается часть тела.
+A **joint** is a point around which a body part rotates.
 
-**Кость** в Blender — элемент скелета со своим началом, концом и
-локальными осями. Иерархия задаёт родителей: таз → позвоночник → плечо
-→ предплечье → кисть.  Поворот плеча переносит всю зависимую
-цепочку. Нарисованная палочка кости — лишь отображение; для анимации
-важны её матрица, оси и положение сустава.
+A Blender **bone** is a skeleton element with a head, tail and local axes.
+Hierarchy defines parents: pelvis → spine → upper arm → forearm → hand.
+Rotating an upper arm moves the entire child chain. The displayed bone stick
+is only a visualization; its matrix, axes and joint position matter for animation.
 
-**Риг** содержит скелет и привязку сетки. В более сложных инструментах
-в него входят также управляющие объекты, ограничения и IK. Наш выход
-MIA — в основном скелет Mixamo и веса кожи, а не готовый
-художественный управляющий риг.
+A **rig** contains the skeleton and mesh binding. More advanced tools also
+include controls, constraints and IK. Our MIA output is mainly a Mixamo
+skeleton and skin weights, not a finished artist control rig.
 
-**Веса кожи, skinning weights** задаются для каждой вершины. Например,
-вершина возле локтя может на 60% следовать предплечью и на 40%
-плечу. Обычно их сумма равна 1. Нормализованные веса могут быть
-анатомически неверными: если вершина груди привязана к руке, при
-поднятии руки грудь потянется следом.  Это не те же самые «веса», что
-параметры обученной нейросети.
+**Skinning weights** are assigned per vertex. A vertex near an elbow might
+follow the forearm 60% and upper arm 40%; weights normally sum to 1. Normalized
+weights can still be anatomically wrong: a chest vertex bound to the arm
+will move when the arm rises. These are not neural network weights.
 
-**Скиннинг** вычисляет новую поверхность по скелету и этим весам. При
-линейном скиннинге (LBS) преобразованные положения вершины смешиваются
-по долям влияния костей. Даже правильный LBS может терять объём на
-сильном скручивании.
+**Skinning** computes a new surface from the skeleton and weights. Linear
+blend skinning (LBS) mixes transformed vertex positions by bone influence.
+Even correct LBS may lose volume under strong twisting.
 
-**Поза покоя, rest pose** — исходное расположение костей, например T-
-или A-поза. **Bind pose** — конфигурация, в которой сетку привязали к
-скелету.  Обычно они согласованы; импорт и экспорт обязаны сохранять
-обратные матрицы привязки. Ошибка здесь может деформировать тело ещё
-до первого движения.
+The **rest pose** is the initial bone arrangement, such as T- or A-pose.
+The **bind pose** is the configuration in which the mesh was bound to the
+skeleton. Usually these agree; import/export must preserve inverse bind
+matrices. An error can deform the body before any movement.
 
-**Клип анимации** — последовательность преобразований костей во
-времени.  Повороты обычно записываются относительно родителей, а
-перемещение корня задаёт путь персонажа. Если 120 кадров записаны с
-частотой 30 fps, это 4 секунды.  FBX и GLB — контейнеры; их наличие
-само по себе не означает, что скелеты двух персонажей совместимы.
+An **animation clip** is a sequence of bone transforms over time. Rotations
+are usually relative to parents, while root translation defines travel.
+120 frames at 30 fps is four seconds. FBX and GLB are containers; sharing
+a format does not imply compatible skeletons.
 
-## Что делает SMPL-X
+## What SMPL-X does
 
-SMPL-X строит поверхность по параметрам телосложения (`betas`), позы
-тела, кистей и лица, выражения лица, общего поворота и перемещения. В
-используемом нейтральном теле 10 475 вершин. Стандартные суставы, веса
-и сетка уже согласованы.  Кроме обычного скиннинга модель содержит
-обученные корректировки формы, зависящие от позы: поэтому одинаковые
-кости в Blender и SMPL-X не обязаны давать абсолютно одинаковую
-поверхность без этих корректировок.
+SMPL-X builds a surface from body-shape parameters (`betas`), body/hand/face
+poses, facial expression, global rotation and translation. The neutral body
+used here has 10,475 vertices. Standard joints, weights and mesh already agree.
+Besides ordinary skinning, it includes learned pose-dependent shape corrections:
+identical Blender and SMPL-X bones need not produce identical surfaces without
+them.
 
-SMPL-X сам по себе не извлекает движение из видео. Этим занимаются
-GVHMR и PromptHMR: оценивают параметры тела и камеры, которые затем
-интерпретирует SMPL-X. Ошибочный наклон головы может уже находиться в
-этих параметрах.  Модель тела при этом корректно покажет ошибочно
-предсказанную позу.
+SMPL-X does not extract motion from video itself. GVHMR and PromptHMR estimate
+body and camera parameters, which SMPL-X then interprets. An incorrect head
+lean may already exist in those parameters; the body model correctly displays
+the incorrectly predicted pose.
 
-Источники: [описание SMPL-X](https://smpl-x.is.tue.mpg.de/),
-[официальная реализация](https://github.com/vchoutas/smplx).
+Sources: [SMPL-X description](https://smpl-x.is.tue.mpg.de/),
+[official implementation](https://github.com/vchoutas/smplx).
 
-## Наши две сходящиеся ветки
+## Our two converging branches
 
 ```mermaid
 flowchart TD
-    A[Видео] --> B[Трек выбранного человека и 2D-суставы]
-    B --> C[GVHMR или PromptHMR]
-    C --> D[Параметры SMPL-X, движение и камера]
-    D --> E[Нативное тело SMPL-X: контроль]
-    F[Сетка игрового персонажа] --> G[MIA: скелет Mixamo и веса]
-    G --> H[Подготовка и проверка рига]
-    D --> I[Наш перенос SMPL → целевой риг]
+    A[Video] --> B[Selected person track and 2D joints]
+    B --> C[GVHMR or PromptHMR]
+    C --> D[SMPL-X parameters, motion and camera]
+    D --> E[Native SMPL-X body: control]
+    F[Game character mesh] --> G[MIA: Mixamo skeleton and weights]
+    G --> H[Rig preparation and validation]
+    D --> I[Our SMPL to target rig transfer]
     H --> I
-    I --> J[Кости персонажа во всех кадрах]
-    J --> K[Скиннинг поверхности]
-    K --> L[Анимированный FBX]
+    I --> J[Character bones across all frames]
+    J --> K[Surface skinning]
+    K --> L[Animated FBX]
 ```
 
-Нейросеть MIA не должна запускаться для каждого кадра: она один раз
-делает риг статического персонажа. После этого один риг может получать
-много клипов.  В пилотном PromptHMR-сервере трек пока импортируется из
-сохранённой обработки GVHMR; автоматическое выделение трека новых
-загрузок ещё не встроено.
+MIA should not run on every frame: it rigs a static character once, after
+which the rig can receive many clips. The pilot PromptHMR server currently
+imports a track from saved GVHMR processing; automatic tracking of new uploads
+is not yet integrated.
 
-**Подготовка рига** проверяет структуру, наличие весов и сбрасывает
-старую анимацию. Она не умеет автоматически исправлять неверно
-предсказанный локоть.
+**Rig preparation** checks structure and weights and resets old animation.
+It cannot automatically fix a wrongly predicted elbow.
 
-**Ретаргетинг** сопоставляет кости, согласует направления в позах
-покоя, повороты и пропорции, а затем записывает движение на целевой
-скелет. В нашем SMPL-профиле переносятся 22 сустава тела. Не все
-возможности SMPL-X попадают в этот путь: полноценные пальцы, лицо и
-хват оружия здесь не восстанавливаются.  Кости с одинаковым названием
-могут иметь немного разный анатомический смысл.  Например, положение
-`Head` в Mixamo не обязано совпадать с суставом SMPL-X.
+**Retargeting** matches bones, aligns rest-pose directions, rotations and
+proportions, then writes motion onto the target skeleton. Our SMPL profile
+transfers 22 body joints. It does not cover all SMPL-X capabilities: full
+fingers, face and weapon grip are not reconstructed. Identically named bones
+may have different anatomical meanings; Mixamo's `Head` position need not
+coincide with the SMPL-X joint.
 
-**Координаты и камера** — самостоятельный источник расхождений. Нужно
-согласовать направление вверх, направление взгляда, метры/сантиметры и
-положение тела относительно камеры. Изменение ракурса картинки ещё не
-означает ошибку позы. Для сопоставления с видео следует использовать
-камеру и позу в координатах камеры, а не произвольный вид мирового
-тела сбоку.
+**Coordinates and camera** independently cause discrepancies. Align up,
+facing direction, meters/centimeters and body position relative to camera.
+A changed viewpoint alone does not prove a pose error. To compare with video,
+use the camera and camera-space pose, not an arbitrary side view of the
+world-space body.
 
-**Root motion** управляет корнем: `world` сохраняет путь; `stationary`
-убирает горизонтальный путь и сохраняет повороты; `in-place` убирает
-также повороты курса. Вертикальное движение и наклон остаются.
+**Root motion** controls the root: `world` keeps travel; `stationary` removes
+horizontal travel and retains turns; `in-place` also removes heading changes.
+Vertical movement and lean remain.
 
-**IK, inverse kinematics** — способ подбирать повороты костей по
-желаемому положению конечной точки: например, удержать стопу на полу
-или кисть на рукояти.  Он отличается от простого копирования
-вращений. Даже хороший захват движения и хороший риг не гарантируют
-двухручный хват меча без соответствующих ограничений.
+**IK (inverse kinematics)** chooses bone rotations to reach an end-point
+target, such as a foot on the floor or a hand on a grip. It differs from copying
+rotations. Even good capture and rigs do not guarantee a two-handed sword grip
+without corresponding constraints.
 
-## Как локализовать проблему
+## Locating a problem
 
-| Где видно расхождение | Что проверить первым |
+| Where the discrepancy appears | Check first |
 | --- | --- |
-| Уже на нативном теле | Входное видео, трек, 2D-суставы, модель мокапа, камера |
-| Нативное тело верное, известный контрольный риг неверный | Оси, единицы, rest/bind pose, экспорт движения, перенос |
-| Известный риг верный, автоматический риг отличается | Размещение суставов и веса MIA, преобразования входной геометрии |
-| Кости выглядят верно, поверхность ломается | Веса кожи, bind matrices, метод скиннинга, отсутствие корректировок |
-| Общая поза верна, стопы скользят или кисти теряют меч | Контакты, IK, ограничения оружия и конечностей |
+| Already on the native body | Video, track, 2D joints, mocap model, camera |
+| Native body correct, known control rig wrong | Axes, units, rest/bind pose, motion export, transfer |
+| Known rig correct, automatic rig differs | MIA joint placement and weights, input geometry transforms |
+| Bones look right, surface breaks | Skin weights, bind matrices, skinning method, missing correctives |
+| Overall pose correct, feet slide or hands lose sword | Contacts, IK, weapon and limb constraints |
 
-Покадровое сравнение через Qwen — дополнительный наблюдатель: он может указать
-видимые отличия, но не измеряет скрытые суставы и не доказывает причину ошибки.
-Результат следует сопоставлять с численными траекториями костей и поверхности.
-Контролируемый эксперимент хранится в `workspace/rigging_lab/`: одна простая
-геометрия, нативная анимация, известные веса и риг MIA. Его граф сохранён в Studio
-Flow, а покадровый просмотр находится в `index.html`.
+Frame-by-frame Qwen comparison is an additional observer: it can flag visible
+differences but cannot measure hidden joints or prove an error's cause. Compare
+its output with numerical bone and surface trajectories. The controlled
+experiment is in `workspace/rigging_lab/`: simple geometry, native animation,
+known weights and an MIA rig. Its graph is saved in Studio Flow; frame review
+is in `index.html`.
 
-Практический пример из отладки: у стражника кость между голеностопом и носком
-наклонена примерно на −46°, а у SMPL-X на −25°. Это различие расположения
-суставов внутри сапога, а не указание повернуть подошву на 21°. Раньше перенос
-превращал его в лишние ~23° вращения стопы даже при нулевой позе. Исправление
-сохраняет нейтральную ориентацию стопы и переносит только предсказанное движение.
-Аналогичная ошибка ключиц давала около 9 см лишнего подъёма плеч. Такие дефекты
-проверяются без видео: при нулевой исходной позе соответствующие части тела
-не должны получать дополнительный поворот из-за одного лишь отличия формы.
+A debugging example: the guard's ankle-to-toe bone is tilted about −46°, versus
+SMPL-X's −25°. This reflects joint placement inside the boot, not an instruction
+to rotate the sole by 21°. Previously transfer added about 23° of foot rotation
+even at zero pose. The fix preserves neutral foot orientation and transfers
+only predicted motion. A similar clavicle error added about 9 cm of shoulder
+rise. These defects can be checked without video: at zero source pose, the
+corresponding body parts should not gain rotations solely from shape differences.

@@ -1,77 +1,75 @@
 # MoCapAnything model server
 
-Задача `video-to-motion`: видео с человеком или животным + его риг (FBX или GLB
-со
-скелетом, например из `skintokens`) → тот же риг, движущийся как на видео
-(FBX). [MoCapAnything V2](https://animotionlab.github.io/MoCapAnythingV2/)
-(Gong и др., 2026) предсказывает суставы произвольного скелета по
-монокулярному видео сквозным путём: видео → позиции → вращения, по опорному
-кадру рига (признаки DINOv2, имена суставов через T5). Исходники — [phongdaot/MocapAnything](https://github.com/phongdaot/MocapAnything),
-репозиторий, на который ссылается официальный проект V2; веса авторов.
+The `video-to-motion` task takes a human or animal video and its rig (FBX or
+skeletal GLB, for example from `skintokens`), returning the same rig moving as
+in the video (FBX). [MoCapAnything V2](https://animotionlab.github.io/MoCapAnythingV2/)
+(Gong et al., 2026) predicts arbitrary-skeleton joints end to end from monocular
+video: video → positions → rotations, using a rig reference frame (DINOv2
+features, joint names through T5). Source:
+[phongdaot/MocapAnything](https://github.com/phongdaot/MocapAnything), the repository
+linked by the official V2 project, with the authors' weights.
 
 ```sh
-just setup     # исходники, окружение Python 3.11 + PyTorch 2.8/CUDA 12.9
-just download  # веса (464 МБ), RMBG-1.4, DINOv2-large, T5-base (только сеть)
-just doctor    # ещё и Blender: нужен в PATH (или BLENDER)
+just setup     # source, Python 3.11 + PyTorch 2.8/CUDA 12.9 environment
+just download  # weights (464 MB), RMBG-1.4, DINOv2-large, T5-base (network only)
+just doctor    # also checks Blender, required in PATH (or BLENDER)
 just serve     # http://127.0.0.1:9122
-just test      # без GPU, весов и Blender
+just test      # no GPU, weights or Blender needed
 ```
 
-Каждое задание — путь авторов для своего рига (`examples/custom_rig`) в
-дочерних процессах, затем перенос предсказанного BVH на входной риг.
-Что пришлось добавить для ригов SkinTokens (всё найдено на лошади, по
-сравнению с лошадью Truebones из демо-данных, где те же шаги работают):
+Each job runs the authors' custom-rig path (`examples/custom_rig`) in child
+processes, then transfers the predicted BVH onto the input rig. Additions needed
+for SkinTokens rigs (found on a horse by comparison with the demo's Truebones
+horse, where the same steps work):
 
-- **Единицы и оси** (`prepare_rig.py`): пайплайн писан под Truebones Zoo
-  из 3ds Max — кости в сантиметрах, Y вверх. Риг в метрах сжимался в
-  сто раз, и камера опорного рендера оказывалась внутри меша.
-- **Движение рига**: пайплайн берёт опорный кадр из анимации, у свежего
-  рига её нет — делается анимация из позы покоя.
-- **Статичные суставы**: пайплайн помечает суставы, не вращающиеся в
-  анимациях рига; по позе покоя это все, и меш стоял. Список вращений
-  очищается.
-- **Имена суставов** (`naming.py`): `bone_0…` после срезания цифр стали бы
-  одним словом «bone» для T5; имена в духе обучающих данных
-  («quadruped leg left 01») ставятся по форме скелета — пока только для
-  четвероногих.
-- **Направление морды**: догадка пайплайна развернула лошадь почти
-  назад; направление берётся от таза к голове.
-- **Этап `fix_fbx` пропущен**: он убирает невесомые кости-концы 3ds Max
-  Biped и требует анимацию на базовом FBX.
-- **Теневая копия исходников на задание**: два этапа читают `zoo/` в
-  корне исходников, что бы ни говорил `ZOO_ROOT`.
-- **PYTHONPATH**: Blender из nix экспортирует пакеты своего Python 3.13,
-  а скрипты авторов передают его своему Python.
+- **Units and axes** (`prepare_rig.py`): the pipeline targets Truebones Zoo
+  from 3ds Max, with bones in centimeters and Y up. A rig in meters shrank
+  100-fold, putting the reference-render camera inside the mesh.
+- **Rig motion**: the reference frame comes from rig animation. A fresh rig
+  has none, so an animation is created from its rest pose.
+- **Static joints**: the pipeline marks joints that do not rotate in rig
+  animations. In a rest pose that means all joints, freezing the mesh. The
+  rotation list is cleared.
+- **Joint names** (`naming.py`): stripping digits from `bone_0…` would give T5
+  the same word, “bone”. Names resembling training data (“quadruped leg left
+  01”) are assigned from skeleton shape; quadrupeds only for now.
+- **Facing direction**: the pipeline's guess turned the horse almost backward.
+  Direction is derived from pelvis to head instead.
+- **`fix_fbx` is skipped**: it removes unweighted 3ds Max Biped end bones and
+  requires animation on the base FBX.
+- **Per-job shadow source tree**: two stages read `zoo/` from the source root
+  regardless of `ZOO_ROOT`.
+- **PYTHONPATH**: Nix Blender exports Python 3.13 packages, and upstream scripts
+  pass this environment to their own Python.
 
-Перенос (`model_server_sdk/retarget.py`, общий с `gvhmr`) проверяет себя:
-печатает наибольшее расхождение
-суставов результата и BVH (на лошади 2 мкм).
+Transfer (`model_server_sdk/retarget.py`, shared with `gvhmr`) checks itself:
+it prints the maximum difference between output joints and BVH (2 µm on the horse).
 
-Параметр `root_motion`: `in-place` — походка на месте, курс и путь задаёт
-игра; `stationary` — на месте, но с поворотами тела (для атак и разворотов);
-`world` — как предсказала модель, с поворотами и путём (на видео с
-панорамой лошадь, бегущая по дуге, разворачивается).
+`root_motion`: `in-place` keeps locomotion in place, leaving heading and travel
+to the game; `stationary` stays in place but retains body turns (for attacks
+and turns); `world` preserves model-predicted turns and travel (a horse running
+an arc turns in a panning video).
 
-Для видео после `birefnet / video-to-video` включите `background_removed`:
-кадры на белом фоне кадрируются с отступом, без повторного RMBG. Этот
-режим сохраняет готовые пиксели, включая светлые детали внутри контура.
-По умолчанию параметр выключен и исходный фон убирает RMBG. Опорные
-рендеры рига обрабатываются отдельно; их подготовка не меняется.
+For video from `birefnet / video-to-video`, enable `background_removed`:
+white-background frames are cropped with padding without repeating RMBG.
+This preserves prepared pixels, including light details inside the silhouette.
+The default is off, with RMBG removing the original background. Rig reference
+renders are processed separately; their preparation is unchanged.
 
-`ASSETS_STUDIO_DEBUG_DIR=/path` сохраняет отдельную рабочую папку каждого
-запроса: входы, опорный рендер, предсказанные позиции/вращения, BVH,
-`pipeline.log` и финальный FBX. Без переменной временные файлы удаляются.
-Это диагностический режим сервера, а не обязательная правка ассетов.
+`ASSETS_STUDIO_DEBUG_DIR=/path` retains a separate workspace per request:
+inputs, reference render, predicted positions/rotations, BVH, `pipeline.log`
+and final FBX. Without it, temporary files are deleted. This is a server
+diagnostic mode, not mandatory asset modification.
 
-Замер (RTX 3070 Laptop, риг SkinTokens на 31 кость): клип 6 с (180 кадров)
-— 214 с на задание, пик видеопамяти 7,6 ГБ из 8. Отсюда предел 10 с.
+Measurement (RTX 3070 Laptop, 31-bone SkinTokens rig): 6-second clip (180 frames),
+214 seconds per job, peak VRAM 7.6 GB out of 8; hence the 10-second limit.
 
-Фон кадров убирает RMBG-1.4 авторов. Кадр, пришедший PNG с альфой,
-пайплайн берёт как есть — сюда можно подключить BiRefNet или SAM 2, если
-RMBG будет захватывать лишнее (вторую лошадь, людей).
+The authors' RMBG-1.4 removes frame backgrounds. PNG frames with alpha are used
+as supplied; BiRefNet or SAM 2 can be connected if RMBG includes unwanted
+subjects (another horse or people).
 
-Проверка контракта на образцах не проходит генерацию: образец меша —
-тетраэдр без скелета, и сервер отвечает `invalid_request`, как и должен.
+The sample contract check does not pass generation: the sample mesh is a
+tetrahedron without a skeleton, so the server correctly returns `invalid_request`.
 
-Лицензии: MIT (код и веса V2); RMBG-1.4 — лицензия BRIA (некоммерческая);
-DINOv2, T5 — Apache-2.0.
+Licenses: MIT (V2 code and weights); RMBG-1.4 — BRIA non-commercial license;
+DINOv2 and T5 — Apache-2.0.

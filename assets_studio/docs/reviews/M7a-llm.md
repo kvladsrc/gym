@@ -1,38 +1,36 @@
-# Ревью: M7a, сервер LLM (Gemma 4 12B, Qwen3.8 27B)
+# Review: M7a, LLM server (Gemma 4 12B, Qwen3.8 27B)
 
-Критик, 2 итерации, ACCEPT.
+Critic: two iterations, ACCEPT.
 
-## Итерация 1 — REVISE
+## Iteration 1 — REVISE
 
-Блокирующее: у вкладок LLM стоял `timeout_s = 3600`, а задание целиком (до
-четырёх вариантов по 8192 токена при 3 токенах/с) идёт дольше. Студия
-отменила бы задание, а сервер ещё часы генерировал бы его и отвечал
-«занят» на всё остальное. Таймаут убран: по умолчанию студия ждёт.
+Blocker: LLM tabs set `timeout_s = 3600`, but complete jobs (up to four variants
+of 8192 tokens at 3 tokens/s) take longer. Studio would abandon the job while
+the server generated for hours, responding busy to everything else. Removed
+timeout: Studio waits by default.
 
-Рекомендации, принятые в итерации 2:
+Recommendations accepted in iteration 2:
 
-- сэмплирование из карточек моделей (было temperature 0,8 и умолчания
-  llama.cpp) — сравнение повторено;
-- без кеша промпта: повторно используемый префикс считается другими
-  ядрами GPU, а эволюции нужен побайтный повтор по seed;
-- seed 4294967295 llama.cpp считает «случайным» — заменяется на 0;
-- рассуждения Qwen с усилием «low» (шаблон по умолчанию — «xhigh») и
-  отдельным запасом токенов;
-- `llama-server` останавливается при неудачной загрузке и перезапускается
-  после падения; `prctl` для PDEATHSIG ищется в родителе;
-- установка сборки llama.cpp — под блокировкой, через временный каталог,
-  с потоковой проверкой контрольной суммы;
-- текст ответа — канонический; не-UTF-8 и переполнение контекста — ошибка
-  запроса (422); исходный текст в промпте огорожен `<текст>`.
+- Model-card sampling, replacing temperature 0.8 and llama.cpp defaults;
+  comparison repeated.
+- Disable prompt cache: reused prefixes use different GPU kernels, while
+  evolution needs byte-reproducible seeded results.
+- Replace seed 4294967295 (llama.cpp's random sentinel) with 0.
+- Qwen reasoning uses “low” rather than template-default “xhigh”, with a separate
+  token allowance.
+- Stop `llama-server` after failed loading and restart after crashes; find
+  `prctl` for PDEATHSIG in the parent.
+- Install llama.cpp under a lock through a temporary directory, verifying
+  checksums while streaming.
+- Canonicalize text; non-UTF-8/context overflow are request errors (422);
+  fence source text with `<текст>`.
 
-## Итерация 2 — ACCEPT
+## Iteration 2 — ACCEPT
 
-Доделано после: тест перезапуска упавшего `llama-server`; любая ошибка
-перезапуска (в том числе пропавший бинарник) — ошибка генерации; «плохой
-запрос» (422) — только при переполнении контекста, остальные 400 от
-llama.cpp — ошибка сервера, а не пользователя. Проверено вживую:
-`reasoning_effort: low` доходит до шаблона Qwen («Reasoning effort is set
-to low»).
+Follow-up: test crashed-child restart; any restart failure (including missing
+binary) is a generation error. 422 is only for context overflow; other
+llama.cpp 400 errors are server faults, not user faults. Live-verified that
+`reasoning_effort: low` reaches Qwen's template (“Reasoning effort is set to low”).
 
-Долг (SDK): сервер не может после загрузки перевести себя в «ошибку» —
-пока выручают перезапуск и повторяемые ошибки.
+SDK debt: after loading, a server cannot mark itself errored; restart and
+retryable errors currently compensate.

@@ -1,30 +1,29 @@
-# Руководства: как делать ассеты студией
+# Guides: making assets with Studio
 
 <!-- markdownlint-disable MD013 -->
 
-Что сработало, а что нет, когда студией делали ассеты для целой игры:
-персонажей с анимацией, окружение, уровень, голоса и музыку. Выводы
-проверены на сотнях вариантов с оценками; числа — с ноутбучной RTX
-3070 (8 ГБ). Правила не привязаны к жанру или проекту.
+What worked and what failed while making assets for an entire game: animated
+characters, environments, levels, voices and music. Findings come from hundreds
+of rated variants; measurements use a laptop RTX 3070 (8 GB). The rules are
+not tied to a genre or project.
 
 | | |
 | --- | --- |
-| [3d.md](3d.md) | Цепочка картинка → 3D, промпты, которые дают хорошую форму, параметры |
-| [characters.md](characters.md) | Персонаж под риг, риг, анимации Mixamo, удары |
-| [engine.md](engine.md) | Модели в движке: импорт, коллизии, уровень из Blender, производительность |
-| [audio.md](audio.md) | Голоса (XTTS) и песни (YuE) |
-| [process.md](process.md) | Поиск удачных сочетаний: перебор, оценки, анализ; очередь и память |
+| [3d.md](3d.md) | Image → 3D pipeline, shape-friendly prompts and parameters |
+| [characters.md](characters.md) | Rig-ready concepts, rigging, Mixamo animation and attacks |
+| [engine.md](engine.md) | Engine import, collisions, Blender levels and performance |
+| [audio.md](audio.md) | Voices (XTTS) and songs (YuE) |
+| [process.md](process.md) | Finding good combinations: sweeps, ratings, analysis, queue and memory |
 
-Коротко:
+Key findings:
 
-- **3D: Qwen-Image → Hunyuan3D-2mini → Hunyuan3D-Paint.** Ничто из
-  опробованного (TripoSR, Stable Fast 3D, FLUX как источник) не
-  приблизилось; даже из слабой картинки получается модель для игры.
-- **Промпт — абзац о предмете как о вещи со строением**, не список
-  слов; простой стиль с крупными пятнами цвета, матовый свет, один
-  связный объект.
-- **Не уменьшать модели вручную и не сваривать их «потом»:** сетки
-  Paint разрезаны по швам UV; уменьшенные без сварки, они рвутся.
-- **Персонажи: A-поза, руки пустые, ноги видны, без хвостов и
-  плащей;** в движке — Generic, а не Humanoid; клипы — на месте.
-- **Голос клонируется только с чистой речи;** ударения XTTS не задать.
+- **3D: Qwen-Image → Hunyuan3D-2mini → Hunyuan3D-Paint.** None of the tested
+  alternatives (TripoSR, Stable Fast 3D, FLUX as image source) came close;
+  even a weak image can produce a usable game model.
+- **Write a paragraph describing the object's construction**, not a keyword
+  list: simple style, broad color areas, matte lighting, one connected object.
+- **Do not reduce meshes manually and weld them “later”:** Paint meshes are
+  split at UV seams and tear when reduced without welding.
+- **Characters: A-pose, empty hands, visible legs, no tails or capes.** Use
+  Generic in the engine rather than Humanoid, with in-place clips.
+- **Voice cloning requires clean speech;** XTTS does not accept stress marks.

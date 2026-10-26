@@ -1,45 +1,46 @@
 # BiRefNet model server
 
-Задача `image-to-image` без описания: картинка → та же картинка с прозрачным
-фоном (PNG). [BiRefNet](https://github.com/ZhengPeng7/BiRefNet) (CAAI AIR
-2024) отделяет объект от фона: кодировщик Swin-L и декодер, который всё
-время сверяется с картинкой в полном разрешении, поэтому тонкое не теряется:
-грива, ноги, ветки. В интерфейсе это кнопка «Удалить фон» у картинки.
+The prompt-free `image-to-image` task returns the same image with a transparent
+background (PNG). [BiRefNet](https://github.com/ZhengPeng7/BiRefNet) (CAAI AIR
+2024) separates the subject from the background using a Swin-L encoder and a
+decoder that repeatedly checks the full-resolution image, preserving fine
+features such as manes, legs and branches. In the UI, use “Remove background”
+on an image.
 
 ```sh
-just setup     # окружение Python 3.11 + PyTorch 2.8/CUDA 12.9
-just download  # веса всех вариантов (~2,7 ГБ, только сеть)
+just setup     # Python 3.11 + PyTorch 2.8/CUDA 12.9 environment
+just download  # weights for all variants (~2.7 GB, network only)
 just doctor
 just serve     # http://127.0.0.1:9121
-just test      # без GPU и весов
+just test      # no GPU or weights needed
 ```
 
-- Вырезанную картинку серверы image-to-3D и покраски берут как есть: их
-  собственный rembg (IS-Net) не запускается, если у картинки уже есть
-  прозрачность.
-- Вариант весов — параметр `variant`; на GPU один вариант (~0,9 ГБ в fp16),
-  другой загружается при смене за пару секунд:
-  - `dynamic` (по умолчанию) — обучен на любых размерах 256…2304, видит
-    картинку в её пропорциях и разрешении (до 2304 по длинной стороне);
-  - `general` — квадрат 1024, `hr` — квадрат 2048;
-  - `matting`, `dynamic-matting`, `hr-matting` — мягкая альфа для волос и
-    шерсти; край полупрозрачный и чуть размытый.
-- `refine_foreground`: цвет краёв пересчитывается без оттенка фона (blur
-  fusion, как `refine_foreground` у автора), иначе грива, вырезанная из
-  травы, остаётся с зелёной каймой.
-- Результат не зависит от seed: проверка контракта —
+- Image-to-3D and painting servers use cut-out images as supplied: their own
+  rembg (IS-Net) does not run if transparency is already present.
+- `variant` selects weights; one variant stays on GPU (~0.9 GB fp16), and
+  switching loads another in a couple of seconds:
+  - `dynamic` (default): trained on sizes 256…2304; preserves image aspect
+    ratio and resolution (up to 2304 on the long side).
+  - `general`: 1024 square; `hr`: 2048 square.
+  - `matting`, `dynamic-matting`, `hr-matting`: soft alpha for hair and fur;
+    the edge is translucent and slightly blurred.
+- `refine_foreground` recalculates edge colors without the background tint
+  (blur fusion, matching the author's `refine_foreground`); otherwise a mane
+  cut out of grass retains a green fringe.
+- Results are seed-independent. Contract check:
   `just check-server http://127.0.0.1:9121 --allow-seed-independent`.
-- Код модели (`birefnet.py`) приходит с весами (remote code transformers),
-  закреплён на той же ревизии, что и веса.
+- Model code (`birefnet.py`) arrives with the weights (transformers remote
+  code), pinned to the same revision as the weights.
 
-Замер (RTX 3070 Laptop, кадр 1920×1080 с лошадью на выгоне, столб забора
-между ногами): все шесть вариантов убрали столб и сохранили гриву и уши;
-1,3–2,8 с на картинку вместе со сменой варианта, видеопамять ~1 ГБ.
+Measurement (RTX 3070 Laptop, 1920×1080 image of a horse in a paddock, fence
+post between its legs): all six variants removed the post and retained the
+mane and ears; 1.3–2.8 seconds per image including variant switching, about
+1 GB VRAM.
 
-Лицензия: MIT (код и веса).
+License: MIT (code and weights).
 
-Для видео есть задача `video-to-video`: MP4 до 60 с → MP4 с объектом
-на белом фоне, с теми же размером и частотой кадров. Обработка покадровая,
-без временного сглаживания маски. Выход можно передать в `video` MoCapAnything
-или GVHMR через зависимости Studio/Flow. В MoCapAnything включите
-`background_removed=true`, чтобы не выполнять повторную сегментацию.
+For video, `video-to-video` takes an MP4 up to 60 seconds and returns an MP4
+with the subject on white, retaining dimensions and frame rate. Processing
+is frame by frame without temporal mask smoothing. Pass the output to
+MoCapAnything or GVHMR's `video` input using Studio/Flow dependencies. For
+MoCapAnything, set `background_removed=true` to avoid repeated segmentation.

@@ -2,66 +2,61 @@
 
 <!-- markdownlint-disable MD013 -->
 
-Три сервера задачи `3d-to-rig`, все отдают FBX (ADR-006):
+Three `3d-to-rig` servers, all returning FBX (ADR-006):
 
-| Сервер | Скелет | Для чего |
+| Server | Skeleton | Use |
 | --- | --- | --- |
-| `mia` (Make-It-Animatable v2) | Mixamo, 52 кости | гуманоиды под клипы Mixamo ([персонажи](../guides/characters.md)) |
-| `skintokens` (SkinTokens, 2026) | по форме: четвероногие, птицы, предметы | всё, что не гуманоид Mixamo |
-| `unirig` (UniRig, SIGGRAPH 2025) | по форме | то же; предшественник SkinTokens |
+| `mia` (Make-It-Animatable v2) | Mixamo, 52 bones | Humanoids for Mixamo clips ([characters](../guides/characters.md)) |
+| `skintokens` (SkinTokens, 2026) | Shape-specific: quadrupeds, birds, objects | Anything outside Mixamo humanoids |
+| `unirig` (UniRig, SIGGRAPH 2025) | Shape-specific | Same purpose; SkinTokens predecessor |
 
-## SkinTokens против UniRig (октябрь 2026)
+## SkinTokens versus UniRig (October 2026)
 
-Проверено 16 октября 2026 на RTX 3070 Laptop (8 ГБ) на покрашенных
-моделях Hunyuan3D (60k треугольников) из сравнения `sweep:triposg1`:
-лошадь, курица, волк, гоблин. Проверка весов — «стресс-поза»: каждая кость
-повёрнута на случайный угол до 25° по каждой оси.
+Tested October 16, 2026 on an RTX 3070 Laptop (8 GB), using painted Hunyuan3D
+models (60K triangles) from `sweep:triposg1`: horse, chicken, wolf, goblin.
+Weights were checked with a stress pose: every bone randomly rotated up to
+25° on each axis.
 
 | | SkinTokens | UniRig |
 | --- | --- | --- |
-| Время | 29–40 с | 70–77 с (скелет ~23 с, кожа ~29 с, перенос ~11 с) |
-| Видеопамять | ~2 ГБ (10 лучей) | до ~7 ГБ (по `nvidia-smi`, шаг кожи) |
-| Костей: лошадь / курица / волк / гоблин | 33 / 20 / 29 / 52 | 30 / 15 / 31 / 49 |
-| Стресс-поза | гнётся чисто, без разрывов | рвёт и тянет грудь и шею (лошадь, волк), сминает тело курицы |
+| Time | 29–40 s | 70–77 s (skeleton ~23 s, skin ~29 s, transfer ~11 s) |
+| VRAM | ~2 GB (10 beams) | Up to ~7 GB (`nvidia-smi`, skin stage) |
+| Bones: horse / chicken / wolf / goblin | 33 / 20 / 29 / 52 | 30 / 15 / 31 / 49 |
+| Stress pose | Clean bending without tears | Tears/stretches chest and neck (horse, wolf), crushes chicken body |
 
-Скелеты UniRig на вид аккуратнее (позвоночник по оси тела, ноги по
-центру), но веса заметно хуже — как и обещает статья SkinTokens. Итог:
-`skintokens` по умолчанию для не-гуманоидов, `unirig` — на всякий случай.
+UniRig skeletons look neater (spine along the body axis, centered legs), but
+weights are noticeably worse, matching the SkinTokens paper. Decision:
+`skintokens` by default for non-humanoids; keep `unirig` as a fallback.
 
-README SkinTokens просит ≥ 14 ГБ видеопамяти; на деле 10 лучей заняли
-~2 ГБ.
+SkinTokens README requests ≥14 GB VRAM; ten beams actually used about 2 GB.
 
-## Что пришлось обойти
+## Workarounds
 
-- **bpy падает при выходе.** bpy как модуль (4.2 и 4.3) завершает процесс
-  с SIGSEGV уже после работы; дочерние процессы выходят через `os._exit`
-  (`asset_processing.blender.exit_now`).
-- **Сервер bpy в демо SkinTokens** слушает все интерфейсы и распаковывает
-  pickle из запроса — не используется: bpy работает в дочернем процессе
-  без сети.
-- **Чекпоинты UniRig** не грузятся `torch.load` с `weights_only=True`
-  (умолчание с PyTorch 2.6): шаги идут с
-  `TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1` — только для закреплённых
-  чекпоинтов VAST.
-- **Шаг кожи UniRig** рисует глубину через pyrender: без дисплея — EGL
-  (`PYOPENGL_PLATFORM=egl`).
-- **FBX upstream без текстур**: оба сервера собирают GLB и переводят его в
-  FBX сами (`asset_processing.blender`).
-- **Кости SkinTokens смотрели в одну сторону.** Модель предсказывает
-  суставы, а не направления костей; хвосты upstream выводит из единичных
-  поворотов и длин — все кости торчали вдоль одной мировой оси, наружу.
-  Без длин upstream направляет кость к единственному ребёнку, а концевые —
-  продолжением родителя. Кроме того, glTF не хранит хвосты: импорт в
-  Blender их угадывает, и эвристика `FORTUNE` кладёт кости вдоль
-  конечностей (на риге SkinTokens 71 % хвостов внутри тела против 51 % у
-  умолчания `BLENDER`). Суставы и веса это не меняет; меняются оси костей —
-  то, что видно в Blender и чем крутят кости при анимации.
+- **bpy crashes on exit.** bpy modules 4.2/4.3 exit with SIGSEGV after completing
+  work. Child processes use `os._exit` (`asset_processing.blender.exit_now`).
+- **SkinTokens demo bpy server** listens on all interfaces and unpickles
+  request data. It is not used; bpy runs in a child process without networking.
+- **UniRig checkpoints** fail with `torch.load(weights_only=True)`, default
+  since PyTorch 2.6. Steps use `TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD=1`, only for
+  pinned VAST checkpoints.
+- **UniRig skin stage** renders depth through pyrender; headless use needs
+  EGL (`PYOPENGL_PLATFORM=egl`).
+- **Upstream FBX lacks textures:** both servers assemble GLB and convert it
+  themselves (`asset_processing.blender`).
+- **SkinTokens bones all faced one direction.** The model predicts joints,
+  not bone directions. Upstream derived tails from identity rotations and
+  lengths, so bones pointed outward along one world axis. Without lengths,
+  upstream points bones toward their sole child, extending parents for end
+  bones. glTF does not store tails; Blender guesses them. `FORTUNE` aligns
+  bones with limbs (71% of SkinTokens tails inside the body, versus 51% with
+  default `BLENDER`). Joints/weights remain unchanged; bone axes change,
+  affecting Blender display and animation rotation.
 
-Проверка после исправлений (лошадь / курица / волк / гоблин): суставы
-внутри тела у SkinTokens 30/33, 35/35, 29/29, 51/52; кости вдоль
-конечностей 24/33, 23/35, 24/29, 38/52 (у UniRig 23/30, 12/15, 22/31,
-27/49). Страница с проверочной анимацией: `~/.local/share/assets-studio/sweeps/rigs1/`.
+Post-fix checks (horse / chicken / wolf / goblin): SkinTokens joints inside
+body 30/33, 35/35, 29/29, 51/52; limb-aligned bones 24/33, 23/35, 24/29, 38/52
+(UniRig 23/30, 12/15, 22/31, 27/49). Validation-animation page:
+`~/.local/share/assets-studio/sweeps/rigs1/`.
 
-Полная карта совместимости и автоматических шагов подготовки:
-[риггинг и анимации](rigging-and-motion.md). Цепочки сохраняются
-в [studio flow](../../flow/README.md).
+Full compatibility and automatic preparation map:
+[rigging and motion](rigging-and-motion.md). Save chains in
+[Studio Flow](../../flow/README.md).
