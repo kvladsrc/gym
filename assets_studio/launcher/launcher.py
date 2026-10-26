@@ -46,6 +46,7 @@ RECIPES = {
     "birefnet": "birefnet",
     "hunyuan3d21": "hunyuan3d21",
     "hi3d": "hi3d",
+    "trellis2_paint": "trellis2_paint",
     "rig": "mia",
     "skintokens": "skintokens",
     "unirig": "unirig",

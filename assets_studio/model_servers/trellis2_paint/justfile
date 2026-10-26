@@ -1,0 +1,32 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/trellis2_paint"
+export TRELLIS2_SOURCE := cache / "trellis2-source"
+export TRELLIS2_PAINT_WEIGHTS := cache / "trellis2-paint"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+export HF_HUB_DISABLE_XET := "1"
+export ATTN_BACKEND := "xformers"
+export SPARSE_ATTN_BACKEND := "xformers"
+export PYTORCH_CUDA_ALLOC_CONF := "expandable_segments:True"
+root := quote(justfile_directory() / "../../..")
+gpu := "/nix/var/nix/profiles/default/bin/nix develop " + root + "#assets-studio-gpu --command"
+cuda := "/nix/var/nix/profiles/default/bin/nix develop " + root + "#assets-studio-cuda --command"
+
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Separate environment; reuse cached native wheels, build them only if absent.
+setup:
+    {{ gpu }} uv sync --extra test
+    {{ cuda }} env TORCH_CUDA_ARCH_LIST=8.6 MAX_JOBS=2 uv run --no-sync python -m trellis2_paint_model_server.setup_native
+
+# Download only the 512 texture transformer, encoder, decoder and DINOv3 (~5.5 GB).
+download:
+    {{ gpu }} uv run --no-sync python -c "from trellis2_paint_model_server.server import download; download()"
+
+[positional-arguments]
+serve *args:
+    {{ gpu }} uv run --no-sync trellis2-paint-model-server "$@"
+
+test:
+    {{ gpu }} uv run --no-sync pytest -q tests

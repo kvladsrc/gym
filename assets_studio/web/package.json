@@ -21,6 +21,7 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@preact/preset-vite": "2.10.6",
+    "@types/three": "0.183.1",
     "eslint": "10.11.0",
     "openapi-typescript": "7.13.0",
     "playwright-core": "1.63.0",

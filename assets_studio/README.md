@@ -46,6 +46,15 @@ just qwen_image                 # or: hunyuan3d21, xtts,
                                 #     stable_audio, gemma, qwen, wan, fake
 ```
 
+## Inspecting a mesh
+
+Open a GLB in the library and use the controls below the 3D preview:
+**Material**, **Geometry** (matte clay without textures or normal maps), or
+**Wireframe**. The wireframe can also show the original material with the
+**Texture** checkbox. Switching views preserves the camera and the downloaded
+asset. Counts show triangles and vertices, including vertices split at UV seams;
+quads exported to GLB appear as triangles.
+
 ## Models
 
 | Server | Task | Notes |
@@ -54,6 +63,7 @@ just qwen_image                 # or: hunyuan3d21, xtts,
 | `sam2` | video + isolated first frame → video | SAM 2.1: track one subject on white, original video pixels; [use](model_servers/sam2/README.md) |
 | `hunyuan3d21` | image → 3D | Hunyuan3D-2.1 Shape (3.3B), offloaded to RAM; on trial |
 | `hi3d` | 3D + image → 3D | Hi3D v1.0: a coarse mesh refined from its image, 512³–1536³ grid; geometry only; [setup](model_servers/hi3d/README.md); on trial |
+| `trellis2_paint` | 3D + image → 3D | TRELLIS.2 Paint: PBR on an existing mesh, preserves its surface; 512 material grid; [setup](model_servers/trellis2_paint/README.md) |
 | `hunyuan_paint21` | 3D + image → 3D | Hunyuan3D-Paint 2.1: PBR (base colour, metallic, roughness), offloaded; on trial |
 | `mia` | 3D → rig | Make-It-Animatable v2: Mixamo skeleton, skin weights; FBX |
 | `skintokens`, `unirig` | 3D → rig | any skeleton (animals, birds, props), skin weights; FBX; on trial |

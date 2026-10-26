@@ -55,6 +55,7 @@ def test_mesh_tasks_take_glbs_and_bounded_params():
     assert [spec.role for spec in RETOPO.inputs] == ["mesh"]
     assert [spec.role for spec in BAKE.inputs] == ["high", "low"]
     assert RetopoParams().faces == 20_000
+    assert RetopoParams(method="autoremesher").method == "autoremesher"
     with pytest.raises(ValidationError):
         RetopoParams(method="instant-meshes")
     with pytest.raises(ValidationError):

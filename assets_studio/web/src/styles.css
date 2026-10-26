@@ -651,6 +651,46 @@ details .fields {
   min-height: 280px;
   background: var(--viewer);
 }
+.mesh-preview {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--viewer);
+}
+.preview .mesh-preview model-viewer {
+  flex: 1;
+  min-height: 0;
+}
+.mesh-controls {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.mesh-controls .row {
+  flex-wrap: wrap;
+}
+.mesh-controls button[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.mesh-texture {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+.mesh-texture input {
+  width: auto;
+}
+.mesh-stats {
+  font-variant-numeric: tabular-nums;
+}
 .preview video {
   position: absolute;
   inset: 0;

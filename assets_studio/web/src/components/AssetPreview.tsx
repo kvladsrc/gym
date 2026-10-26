@@ -19,6 +19,7 @@ import { ImageViewer } from "./ImageViewer";
 import { t } from "../i18n";
 import { DataIcon, MotionIcon } from "./Icons";
 import { MotionViewer } from "./MotionViewer";
+import type { inspectMesh, MeshView } from "./meshInspection";
 
 let modelViewer: Promise<unknown> | null = null;
 
@@ -60,18 +61,101 @@ export function useModelViewer(enabled = true) {
 function MeshPreview({ asset }: { asset: Asset }) {
   const glb = asset.mime === "model/gltf-binary";
   const ready = useModelViewer(glb);
+  const viewer = useRef<HTMLElement>(null);
+  const inspection = useRef<ReturnType<typeof inspectMesh> | null>(null);
+  const [mode, setMode] = useState<MeshView>("material");
+  const [texture, setTexture] = useState(false);
+  const [stats, setStats] = useState<{
+    vertices: number;
+    triangles: number;
+  } | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const element = viewer.current;
+    if (!ready || !element) return;
+    let current = true;
+    let generation = 0;
+    const load = () => {
+      const pending = ++generation;
+      inspection.current?.dispose();
+      inspection.current = null;
+      setStats(null);
+      setFailed(false);
+      void import("./meshInspection").then(
+        ({ inspectMesh }) => {
+          if (!current || pending !== generation) return;
+          try {
+            inspection.current = inspectMesh(element);
+            setStats(inspection.current.stats);
+          } catch {
+            setFailed(true);
+          }
+        },
+        () => current && pending === generation && setFailed(true),
+      );
+    };
+    element.addEventListener("load", load);
+    // Cached models may have loaded before this effect attached the listener.
+    if ((element as HTMLElement & { loaded: boolean }).loaded) load();
+    return () => {
+      current = false;
+      element.removeEventListener("load", load);
+      inspection.current?.dispose();
+      inspection.current = null;
+    };
+  }, [ready, asset.file_url]);
+  useEffect(() => {
+    inspection.current?.setView(mode, texture);
+  }, [mode, texture, stats]);
   // model-viewer shows glTF only; FBX (rigs, ADR-006) is for download.
   if (!glb) return <p class="hint">{t("preview.fbx")}</p>;
   if (!ready) return <span class="spinner" />;
   return (
-    <model-viewer
-      src={asset.file_url}
-      camera-controls
-      auto-rotate
-      shadow-intensity="0.6"
-      exposure="1.05"
-      onLoad={clayIfShapeOnly(asset)}
-    />
+    <div class="mesh-preview">
+      <model-viewer
+        ref={viewer}
+        src={asset.file_url}
+        camera-controls
+        shadow-intensity="0.6"
+        exposure="1.05"
+        onLoad={clayIfShapeOnly(asset)}
+      />
+      <div class="mesh-controls">
+        <div class="row" role="group" aria-label={t("mesh.view")}>
+          {(["material", "geometry", "wireframe"] as const).map((view) => (
+            <button
+              key={view}
+              class="button small"
+              aria-pressed={mode === view}
+              disabled={!stats}
+              onClick={() => setMode(view)}
+            >
+              {t(`mesh.${view}`)}
+            </button>
+          ))}
+          {mode === "wireframe" && (
+            <label class="mesh-texture">
+              <input
+                type="checkbox"
+                checked={texture}
+                onChange={(event) => setTexture(event.currentTarget.checked)}
+              />
+              {t("mesh.texture")}
+            </label>
+          )}
+        </div>
+        {stats && (
+          <span class="hint mesh-stats" title={t("mesh.verticesHint")}>
+            {t("mesh.stats", {
+              triangles: stats.triangles.toLocaleString(),
+              vertices: stats.vertices.toLocaleString(),
+            })}
+          </span>
+        )}
+        {failed && <span class="hint error">{t("mesh.failed")}</span>}
+      </div>
+    </div>
   );
 }
 
