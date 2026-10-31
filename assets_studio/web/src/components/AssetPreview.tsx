@@ -117,6 +117,7 @@ function MeshPreview({ asset }: { asset: Asset }) {
         ref={viewer}
         src={asset.file_url}
         camera-controls
+        interaction-prompt="none"
         shadow-intensity="0.6"
         exposure="1.05"
         onLoad={clayIfShapeOnly(asset)}

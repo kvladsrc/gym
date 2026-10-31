@@ -1,0 +1,23 @@
+<!-- The EditMode tests of the generator, run with `dotnet test` (NUnit). -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+    <StartupObject Condition="'$(InProcessTests)' == 'true'">InProcessRunner</StartupObject>
+    <OutputType Condition="'$(InProcessTests)' == 'true'">Exe</OutputType>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../unity/procedural/Assets/Procedural/Tests/EditMode/**/*.cs" />
+    <Compile Include="InProcessRunner.cs" Condition="'$(InProcessTests)' == 'true'" />
+    <Compile Include="ValidationSweep.cs" Condition="'$(InProcessTests)' == 'true'" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Core/Core.csproj" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+  </ItemGroup>
+</Project>

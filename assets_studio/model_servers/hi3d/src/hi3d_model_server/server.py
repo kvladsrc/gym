@@ -61,6 +61,9 @@ REFINE_3D = "3d-refine"
 # overflowed the 1024³ decoding three times where the troll fitted.
 BUDGET_SHARES = (1.0, 0.75, 0.55)
 
+# Triangles flatter than this share of the largest side count as zero-area.
+DEGENERATE_HEIGHT = 1e-6
+
 
 class Params(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -78,6 +81,14 @@ class Params(BaseModel):
         le=50,
         description="Diffusion steps in each pass",
         json_schema_extra=ui(ru="Шаги диффузии в каждом проходе"),
+    )
+    voxel_budget_percent: Literal[100, 75, 55] = Field(
+        default=100,
+        description=(
+            "Initial occupied-voxel budget, percent. Start at 55 to skip known OOM attempts;"
+            " retries use only the remaining lower budgets, without changing resolution"
+        ),
+        json_schema_extra=ui(ru="Стартовый бюджет занятых вокселей, % (после OOM: 100 → 75 → 55)"),
     )
     max_faces: int = Field(
         default=0,
@@ -186,6 +197,21 @@ def place_like(mesh: Any, reference: Any) -> Any:
     mesh.apply_scale(scale)
     mesh.apply_translation((ref_lo + ref_hi) / 2)
     return mesh
+
+
+def drop_degenerate(mesh: Any) -> tuple[Any, int]:
+    """``mesh`` without zero-area triangles (three corners on one line, under
+    a millionth of the largest side high), and how many went. Hi3D's
+    simplification (pyfqmr) leaves a few; they add no surface, but TRELLIS.2
+    Paint's UV unwrap drops them and then fails its triangle-count check."""
+    size = float(np.ptp(np.asarray(mesh.vertices, dtype=float), axis=0).max())
+    keep = np.asarray(mesh.area_faces) > (DEGENERATE_HEIGHT * size) ** 2
+    if keep.all():
+        return mesh, 0
+    mesh = mesh.copy()
+    mesh.update_faces(keep)
+    mesh.remove_unreferenced_vertices()
+    return mesh, int((~keep).sum())
 
 
 def describe(mesh: Any, resolution: int) -> dict[str, Any]:
@@ -346,8 +372,11 @@ class Hi3DServer(ModelServer):
 
         self._max_faces = params.max_faces
         budgets = sparc3d_pipeline.PASS_BUDGETS
+        shares = tuple(
+            share for share in BUDGET_SHARES if share <= params.voxel_budget_percent / 100
+        )
         try:
-            for attempt, share in enumerate(BUDGET_SHARES):
+            for attempt, share in enumerate(shares):
                 # Read by the pipeline at each voxelisation (a module global).
                 sparc3d_pipeline.PASS_BUDGETS = tuple(round(b * share) for b in budgets)
                 try:
@@ -361,11 +390,11 @@ class Hi3DServer(ModelServer):
                     break
                 except OutOfGpuMemory as error:
                     torch.cuda.empty_cache()
-                    if share == BUDGET_SHARES[-1] or error.phase == "voxelization":
+                    if share == shares[-1] or error.phase == "voxelization":
                         raise
                     logger.warning(
                         "retrying with %.0f %% of the voxel budget",
-                        100 * BUDGET_SHARES[attempt + 1],
+                        100 * shares[attempt + 1],
                     )
         except GenerationError:
             raise
@@ -382,9 +411,15 @@ class Hi3DServer(ModelServer):
             ) from error
         finally:
             sparc3d_pipeline.PASS_BUDGETS = budgets
+        mesh, degenerate = drop_degenerate(mesh)
         if params.keep_placement:
             mesh = place_like(mesh, coarse)
-        meta = {**describe(mesh, params.resolution), "voxel_budget_share": share}
+        meta = {
+            **describe(mesh, params.resolution),
+            "degenerate_triangles_removed": degenerate,
+            "initial_voxel_budget_percent": params.voxel_budget_percent,
+            "voxel_budget_share": share,
+        }
         return Output("model/gltf-binary", mesh.export(file_type="glb"), meta)
 
     def _prepare(self, data: bytes, params: Params) -> Image.Image:

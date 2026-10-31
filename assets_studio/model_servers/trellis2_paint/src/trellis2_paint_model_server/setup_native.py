@@ -11,20 +11,20 @@ from trellis2_paint_model_server.server import SOURCE_REVISION, source_directory
 NATIVE = (
     (
         "FlexGEMM",
-        "6dd94a859c26ee8246888502eada3dd8ad85532e",
+        "6dd94a859c26ee8246888502eada3dd8ad85532e",  # pragma: allowlist secret -- public commit
         "flex_gemm-",
         "https://github.com/JeffreyXiang/FlexGEMM.git",
     ),
     (
         "CuMesh",
-        "12289e1062f0603f2f0d0771b02e1395d247f26f",
+        "12289e1062f0603f2f0d0771b02e1395d247f26f",  # pragma: allowlist secret -- public commit
         "cumesh-",
         "https://github.com/JeffreyXiang/CuMesh.git",
     ),
     ("o-voxel", SOURCE_REVISION, "o_voxel-", ""),
     (
         "nvdiffrast",
-        "253ac4fcea7de5f396371124af597e6cc957bfae",
+        "253ac4fcea7de5f396371124af597e6cc957bfae",  # pragma: allowlist secret -- public commit
         "nvdiffrast-",
         "https://github.com/NVlabs/nvdiffrast.git",
     ),

@@ -21,7 +21,6 @@ DIRS=(
     "cpp/codeforces:cpp/codeforces"
     "cpp/warmup:cpp/warmup"
     "cv:cv"
-    "games:games"
     "home-manager:home-manager"
     "lisp/sicp:lisp/sicp"
     "neural_network:neural_network"
@@ -35,6 +34,14 @@ DIRS=(
     "production/terraform:production/terraform"
     "static:static"
     "zuul.d:zuul.d"
+)
+
+# Games published from games/ (with games/README.md); the others stay private
+GAMES=(
+    "cothic"
+    "procedural"
+    "ripples_cli"
+    "zooreader"
 )
 
 # Individual files to copy (relative to repo root)
@@ -92,20 +99,23 @@ for entry in "${DIRS[@]}"; do
             # Only tracked files: no environments, models, builds or node_modules.
             rsync_args+=(--filter=':- .gitignore')
             ;;
-        games)
-            # Keep the private Unreal draft and build caches local. The
-            # soulslike's code goes; its art, builds and training results stay
-            # (its .gitignore), as do the Mixamo clips it plays
-            # (animations/mixamo, not listed above: their terms forbid
-            # passing the clips on).
-            rsync_args+=(--exclude='/vibe_jakubovich/' --filter=':- .gitignore')
-            ;;
         esac
         rsync "${rsync_args[@]}" "$SRC/$src_rel/" "$DEST/$dest_rel/"
     else
         echo "  skip $src_rel (not found)"
     fi
 done
+
+# Sync the listed games: only their tracked files. Anything else under games/
+# in the destination, such as a game published before, is removed.
+games_args=(-a --delete --delete-excluded --filter=':- .gitignore' --include='/README.md')
+for game in "${GAMES[@]}"; do
+    games_args+=(--include="/$game/***")
+done
+games_args+=(--exclude='*')
+mkdir -p "$DEST/games"
+echo "  dir  games: ${GAMES[*]}"
+rsync "${games_args[@]}" "$SRC/games/" "$DEST/games/"
 
 # Sync files
 for f in "${FILES[@]}"; do

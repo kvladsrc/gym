@@ -92,6 +92,41 @@ class RetopoParams(BaseModel):
             "decimate — схлопывание рёбер; autoremesher — квады без воксельного ремеша"
         ),
     )
+    edge_scaling: float = Field(
+        default=1.0,
+        ge=1.0,
+        le=4.0,
+        description="AutoRemesher only: edge scaling factor",
+        json_schema_extra=ui(ru="Только AutoRemesher: масштаб рёбер"),
+    )
+    sharp_edge: float = Field(
+        default=90.0,
+        ge=30.0,
+        le=180.0,
+        description="AutoRemesher only: dihedral angle, degrees, above which an edge is kept sharp",
+        json_schema_extra=ui(ru="Только AutoRemesher: двугранный угол острого ребра, градусы"),
+    )
+    smooth_normal: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=180.0,
+        description="AutoRemesher only: smooth normal angle threshold, degrees",
+        json_schema_extra=ui(ru="Только AutoRemesher: порог сглаживания нормалей, градусы"),
+    )
+    adaptivity: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="AutoRemesher only: smaller quads where the surface bends more",
+        json_schema_extra=ui(ru="Только AutoRemesher: мельче квады на изгибах"),
+    )
+    anisotropy: float = Field(
+        default=1.0,
+        ge=0.0,
+        le=1.0,
+        description="AutoRemesher only: quads stretched along the curvature",
+        json_schema_extra=ui(ru="Только AutoRemesher: вытягивание квадов вдоль кривизны"),
+    )
 
 
 class BakeParams(BaseModel):
@@ -121,8 +156,12 @@ RETOPO = TaskSpec(
         InputSpec(
             role="mesh",
             mime=GLB,
-            description="A detailed mesh (Hi3D's million triangles)",
-            labels={"ru": "Детальная сетка (миллион треугольников Hi3D)"},
+            description="A detailed mesh (Hi3D's million triangles); "
+            "decimate keeps a painted mesh's UVs and material",
+            labels={
+                "ru": "Детальная сетка (миллион треугольников Hi3D); "
+                "decimate сохраняет UV и материал покрашенной"
+            },
         ),
     ),
     max_count=1,
@@ -256,7 +295,7 @@ class AnimationToolsServer(ModelServer):
     model = ModelInfo(
         id="animation-tools",
         name="Animation tools (Blender)",
-        revision="16",
+        revision="18",
         license="Repository code; Blender: GPL-3.0-or-later",
     )
     tasks = (PREPARE, RETARGET, NATIVE_RETARGET, RETOPO, BAKE)
@@ -349,6 +388,15 @@ class AnimationToolsServer(ModelServer):
                     str(target),
                     str(job.params.faces),
                     job.params.method,
+                    json.dumps(
+                        {
+                            "edge_scaling": job.params.edge_scaling,
+                            "sharp_edge": job.params.sharp_edge,
+                            "smooth_normal": job.params.smooth_normal,
+                            "adaptivity": job.params.adaptivity,
+                            "anisotropy": job.params.anisotropy,
+                        }
+                    ),
                 ]
             else:
                 assert isinstance(job.params, BakeParams)

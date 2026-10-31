@@ -1,6 +1,8 @@
+# pyright: basic
 """Retopology and normal baking, a Blender script (blender -b -P mesh_tools.py -- ...).
 
-    retopo IN.glb OUT.glb FACES METHOD        METHOD: quadriflow | decimate | autoremesher
+    retopo IN.glb OUT.glb FACES METHOD [OPTIONS]   METHOD: quadriflow | decimate | autoremesher
+                                              OPTIONS: AutoRemesher settings, JSON
     bake HIGH.glb LOW.glb OUT.glb SIZE RAY    RAY: ray distance, a share of the size
 
 Prints ``MESH_REPORT {json}`` when done, ``MESH_INVALID <reason>`` for an input
@@ -15,6 +17,15 @@ it cannot use.
   game mesh keeps (that goes to the baked normals); coarser when QuadriFlow
   refuses (see quadriflow()). glTF stores triangles: the quads arrive as
   pairs, with their edge flow.
+- Decimation keeps a painted mesh's UVs and material (Blender's collapse
+  interpolates face-corner UVs), so painting can come before it. The remeshing
+  methods rebuild the surface and drop them. Edge collapse cannot pass
+  non-manifold edges (a Hi3D tree has thousands): when it stops above the
+  target the job fails instead of returning a mesh several times heavier. Every method first removes
+  specks: loose pieces under 0.1 % of the faces.
+- Every retopology reports how far it strayed from the detailed surface
+  (see deviation()): a lost finger or horn shows as source points far from
+  the result, and where they are.
 - Baking moves the detailed mesh's surface into a tangent-space normal map
   on the painted game mesh (its UVs, as the painter unwrapped it) and wires
   it into the material, so the GLB carries base colour, metal-roughness and
@@ -33,9 +44,25 @@ from typing import Any
 import bmesh  # pyright: ignore[reportMissingImports]
 import bpy  # pyright: ignore[reportMissingImports]
 from mathutils import Vector  # pyright: ignore[reportMissingImports]
+from mathutils.bvhtree import BVHTree  # pyright: ignore[reportMissingImports]
 
 # Voxel remesh resolutions tried for QuadriFlow, finest first.
 VOXELS_ACROSS = (256, 128, 64)
+# Surface points compared between the detailed mesh and the result.
+DEVIATION_SAMPLES = 50_000
+# A source point this far from the result (share of the bounding box
+# diagonal) counts as lost shape.
+LOST_SHARE = 0.005
+# Decimation may end this far above its target before the job fails.
+DECIMATE_SLACK = 1.1
+# AutoRemesher's own defaults.
+AUTOREMESHER_DEFAULTS = {
+    "edge_scaling": 1.0,
+    "sharp_edge": 90.0,
+    "smooth_normal": 0.0,
+    "adaptivity": 1.0,
+    "anisotropy": 1.0,
+}
 
 
 def invalid(reason: str) -> None:
@@ -75,6 +102,14 @@ def import_joined(path: Path, what: str) -> Any:
         if other.type != "MESH":
             bpy.data.objects.remove(other, do_unlink=True)
     return obj
+
+
+def nonmanifold_edges(obj: Any) -> int:
+    work = bmesh.new()
+    work.from_mesh(obj.data)
+    count = sum(1 for edge in work.edges if len(edge.link_faces) > 2)
+    work.free()
+    return count
 
 
 def weld(obj: Any) -> None:
@@ -170,33 +205,114 @@ def quadriflow(obj: Any, faces: int) -> int:
     return 0
 
 
-def retopo(source: Path, target: Path, faces: int, method: str) -> None:
+def triangulate_clean(obj: Any) -> int:
+    """Triangulate a remeshed ``obj`` as the GLB will store it, merging
+    doubled vertices and dissolving zero-area triangles; returns how many
+    triangles went. AutoRemesher can leave a doubled vertex and a few
+    zero-area triangles; TRELLIS.2's UV unwrap drops those, so painting would
+    change the triangle count (and fail its surface check)."""
+    work = bmesh.new()
+    work.from_mesh(obj.data)
+    bmesh.ops.triangulate(work, faces=work.faces, quad_method="BEAUTY")
+    before = len(work.faces)
+    dist = 1e-6 * max(obj.dimensions)
+    bmesh.ops.remove_doubles(work, verts=work.verts, dist=dist)
+    bmesh.ops.dissolve_degenerate(work, dist=dist, edges=work.edges)
+    work.to_mesh(obj.data)
+    work.free()
+    obj.data.update()
+    return before - len(obj.data.polygons)
+
+
+def surface(obj: Any) -> tuple[BVHTree, list[Vector]]:
+    """A BVH of ``obj``'s surface and up to DEVIATION_SAMPLES of its
+    vertices (a fixed stride, so the same mesh gives the same points)."""
+    vertices = [v.co.copy() for v in obj.data.vertices]
+    tree = BVHTree.FromPolygons(vertices, [tuple(p.vertices) for p in obj.data.polygons])
+    stride = max(1, len(vertices) // DEVIATION_SAMPLES)
+    return tree, vertices[::stride]
+
+
+def deviation(source: tuple[BVHTree, list[Vector]], obj: Any, diagonal: float) -> dict:
+    """Distances between the detailed surface and the result, as shares of
+    the bounding box diagonal: ``lost`` from source points to the result
+    (missing shape: fingers, horns), ``added`` from the result's points to
+    the source (bulges, webbing). ``lost_box`` bounds the source points
+    further than LOST_SHARE (Blender axes, Z up), to tell where shape went."""
+    source_tree, source_points = source
+    result_tree, result_points = surface(obj)
+    lost = [result_tree.find_nearest(p)[3] / diagonal for p in source_points]
+    added = [source_tree.find_nearest(p)[3] / diagonal for p in result_points]
+    far = [p for p, d in zip(source_points, lost, strict=True) if d > LOST_SHARE]
+
+    def summary(values: list[float]) -> dict:
+        values = sorted(values)
+        return {
+            "mean": round(sum(values) / len(values), 6),
+            "p99": round(values[int(0.99 * (len(values) - 1))], 6),
+            "max": round(values[-1], 6),
+        }
+
+    box = None
+    if far:
+        box = [[round(f(p[i] for p in far), 4) for i in range(3)] for f in (min, max)]
+    return {
+        "lost": summary(lost),
+        "added": summary(added),
+        "lost_points_share": round(len(far) / len(source_points), 6),
+        "lost_box": box,
+    }
+
+
+def retopo(source: Path, target: Path, faces: int, method: str, options: dict) -> None:
     bpy.ops.wm.read_factory_settings(use_empty=True)
     obj = import_joined(source, "mesh")
     weld(obj)
+    painted = bool(obj.data.uv_layers) and bool(obj.data.materials)
+    specks = drop_specks(obj)
     source_triangles = triangles(obj)
+    detailed = surface(obj)
+    diagonal = Vector(obj.dimensions).length
     across = None
+    settings = None
     if method == "quadriflow":
         across = quadriflow(obj, faces)
     elif method == "autoremesher":
-        obj = autoremesher(obj, faces)
+        settings = {**AUTOREMESHER_DEFAULTS, **options}
+        obj = autoremesher(obj, faces, settings)
     else:
         modifier = obj.modifiers.new("decimate", "DECIMATE")
         modifier.ratio = min(1.0, faces / max(source_triangles, 1))
         activate(obj)
         bpy.ops.object.modifier_apply(modifier=modifier.name)
+        if triangles(obj) > DECIMATE_SLACK * faces:
+            invalid(
+                f"decimation stopped at {triangles(obj)} triangles for a target of {faces}:"
+                f" edge collapse cannot pass non-manifold edges ({nonmanifold_edges(obj)} here);"
+                " use quadriflow, or Hi3D's max_faces for a Hi3D mesh"
+            )
+    kept_material = painted and method == "decimate"
+    faces_made = len(obj.data.polygons)
+    quads = sum(1 for p in obj.data.polygons if len(p.vertices) == 4)
+    degenerate = 0 if method == "decimate" else triangulate_clean(obj)
     report(
         method=method,
         source_triangles=source_triangles,
+        speck_faces_removed=specks,
+        kept_material=kept_material,
+        material_dropped=painted and not kept_material,
         voxels_across=across,
-        faces=len(obj.data.polygons),
-        quads=sum(1 for p in obj.data.polygons if len(p.vertices) == 4),
+        autoremesher=settings,
+        faces=faces_made,
+        quads=quads,
+        degenerate_triangles_removed=degenerate,
         triangles=triangles(obj),
+        deviation=deviation(detailed, obj, diagonal),
     )
-    export(obj, target, materials=False)
+    export(obj, target, materials=kept_material)
 
 
-def autoremesher(obj: Any, faces: int) -> Any:
+def autoremesher(obj: Any, faces: int, settings: dict) -> Any:
     """The standalone CPU AutoRemesher, keeping its quad layout until GLB export."""
     binary = Path(
         os.environ.get("AUTOREMESHER", "~/.cache/assets-studio/autoremesher/squashfs-root/AppRun")
@@ -225,15 +341,15 @@ def autoremesher(obj: Any, faces: int) -> Any:
                 "--target-quads",
                 str(faces),
                 "--edge-scaling",
-                "1",
+                str(settings["edge_scaling"]),
                 "--sharp-edge",
-                "90",
+                str(settings["sharp_edge"]),
                 "--smooth-normal",
-                "0",
+                str(settings["smooth_normal"]),
                 "--adaptivity",
-                "1",
+                str(settings["adaptivity"]),
                 "--anisotropy",
-                "1",
+                str(settings["anisotropy"]),
             ],
             env=environment,
             capture_output=True,
@@ -340,7 +456,8 @@ def bake(high_path: Path, low_path: Path, target: Path, size: int, ray: float) -
 def main() -> None:
     args = sys.argv[sys.argv.index("--") + 1 :]
     if args[0] == "retopo":
-        retopo(Path(args[1]), Path(args[2]), int(args[3]), args[4])
+        options = json.loads(args[5]) if len(args) > 5 else {}
+        retopo(Path(args[1]), Path(args[2]), int(args[3]), args[4], options)
     elif args[0] == "bake":
         bake(Path(args[1]), Path(args[2]), Path(args[3]), int(args[4]), float(args[5]))
     else:

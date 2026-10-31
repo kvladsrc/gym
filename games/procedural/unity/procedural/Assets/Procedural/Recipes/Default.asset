@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5fdee87fdade6300808cdd8d4aff287, type: 3}
+  m_Name: Default
+  m_EditorClassIdentifier: Procedural.World::Procedural.World.IslandRecipeAsset
+  recipe:
+    seed: 1
+    preset: 0
+    relief: 0
+    landFraction: 0.45
+    coastRoughness: 0.5
+    elongation: 1
+    orientationDegrees: -1
+    massifs: 2
+    ruggedness: 0.5
+    riverDensity: 6
+    lakes: 2
+    beachShare: 0.4
+    beachWidth: 0
+    channelHeadArea: 0
+    particleErosion: 0
+    erosionDropletsPerSquareMetre: 0.15
+    implicitTimeStep: 1
+    forestCover: 0.3
+    microRelief: 1
+    vegetation: 1
+    peakHeight: 0
+    seaDepth: 0
+    maxRiverWidth: 0
+    maxRiverDepth: 0
+    worldSize: 0
+    simResolution: 0
+    heightmapResolution: 0

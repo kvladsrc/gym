@@ -30,7 +30,16 @@ just test      # no GPU or weights needed
   the result to 1M triangles (2M at 1536³); `max_faces` lowers the target for
   that same simplification of the full surface, rather than adding a second
   pass. Before painting, set it to the painter's retained budget (Paint 2.1:
-  up to 200K).
+  up to 200K). The simplification (pyfqmr) leaves a few zero-area triangles;
+  the server drops them (`degenerate_triangles_removed`), since TRELLIS.2
+  Paint's UV unwrap would drop them and fail its triangle-count check.
+- `voxel_budget_percent` selects the initial occupied-voxel budget: 100
+  (default), 75 or 55. If a shape is already known to need 55, start there to
+  skip two expensive OOM attempts. Retries use only lower remaining levels;
+  OOM at 55 fails the job. This does not change `resolution`: a 1024 job
+  still runs two passes, and each retry starts again from the coarse mesh.
+  Adaptive voxelization may coarsen its internal grid to fit the budget.
+  Output metadata records both the initial percentage and successful share.
 - Weights and DINOv2/CLIP encoders live in `HI3D_WEIGHTS`
   (`~/.cache/assets-studio/hi3d`); encoders download on first load.
 

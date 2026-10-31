@@ -65,6 +65,7 @@
           cppcheck
           cpplint
           emacs
+          ffmpeg-headless
           gcc14
           gcov
           gdtoolkit_4

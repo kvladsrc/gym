@@ -8,7 +8,7 @@ description: "Use when working in the user's src monorepo and needing repository
 Use this skill to get oriented before reading large parts of the `src`
 monorepo. It is a lightweight repository map, not a replacement for exact file
 search. Treat this skill as the entry point for the repository: it points to
-the other local skills, the task tracker, the documentation system, and the
+the other local skills, the documentation system, and the
 Gerrit/Jujutsu review workflow so the user does not need to mention each skill
 explicitly.
 
@@ -20,9 +20,7 @@ explicitly.
    specifically about them.
 4. Use repository tooling through Nix and `just`; do not invent ad hoc
    validation commands when a recipe exists.
-5. For production work, check Kanboard `Ready` tasks first when the user asks
-   to continue autonomously.
-6. Treat production as GitOps-managed: make production state changes through
+5. Treat production as GitOps-managed: make production state changes through
    repository edits, Gerrit CLs, CI/review, submit, and Flux reconciliation.
    Use `kubectl`, service APIs, SSH admin commands, and similar direct
    production tools for read-only inspection unless the user explicitly asks
@@ -38,16 +36,9 @@ workflow without requiring the user to reference each skill:
   Cothic checks, CV builds, and monorepo tooling commands.
 - `gerrit-jujutsu` - use for `jj` status/log/show, Gerrit change
   descriptions, review upload, fetch/rebase, and merged-change cleanup.
-- `kanboard` - use for the production Kanboard task tracker at
-  `https://b.your.domain/`: list projects/tasks, move cards, assign work,
-  and close completed tasks.
 - `zuul` - use for the production Zuul CI API at
   `https://ci.your.domain/api`: inspect pipeline status, jobs, projects,
   builds, and buildsets related to Gerrit changes.
-- `ntfy` - use for the production ntfy notification service at
-  `https://notify.your.domain`: read recent topic notifications, summarize
-  incident signals, and correlate alerts with Flux, Zuul, Kubernetes,
-  Terraform, or cert-manager state.
 - `observability` - use for read-only MetricsQL and LogsQL access to production
   VictoriaMetrics and VictoriaLogs, telemetry coverage checks, and
   evidence-based infrastructure incident analysis.
@@ -56,29 +47,23 @@ workflow without requiring the user to reference each skill:
 
 ## Working Process
 
-For task-driven infrastructure work, use Kanboard as the source of truth and
-Gerrit/Jujutsu as the change workflow:
+For infrastructure work, use the user's requested scope and Gerrit/Jujutsu
+as the change workflow:
 
-1. Pick a task from the Kanboard `Infrastructure` project `Ready` column.
-2. Move that task to `Work in progress` before editing.
-3. Create a focused `jj` change for the task. If another CL is open, create a
-   separate sibling change from `master@origin` unless a stack is intended.
+1. When preparing a review, create a focused `jj` change. If another CL is
+   open, create a separate sibling change from `master@origin` unless a stack
+   is intended.
    If the previous CL was just merged, fetch first and make the next CL a
    fresh change on the updated `master@origin`; do not keep editing a stale
    local change that only happens to have a familiar title.
-4. Implement the smallest reviewable change and run the narrowest relevant
+2. Implement the smallest reviewable change and run the narrowest relevant
    validation through `/nix/var/nix/profiles/default/bin/nix develop -c just`.
-5. Describe the change non-interactively with `jj desc`, including the
-   Kanboard task id and validation.
-6. Upload to Gerrit with `jj gerrit upload -r @`.
-7. Watch Zuul check/gate status through the `zuul` skill; fix failures in a
+3. When asked to prepare or upload a review, describe the change
+   non-interactively with `jj desc`, including validation.
+4. Upload to Gerrit with `jj gerrit upload -r @` when authorized.
+5. Watch Zuul check/gate status through the `zuul` skill; fix failures in a
    new patchset on the same change.
-8. Wait for review and submit. Do not mark the task done before submit.
-9. After submit, move the Kanboard task to `Done`.
-
-If a task is blocked by a missing prerequisite, move it back to `Ready` or
-`Backlog`, leave a Kanboard comment with the reason, and take the prerequisite
-task instead.
+6. Wait for review and submit when authorized.
 
 Production mutations must flow through GitOps. Do not create Kubernetes
 Secrets, patch live resources, create service accounts, edit Gerrit ACLs, or
@@ -134,11 +119,11 @@ reviewed through Gerrit.
 - `production/playbooks/` - operational Ansible playbooks.
 
 When changing a production service, inspect both its Flux app wiring and its
-Helm chart. For example, Kanboard lives in:
+Helm chart. For example, Gerrit lives in:
 
 ```text
-production/kubernetes/flux/apps/kanboard/
-production/kubernetes/helm-charts/kanboard-wrapper/
+production/kubernetes/flux/apps/gerrit/
+production/kubernetes/helm-charts/gerrit/
 ```
 
 ## Tooling And Validation

@@ -22,7 +22,17 @@ The Python environment is in `~/.cache/assets-studio/venvs/animation_tools`.
 `decimate` (target in triangles), `quadriflow` and `autoremesher` (target in
 quads; actual counts may differ). AutoRemesher works directly on the surface,
 without an initial voxel remesh. GLB stores triangles; the original quad count
-is retained in job metadata.
+is retained in job metadata. Decimation cannot collapse non-manifold edges
+(Hi3D's thin branches have thousands); when it stops more than 10 % above
+the target the job fails instead of returning a much heavier mesh.
+
+AutoRemesher's own settings are parameters too (`edge_scaling`,
+`sharp_edge`, `smooth_normal`, `adaptivity`, `anisotropy`; the CLI's
+defaults), ignored by the other methods. Every method reports `deviation`:
+distances between the detailed surface and the result as shares of the
+bounding box diagonal (`lost`: source points far from the result, such as a
+missing finger; `added`: the other way), the share of source points further
+than 0.5 % and the box around them.
 
 AutoRemesher requires an installed CLI. The default is
 `~/.cache/assets-studio/autoremesher/squashfs-root/AppRun`; use `AUTOREMESHER`

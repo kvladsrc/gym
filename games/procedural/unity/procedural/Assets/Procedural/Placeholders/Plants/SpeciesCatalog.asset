@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a561dd6c7fe1a48778a86ec4b7086216, type: 3}
+  m_Name: SpeciesCatalog
+  m_EditorClassIdentifier: Procedural.World::Procedural.World.SpeciesCatalog
+  species:
+  - id: pine
+    build: 0
+    prefab: {fileID: 723252699574395257, guid: c2c351c7e0bd8f85f95134940e635c9c, type: 3}
+  - id: broadleaf
+    build: 0
+    prefab: {fileID: 4774548152041113638, guid: 1523bd5a0b0130904b211f547ecedf17, type: 3}
+  - id: alder
+    build: 0
+    prefab: {fileID: 500628764434111775, guid: 3b6cade59fdfed72499d127439ae9293, type: 3}
+  - id: shrub
+    build: 0
+    prefab: {fileID: 5289151820933961199, guid: e9083065a2aca34b68eab6600d086793, type: 3}
+  - id: snag
+    build: 0
+    prefab: {fileID: 2779132775184832208, guid: 6c1b086eda99a6dcf89bf7fa2ef4f725, type: 3}
+  - id: log
+    build: 2
+    prefab: {fileID: 187486749560757230, guid: 504155d11e7110fbe82ddb7a9d4ed90e, type: 3}
+  - id: rock
+    build: 2
+    prefab: {fileID: 2942466369933689185, guid: f6b93784b43cd4564a218358589e4a4e, type: 3}
+  - id: slab
+    build: 2
+    prefab: {fileID: 4834747221388394453, guid: aa230ca532880622995870c52ae71a68, type: 3}
+  - id: stone
+    build: 3
+    prefab: {fileID: 565068973319401715, guid: 65f2a1b296f92e870ac88d4382be403f, type: 3}
+  - id: mound
+    build: 3
+    prefab: {fileID: 5266793460693583279, guid: dca64eb545343b96ca852e469319dea7, type: 3}
+  - id: grass
+    build: 1
+    prefab: {fileID: 1297391335726625398, guid: 7f04ce34cde11546c8c156af8d7317b5, type: 3}
+  - id: reed
+    build: 1
+    prefab: {fileID: 8734964517973456322, guid: 32cca29b0415c0ab5925060c1852f0f5, type: 3}

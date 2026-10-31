@@ -11,6 +11,8 @@ need no rigs.
 
 For non-humanoids (animals, birds, objects), use `skintokens`: shape-specific
 skeletons without Mixamo clips ([comparison](../models/3d-to-rig.md)).
+Quadrupeds animated from AI video with a hand-placed skeleton:
+[quadrupeds.md](quadrupeds.md).
 
 ## Rig-ready concepts
 

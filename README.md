@@ -14,6 +14,37 @@ programming solutions.
 **Note**: Code is written for educational purposes, not optimized for
 production, and may contain errors.
 
+## Asset Studio
+
+[`assets_studio`](assets_studio) is a local studio for making game assets
+with open generative models on a laptop with one 8 GB GPU: images, 3D
+models with PBR textures, rigs and animation, speech, sound effects,
+songs, text and short videos. It is the asset pipeline behind the games
+in [`games`](games/README.md).
+
+<!-- markdownlint-disable MD013 MD033 -->
+<p>
+  <a href="static/assets_studio/screenshot-2026-10-31-11-03-02.png"><img src="static/assets_studio/screenshot-2026-10-31-11-03-02.png" width="32%" alt="The library: rated assets from trees and boulders to characters, a painted tree with its triangle count"></a>
+  <a href="static/assets_studio/screenshot-2026-10-31-11-02-02.png"><img src="static/assets_studio/screenshot-2026-10-31-11-02-02.png" width="32%" alt="A painted wolf with how it was made: model, task, seed, parameters"></a>
+  <a href="static/assets_studio/generate.png"><img src="static/assets_studio/generate.png" width="32%" alt="Generate: models grouped by what they make, a task form and the model's card"></a>
+</p>
+<!-- markdownlint-enable MD013 MD033 -->
+
+- **One model, one server.** Every model runs in its own environment
+  behind a common HTTP contract. A launcher starts the server a queued
+  job needs and stops it afterwards, so a 27B language model and a 3D
+  pipeline take turns on the same card.
+- **Chains, not one-offs.** A job can take another job's output: an
+  image becomes a coarse mesh (Hunyuan3D 2.1), a detailed surface (Hi3D),
+  a game mesh with PBR paint (TRELLIS.2) and baked normals, then a rig
+  (Make-It-Animatable, UniRig) and motion (Kimodo, GVHMR).
+- **A library that remembers.** Every result keeps its model revision,
+  seed, parameters and inputs, with ratings and tags; meshes open in a
+  viewer with material, clay and wireframe views.
+- **For people and agents.** A web UI, a REST API and an MCP server:
+  coding agents queue jobs, wait for them and read the results. A
+  separate flow editor saves repeatable job graphs.
+
 ## Repository Structure
 
 ### Codeforces Solutions
@@ -67,14 +98,6 @@ with the **Gemini API** using named prompts and shell aliases:
 cat error.txt | grep ERROR | summary | kharms
 # → Everything has vanished like smoke, the file exists no more.
 ```
-
-### Asset Studio
-
-[`assets_studio`](assets_studio) — A local studio for making game assets
-with generative models on a single 8 GB GPU: images, 3D models, speech,
-sounds, text and short videos. Each model runs as its own server behind
-a common HTTP contract; the studio queues jobs and keeps the results
-with their lineage, for people in a web UI and for agents over MCP.
 
 ### Games
 
