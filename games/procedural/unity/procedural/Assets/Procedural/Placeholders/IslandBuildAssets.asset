@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4da738912bd32372db70cb4bda74c997, type: 3}
+  m_Name: IslandBuildAssets
+  m_EditorClassIdentifier: Procedural.World::Procedural.World.IslandBuildAssets
+  layers:
+  - {fileID: 8574412962073106934, guid: 7e603f214cebaa28dabd2d809853ed8b, type: 2}
+  - {fileID: 8574412962073106934, guid: fd7ae116a54bceec38f744113a1ed14b, type: 2}
+  - {fileID: 8574412962073106934, guid: ae10b0b8e9d8b1f7583936d256e2813e, type: 2}
+  - {fileID: 8574412962073106934, guid: 1542bee74ea0a4a92bc6f73b63b67a2a, type: 2}
+  terrain: {fileID: 2100000, guid: f4bd736ec15681a9985de0d5ef384ca6, type: 2}
+  sea: {fileID: 2100000, guid: bfab1276c52c6ede3a1fe55cec4eacd0, type: 2}
+  river: {fileID: 2100000, guid: 62d310e488108b38dbe9ad5282db29b8, type: 2}
+  lake: {fileID: 2100000, guid: dfb85179b8c6bf67fb83e60517681b65, type: 2}
+  species: {fileID: 11400000, guid: 40b837fc7882bc657b0be783aefb9ca3, type: 2}

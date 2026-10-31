@@ -1,0 +1,15 @@
+<!-- Builds the Unity-free generator outside Unity, with Unity's API surface
+     (netstandard2.1, C# 9), so core work can be compiled and tested quickly. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>Procedural.Generation</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../unity/procedural/Assets/Procedural/Generation/**/*.cs" />
+  </ItemGroup>
+</Project>

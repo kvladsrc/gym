@@ -156,8 +156,10 @@ const en = {
   "mesh.wireframe": "Wireframe",
   "mesh.texture": "Texture",
   "mesh.stats": "{triangles} triangles · {vertices} vertices",
-  "mesh.verticesHint": "Stored vertices, including duplicates at UV seams and material boundaries. GLB stores triangles, including triangulated quads.",
-  "mesh.failed": "Mesh inspection is unavailable. You can still rotate the model and download the file.",
+  "mesh.verticesHint":
+    "Stored vertices, including duplicates at UV seams and material boundaries. GLB stores triangles, including triangulated quads.",
+  "mesh.failed":
+    "Mesh inspection is unavailable. You can still rotate the model and download the file.",
   "preview.pause": "Pause",
   "preview.textFailed": "Could not load the text.",
   "preview.motion": "Motion data, {size}: not shown here",
@@ -419,7 +421,8 @@ const ru: Record<Key, string> = {
   "mesh.wireframe": "Сетка",
   "mesh.texture": "Текстура",
   "mesh.stats": "Треугольников: {triangles} · Вершин: {vertices}",
-  "mesh.verticesHint": "Вершины в файле, включая дубликаты на UV-швах и границах материалов. GLB хранит треугольники, в том числе после разделения квадов.",
+  "mesh.verticesHint":
+    "Вершины в файле, включая дубликаты на UV-швах и границах материалов. GLB хранит треугольники, в том числе после разделения квадов.",
   "mesh.failed": "Просмотр сетки недоступен. Модель можно вращать и скачать.",
   "preview.pause": "Пауза",
   "preview.textFailed": "Не удалось загрузить текст.",

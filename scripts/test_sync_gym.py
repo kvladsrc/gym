@@ -16,12 +16,19 @@ class SyncGymTest(unittest.TestCase):
             destination.mkdir()
             (source / "scripts").mkdir(parents=True)
             shutil.copy2(repository / "scripts/sync_gym.sh", source / "scripts")
+            # Published games (sync_gym.sh's GAMES); every other game stays
+            # private, and a copy published before is removed.
             projects = (
                 "games/cothic",
-                "games/zooreader",
+                "games/procedural",
                 "games/ripples_cli",
+                "games/zooreader",
+            )
+            private = (
                 "games/future_game",
-                "games/mosslight",
+                "games/pointandclick",
+                "games/soulslike",
+                "games/vibe_jakubovich",
             )
             studio = repository / "assets_studio"
             for ignore in studio.rglob(".gitignore"):
@@ -31,20 +38,11 @@ class SyncGymTest(unittest.TestCase):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ignore, target)
             (source / "assets_studio/README.md").write_text("By myuser\n")
-            # The soulslike's code is public; its art, builds, results are not.
-            soulslike = repository / "games/soulslike"
-            for ignore in (soulslike / ".gitignore", soulslike / "training/.gitignore"):
-                target = source / ignore.relative_to(repository)
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(ignore, target)
-            kept = {
-                "games/soulslike/DESIGN.md": "Made by myuser\n",
-                "games/soulslike/unity/soulslike/Assets/Soulslike/Scripts/Hud.cs": "// myuser\n",
-            }
-            for relative, text in kept.items():
-                path = source / relative
-                path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(text)
+            for project in private:
+                (source / project).mkdir(parents=True)
+                (source / project / "README.md").write_text("Private draft\n")
+                (destination / project).mkdir(parents=True)
+                (destination / project / "README.md").write_text("published before")
             for project in projects:
                 (source / project / "assets").mkdir(parents=True)
                 ignore = repository / project / ".gitignore"
@@ -65,7 +63,7 @@ class SyncGymTest(unittest.TestCase):
                 if line.startswith("mod") and '"games/' in line
             ]
             (source / "justfile").write_text("\n".join(game_modules) + "\n")
-            for project in ("cothic", "zooreader", "mosslight", "soulslike"):
+            for project in ("cothic", "procedural", "zooreader"):
                 (source / "games" / project / "justfile").write_text(
                     f"probe:\n    @echo {project}\n"
                 )
@@ -131,12 +129,9 @@ class SyncGymTest(unittest.TestCase):
                 text=True,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertFalse((destination / "games/vibe_jakubovich").exists())
-            for relative, text in kept.items():
-                self.assertEqual(
-                    (destination / relative).read_text(),
-                    text.replace("myuser", "myuser"),
-                )
+            for project in private:
+                with self.subTest(private=project):
+                    self.assertFalse((destination / project).exists())
             self.assertFalse((destination / "animations").exists())
             self.assertEqual(
                 (destination / "assets_studio/README.md").read_text(), "By myuser\n"

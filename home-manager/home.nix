@@ -188,6 +188,7 @@ in
     gocryptfs
     google-chrome
     graphviz
+    gvfs
     losslesscut
     mg
     nautilus
@@ -313,6 +314,13 @@ in
     };
   };
 
+  # Gentoo's session bus does not search the Nix profile for GVfs services.
+  # Publish them in the standard user data directory for D-Bus activation.
+  xdg.dataFile."dbus-1/services" = {
+    source = "${pkgs.gvfs}/share/dbus-1/services";
+    recursive = true;
+  };
+
   # Make the login callback discoverable even without Nix in XDG_DATA_DIRS.
   # Use bin/unityhub so browser callbacks also go through the nixGL wrapper.
   xdg.dataFile."applications/unityhub.desktop".text = ''
@@ -334,6 +342,8 @@ in
   home.sessionVariables = {
     EDITOR = "mg";
     VISUAL = "mg";
+    # Nautilus and command-line GIO also need the virtual filesystem module.
+    GIO_EXTRA_MODULES = "${pkgs.gvfs}/lib/gio/modules";
   };
 
   programs.waybar.enable = true;

@@ -1,0 +1,25 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Show all available commands
+default:
+    @just --list --list-submodules
+
+# Bake the island in the running Editor (seed: a number, "random", or empty to keep)
+bake seed="":
+    tools/bake.sh "{{ seed }}" bake
+
+# A fast preview without plants (seed as for bake)
+preview seed="":
+    tools/bake.sh "{{ seed }}" preview
+
+# Build the Linux player through the running Editor (bake the level first)
+build:
+    tools/build.sh
+
+# Play the player build on the NVIDIA GPU
+play:
+    ./play.sh
+
+# Generator core tests without Unity
+test:
+    cd tools/core/Tests && PATH="$HOME/Unity/Hub/Editor/6000.6.0f1/Editor/Data/DotNetSdk:$PATH" DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1 MSBUILDDISABLENODEREUSE=1 dotnet test --no-restore

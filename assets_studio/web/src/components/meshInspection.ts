@@ -2,7 +2,12 @@
 // the browser walkthrough checks this adapter when upgrading model-viewer.
 import { $scene } from "@google/model-viewer/lib/model-viewer-base.js";
 import type { ModelScene } from "@google/model-viewer/lib/three-components/ModelScene.js";
-import { InstancedMesh, Mesh, MeshBasicMaterial, MeshStandardMaterial } from "three";
+import {
+  InstancedMesh,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+} from "three";
 import type { Material } from "three";
 
 export type MeshView = "material" | "geometry" | "wireframe";

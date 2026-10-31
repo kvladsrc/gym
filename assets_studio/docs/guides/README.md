@@ -11,6 +11,7 @@ not tied to a genre or project.
 | --- | --- |
 | [3d.md](3d.md) | Image → 3D pipeline, shape-friendly prompts and parameters |
 | [characters.md](characters.md) | Rig-ready concepts, rigging, Mixamo animation and attacks |
+| [quadrupeds.md](quadrupeds.md) | A rigged animal animated from AI video (AnyMove), hand-painted weights |
 | [engine.md](engine.md) | Engine import, collisions, Blender levels and performance |
 | [audio.md](audio.md) | Voices (XTTS) and songs (YuE) |
 | [process.md](process.md) | Finding good combinations: sweeps, ratings, analysis, queue and memory |
@@ -26,4 +27,7 @@ Key findings:
   split at UV seams and tear when reduced without welding.
 - **Characters: A-pose, empty hands, visible legs, no tails or capes.** Use
   Generic in the engine rather than Humanoid, with in-place clips.
+- **Quadrupeds: head in line with the spine, tail held clear of the legs.**
+  Paint the body and leg regions by hand; automatic weights drag the flanks
+  with the legs. Fast moves need lighter fit smoothing.
 - **Voice cloning requires clean speech;** XTTS does not accept stress marks.

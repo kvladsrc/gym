@@ -12,7 +12,7 @@ from animation_tools_model_server.server import (
 )
 from asset_processing.blender import RETARGET_SCRIPT
 
-from model_server_sdk import InputData, Job
+from model_server_sdk import InputData, InvalidInput, Job
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("RUN_BLENDER_TESTS") != "1",
@@ -147,6 +147,7 @@ texture = bpy.data.textures.new("bumps", "CLOUDS")
 displace = high.modifiers.new("d", "DISPLACE")
 displace.texture, displace.strength = texture, 0.05
 bpy.ops.object.modifier_apply(modifier="d")
+high.data.materials.append(bpy.data.materials.new("detailed"))
 bpy.ops.export_scene.gltf(filepath=work + "/high.glb", export_format="GLB", use_selection=True)
 bpy.ops.object.delete()
 bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12)
@@ -180,6 +181,19 @@ def test_retopology_and_normal_baking(tmp_path):
     retopo = server.generate(job("3d-retopo", {"mesh": high}, RetopoParams(faces=2000)))[0]
     assert retopo.meta["quads"] > 1000
     assert retopo.meta["voxels_across"] in (256, 128, 64)
+    assert retopo.meta["material_dropped"]
+
+    # A painted mesh keeps its UVs and material through decimation.
+    decimated = server.generate(
+        job("3d-retopo", {"mesh": high}, RetopoParams(faces=2000, method="decimate"))
+    )[0]
+    assert decimated.meta["kept_material"]
+    assert not decimated.meta["material_dropped"]
+    length = struct.unpack("<I", decimated.data[12:16])[0]
+    gltf = json.loads(decimated.data[20 : 20 + length])
+    assert gltf["materials"][0]["name"] == "detailed"
+    assert "TEXCOORD_0" in gltf["meshes"][0]["primitives"][0]["attributes"]
+    assert decimated.meta["triangles"] <= 2100
 
     baked = server.generate(
         job("3d-bake-normals", {"high": high, "low": low}, BakeParams(texture_size=1024))
@@ -187,3 +201,46 @@ def test_retopology_and_normal_baking(tmp_path):
     length = struct.unpack("<I", baked.data[12:16])[0]
     gltf = json.loads(baked.data[20 : 20 + length])
     assert "normalTexture" in gltf["materials"][0]
+
+
+# Six thin sheets meeting at one long spine, like a book: every spine edge has
+# six faces (non-manifold), which edge collapse cannot pass, so 18,000
+# triangles stop far above a 500-triangle target.
+MAKE_BOOK = """
+import math, sys, bmesh, bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+work = bmesh.new()
+along, across = 150, 10
+spine = [work.verts.new((0.0, v / along, 0.0)) for v in range(along + 1)]
+for sheet in range(6):
+    dx, dz = math.cos(sheet * math.pi / 3), math.sin(sheet * math.pi / 3)
+    rows = [spine]
+    for u in range(1, across + 1):
+        x, z = 0.1 * dx * u / across, 0.1 * dz * u / across
+        rows.append([work.verts.new((x, v / along, z)) for v in range(along + 1)])
+    for u in range(across):
+        for v in range(along):
+            work.faces.new((rows[u][v], rows[u + 1][v], rows[u + 1][v + 1], rows[u][v + 1]))
+mesh = bpy.data.meshes.new("book")
+work.to_mesh(mesh)
+bpy.context.collection.objects.link(bpy.data.objects.new("book", mesh))
+bpy.ops.export_scene.gltf(filepath=sys.argv[-1], export_format="GLB")
+"""
+
+
+def test_decimation_stopping_above_its_target_fails(tmp_path):
+    binary = blender()
+    assert binary, "Blender is required"
+    book = tmp_path / "book.glb"
+    subprocess.run(
+        [binary, "-b", "--factory-startup", "--python-expr", MAKE_BOOK, "--", str(book)],
+        check=True,
+        capture_output=True,
+        timeout=120,
+    )
+    server = AnimationToolsServer()
+    server.load()
+    mesh = {"mesh": InputData("model/gltf-binary", book.read_bytes())}
+    job = Job("3d-retopo", None, mesh, RetopoParams(faces=500, method="decimate"), (0,))
+    with pytest.raises(InvalidInput, match="non-manifold edges"):
+        server.generate(job)

@@ -30,7 +30,7 @@ zuul:
 
   executor:
     count: 1
-    diskLimitPerJob: 1024
+    diskLimitPerJob: 2048
     terminationGracePeriodSeconds: 21600
     resources:
       requests:
@@ -85,7 +85,7 @@ nxs:
     # auto-rollout checksums cannot see it. Bump this revision in the same
     # change as any zuul.conf edit to restart all Zuul components.
     podAnnotations:
-      your.domain/zuul-conf-revision: "3"
+      your.domain/zuul-conf-revision: "4"
 
   statefulSets:
     # Zuul SQL migrations are forward-only. Keep every component on the

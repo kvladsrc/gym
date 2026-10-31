@@ -3,10 +3,12 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 mod assets_studio
 mod cothic "games/cothic"
 mod cv
-mod finish_the_game "games/finish_the_game"
+mod? finish_the_game "games/finish_the_game"
 mod neural_network
+mod? pointandclick "games/pointandclick"
 mod presentations
-mod soulslike "games/soulslike"
+mod procedural "games/procedural"
+mod? soulslike "games/soulslike"
 mod talos "production/kubernetes/talos"
 mod zooreader "games/zooreader"
 mod? vibe_jakubovich "games/vibe_jakubovich"
