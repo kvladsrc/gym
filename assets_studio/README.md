@@ -104,6 +104,3 @@ vertices split at UV seams; quads exported to GLB appear as triangles.
 just check                     # lint, types, tests, web UI (no GPU)
 cd model_servers && just test  # each server's own tests (no GPU)
 ```
-
-Saved job graphs: [`flow`](flow/README.md), on `http://127.0.0.1:9001`
-(`just flow`). The original plan and milestones: [`PLAN.md`](PLAN.md).
