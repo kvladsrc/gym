@@ -19,8 +19,7 @@ production, and may contain errors.
 [`assets_studio`](assets_studio) is a local studio for making game assets
 with open generative models on a laptop with one 8 GB GPU: images, 3D
 models with PBR textures, rigs and animation, speech, sound effects,
-songs, text and short videos. It is the asset pipeline behind the games
-in [`games`](games/README.md).
+songs, text and short videos.
 
 <!-- markdownlint-disable MD013 MD033 -->
 <p>
@@ -34,13 +33,6 @@ in [`games`](games/README.md).
   behind a common HTTP contract. A launcher starts the server a queued
   job needs and stops it afterwards, so a 27B language model and a 3D
   pipeline take turns on the same card.
-- **Chains, not one-offs.** A job can take another job's output: an
-  image becomes a coarse mesh (Hunyuan3D 2.1), a detailed surface (Hi3D),
-  a game mesh with PBR paint (TRELLIS.2) and baked normals, then a rig
-  (Make-It-Animatable, UniRig) and motion (Kimodo, GVHMR).
-- **A library that remembers.** Every result keeps its model revision,
-  seed, parameters and inputs, with ratings and tags; meshes open in a
-  viewer with material, clay and wireframe views.
 - **For people and agents.** A web UI, a REST API and an MCP server:
   coding agents queue jobs, wait for them and read the results. A
   separate flow editor saves repeatable job graphs.
