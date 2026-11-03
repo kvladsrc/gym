@@ -33,7 +33,9 @@ def diagnose(database: Path) -> dict[str, Any]:
             )
     except (ImportError, OSError, sqlite3.Error) as error:
         runtime["error"] = str(error)
-        runtime["hint"] = "Run through the Nix/just runtime; use just yaqs setup"
+        runtime["hint"] = (
+            "Run just yaqs setup; on NixOS enter nix develop .#assets-studio-gpu first"
+        )
     model = cache_status()
     if not model["ready"]:
         model["hint"] = "Run just yaqs setup or yaqs download"

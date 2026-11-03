@@ -4,7 +4,6 @@ cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "yaqs"
 export UV_PROJECT_ENVIRONMENT := cache / "venv"
 export HF_HUB_DISABLE_TELEMETRY := "1"
 export TOKENIZERS_PARALLELISM := "false"
-runner := "env -u LD_LIBRARY_PATH /nix/var/nix/profiles/default/bin/nix develop " + quote(source_directory() / "../..") + "#assets-studio-gpu --command"
 project := quote(source_directory())
 
 default:
@@ -12,77 +11,77 @@ default:
 
 # Runtime outside Dropbox; reuse the pinned Qwen checkpoint in the HF cache
 setup:
-    {{ runner }} uv sync --project {{ project }} --extra dev
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs download
+    uv sync --project {{ project }} --locked --extra dev
+    uv run --project {{ project }} --no-sync yaqs download
 
 # Import text, wait for other importers and resume completed embeddings
 [positional-arguments]
 import path *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs import --wait-for-lock "$@"
+    uv run --project {{ project }} --no-sync yaqs import --wait-for-lock "$@"
 
 # Search defaults to CPU so it can run while Studio owns the GPU
 [positional-arguments]
 search query *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs search "$@"
+    uv run --project {{ project }} --no-sync yaqs search "$@"
 
 [positional-arguments]
 run *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs "$@"
+    uv run --project {{ project }} --no-sync yaqs "$@"
 
 [positional-arguments]
 stats *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs stats "$@"
+    uv run --project {{ project }} --no-sync yaqs stats "$@"
 
 # Offline checks for runtime, cached model and database readiness
 [positional-arguments]
 doctor *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs doctor "$@"
+    uv run --project {{ project }} --no-sync yaqs doctor "$@"
 
 [positional-arguments]
 books *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs books "$@"
+    uv run --project {{ project }} --no-sync yaqs books "$@"
 
 # Check the actual data and both search indexes
 [positional-arguments]
 check-db *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs check "$@"
+    uv run --project {{ project }} --no-sync yaqs check "$@"
 
 [positional-arguments]
 page book number *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs page "$@"
+    uv run --project {{ project }} --no-sync yaqs page "$@"
 
 [positional-arguments]
 passage chunk *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs passage "$@"
+    uv run --project {{ project }} --no-sync yaqs passage "$@"
 
 # Consistent SQLite snapshot, including committed WAL data
 [positional-arguments]
 backup path *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs backup "$@"
+    uv run --project {{ project }} --no-sync yaqs backup "$@"
 
 # Remove the indexed book; original source files remain in their source directory
 [positional-arguments]
 remove book *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs remove "$@"
+    uv run --project {{ project }} --no-sync yaqs remove "$@"
 
 # Recreate a complete database from stored page text without running OCR
 [positional-arguments]
 rebuild output *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs rebuild --output "$@"
+    uv run --project {{ project }} --no-sync yaqs rebuild --output "$@"
 
 # Shared local MCP endpoint at http://127.0.0.1:9033/mcp
 [positional-arguments]
 serve *args:
-    {{ runner }} uv run --project {{ project }} --no-sync yaqs serve "$@"
+    uv run --project {{ project }} --no-sync yaqs serve "$@"
 
 fmt:
-    {{ runner }} uv run --project {{ project }} --no-sync ruff check --fix {{ project }}
-    {{ runner }} uv run --project {{ project }} --no-sync ruff format {{ project }}
+    uv run --project {{ project }} --no-sync ruff check --fix {{ project }}
+    uv run --project {{ project }} --no-sync ruff format {{ project }}
 
 test:
-    {{ runner }} uv run --project {{ project }} --no-sync pytest -q {{ project }}/tests
+    uv run --project {{ project }} --no-sync pytest -q {{ project }}/tests
 
 check:
-    {{ runner }} uv run --project {{ project }} --no-sync ruff check {{ project }}
-    {{ runner }} uv run --project {{ project }} --no-sync ruff format --check {{ project }}
-    {{ runner }} uv run --project {{ project }} --no-sync pytest -q {{ project }}/tests
+    uv run --project {{ project }} --no-sync ruff check {{ project }}
+    uv run --project {{ project }} --no-sync ruff format --check {{ project }}
+    uv run --project {{ project }} --no-sync pytest -q {{ project }}/tests
