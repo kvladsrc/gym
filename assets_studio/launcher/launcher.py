@@ -65,6 +65,7 @@ RECIPES = {
     "song": "yue2",
     "gemma": "gemma",
     "qwen": "qwen",
+    "unlimited_ocr": "unlimited_ocr",
     "video": "wan",
 }
 

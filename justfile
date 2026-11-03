@@ -7,9 +7,11 @@ mod? finish_the_game "games/finish_the_game"
 mod neural_network
 mod? pointandclick "games/pointandclick"
 mod presentations
-mod procedural "games/procedural"
+mod? procedural "games/procedural"
 mod? soulslike "games/soulslike"
 mod talos "production/kubernetes/talos"
+mod? tents "games/tents"
+mod yaqs "games/yaqs"
 mod zooreader "games/zooreader"
 mod? vibe_jakubovich "games/vibe_jakubovich"
 

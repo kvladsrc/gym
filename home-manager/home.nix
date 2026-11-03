@@ -198,6 +198,7 @@ in
     texliveTeTeX
     tor-browser
     totem
+    transmission_4-gtk
     usbutils
     xorg.xlsclients
     xournalpp

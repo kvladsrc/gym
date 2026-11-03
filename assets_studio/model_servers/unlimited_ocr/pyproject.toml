@@ -1,0 +1,40 @@
+[project]
+name = "unlimited-ocr-model-server"
+version = "0.1.0"
+description = "Unlimited-OCR 2 image-to-text server for the asset studio."
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk[images]",
+  # Reuse the studio's CUDA wheels; tested separately from upstream's A800 setup.
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  "transformers==4.52.1",
+  "huggingface-hub==0.36.0",
+  "tokenizers==0.21.4",
+  "addict==2.4.0",
+  "einops==0.8.2",
+  "easydict==1.13",
+  "numpy==1.26.4",
+  "requests>=2.32",
+  "accelerate>=1.10,<2",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3", "httpx2>=2.13"]
+
+[project.scripts]
+unlimited-ocr-model-server = "unlimited_ocr_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

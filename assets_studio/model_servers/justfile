@@ -4,7 +4,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 # these recipes only dispatch to them. `just <model>` starts the server,
 # extra arguments go to it (e.g. `just qwen_image --port 9200`).
 
-servers := "qwen_image birefnet sam2 hunyuan3d21 hi3d trellis2_paint hunyuan_paint21 mia skintokens unirig kimodo mocapanything gvhmr gemx htd_refine prompthmr animation_tools xtts stable_audio yue2 llm wan"
+servers := "qwen_image birefnet sam2 hunyuan3d21 hi3d trellis2_paint hunyuan_paint21 mia skintokens unirig kimodo mocapanything gvhmr gemx htd_refine prompthmr animation_tools xtts stable_audio yue2 llm wan unlimited_ocr"
 
 # Show the available commands
 default:
@@ -128,6 +128,11 @@ qwen *args:
 [positional-arguments]
 wan *args:
     just --justfile wan/justfile serve "$@"
+
+# Unlimited-OCR 2: a document page image to text (port 9132)
+[positional-arguments]
+unlimited_ocr *args:
+    just --justfile unlimited_ocr/justfile serve "$@"
 
 # GPU-free fake server for tests (port 9100)
 [positional-arguments]
