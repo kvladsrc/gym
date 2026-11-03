@@ -6,20 +6,74 @@ across Russian and English; results include the source, page and exact text.
 
 ## Getting started
 
-From the monorepo root, in a Nix shell:
+### Dependencies
+
+The instructions below target x86_64 Linux, including WSL2. Install:
+
+- **Bash** and **Git** to use the recipes and obtain the source checkout.
+- **[uv](https://docs.astral.sh/uv/getting-started/installation/)** to install
+  Python and manage the project's pinned dependencies.
+- **[just](https://just.systems/man/en/packages.html)** to run the recipes.
+  After installing uv, you can install just with `uv tool install rust-just`.
+- **Python 3.11**, either installed already or managed by uv with
+  `uv python install 3.11`.
+- The system **C++ runtime and zlib**. On Debian/Ubuntu, install them with
+  `sudo apt install libstdc++6 zlib1g`.
+
+The Python SQLite build must support FTS5 and loading extensions; `doctor`
+checks both. `setup` installs the Python packages, including PyTorch,
+Transformers, sqlite-vec and the MCP SDK. No separate database server or
+SQLite command-line tool is needed. Initial setup needs internet access to
+download dependencies and model weights.
+
+An NVIDIA GPU is optional. The pinned PyTorch package uses CUDA 12.9 and can
+also run on the CPU; installation includes CUDA libraries even for CPU use.
+GPU import requires a compatible NVIDIA driver. The CUDA toolkit does not
+need to be installed separately.
+
+### Without Nix
+
+Install uv using its linked installation guide, then ensure `uv` and `just`
+are available on your `PATH`. If needed, install just and Python:
 
 ```sh
-nix develop
+uv tool install rust-just
+uv python install 3.11
+```
+
+From the repository root:
+
+```sh
 just yaqs setup
-just yaqs import /path/to/book.jsonl
+just yaqs import /path/to/book.jsonl --device cpu
 just yaqs doctor
 just yaqs search "How can I make character controls more responsive?"
 ```
 
 `setup` installs the environment in `~/.cache/yaqs/venv` and downloads the pinned
-Qwen3-Embedding-0.6B revision without quantization. Normal operations use the
-local cache. Import defaults to CUDA with a batch size of 16; use `--device cpu`
-if you do not have an NVIDIA GPU. Search runs on the CPU and uses no GPU memory.
+Qwen3-Embedding-0.6B revision without quantization. It uses `uv.lock` without
+updating pinned dependencies. Normal operations use the local cache. The
+example imports on the CPU; import otherwise defaults to CUDA with a batch
+size of 16. Search runs on the CPU and uses no GPU memory.
+
+### Alternative: Nix in the monorepo
+
+If you use Nix, enter the dedicated shell from the monorepo root. It provides
+Bash, Git, just, uv, Python 3.11 and the system libraries needed on NixOS:
+
+```sh
+nix develop .#assets-studio-gpu
+just yaqs setup
+just yaqs import /path/to/book.jsonl --device cpu
+just yaqs doctor
+just yaqs search "How can I make character controls more responsive?"
+```
+
+Use this dedicated shell on NixOS; the default `nix develop` shell does not
+provide the full YAQS runtime. YAQS recipes invoke uv directly and use the
+environment supplied by your system or the selected Nix shell.
+
+### Database location
 
 The default database is `games/yaqs/data/knowledge.sqlite3`. To use another file:
 
@@ -128,9 +182,9 @@ just yaqs serve
 
 Streamable HTTP: `http://127.0.0.1:9033/mcp`. For clients that launch the server
 process themselves, use `just yaqs serve --transport stdio` from the repository
-root in a Nix shell. Launch through Nix/just: running Python directly on NixOS
-may lack required system libraries. Client configuration is not changed
-automatically.
+root after setup. On NixOS, launch the client in the dedicated Nix shell so
+its server subprocess inherits the required system libraries. Client
+configuration is not changed automatically.
 
 Tools: `search_knowledge`, `list_books`, `get_passage`, `get_page`,
 `knowledge_stats`. MCP uses the same semantic search and context assembly as

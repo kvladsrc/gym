@@ -67,7 +67,14 @@ def main() -> None:
         raise SystemExit(130) from error
     except ImportError as error:
         print(
-            json.dumps({"error": str(error), "hint": "Use Nix/just; run just yaqs setup"}),
+            json.dumps(
+                {
+                    "error": str(error),
+                    "hint": (
+                        "Run just yaqs setup; on NixOS enter nix develop .#assets-studio-gpu first"
+                    ),
+                }
+            ),
             file=sys.stderr,
         )
         raise SystemExit(1) from error
