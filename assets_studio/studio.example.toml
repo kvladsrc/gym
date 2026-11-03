@@ -3,6 +3,7 @@
 #   just stable_audio  (sounds and music, port 9105; needs HF_TOKEN)
 #   just gemma         (text, Gemma 4 12B, port 9106)
 #   just qwen          (text, Qwen3.8 27B, port 9107)
+#   just unlimited_ocr (document page image to text, Unlimited-OCR 2, port 9132)
 #   just wan           (video from a first frame, Wan2.2, port 9108)
 #   just qwen_image    (images with transparency, editing; Qwen-Image 2.1, port 9109)
 #   just yue2          (songs with vocals from lyrics; YuE2, port 9110)
@@ -48,6 +49,11 @@ url = "http://127.0.0.1:9106"
 id = "qwen"
 title = "Qwen3.8"
 url = "http://127.0.0.1:9107"
+
+[[servers]]
+id = "unlimited_ocr"
+title = "Unlimited-OCR 2"
+url = "http://127.0.0.1:9132"
 
 [[servers]]
 id = "video"

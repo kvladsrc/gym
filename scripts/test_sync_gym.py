@@ -20,14 +20,16 @@ class SyncGymTest(unittest.TestCase):
             # private, and a copy published before is removed.
             projects = (
                 "games/cothic",
-                "games/procedural",
-                "games/ripples_cli",
+                "games/yaqs",
                 "games/zooreader",
             )
             private = (
                 "games/future_game",
                 "games/pointandclick",
+                "games/procedural",
+                "games/ripples_cli",
                 "games/soulslike",
+                "games/tents",
                 "games/vibe_jakubovich",
             )
             studio = repository / "assets_studio"
@@ -63,7 +65,7 @@ class SyncGymTest(unittest.TestCase):
                 if line.startswith("mod") and '"games/' in line
             ]
             (source / "justfile").write_text("\n".join(game_modules) + "\n")
-            for project in ("cothic", "procedural", "zooreader"):
+            for project in ("cothic", "yaqs", "zooreader"):
                 (source / "games" / project / "justfile").write_text(
                     f"probe:\n    @echo {project}\n"
                 )
@@ -72,6 +74,12 @@ class SyncGymTest(unittest.TestCase):
                 "games/cothic/.godot/imported/cache.bin",
                 "games/cothic/tmp/frame.png",
                 "games/cothic/build/game.pck",
+                "games/yaqs/data/knowledge.sqlite3",
+                "games/yaqs/data/knowledge.sqlite3-wal",
+                "games/yaqs/data/knowledge.sqlite3-shm",
+                "games/yaqs/data/backup.sqlite3",
+                "games/yaqs/.venv/bin/python",
+                "games/yaqs/src/yaqs/__pycache__/cli.pyc",
                 "games/zooreader/asset-work/concept.png",
                 "games/future_game/build/output.bin",
                 "games/vibe_jakubovich/references/media/episode.mp4",
@@ -97,6 +105,10 @@ class SyncGymTest(unittest.TestCase):
                 path = source / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(b"local-only")
+                if relative.startswith("games/yaqs/data/"):
+                    stale = destination / relative
+                    stale.parent.mkdir(parents=True, exist_ok=True)
+                    stale.write_bytes(b"published before")
 
             binaries = [
                 "games/cothic/assets/hero.glb",
@@ -140,20 +152,22 @@ class SyncGymTest(unittest.TestCase):
                 (destination / "games/README.md").read_text(),
                 "![Preview](../static/zooreader.gif)\n[Game](zooreader)\n",
             )
-            public_just = subprocess.run(
-                [
-                    "just",
-                    "--justfile",
-                    str(destination / "justfile"),
-                    "cothic",
-                    "probe",
-                ],
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(public_just.returncode, 0, public_just.stderr)
-            self.assertEqual(public_just.stdout.strip(), "cothic")
+            for project in ("cothic", "yaqs", "zooreader"):
+                with self.subTest(public_command=project):
+                    public_just = subprocess.run(
+                        [
+                            "just",
+                            "--justfile",
+                            str(destination / "justfile"),
+                            project,
+                            "probe",
+                        ],
+                        check=False,
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertEqual(public_just.returncode, 0, public_just.stderr)
+                    self.assertEqual(public_just.stdout.strip(), project)
             for project in projects:
                 with self.subTest(project=project):
                     self.assertEqual(
@@ -172,3 +186,7 @@ class SyncGymTest(unittest.TestCase):
                 (destination / "README.md").read_text(),
                 "![Preview](static/zooreader.gif)\n",
             )
+
+
+if __name__ == "__main__":
+    unittest.main()

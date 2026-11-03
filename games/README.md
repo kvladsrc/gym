@@ -1,6 +1,6 @@
 # Games
 
-Small games created with LLM assistance, largely to explore and test models.
+Games and development tools created with LLM assistance to explore and test models.
 Run the commands below from the repository root.
 
 ## Cothic
@@ -48,19 +48,19 @@ comments about the page content.
 
 ![Zooreader zero-player gameplay](../static/zooreader.png)
 
-## Ripples
+## YAQS
 
-[`ripples_cli`](ripples_cli) is a text-based RPG engine powered by
-Google Gemini. It generates real-time dialogues and interactions based
-on a static world graph and a dynamic event journal.
+[`yaqs`](yaqs) is a local game-development knowledge library for people
+and agents. It combines SQLite, sqlite-vec and FTS5 with Qwen3 embeddings
+for semantic search across languages, with book and page citations.
 
-**Key Mechanics**:
+The CLI and MCP server support search, neighboring passages and full-page
+reading. The database, source books and model weights are not included;
+import your own UTF-8 TXT or JSONL documents.
 
-- **World Graph**: Define your world in [DOT](https://graphviz.org/)
-  format. Vertices (Nodes) serve as Locations or NPCs.
-
-- **Dynamic Edges**: The LLM generates available player choices in
-  real-time, effectively creating new edges in the graph.
-
-- **Living Context**: Key player actions are recorded and serves as
-  context for future generations.
+```sh
+just yaqs setup
+just yaqs import /path/to/book.jsonl
+just yaqs search "How can level design guide the player?"
+just yaqs serve
+```

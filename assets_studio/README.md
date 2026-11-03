@@ -82,6 +82,7 @@ server is ready; a server can also be started by hand the same way.
 | | `sound` | Stable Audio Open | Sound effects and music up to 47 s |
 | | `song` | YuE2 | Songs with vocals from lyrics |
 | Text | `gemma`, `qwen` | Gemma 4 12B, Qwen3.8 27B | Text; Qwen also describes images and videos |
+| | `unlimited_ocr` | Unlimited-OCR 2 | Document page image → text; [setup](model_servers/unlimited_ocr/README.md) |
 
 Licences differ per model and several are non-commercial; each server
 reports its licence, and the UI shows it on the model's card.

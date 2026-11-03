@@ -39,8 +39,7 @@ DIRS=(
 # Games published from games/ (with games/README.md); the others stay private
 GAMES=(
     "cothic"
-    "procedural"
-    "ripples_cli"
+    "yaqs"
     "zooreader"
 )
 
