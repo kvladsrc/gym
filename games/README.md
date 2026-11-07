@@ -1,7 +1,8 @@
 # Games
 
 Games and development tools created with LLM assistance to explore and test models.
-Run the commands below from the repository root.
+Run the commands below from the repository root. Lessons on agents, the library,
+visual checks and 3D assets are in [`GUIDE.md`](GUIDE.md).
 
 ## Cothic
 

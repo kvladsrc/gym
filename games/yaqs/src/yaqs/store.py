@@ -1,4 +1,10 @@
-"""SQLite catalog, exact cosine KNN with sqlite-vec, and FTS5 fused by rank."""
+"""SQLite catalog, exact cosine KNN with sqlite-vec, and FTS5 fused by rank.
+
+One database file holds books, page text, chunks, their vectors and a full-text index.
+Triggers keep the FTS5 index and the vectors in step with the chunks table. Every read
+that combines several queries runs in one transaction, so it sees a single snapshot even
+while a writer replaces a book.
+"""
 
 import json
 import math
@@ -13,10 +19,25 @@ from typing import Any
 import sqlite_vec
 
 from yaqs import DEFAULT_SEARCH_MODE, SCHEMA_VERSION, SEARCH_MODES
+from yaqs.chunking import Chunk
 from yaqs.context import DEFAULT_CONTEXT_TOKENS, assemble_context, validate_budget
+from yaqs.documents import Document
 from yaqs.embedding import DIMENSIONS, PROFILE
 
-SCHEMA = """
+MAX_QUERY_CHARS = 4000
+MAX_SEARCH_LIMIT = 20
+MAX_NEIGHBORS = 3
+RRF_K = 60  # reciprocal rank fusion constant from the original RRF paper
+# What integrity() returns for a healthy, fully indexed database.
+INTEGRITY_OK = {
+    "sqlite": "ok",
+    "foreign_keys": [],
+    "orphan_vectors": 0,
+    "fts": "ok",
+    "pending_chunks": 0,
+}
+
+SCHEMA = f"""
 CREATE TABLE IF NOT EXISTS config(key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS books(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,7 +58,7 @@ CREATE TABLE IF NOT EXISTS pages(
     chapter TEXT NOT NULL,
     text TEXT NOT NULL,
     extraction TEXT NOT NULL,
-    provenance TEXT NOT NULL DEFAULT '{}',
+    provenance TEXT NOT NULL DEFAULT '{{}}',
     PRIMARY KEY(book_id, page_number)
 );
 CREATE TABLE IF NOT EXISTS chunks(
@@ -57,7 +78,7 @@ CREATE TABLE IF NOT EXISTS chunks(
 CREATE INDEX IF NOT EXISTS chunks_book ON chunks(book_id, page_number, ordinal);
 CREATE VIRTUAL TABLE IF NOT EXISTS chunk_vectors USING vec0(
     chunk_id INTEGER PRIMARY KEY,
-    embedding float[1024] distance_metric=cosine,
+    embedding float[{DIMENSIONS}] distance_metric=cosine,
     book_id INTEGER
 );
 CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
@@ -92,14 +113,35 @@ def fts_expression(query: str) -> str:
 
 
 def fuse_ranks(dense: Sequence[int], lexical: Sequence[int]) -> list[tuple[int, float]]:
+    """Reciprocal rank fusion of two rankings; ties go to the lower chunk id."""
     scores: dict[int, float] = {}
     for ranking in (dense, lexical):
         for rank, chunk_id in enumerate(dict.fromkeys(ranking), 1):
-            scores[chunk_id] = scores.get(chunk_id, 0.0) + 1 / (60 + rank)
+            scores[chunk_id] = scores.get(chunk_id, 0.0) + 1 / (RRF_K + rank)
     return sorted(scores.items(), key=lambda item: (-item[1], item[0]))
 
 
+def validate_search(query: str, limit: int, mode: str) -> None:
+    if not query.strip() or len(query) > MAX_QUERY_CHARS:
+        raise ValueError(f"Query must contain 1 to {MAX_QUERY_CHARS} characters")
+    if mode not in SEARCH_MODES:
+        raise ValueError(f"mode must be one of {', '.join(SEARCH_MODES)}")
+    if not 1 <= limit <= MAX_SEARCH_LIMIT:
+        raise ValueError(f"limit must be between 1 and {MAX_SEARCH_LIMIT}")
+
+
+def validate_neighbors(radius: int) -> None:
+    if not 0 <= radius <= MAX_NEIGHBORS:
+        raise ValueError(f"neighbors must be between 0 and {MAX_NEIGHBORS}")
+
+
 class KnowledgeBase:
+    """The library database. Opening checks the schema version and the embedding profile.
+
+    Each method opens its own connection, so one instance can serve several threads.
+    Writers must hold yaqs.locking.import_lock; readers need no lock (WAL).
+    """
+
     def __init__(self, path: Path, *, create: bool = False) -> None:
         self.path = path.expanduser().resolve()
         if create:
@@ -148,8 +190,13 @@ class KnowledgeBase:
             row = db.execute("SELECT * FROM books WHERE sha256=?", (sha256,)).fetchone()
             return dict(row) if row else None
 
-    def add_document(self, document: Any, chunks: Sequence[Any], *, rebuild: bool = False) -> int:
-        """Replace an explicitly rebuilt book atomically; trigger cleanup covers both indexes."""
+    def add_document(
+        self, document: Document, chunks: Sequence[Chunk], *, rebuild: bool = False
+    ) -> int:
+        """Add a book, or return the existing id for the same file hash.
+
+        rebuild replaces the stored book atomically; triggers clean both indexes.
+        """
         with self.connect() as db, db:
             old = db.execute("SELECT * FROM books WHERE sha256=?", (document.sha256,)).fetchone()
             if old is not None and not rebuild:
@@ -237,6 +284,7 @@ class KnowledgeBase:
             ]
 
     def add_vectors(self, rows: Sequence[dict[str, Any]], vectors: Any) -> None:
+        """Store unit-length vectors for pending_chunks() rows in one transaction."""
         import numpy as np
 
         matrix = np.asarray(vectors, dtype=np.float32)
@@ -295,9 +343,10 @@ class KnowledgeBase:
 
     @staticmethod
     def _passage(db: sqlite3.Connection, chunk_id: int) -> dict[str, Any]:
+        # Page provenance is long and repeats for every hit; get_page returns it.
         row = db.execute(
             "SELECT c.*, b.title, b.author, b.source_path, b.sha256 AS book_sha256, "
-            "b.status AS index_status, p.page_label, p.extraction, p.provenance FROM chunks c "
+            "b.status AS index_status, p.page_label, p.extraction FROM chunks c "
             "JOIN books b ON b.id=c.book_id JOIN pages p ON p.book_id=c.book_id "
             "AND p.page_number=c.page_number WHERE c.id=?",
             (chunk_id,),
@@ -305,7 +354,6 @@ class KnowledgeBase:
         if row is None:
             raise KeyError(f"Unknown chunk {chunk_id}")
         result = dict(row)
-        result["provenance"] = json.loads(result["provenance"])
         location = (
             f"page {row['page_number']}"
             if row["page_number"]
@@ -326,14 +374,14 @@ class KnowledgeBase:
             (book_id, number),
         ).fetchone()
         if row is None:
-            raise KeyError(f"Unknown OCR page {number} of book {book_id}")
+            raise KeyError(f"Unknown page {number} of book {book_id}")
         result = dict(row)
         result["provenance"] = json.loads(result["provenance"])
         return result
 
     def neighbors(self, chunk_id: int, radius: int = 1) -> list[dict[str, Any]]:
-        if not 0 <= radius <= 3:
-            raise ValueError("radius must be between 0 and 3")
+        """The chunk and up to radius chunks before and after it in the same book."""
+        validate_neighbors(radius)
         with self.connect() as db:
             db.execute("BEGIN")
             return self._neighbors(db, chunk_id, radius)
@@ -372,15 +420,15 @@ class KnowledgeBase:
         *,
         max_tokens: int = DEFAULT_CONTEXT_TOKENS,
     ) -> dict[str, Any]:
+        """Neighbors merged into exact source blocks, in reading order (see yaqs.context)."""
         validate_budget(max_tokens)
-        if not 0 <= radius <= 3:
-            raise ValueError("radius must be between 0 and 3")
+        validate_neighbors(radius)
         with self.connect() as db:
             db.execute("BEGIN")
             hits = self._neighbors(db, chunk_id, radius)
             # Center has priority if a small budget cannot fit the whole neighborhood.
             hits.sort(key=lambda hit: hit["id"] != chunk_id)
-            return assemble_context(
+            result = assemble_context(
                 hits,
                 lambda book, page: self._page(db, book, page)["text"],
                 tokenizer,
@@ -388,6 +436,9 @@ class KnowledgeBase:
                 max_tokens=max_tokens,
                 max_block_tokens=max_tokens,
             )
+        # The selected blocks are returned in reading order, not by priority.
+        result["hits"].sort(key=lambda hit: (hit["page_number"], hit["start_char"]))
+        return result
 
     def search(
         self,
@@ -398,12 +449,11 @@ class KnowledgeBase:
         book_id: int | None = None,
         mode: str = DEFAULT_SEARCH_MODE,
     ) -> list[dict[str, Any]]:
-        self._validate_search(query, limit, mode)
+        """Ranked chunks as stored; context_search merges them into source blocks."""
+        validate_search(query, limit, mode)
         with self.connect() as db:
             db.execute("BEGIN")
-            return self._search_candidates(db, query, vector, book_id, mode, max(30, limit * 5))[
-                :limit
-            ]
+            return self._search_candidates(db, query, vector, book_id, mode, _depth(limit))[:limit]
 
     def context_search(
         self,
@@ -416,13 +466,12 @@ class KnowledgeBase:
         mode: str = DEFAULT_SEARCH_MODE,
         max_tokens: int = DEFAULT_CONTEXT_TOKENS,
     ) -> dict[str, Any]:
-        self._validate_search(query, limit, mode)
+        """Search and assemble up to limit non-overlapping source blocks within max_tokens."""
+        validate_search(query, limit, mode)
         validate_budget(max_tokens)
         with self.connect() as db:
             db.execute("BEGIN")
-            candidates = self._search_candidates(
-                db, query, vector, book_id, mode, max(30, limit * 5)
-            )
+            candidates = self._search_candidates(db, query, vector, book_id, mode, _depth(limit))
             return assemble_context(
                 candidates,
                 lambda book, page: self._page(db, book, page)["text"],
@@ -430,13 +479,6 @@ class KnowledgeBase:
                 limit=limit,
                 max_tokens=max_tokens,
             )
-
-    @staticmethod
-    def _validate_search(query: str, limit: int, mode: str) -> None:
-        if not query.strip() or len(query) > 4000:
-            raise ValueError("Query must contain 1 to 4000 characters")
-        if mode not in SEARCH_MODES or not 1 <= limit <= 20:
-            raise ValueError("Invalid search mode or limit (1 to 20)")
 
     def _search_candidates(
         self,
@@ -452,7 +494,7 @@ class KnowledgeBase:
         similarities: dict[int, float] = {}
         if mode != "lexical":
             if vector is None or len(vector) != DIMENSIONS:
-                raise ValueError("A 1024-dimensional query embedding is required")
+                raise ValueError(f"A {DIMENSIONS}-dimensional query embedding is required")
             if not all(math.isfinite(v) for v in vector):
                 raise ValueError("Non-finite query embedding")
             sql = "SELECT chunk_id,distance FROM chunk_vectors WHERE embedding MATCH ? AND k=?"
@@ -477,19 +519,21 @@ class KnowledgeBase:
             lexical = [
                 r[0] for r in db.execute(sql + " ORDER BY bm25(chunks_fts),c.id LIMIT ?", params)
             ]
-        hits = []
         ranking = (
             [(chunk_id, similarities[chunk_id]) for chunk_id in dense]
             if mode == "semantic"
             else fuse_ranks(dense, lexical)
         )
+        dense_rank = {chunk_id: rank for rank, chunk_id in enumerate(dense, 1)}
+        lexical_rank = {chunk_id: rank for rank, chunk_id in enumerate(lexical, 1)}
+        hits = []
         for chunk_id, score in ranking[:depth]:
             hit = self._passage(db, chunk_id)
             hit.update(
                 score=score,
                 semantic_similarity=similarities.get(chunk_id),
-                semantic_rank=dense.index(chunk_id) + 1 if chunk_id in dense else None,
-                lexical_rank=lexical.index(chunk_id) + 1 if chunk_id in lexical else None,
+                semantic_rank=dense_rank.get(chunk_id),
+                lexical_rank=lexical_rank.get(chunk_id),
             )
             hits.append(hit)
         return hits
@@ -511,6 +555,7 @@ class KnowledgeBase:
             return {"book_id": book_id, "title": row["title"], "deleted": counts}
 
     def integrity(self) -> dict[str, Any]:
+        """SQLite, foreign key, FTS5 and vector checks; INTEGRITY_OK when all pass."""
         with self.connect() as db:
             check = db.execute("PRAGMA integrity_check").fetchone()[0]
             foreign_keys = [tuple(row) for row in db.execute("PRAGMA foreign_key_check")]
@@ -527,3 +572,8 @@ class KnowledgeBase:
             "fts": "ok",
             "pending_chunks": self.stats()["pending_chunks"],
         }
+
+
+def _depth(limit: int) -> int:
+    """Candidates ranked per search: merging overlaps can turn several into one block."""
+    return max(30, limit * 5)

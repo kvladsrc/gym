@@ -91,6 +91,12 @@ class Params(BaseModel):
         description="Texture diffusion steps",
         json_schema_extra=ui(ru="Шаги генерации материала"),
     )
+    match_colours: bool = Field(
+        default=False,
+        description="Shift the texture's Oklab mean and spread to the reference's; "
+        "the model paints darker and drifts in hue",
+        json_schema_extra=ui(ru="Подогнать цвета под картинку (модель темнит и уводит оттенок)"),
+    )
 
 
 TASK = TaskSpec(
@@ -153,6 +159,79 @@ def prepare_mesh(mesh: Any) -> tuple[Any, Any, float]:
     normals[:, 1], normals[:, 2] = -normals[:, 2].copy(), normals[:, 1].copy()
     result.vertices, result.vertex_normals = vertices, normals
     return result, center, float(scale)
+
+
+# Oklab (Björn Ottosson): linear sRGB -> LMS, cube root, LMS' -> Lab.
+RGB_TO_LMS = np.array(
+    [
+        [0.4122214708, 0.5363325363, 0.0514459929],
+        [0.2119034982, 0.6806995451, 0.1073969566],
+        [0.0883024619, 0.2817188376, 0.6299787005],
+    ],
+    dtype=np.float32,
+)
+LMS_TO_OKLAB = np.array(
+    [
+        [0.2104542553, 0.7936177850, -0.0040720468],
+        [1.9779984951, -2.4285922050, 0.4505937099],
+        [0.0259040371, 0.7827717662, -0.8086757660],
+    ],
+    dtype=np.float32,
+)
+
+
+def srgb_to_oklab(rgb: Any) -> Any:
+    linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+    return np.cbrt(linear @ RGB_TO_LMS.T) @ LMS_TO_OKLAB.T
+
+
+def oklab_to_srgb(lab: Any) -> Any:
+    lms = lab @ np.linalg.inv(LMS_TO_OKLAB).T
+    linear = np.clip(lms**3 @ np.linalg.inv(RGB_TO_LMS).T, 0, 1)
+    return np.where(linear <= 0.0031308, linear * 12.92, 1.055 * linear ** (1 / 2.4) - 0.055)
+
+
+def surface_colours(mesh: Any, texture: Any, count: int = 200_000) -> Any:
+    """Texture colours at area-weighted surface samples (trimesh UVs, texture rows top-down)."""
+    rng = np.random.default_rng(0)
+    faces = rng.choice(len(mesh.faces), size=count, p=mesh.area_faces / mesh.area)
+    root, fraction = np.sqrt(rng.random(count)), rng.random(count)
+    weights = np.stack([1 - root, root * (1 - fraction), root * fraction], axis=1)
+    uv = np.einsum("ij,ijk->ik", weights, mesh.visual.uv[mesh.faces[faces]])
+    height, width = texture.shape[:2]
+    x = np.clip(uv[:, 0] * width, 0, width - 1).astype(int)
+    y = np.clip((1 - uv[:, 1]) * height, 0, height - 1).astype(int)
+    return texture[y, x]
+
+
+MAX_SPREAD_SCALE = 3.0
+
+
+def match_colours(mesh: Any, reference: Image.Image) -> dict[str, Any]:
+    """Move the base colour's Oklab mean and spread over the surface to the reference foreground's.
+
+    TRELLIS.2 paints darker than its reference, shifts the hue and, from an unlit
+    reference, oversaturates; classifier-free guidance does not change that.
+    The spread grows at most MAX_SPREAD_SCALE times: a near-flat paint (on low-poly
+    meshes the model paints almost one colour) has only noise to stretch.
+    """
+    pixels = np.asarray(reference.convert("RGBA"), dtype=np.float32) / 255
+    target = srgb_to_oklab(pixels[pixels[..., 3] >= 0.8][:, :3])
+    texture = np.asarray(mesh.visual.material.baseColorTexture.convert("RGBA"), np.float32) / 255
+    source = srgb_to_oklab(surface_colours(mesh, texture[..., :3]))
+    spread = source.std(axis=0)
+    ratio = target.std(axis=0) / np.maximum(spread, 1e-3)
+    scale = np.where(spread > 1e-3, np.minimum(ratio, MAX_SPREAD_SCALE), 1.0)
+    lab = (srgb_to_oklab(texture[..., :3]) - source.mean(axis=0)) * scale + target.mean(axis=0)
+    texture[..., :3] = oklab_to_srgb(lab)
+    mesh.visual.material.baseColorTexture = Image.fromarray(
+        np.round(texture * 255).astype(np.uint8), "RGBA"
+    )
+    return {
+        "reference_oklab_mean": target.mean(axis=0).round(4).tolist(),
+        "texture_oklab_mean": source.mean(axis=0).round(4).tolist(),
+        "spread_scale": np.round(scale, 3).tolist(),
+    }
 
 
 def verify_surface(reference: Any, output: Any) -> float:
@@ -271,6 +350,7 @@ class TrellisPaintServer(ModelServer):
             if is_out_of_memory(error):
                 raise GenerationError("TRELLIS.2 paint ran out of GPU memory") from error
             raise
+        colours = match_colours(output, image) if params.match_colours else None
         normals = output.vertex_normals.copy()
         output.vertices = output.vertices / self.scale + self.center
         output.vertex_normals = normals
@@ -284,6 +364,7 @@ class TrellisPaintServer(ModelServer):
                 "resolution": 512,
                 "texture_size": params.texture_size,
                 "steps": params.steps,
+                "colour_match": colours,
                 "surface_error_relative": error,
                 "placement_restored": True,
                 "existing_uv_preserved": getattr(reference.visual, "uv", None) is not None,

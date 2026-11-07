@@ -27,7 +27,7 @@ class OffloadError(RuntimeError):
 
 
 def base_directory(server: str) -> Path:
-    """Where a server's offload stores live (outside Dropbox)."""
+    """Where a server's offload stores live: in the user's cache, outside the source tree."""
     cache = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
     return cache / "assets-studio" / f"{server}-offload"
 

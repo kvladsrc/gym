@@ -48,8 +48,7 @@ occupy at least a quarter of the image height, and the track must not be clipped
 at the frame edge. A thin sword tip does not count as a clipped body. Other
 uses can disable this check; it does not replace review or catch every pose error.
 
-The API follows ordinary contract v1. A real example is in
-`workspace/sword_prof/flow.json` and `manifest.json`.
+The API follows ordinary contract v1.
 
 API sources: [Transformers SAM2 Video](https://huggingface.co/docs/transformers/model_doc/sam2_video)
 and [Meta's original model](https://github.com/facebookresearch/sam2).

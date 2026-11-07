@@ -13,8 +13,8 @@ just flow                   # graph editor, http://127.0.0.1:9001
 
 `just flow --studio http://127.0.0.1:9000 --port 9001` changes the addresses;
 `--database PATH` changes graph storage. The default is
-`$XDG_DATA_HOME/assets-studio/flow.sqlite3` (or `~/.local/share/...`), outside
-Dropbox. Models are still configured in `studio.toml`.
+`$XDG_DATA_HOME/assets-studio/flow.sqlite3` (or `~/.local/share/...`).
+Models are still configured in `studio.toml`.
 
 ## Working with a graph
 
@@ -33,6 +33,9 @@ Graphs export and import as JSON. The
 [`examples/character.json`](examples/character.json) example connects two
 branches: mesh → MIA and text → Kimodo, then transfers Kimodo motion onto MIA's
 result. After importing, replace the placeholder with an actual mesh asset.
+[`examples/3d-asset.json`](examples/3d-asset.json) runs as it is: a prompt →
+Qwen-Image → Hunyuan3D-2.1 → Hi3D → TRELLIS.2 Paint, the chain and settings
+of the [3D guide](../docs/guides/3d.md).
 
 The editor uses server capabilities discovered by Studio. Start a new server
 once, then refresh the model list. Servers may be stopped when a graph is

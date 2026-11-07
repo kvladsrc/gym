@@ -2,6 +2,9 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 set working-directory := "../.."
 cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "yaqs"
 export UV_PROJECT_ENVIRONMENT := cache / "venv"
+# setup builds the environment on uv's own Python, kept apart from other
+# projects: a Nix Python found on PATH cannot load the system C++ runtime.
+export UV_PYTHON_INSTALL_DIR := cache / "python"
 export HF_HUB_DISABLE_TELEMETRY := "1"
 export TOKENIZERS_PARALLELISM := "false"
 project := quote(source_directory())
@@ -9,9 +12,9 @@ project := quote(source_directory())
 default:
     @just --justfile {{ source_file() }} --list
 
-# Runtime outside Dropbox; reuse the pinned Qwen checkpoint in the HF cache
+# Create the environment in the yaqs cache and download the pinned Qwen checkpoint
 setup:
-    uv sync --project {{ project }} --locked --extra dev
+    uv sync --project {{ project }} --locked --extra dev --managed-python
     uv run --project {{ project }} --no-sync yaqs download
 
 # Import text, wait for other importers and resume completed embeddings
@@ -19,15 +22,17 @@ setup:
 import path *args:
     uv run --project {{ project }} --no-sync yaqs import --wait-for-lock "$@"
 
-# Search defaults to CPU so it can run while Studio owns the GPU
+# Search the library; runs on the CPU unless --device cuda is given
 [positional-arguments]
 search query *args:
     uv run --project {{ project }} --no-sync yaqs search "$@"
 
+# Any yaqs subcommand, e.g. just yaqs run --help
 [positional-arguments]
 run *args:
     uv run --project {{ project }} --no-sync yaqs "$@"
 
+# Database size, counts and model profile
 [positional-arguments]
 stats *args:
     uv run --project {{ project }} --no-sync yaqs stats "$@"
@@ -37,6 +42,7 @@ stats *args:
 doctor *args:
     uv run --project {{ project }} --no-sync yaqs doctor "$@"
 
+# Indexed books and their embedding progress
 [positional-arguments]
 books *args:
     uv run --project {{ project }} --no-sync yaqs books "$@"
@@ -46,10 +52,12 @@ books *args:
 check-db *args:
     uv run --project {{ project }} --no-sync yaqs check "$@"
 
+# Read a stored page in token windows
 [positional-arguments]
 page book number *args:
     uv run --project {{ project }} --no-sync yaqs page "$@"
 
+# Read a chunk with neighboring context
 [positional-arguments]
 passage chunk *args:
     uv run --project {{ project }} --no-sync yaqs passage "$@"
@@ -74,13 +82,21 @@ rebuild output *args:
 serve *args:
     uv run --project {{ project }} --no-sync yaqs serve "$@"
 
+# Read-only browser UI at http://127.0.0.1:9035/ (serve --web puts it next to /mcp)
+[positional-arguments]
+web *args:
+    uv run --project {{ project }} --no-sync yaqs web "$@"
+
+# Fix lint findings and format the code
 fmt:
     uv run --project {{ project }} --no-sync ruff check --fix {{ project }}
     uv run --project {{ project }} --no-sync ruff format {{ project }}
 
+# Run the test suite
 test:
     uv run --project {{ project }} --no-sync pytest -q {{ project }}/tests
 
+# Lint, format check and tests, without changing files
 check:
     uv run --project {{ project }} --no-sync ruff check {{ project }}
     uv run --project {{ project }} --no-sync ruff format --check {{ project }}

@@ -1,9 +1,11 @@
 // Dialog with library assets of one kind (and of the input's types, where a kind has several
-// that are not converted: SMPL-X and SOMA motion); picking one returns it.
+// that are not converted: SMPL-X and SOMA motion); picking one returns it. The open project's,
+// or every project's: an input may come from any project.
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 import { api, type Asset } from "../api/client";
 import { kindLabel } from "../format";
+import { currentProject } from "../state/projects";
 import { attempt, putAssets } from "../state/store";
 import { AssetCard } from "./AssetCard";
 import { t } from "../i18n";
@@ -21,15 +23,18 @@ export function LibraryPicker({
   onClose: () => void;
 }) {
   const [items, setItems] = useState<Asset[] | null>(null);
+  const [everyProject, setEveryProject] = useState(false);
+  const project = everyProject ? undefined : currentProject.value;
 
   useEffect(() => {
-    void attempt(() => api.assets({ kind })).then((list) => {
+    setItems(null);
+    void attempt(() => api.assets({ kind, project })).then((list) => {
       putAssets(list ?? []);
       setItems(
         (list ?? []).filter((asset) => !mimes || mimes.includes(asset.mime)),
       );
     });
-  }, [kind, mimes?.join(",")]);
+  }, [kind, project, mimes?.join(",")]);
 
   // Escape while focus is outside the dialog (effects run after the first paint;
   // the handlers on the elements below work from the first moment).
@@ -71,6 +76,14 @@ export function LibraryPicker({
       >
         <div class="row">
           <h3 style={{ flex: 1 }}>{title}</h3>
+          <label class="check">
+            <input
+              type="checkbox"
+              checked={everyProject}
+              onChange={(event) => setEveryProject(event.currentTarget.checked)}
+            />
+            {t("picker.allProjects")}
+          </label>
           <button class="button small" onClick={onClose}>
             {t("viewer.close")}
           </button>

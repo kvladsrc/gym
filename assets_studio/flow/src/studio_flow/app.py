@@ -2,19 +2,24 @@
 
 import asyncio
 import contextlib
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Iterable
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
 import httpx2
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from studio_flow.engine import Engine, GraphError, preflight
 from studio_flow.models import FlowUpdate, Graph, StartRun
 from studio_flow.store import Conflict, Store
+
+# Like the studio, flow serves only this machine. Checking Host defeats DNS rebinding:
+# a web page cannot talk to the API through a hostname that resolves to 127.0.0.1.
+LOCAL_HOSTS = ("127.0.0.1", "localhost", "[::1]")
 
 
 async def checked(response: httpx2.Response) -> Any:
@@ -29,7 +34,12 @@ def create_app(
     studio_url: str = "http://127.0.0.1:9000",
     web_dir: Path | None = None,
     transport: httpx2.AsyncBaseTransport | None = None,
+    extra_hosts: Iterable[str] = (),
 ) -> FastAPI:
+    """``extra_hosts``: further accepted Host names, e.g. the address the server binds to."""
+    allowed_hosts = sorted(
+        {*LOCAL_HOSTS, *(host for host in extra_hosts if host not in ("0.0.0.0", "::"))}  # noqa: S104
+    )
     store = Store(database)
     client = httpx2.AsyncClient(base_url=studio_url.rstrip("/"), timeout=30, transport=transport)
     engine = Engine(store, client)
@@ -46,12 +56,11 @@ def create_app(
             await client.aclose()
 
     app = FastAPI(title="Studio flow", lifespan=lifespan)
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
     app.state.store, app.state.engine = store, engine
 
     @app.exception_handler(httpx2.HTTPError)
     async def upstream_error(_request: Any, error: httpx2.HTTPError) -> Response:
-        from fastapi.responses import JSONResponse
-
         return JSONResponse(status_code=502, content={"detail": f"Studio is unavailable: {error}"})
 
     def get_flow(identity: str) -> dict[str, Any]:
@@ -129,6 +138,10 @@ def create_app(
     @app.get("/flow-api/studio/servers")
     async def servers() -> Any:
         return await checked(await client.get("/api/servers"))
+
+    @app.get("/flow-api/studio/projects")
+    async def projects() -> Any:
+        return await checked(await client.get("/api/projects"))
 
     @app.get("/flow-api/studio/assets")
     async def assets(limit: int = Query(default=200, ge=1, le=1000)) -> Any:

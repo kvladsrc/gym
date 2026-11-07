@@ -6,10 +6,7 @@ from typing import Any
 import pytest
 from model_server_sdk.images import (
     RESOLUTIONS,
-    check_denoising,
-    denoising_steps,
     fit_input,
-    min_steps,
     open_image,
     prepare_input,
 )
@@ -43,20 +40,6 @@ def test_resolutions_are_multiples_of_64() -> None:
     for width, height in RESOLUTIONS.values():
         assert width % 64 == 0
         assert height % 64 == 0
-
-
-@pytest.mark.parametrize(
-    ("steps", "strength", "runs"), [(30, 0.5, 15), (3, 0.3, 0), (1, 0.5, 0), (4, 0.25, 1)]
-)
-def test_denoising_steps(steps: int, strength: float, runs: int) -> None:
-    assert denoising_steps(steps, strength) == runs
-    assert denoising_steps(min_steps(strength), strength) >= 1
-
-
-def test_no_denoising_is_an_input_error() -> None:
-    assert check_denoising(4, 0.6) == 2
-    with pytest.raises(InvalidInput, match="use at least 4 steps"):
-        check_denoising(3, 0.3)
 
 
 def encode(image: Image.Image, **options: Any) -> bytes:

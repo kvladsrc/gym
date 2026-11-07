@@ -11,9 +11,9 @@ mod? procedural "games/procedural"
 mod? soulslike "games/soulslike"
 mod talos "production/kubernetes/talos"
 mod? tents "games/tents"
+mod? vyuchka "games/vyuchka"
 mod yaqs "games/yaqs"
 mod zooreader "games/zooreader"
-mod? vibe_jakubovich "games/vibe_jakubovich"
 
 # Show all available commands
 default:
@@ -36,7 +36,6 @@ fmt:
     -pre-commit run clang-format --all-files
     -pre-commit run shfmt        --all-files
     -pre-commit run buildifier   --all-files
-    -pre-commit run nixfmt       --all-files
     -pre-commit run prettier     --all-files
     -pre-commit run go-fmt       --all-files
     -pre-commit run go-imports   --all-files

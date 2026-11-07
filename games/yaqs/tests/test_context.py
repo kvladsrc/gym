@@ -3,18 +3,13 @@ import hashlib
 import random
 
 import pytest
+from helpers import CharacterTokenizer
 
 from yaqs.chunking import Chunk
-from yaqs.context import assemble_context
+from yaqs.context import assemble_context, page_window
 from yaqs.documents import Document, Page
 from yaqs.service import KnowledgeService
 from yaqs.store import KnowledgeBase
-
-
-class CharacterTokenizer:
-    def __call__(self, text, **kwargs):
-        return {"input_ids": list(range(len(text)))}
-
 
 TOKENIZER = CharacterTokenizer()
 TEXT = "\n".join(f"Строка {i}: λ = {i}; 控制 🎮" for i in range(150))
@@ -205,3 +200,57 @@ def test_bad_budgets_fail_before_searching(tmp_path, budget):
     service = KnowledgeService(store.path)
     with pytest.raises(ValueError, match="max_tokens"):
         service.search("attack", mode="lexical", max_tokens=budget)
+
+
+def paged_store(tmp_path, length=12):
+    pages = [Page(n, None, "", f"page {n} " + "x" * (length - 7)) for n in (1, 2, 3)]
+    doc = Document("/order.txt", "order-hash", "Order", "Author", pages, "test")
+    chunks = [Chunk(p.number, 0, "", p.text, 0, len(p.text), len(p.text), "hash") for p in pages]
+    store = KnowledgeBase(tmp_path / "knowledge.sqlite3", create=True)
+    book = store.add_document(doc, chunks)
+    return store, [r["id"] for r in store.pending_chunks(book)]
+
+
+def test_neighbors_on_other_pages_come_back_in_reading_order(tmp_path):
+    store, ids = paged_store(tmp_path)
+    result = store.context_neighbors(ids[1], 1, TOKENIZER)
+    assert [hit["page_number"] for hit in result["hits"]] == [1, 2, 3]
+    assert [hit["anchor_chunk_id"] for hit in result["hits"]] == ids
+
+
+def test_small_neighbor_budget_still_keeps_the_center(tmp_path):
+    store, ids = paged_store(tmp_path, length=200)
+    result = store.context_neighbors(ids[1], 1, TOKENIZER, max_tokens=256)
+    assert [hit["anchor_chunk_id"] for hit in result["hits"]] == [ids[1]]
+
+
+def test_page_windows_cover_a_long_page_exactly_once():
+    page = {"book_id": 3, "page_number": 0, "text": TEXT, "provenance": {}}
+    parts, start = [], 0
+    while start is not None:
+        window = page_window(page, CharacterTokenizer(), start_char=start, max_tokens=1000)
+        assert window["start_char"] == start and window["token_count"] <= 1000
+        assert window["total_chars"] == len(TEXT) and not window["complete"]
+        parts.append(window["text"])
+        start = window["next_start_char"]
+    assert "".join(parts) == TEXT
+    assert len(parts) == -(-len(TEXT) // 1000)
+    whole = page_window(page, CharacterTokenizer(), max_tokens=16384)
+    assert whole["complete"] and whole["text"] == TEXT and whole["next_start_char"] is None
+
+
+@pytest.mark.parametrize("start", [-1, len(TEXT)])
+def test_page_window_rejects_offsets_outside_the_page(start):
+    page = {"text": TEXT}
+    with pytest.raises(ValueError, match="start_char"):
+        page_window(page, CharacterTokenizer(), start_char=start)
+
+
+def test_hits_omit_repeated_page_provenance_and_pages_keep_it(tmp_path):
+    store, _, book = corpus(tmp_path)
+    service = KnowledgeService(store.path)
+    service.encoder._tokenizer = CharacterTokenizer()
+    hits = service.search("attack", mode="lexical")["hits"]
+    assert hits and all("provenance" not in hit for hit in hits)
+    page = service.page(book, 0)
+    assert page["provenance"] == {} and page["complete"]

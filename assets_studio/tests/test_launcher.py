@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from studio.config import load_config
 
 import launcher
 from launcher import BACKOFF_S, IDLE_S, SWITCH_S, Demand, Launcher, demand_of
@@ -143,6 +144,11 @@ def test_every_recipe_exists_in_the_model_servers_justfile() -> None:
     justfile = (launcher.MODEL_SERVERS / "justfile").read_text()
     for recipe in launcher.RECIPES.values():
         assert f"\n{recipe} *args:" in justfile, recipe
+
+
+def test_the_launcher_knows_every_server_of_the_example_config() -> None:
+    example = load_config(Path(__file__).resolve().parents[1] / "studio.example.toml")
+    assert {server.id for server in example.servers} == launcher.RECIPES.keys()
 
 
 def test_a_busy_server_is_left_running_for_the_next_launcher(

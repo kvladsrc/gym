@@ -1,8 +1,10 @@
 // Global state: model servers and jobs kept current by the server-sent event
-// stream, and a cache of assets loaded on demand.
-import { computed, signal } from "@preact/signals";
+// stream, and a cache of assets loaded on demand. Jobs are those of the open project and every
+// unfinished one (the queue is shared); events bring changes of any project.
+import { computed, effect, signal } from "@preact/signals";
 
 import { api, type Asset, type Job, type Server } from "../api/client";
+import { currentProject, loadProjects } from "./projects";
 
 export const servers = signal<Server[]>([]);
 export const jobs = signal<ReadonlyMap<string, Job>>(new Map());
@@ -88,13 +90,37 @@ export async function attempt<T>(
   }
 }
 
+/** The open project's jobs and every unfinished job. Merged, not replaced: an event newer
+ * than this snapshot may already be here. */
+async function loadJobs(project: string) {
+  const [own, queue] = await Promise.all([
+    api.jobs({ project }),
+    api.jobs({ status: [...PENDING] }),
+  ]);
+  mergeJobs([...own, ...queue]);
+}
+
 async function resync() {
-  const [serverList, jobList] = await Promise.all([api.servers(), api.jobs()]);
+  // First: the open project may have been deleted meanwhile, and then the default one opens.
+  await loadProjects();
+  const [serverList] = await Promise.all([
+    api.servers(),
+    loadJobs(currentProject.value),
+  ]);
   servers.value = serverList;
-  // Merge, not replace: an event newer than this snapshot may already be here.
-  mergeJobs(jobList);
   loaded.value = true;
 }
+
+// Another project opened: its history (the first run is the resync's).
+let firstProject = true;
+effect(() => {
+  const project = currentProject.value;
+  if (firstProject) {
+    firstProject = false;
+    return;
+  }
+  void attempt(() => loadJobs(project));
+});
 
 /** Load the initial state and follow changes. EventSource reconnects by itself. */
 export function connect() {

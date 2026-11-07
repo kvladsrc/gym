@@ -33,7 +33,7 @@ WORKER = Path(__file__).resolve().parents[2] / "worker/refine.py"
 
 
 def cache() -> Path:
-    return Path(os.environ.get("XDG_CACHE_HOME", "~/.cache")).expanduser() / "assets-studio"
+    return Path(os.environ.get("XDG_CACHE_HOME") or "~/.cache").expanduser() / "assets-studio"
 
 
 def source() -> Path:

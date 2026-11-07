@@ -8,6 +8,11 @@ from pathlib import Path
 
 @contextmanager
 def import_lock(path: Path, *, wait: bool = False) -> Iterator[None]:
+    """Exclusive lock for writers of the database at path (NAME.import.lock beside it).
+
+    Without wait, a second writer fails at once instead of queueing. Uses flock, so it
+    works on Linux and macOS but not on Windows.
+    """
     path = path.expanduser().resolve()
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.with_suffix(".import.lock").open("a") as handle:

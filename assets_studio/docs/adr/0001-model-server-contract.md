@@ -7,7 +7,7 @@ Status: accepted (M1a). Extended by ADR-003 (text, video, primary parameters).
 ## Context
 
 Users manually start models as independent local HTTP servers. Studio does
-not launch them or monitor laptop resources: it knows server addresses,
+not launch them or monitor the machine's resources: it knows server addresses,
 discovers capabilities and submits jobs. To connect new models without
 changing Studio code, all servers implement one contract and describe their
 own capabilities.

@@ -148,7 +148,7 @@ class LlmServer(ModelServer):
             id=spec.key.replace(".", "_"),  # contract ids have no dots
             name=spec.name,
             revision=f"{spec.revision[:8]}+llama.cpp.{runtime.BUILD}"
-            + ("+vision.1" if spec.projector else ""),
+            + ("+vision.2" if spec.projector else ""),
             license=spec.license,
             source=spec.source,
         )

@@ -4,7 +4,8 @@
 
 ## Pipeline
 
-Concept (Qwen-Image) → Hunyuan3D-2mini (`max_faces` 40000) → Paint → `3d-to-rig`
+Concept (Qwen-Image) → painted mesh ([3D pipeline](3d.md), about 40K
+triangles for a character) → `3d-to-rig`
 (Make-It-Animatable: Mixamo skeleton, 52 `mixamorig:*` bones and weights) →
 engine → Mixamo clips. Rigging is last, for humanoids only; props and terrain
 need no rigs.
@@ -24,10 +25,11 @@ Quadrupeds animated from AI video with a hand-placed skeleton:
 > skirt, no robe, no weapons, no loose straps, nothing floating. Stylized
 > hand-painted game character art, strong chunky silhouette, broad clean
 > color areas. Neutral matte diffuse studio lighting, no harsh cast
-> shadows. Entire figure visible with generous margins, centered on plain
-> white background. No text.
+> shadows. Entire figure visible with generous margins, centered, isolated,
+> no background. No text.
 
-Why these rules matter:
+Generate it with `transparent` on, as in the
+[3D pipeline](3d.md#transparent-references). Why these rules matter:
 
 - **Empty hands.** Rigging spreads held weapons across hand and forearm weights,
   making them bend like rubber. Use a separate weapon on the hand bone, positioned

@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from animation_tools_model_server.server import (
     AnimationToolsServer,
+    BakeColourParams,
     BakeParams,
     RetargetParams,
     RetopoParams,
@@ -201,6 +202,107 @@ def test_retopology_and_normal_baking(tmp_path):
     length = struct.unpack("<I", baked.data[12:16])[0]
     gltf = json.loads(baked.data[20 : 20 + length])
     assert "normalTexture" in gltf["materials"][0]
+
+
+# A sphere painted red above its equator and blue below (one UV point per
+# face), and a coarse icosphere without UVs or material to take the paint.
+MAKE_PAINTED = """
+import sys, bpy
+work = sys.argv[sys.argv.index("--") + 1]
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=64, ring_count=32)
+painted = bpy.context.active_object
+image = bpy.data.images.new("paint", 4, 4)
+image.pixels = [c for y in range(4) for x in range(4)
+                for c in ((0.8, 0.1, 0.1, 1.0) if y >= 2 else (0.1, 0.1, 0.8, 1.0))]
+image.pack()
+uv = painted.data.uv_layers.active.data
+for polygon in painted.data.polygons:
+    for i in polygon.loop_indices:
+        uv[i].uv = (0.5, 0.75 if polygon.center.z > 0 else 0.25)
+material = bpy.data.materials.new("paint")
+material.use_nodes = True
+texture = material.node_tree.nodes.new("ShaderNodeTexImage")
+texture.image = image
+principled = material.node_tree.nodes["Principled BSDF"]
+material.node_tree.links.new(texture.outputs["Color"], principled.inputs["Base Color"])
+painted.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath=work + "/painted.glb", export_format="GLB", use_selection=True)
+bpy.ops.object.delete()
+bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3)
+coarse = bpy.context.active_object
+while coarse.data.uv_layers:
+    coarse.data.uv_layers.remove(coarse.data.uv_layers[0])
+bpy.ops.export_scene.gltf(
+    filepath=work + "/coarse.glb", export_format="GLB", use_selection=True,
+    export_materials="NONE", export_texcoords=False,
+)
+"""
+
+# Faces well above or below the equator whose baked colour (at their UV
+# centre) is not the paint's there.
+CHECK_PAINT = """
+import sys, bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.import_scene.gltf(filepath=sys.argv[sys.argv.index("--") + 1])
+obj = next(o for o in bpy.data.objects if o.type == "MESH")
+image = next(n.image for n in obj.data.materials[0].node_tree.nodes if n.type == "TEX_IMAGE")
+w, h = image.size
+pixels = image.pixels[:]
+uv = obj.data.uv_layers.active.data
+checked = wrong = 0
+for polygon in obj.data.polygons:
+    z = (obj.matrix_world @ polygon.center).z
+    if abs(z) < 0.2:
+        continue
+    u = sum(uv[i].uv.x for i in polygon.loop_indices) / polygon.loop_total
+    v = sum(uv[i].uv.y for i in polygon.loop_indices) / polygon.loop_total
+    at = 4 * (min(int(v * h), h - 1) * w + min(int(u * w), w - 1))
+    red, blue = pixels[at], pixels[at + 2]
+    checked += 1
+    wrong += (red > blue) != (z > 0)
+print("PAINT_CHECK", checked, wrong)
+"""
+
+
+def test_colour_baking_carries_the_paint_to_an_unwrapped_mesh(tmp_path):
+    binary = blender()
+    assert binary, "Blender is required"
+    subprocess.run(
+        [binary, "-b", "--factory-startup", "--python-expr", MAKE_PAINTED, "--", str(tmp_path)],
+        check=True,
+        capture_output=True,
+        timeout=120,
+    )
+    server = AnimationToolsServer()
+    server.load()
+    painted = InputData("model/gltf-binary", (tmp_path / "painted.glb").read_bytes())
+    coarse = InputData("model/gltf-binary", (tmp_path / "coarse.glb").read_bytes())
+    params = BakeColourParams(texture_size=1024)
+
+    baked = server.generate(
+        Job("3d-bake-colour", None, {"painted": painted, "mesh": coarse}, params, (0,))
+    )[0]
+    assert baked.meta["unwrapped"]
+    assert baked.meta["triangles"] == 320
+    baked_path = tmp_path / "baked.glb"
+    baked_path.write_bytes(baked.data)
+    done = subprocess.run(
+        [binary, "-b", "--factory-startup", "--python-expr", CHECK_PAINT, "--", str(baked_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    line = next(line for line in done.stdout.splitlines() if line.startswith("PAINT_CHECK"))
+    checked, wrong = map(int, line.split()[1:])
+    assert checked > 200
+    assert wrong == 0
+
+    # The paint has to come from a mesh that has some.
+    swapped = Job("3d-bake-colour", None, {"painted": coarse, "mesh": painted}, params, (0,))
+    with pytest.raises(InvalidInput, match="no UVs or material"):
+        server.generate(swapped)
 
 
 # Six thin sheets meeting at one long spine, like a book: every spine edge has

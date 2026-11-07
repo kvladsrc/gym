@@ -23,30 +23,22 @@
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
-          config.cudaSupport = true;
-          config.cudaVersion = "12";
-        };
-
-        graphicsPkgs = import nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-          config.cudaSupport = false;
         };
 
         # Python 3.11 + uv for PyTorch CUDA wheels. The wheels bring the CUDA
         # runtime but need the C++ runtime and the host NVIDIA driver.
-        pytorchCudaShell = graphicsPkgs.mkShell {
-          packages = with graphicsPkgs; [
+        pytorchCudaShell = pkgs.mkShell {
+          packages = with pkgs; [
             bash
             git
             just
             python311
             uv
           ];
-          LD_LIBRARY_PATH = graphicsPkgs.lib.makeLibraryPath [
-            graphicsPkgs.stdenv.cc.cc.lib
-            graphicsPkgs.zlib
-            graphicsPkgs.libglvnd
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
+            pkgs.stdenv.cc.cc.lib
+            pkgs.zlib
+            pkgs.libglvnd
           ];
           shellHook = ''
             # Host NVIDIA driver on NixOS or Gentoo.
@@ -59,7 +51,7 @@
         # compiler it supports: CUDA's own backend stdenv, not the newest gcc.
         cudaBuildShell =
           let
-            cuda = graphicsPkgs.cudaPackages;
+            cuda = pkgs.cudaPackages;
           in
           pytorchCudaShell.overrideAttrs (old: {
             nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ cuda.cudatoolkit ];
@@ -182,6 +174,7 @@
         workstation = with pkgs; [
           age
           ansible
+          ffmpeg
           fluxcd
           godotPackages_4_6.godot
           godotPackages_4_6.export-template
@@ -189,13 +182,14 @@
           just
           kubectl
           kubectx
+          oxipng
           skopeo
           sops
           talosctl
           yq-go
         ];
       in
-      rec {
+      {
         devShells = {
           default = pkgs.mkShell.override { stdenv = pkgs.gcc14Stdenv; } {
             packages =
@@ -230,31 +224,10 @@
           };
 
           # Model servers of assets_studio; each keeps its own uv environment.
+          # Kept apart from the default shell: their LD_LIBRARY_PATH would put
+          # Nix's C++ runtime in front of the host's for every program.
           assets-studio-gpu = pytorchCudaShell;
           assets-studio-cuda = cudaBuildShell;
-
-          cothic-assets = graphicsPkgs.mkShell {
-            packages = with graphicsPkgs; [
-              bash
-              blender
-              ffmpeg
-              imagemagick
-              jq
-              just
-              libresprite
-              oxipng
-            ];
-          };
-
-          # CPU-only reference tooling; Unreal and GPU applications stay native.
-          vibe-jakubovich = graphicsPkgs.mkShell {
-            packages = with graphicsPkgs; [
-              ffmpeg
-              just
-              (python3.withPackages (ps: [ ps.pillow ]))
-              yt-dlp
-            ];
-          };
         };
       }
     );

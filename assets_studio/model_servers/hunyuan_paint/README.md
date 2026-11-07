@@ -1,8 +1,8 @@
 # Hunyuan3D-Paint model server
 
-> Retired from the active Studio catalog. Use the 2.1 server. Local 2.0 weights
-and environments were removed; this source remains for historical
-reproducibility.
+> Retired: `hunyuan_paint21` and `trellis2_paint` replaced it. The code stays as
+> a starting point for bringing it back; it is not in `model_servers/justfile`
+> and is not maintained.
 
 The `3d-paint` task takes a model (GLB) and its source image and returns the
 same model with a UV texture. Based on

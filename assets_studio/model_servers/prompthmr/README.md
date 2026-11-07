@@ -39,11 +39,10 @@ and sword grip constraints are not solved.
 
 ## Controlled pilot
 
-`workspace/prompthmr_pilot/flow_manifest.json` identifies the persisted Studio
-Flow. Its three jobs run PromptHMR native inference and transfer both PromptHMR
-and the saved GVHMR baseline onto the same MIA guard. `native_metrics.json`
-contains projection and posture diagnostics; these have no ground-truth 3D.
-This is a comparison harness, not evidence that PromptHMR is a better default.
+A saved flow of three jobs ran PromptHMR native inference and transferred both
+PromptHMR and a saved GVHMR baseline onto the same MIA-rigged guard. Its
+projection and posture diagnostics have no ground-truth 3D. This is a
+comparison harness, not evidence that PromptHMR is a better default.
 
 Upstream: <https://github.com/yufu-wang/PromptHMR>.
 **License: non-commercial scientific research; SMPL-X has separate terms.**

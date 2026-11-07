@@ -3,8 +3,10 @@ import subprocess
 import pytest
 from animation_tools_model_server.server import (
     BAKE,
+    BAKE_COLOUR,
     RETOPO,
     AnimationToolsServer,
+    BakeColourParams,
     BakeParams,
     RetargetParams,
     RetopoParams,
@@ -54,6 +56,7 @@ def test_server_has_no_gpu_or_model_requirement(monkeypatch):
 def test_mesh_tasks_take_glbs_and_bounded_params():
     assert [spec.role for spec in RETOPO.inputs] == ["mesh"]
     assert [spec.role for spec in BAKE.inputs] == ["high", "low"]
+    assert [spec.role for spec in BAKE_COLOUR.inputs] == ["painted", "mesh"]
     assert RetopoParams().faces == 20_000
     assert RetopoParams(method="autoremesher").method == "autoremesher"
     assert RetopoParams().adaptivity == 1.0
@@ -65,6 +68,8 @@ def test_mesh_tasks_take_glbs_and_bounded_params():
         RetopoParams(method="instant-meshes")
     with pytest.raises(ValidationError):
         BakeParams(texture_size=3000)
+    with pytest.raises(ValidationError):
+        BakeColourParams(ray_distance=0.5)
 
 
 def test_mesh_report_is_required_and_parsed():

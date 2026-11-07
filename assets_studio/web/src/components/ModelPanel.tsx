@@ -6,6 +6,7 @@ import { useMemo } from "preact/hooks";
 import type { Server, Task } from "../api/client";
 import { has, t } from "../i18n";
 import { JobList } from "./JobList";
+import { currentProject } from "../state/projects";
 import { jobsOfSection } from "../state/sections";
 import { assets, jobs } from "../state/store";
 
@@ -29,7 +30,14 @@ export function ModelPanel({
         (job) => job.server === server.id && job.task === task.task,
       ),
     // assets: a deletion can drop a job from the list
-    [jobs.value, assets.value, sectionId, server.id, task.task],
+    [
+      jobs.value,
+      assets.value,
+      currentProject.value,
+      sectionId,
+      server.id,
+      task.task,
+    ],
   );
   const model = server.model;
   const details = Object.entries(model?.details ?? {});

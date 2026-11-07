@@ -181,16 +181,14 @@ Since 1.2.0, dependency `model-server-sdk[images]` (Pillow). Shared image helper
 - `prepare_input(data)`: EXIF rotation, transparency composited on white,
   aspect ratio limited to 1:4, ~1 MP, dimensions divisible by 64. Unreadable
   data raises `InvalidInput`.
-- `check_denoising(steps, strength)`: rejects image-to-image where SDXL would
-  run zero steps (FLUX uses different rounding; see its server).
 - `encode_png(image)`: PNG for `Output`.
 
 ## Checking a server
 
-Start the server, then check contract compliance:
+Start the server, then check contract compliance (from `assets_studio/`):
 
 ```sh
-just assets_studio check-server http://127.0.0.1:9102
+just check-server http://127.0.0.1:9102
 ```
 
 The check waits for loading, calls every task with sample inputs and default
@@ -221,5 +219,5 @@ and errors. Flags `--load-delay`, `--load-error`, `--model-id` and `--task`
 simulate loading, load failure, model replacement and task subsets.
 
 ```sh
-just assets_studio fake-server --port 9100
+just fake-server --port 9100  # from assets_studio/
 ```

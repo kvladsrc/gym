@@ -346,6 +346,7 @@ class Dispatcher:
                     meta=output.meta,
                     # A readable default name; the user can rename the asset.
                     title=_title(job.prompt, index if len(response.outputs) > 1 else None),
+                    project=job.project,
                 )
             )
         return assets

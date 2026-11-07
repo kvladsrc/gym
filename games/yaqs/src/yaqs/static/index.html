@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yaqs library</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="app.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<!-- app.js replaces the data-i18n* texts with the browser's language (or ?lang=ru). -->
+<header class="bar">
+  <a class="brand" href="#" title="Books" data-i18n-title="books">yaqs</a>
+  <form id="search" class="search" role="search" autocomplete="off">
+    <input id="q" name="q" type="search" placeholder="Search the library ( / )" required maxlength="4000" aria-label="Query" data-i18n-placeholder="placeholder" data-i18n-aria-label="query">
+    <select id="mode" name="mode" aria-label="Search mode" title="Search mode" data-i18n-aria-label="mode" data-i18n-title="mode">
+      <option value="semantic" data-i18n="semantic">by meaning</option>
+      <option value="hybrid" data-i18n="hybrid">hybrid</option>
+      <option value="lexical" data-i18n="lexical">by words</option>
+    </select>
+    <select id="book" name="book" aria-label="Book" title="Book" data-i18n-aria-label="book" data-i18n-title="book">
+      <option value="" data-i18n="allBooks">all books</option>
+    </select>
+    <select id="limit" name="limit" aria-label="Number of results" title="Number of results" data-i18n-aria-label="limit" data-i18n-title="limit">
+      <option>5</option>
+      <option selected>10</option>
+      <option>20</option>
+    </select>
+    <button type="submit" data-i18n="find">Search</button>
+  </form>
+  <span id="stats" class="stats"></span>
+</header>
+<main class="layout">
+  <section id="results" class="results" aria-live="polite"></section>
+  <aside id="reader" class="reader" aria-live="polite"></aside>
+</main>
+</body>
+</html>

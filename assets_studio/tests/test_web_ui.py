@@ -21,6 +21,7 @@ from studio.api.app import create_app as create_studio_app
 from studio.config import Server, StudioConfig
 from studio.core import Studio
 from support import live_server
+from test_studio import png
 
 from model_server_sdk import create_app
 
@@ -152,6 +153,32 @@ def test_3d_and_animation_sections(tmp_path: Path) -> None:
             timeout=60,
             check=False,
         )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+def test_library_bulk_deletion(tmp_path: Path) -> None:
+    """Selection and partial deletion use an isolated library and fake model server."""
+    with live_server(create_app(FakeModelServer())) as model_url:
+        studio = Studio(
+            StudioConfig(
+                data_dir=tmp_path,
+                servers=(model_server("image", "Image", model_url),),
+                poll_interval_s=0.2,
+            )
+        )
+        app = create_studio_app(studio, web_dir=WEB / "dist")
+        with live_server(app) as url:
+            for index in range(7):
+                studio.library.import_bytes(png(), title=f"Bulk {index}")
+            completed = subprocess.run(
+                ["node", "e2e/bulk-deletion.mjs", url],
+                cwd=WEB,
+                env={**os.environ, "CHROME": str(CHROME)},
+                capture_output=True,
+                text=True,
+                timeout=90,
+                check=False,
+            )
     assert completed.returncode == 0, completed.stdout + completed.stderr
 
 

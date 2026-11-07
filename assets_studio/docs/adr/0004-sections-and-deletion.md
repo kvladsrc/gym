@@ -71,6 +71,11 @@ needed by queued/running jobs, as direct inputs or dependency outputs, cannot
 be deleted (`409`). Creating a job with deleted inputs is rejected in the same
 transaction as job insertion.
 
+The library grid supports checkboxes, Ctrl/Cmd-click toggles and Shift-click ranges;
+select all shown respects the current filters and project, and Esc clears selection.
+Bulk deletion asks for confirmation on the same button, shows progress, and keeps
+assets needed by unfinished jobs selected with a failure notice.
+
 ### Job deletion
 
 `DELETE /api/jobs/{id}` hides failed or cancelled jobs (`jobs.deleted_at`,

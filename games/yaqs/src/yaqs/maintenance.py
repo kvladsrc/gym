@@ -18,7 +18,7 @@ from yaqs.documents import Document, Page, import_profile
 from yaqs.embedding import QwenEncoder
 from yaqs.ingest import import_document
 from yaqs.locking import import_lock
-from yaqs.store import KnowledgeBase
+from yaqs.store import INTEGRITY_OK, KnowledgeBase
 
 
 def backup_database(source: Path, destination: Path) -> dict[str, Any]:
@@ -122,13 +122,7 @@ def rebuild_database(
             )
             import_document(rebuilt, document, encoder, batch_size=batch_size)
         integrity = store.integrity()
-        if integrity != {
-            "sqlite": "ok",
-            "foreign_keys": [],
-            "orphan_vectors": 0,
-            "fts": "ok",
-            "pending_chunks": 0,
-        }:
+        if integrity != INTEGRITY_OK:
             raise RuntimeError(f"Rebuilt database failed integrity check: {integrity}")
         backup_database(rebuilt, destination)
     return {

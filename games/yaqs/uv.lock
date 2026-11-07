@@ -1090,9 +1090,11 @@ dependencies = [
     { name = "mcp" },
     { name = "numpy" },
     { name = "sqlite-vec" },
+    { name = "starlette" },
     { name = "tokenizers" },
     { name = "torch" },
     { name = "transformers" },
+    { name = "uvicorn" },
 ]
 
 [package.optional-dependencies]
@@ -1109,8 +1111,10 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11" },
     { name = "sqlite-vec", specifier = ">=0.1.6,<0.2" },
+    { name = "starlette", specifier = ">=1.10,<2" },
     { name = "tokenizers", specifier = "==0.21.4" },
     { name = "torch", specifier = "==2.8.0", index = "https://download.pytorch.org/whl/cu129" },
     { name = "transformers", specifier = "==4.52.1" },
+    { name = "uvicorn", specifier = ">=0.54,<1" },
 ]
 provides-extras = ["dev"]

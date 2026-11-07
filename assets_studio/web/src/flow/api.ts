@@ -29,6 +29,8 @@ export interface Graph {
   schema_version: 1;
   title: string;
   nodes: FlowNode[];
+  /** The studio project (ADR-010) its jobs and their results go to. */
+  project: string;
 }
 export interface FlowRecord {
   id: string;

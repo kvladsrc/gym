@@ -2,7 +2,7 @@
 
 <!-- markdownlint-disable MD013 -->
 
-Status: accepted (M7; review: docs/reviews/M7-adr-0003.md).
+Status: accepted (M7).
 
 ## Context
 

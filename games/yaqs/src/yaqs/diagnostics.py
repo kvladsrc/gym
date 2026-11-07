@@ -5,16 +5,20 @@ from contextlib import closing
 from pathlib import Path
 from typing import Any
 
-import sqlite_vec
-
 from yaqs.embedding import cache_status
-from yaqs.store import KnowledgeBase
+
+RUNTIME_HINT = (
+    "Recreate the environment on uv's own Python, which loads the system C++ runtime "
+    "and zlib; see Setup in the README"
+)
 
 
 def diagnose(database: Path) -> dict[str, Any]:
+    """Report every missing part as JSON, including missing Python packages."""
     runtime: dict[str, Any] = {"ready": False}
     try:
         import numpy as np
+        import sqlite_vec
         import torch
 
         with closing(sqlite3.connect(":memory:")) as db:
@@ -33,20 +37,26 @@ def diagnose(database: Path) -> dict[str, Any]:
             )
     except (ImportError, OSError, sqlite3.Error) as error:
         runtime["error"] = str(error)
-        runtime["hint"] = (
-            "Run just yaqs setup; on NixOS enter nix develop .#assets-studio-gpu first"
-        )
-    model = cache_status()
+        runtime["hint"] = RUNTIME_HINT
+    try:
+        model = cache_status()
+    except ImportError as error:
+        model = {"ready": False, "error": str(error)}
     if not model["ready"]:
-        model["hint"] = "Run just yaqs setup or yaqs download"
+        model["hint"] = "Run yaqs download"
     status: dict[str, Any] = {"path": str(database.expanduser().resolve()), "ready": False}
     try:
+        from yaqs.store import KnowledgeBase
+
         stats = KnowledgeBase(database).stats()
         status.update(
             ready=stats["counts"]["books"] > 0 and stats["pending_chunks"] == 0, stats=stats
         )
         if not status["ready"]:
             status["hint"] = "Import text or resume unfinished imports"
+    except ImportError as error:
+        status["error"] = str(error)
+        status["hint"] = RUNTIME_HINT
     except (OSError, ValueError, sqlite3.Error) as error:
         status["error"] = str(error)
         status["hint"] = "Import TXT/JSONL; use yaqs rebuild --output NEW_DB for an old schema"

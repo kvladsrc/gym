@@ -5,7 +5,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Literal
+from typing import Any
 
 from model_server_sdk.media import SMPLX_MOTION, SOMA_MOTION
 
@@ -17,6 +17,10 @@ class AssetKind(StrEnum):
     TEXT = "text"
     VIDEO = "video"
     MOTION = "motion"  # body motion or a pose (one frame), SMPL-X or SOMA (ADR-009)
+
+
+# Every asset and job belongs to a project (ADR-010); this one always exists.
+DEFAULT_PROJECT = "default"
 
 
 class Origin(StrEnum):
@@ -37,11 +41,6 @@ class JobStatus(StrEnum):
 # Jobs that have not been sent to a model server yet.
 PENDING = (JobStatus.QUEUED, JobStatus.WAITING_MODEL)
 FINISHED = (JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED)
-
-# Error codes set by the studio itself, in addition to the contract's codes.
-StudioErrorCode = Literal[
-    "dependency_failed", "connection_lost", "timeout", "interrupted", "invalid_response", "internal"
-]
 
 # A job fails after this many consecutive retryable errors ("busy" does not count).
 MAX_RETRYABLE_FAILURES = 3
@@ -111,6 +110,17 @@ def new_id() -> str:
 
 
 @dataclass(frozen=True)
+class Project:
+    """A part of the library: its assets and the jobs that made them (ADR-010)."""
+
+    id: str  # a slug, e.g. "soulslike"
+    title: str
+    created_at: str
+    deleted_at: str | None = None  # only an empty project is deleted
+    asset_count: int = 0  # assets in the library, deleted ones not counted
+
+
+@dataclass(frozen=True)
 class Asset:
     id: str
     kind: AssetKind
@@ -127,6 +137,7 @@ class Asset:
     deleted_at: str | None = None
     rating: int | None = None  # 0-5, None: not rated (ADR-007)
     tags: tuple[str, ...] = ()  # sorted
+    project: str = DEFAULT_PROJECT
 
 
 @dataclass(frozen=True)
@@ -163,3 +174,4 @@ class Job:
     started_at: str | None = None
     finished_at: str | None = None
     deleted_at: str | None = None  # gone from the history (ADR-004)
+    project: str = DEFAULT_PROJECT  # its outputs start in it (ADR-010)

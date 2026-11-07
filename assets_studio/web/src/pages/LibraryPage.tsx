@@ -1,13 +1,17 @@
-// All assets: filter by kind or favourites, inspect one, trace what it was made from.
+// The open project's assets: filter by kind or favourites, inspect one, trace what it was made
+// from, move it to another project.
 import { useEffect, useRef, useState } from "preact/hooks";
+import { useSignal } from "@preact/signals";
 
 import { api, type Asset, type Parent } from "../api/client";
-import { AssetActions } from "../components/AssetActions";
+import { AssetActions, DeleteSelectedButton } from "../components/AssetActions";
 import { AssetCard } from "../components/AssetCard";
 import { AssetPreview } from "../components/AssetPreview";
 import { AssetThumb } from "../components/AssetThumb";
 import { Provenance } from "../components/Provenance";
 import { assetName, bytes, kindLabel, time } from "../format";
+import { currentProject, projects, projectsLoaded } from "../state/projects";
+import { useAssetSelection } from "../state/assetSelection";
 import { go, hrefLibrary } from "../state/router";
 import {
   assetById,
@@ -66,6 +70,11 @@ function Details({
     if (updated) putAsset(updated);
   }
 
+  async function move(project: string) {
+    const updated = await attempt(() => api.updateAsset(asset.id, { project }));
+    if (updated) putAsset(updated);
+  }
+
   return (
     <aside class="details" aria-label={t("library.details")}>
       {preview && (
@@ -94,6 +103,29 @@ function Details({
         onPick={onPickTag}
       />
       <dl class="meta">
+        <dt>{t("library.project")}</dt>
+        <dd>
+          <select
+            aria-label={t("library.project")}
+            title={t("library.moveTitle")}
+            value={asset.project}
+            onChange={(event) => void move(event.currentTarget.value)}
+          >
+            {projects.value.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.title}
+              </option>
+            ))}
+            {!projects.value.some(
+              (project) => project.id === asset.project,
+            ) && (
+              // A deleted project's: a deleted asset can still be looked at by its link.
+              <option value={asset.project} disabled>
+                {asset.project}
+              </option>
+            )}
+          </select>
+        </dd>
         <dt>{t("library.kind")}</dt>
         <dd>
           {kindLabel(asset.kind)} · {asset.mime}
@@ -170,13 +202,21 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
   const [view, setView] = useState<View>(rememberedView);
   const strip = useRef<HTMLDivElement>(null);
   const finished = succeededJobs.value;
+  const project = currentProject.value;
+  // Wait for the list of projects: a remembered project may have been deleted meanwhile.
+  const ready = projectsLoaded.value;
 
-  // A new filter in the viewer: show the first of the new list once it loads.
+  // A new filter (or project) in the viewer: show the first of the new list once it loads.
   const jump = useRef(false);
+  const shownProject = useRef(project);
+  if (shownProject.current !== project) {
+    shownProject.current = project;
+    jump.current = true;
+  }
   useEffect(() => {
     setIds(null);
     setLimit(PAGE);
-  }, [filter, tagFilter, rating]);
+  }, [filter, tagFilter, rating, project]);
   function refilter<T>(set: (value: T) => void) {
     return (value: T) => {
       jump.current = true;
@@ -184,6 +224,7 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
     };
   }
   useEffect(() => {
+    if (!ready) return;
     // Ignore a response that arrives after the filter has changed again.
     let current = true;
     const query =
@@ -203,7 +244,7 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
           ? { unrated: true }
           : { minRating: Number(rating) };
     void attempt(() =>
-      api.assets({ ...query, ...scored, tags: tagFilter, limit }),
+      api.assets({ ...query, ...scored, project, tags: tagFilter, limit }),
     ).then((list) => {
       if (!current) return;
       putAssets(list ?? []);
@@ -213,17 +254,33 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
       current = false;
     };
     // New results appear as jobs succeed.
-  }, [filter, tagFilter, rating, limit, finished]);
+  }, [filter, tagFilter, rating, limit, finished, project, ready]);
 
-  // Deleted here a moment ago: gone without reloading the list.
+  // Deleted or moved away here a moment ago: gone without reloading the list.
   const listed = (ids ?? []).flatMap((id) => {
     const asset = assets.value.get(id);
-    return asset && !asset.deleted_at ? [asset] : [];
+    return asset && !asset.deleted_at && asset.project === project
+      ? [asset]
+      : [];
   });
   const shown = listed.map((asset) => asset.id);
+  const selection = useAssetSelection(
+    shown,
+    JSON.stringify([project, filter, tagFilter, rating]),
+  );
+  const deleting = useSignal(false);
+  const checked = new Set(selection.ids);
   const selected = selectedId ? assetById(selectedId) : undefined;
   const position = selectedId ? shown.indexOf(selectedId) : -1;
   const viewer = view === "viewer";
+
+  useEffect(() => {
+    function onEscape(event: KeyboardEvent) {
+      if (event.key === "Escape" && !deleting.value) selection.clear();
+    }
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  });
 
   // Where the viewer is, ahead of rendering: quick key presses add up.
   const at = useRef<string | null | undefined>(selectedId);
@@ -326,6 +383,35 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
             ))}
           </select>
         </div>
+        {(!viewer || selection.ids.length > 0) && (
+          <div class="selection-actions">
+            <span aria-live="polite">
+              {t("library.selectedCount", { n: selection.ids.length })}
+            </span>
+            <button
+              class="button small"
+              disabled={deleting.value || !shown.length || ids === null}
+              onClick={selection.all}
+            >
+              {t("library.selectAllShown")}
+            </button>
+            <button
+              class="button small"
+              disabled={deleting.value || !selection.ids.length}
+              onClick={selection.clear}
+            >
+              {t("library.clearSelection")}
+            </button>
+            <DeleteSelectedButton
+              ids={selection.ids}
+              onDeleted={selection.remove}
+              onBusy={(busy) => {
+                deleting.value = busy;
+              }}
+            />
+            <span class="hint">{t("library.selectionHint")}</span>
+          </div>
+        )}
         {ids === null ? (
           <span class="spinner" />
         ) : shown.length === 0 ? (
@@ -386,8 +472,20 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
                 <AssetCard
                   key={asset.id}
                   asset={asset}
-                  selected={asset.id === selectedId}
-                  onClick={() => go(hrefLibrary(asset.id))}
+                  selected={checked.has(asset.id) || asset.id === selectedId}
+                  selection={{
+                    checked: checked.has(asset.id),
+                    disabled: deleting.value,
+                    onClick: (event) =>
+                      selection.toggle(asset.id, event.shiftKey),
+                  }}
+                  onClick={(event) => {
+                    if (event.ctrlKey || event.metaKey || event.shiftKey) {
+                      event.preventDefault();
+                      if (!deleting.value)
+                        selection.toggle(asset.id, event.shiftKey);
+                    } else go(hrefLibrary(asset.id));
+                  }}
                 />
               ))}
             </div>

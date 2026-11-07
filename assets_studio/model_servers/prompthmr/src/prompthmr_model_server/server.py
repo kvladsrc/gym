@@ -38,7 +38,7 @@ CHECKPOINTS = (
 
 
 def source_directory() -> Path:
-    cache = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "assets-studio"
+    cache = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "assets-studio"
     return Path(os.environ.get("PROMPTHMR_SOURCE", str(cache / "prompthmr-source"))).expanduser()
 
 

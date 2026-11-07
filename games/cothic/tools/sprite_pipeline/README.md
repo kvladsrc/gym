@@ -53,7 +53,7 @@ Drop the strips into `games/cothic/tmp/sprites/knight/<animation>/strips/` as
 frame PNGs), then from the repository root:
 
 ```sh
-nix develop .#cothic-assets
+nix develop
 just cothic sprites-assemble walk
 ```
 

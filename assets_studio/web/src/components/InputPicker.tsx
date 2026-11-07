@@ -3,6 +3,7 @@ import { useRef, useState } from "preact/hooks";
 
 import { api, type InputSpec } from "../api/client";
 import { acceptFor, assetName, inputKind, kindLabel } from "../format";
+import { currentProject } from "../state/projects";
 import { assetById, attempt, putAsset } from "../state/store";
 import { AssetThumb } from "./AssetThumb";
 import { LibraryPicker } from "./LibraryPicker";
@@ -26,7 +27,7 @@ export function InputPicker({
 
   async function upload(file: File) {
     const created = await attempt(() =>
-      api.upload(file, file.name.replace(/\.[^.]+$/, "")),
+      api.upload(file, currentProject.value, file.name.replace(/\.[^.]+$/, "")),
     );
     if (created) {
       putAsset(created);
@@ -35,7 +36,9 @@ export function InputPicker({
   }
 
   async function fromUrl() {
-    const created = await attempt(() => api.importUrl(url.trim()));
+    const created = await attempt(() =>
+      api.importUrl(url.trim(), currentProject.value),
+    );
     if (created) {
       putAsset(created);
       onChange(created.id);

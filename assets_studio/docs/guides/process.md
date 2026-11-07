@@ -1,29 +1,19 @@
-# Process: sweeps, ratings and the queue
+# Process: ratings and the queue
 
 <!-- markdownlint-disable MD013 -->
 
-## Sweeps and ratings
+## Ratings
 
-- **Start broad.** `just sweep queue SPEC.toml` queues all combinations of
-  specification axes (category × style × genre × image model × 3D model) and
-  tags results with `category:`, `style:`, `genre:`, `image:`, `3d:`, `sweep:`.
-  `just sweep paint` paints Hunyuan3D and TripoSG shapes; `just sweep tag` tags
-  completed results; `just sweep gallery` builds a comparison page
-  (`~/.local/share/assets-studio/sweeps/<name>/index.html`): image and each
-  model's result in a row, three Blender views per model, and model summaries
-  (time, triangles, watertightness, ratings). Reruns render newly completed
-  results and update ratings. With `every_subject = true`, the spec describes
-  an asset set rather than a search (one of each subject); categories can
-  override image parameters and set `3d = []` for images only.
-- **Rate 0–5 in Studio; analyze by axis.** Compare averages by category, style,
-  genre, model and combinations. Paired model comparisons on the same prompt
-  are fairer than averages. Ratings mix technical quality (artifacts) and
-  taste (style); look for trends, not tenths of a point.
+- **Rate 0–5 in Studio; compare by tag.** Tag the variants with what differs
+  between them (model, style, prompt) and compare averages by tag and by
+  combination. Paired model comparisons on the same prompt are fairer than
+  averages. Ratings mix technical quality (artifacts) and taste (style); look
+  for trends, not tenths of a point.
 - **Rate images and 3D separately:** the best image does not always produce
   the best model (Qwen's fine details are one reason; see [3d.md](3d.md)).
 - **Regenerate based on ratings:** rewrite 1–2 results to address the cause
   (porous → large masses; monotonous → individual object colors); analyze
-  4–5 results and incorporate successful techniques into templates.
+  4–5 results and fold what worked into the prompts of the whole set.
 
 ## Queue and model servers
 
@@ -44,7 +34,7 @@
   filtered items form a strip below, ← → navigates it; double-click a grid
   card to open it large).
 
-## Memory (laptop: 30 GB RAM, 8 GB VRAM)
+## Memory (measured with 30 GB RAM and 8 GB VRAM)
 
 - Heavy stages do not fit together: Paint ~13 GB RAM (memory-mapped weights;
   otherwise peak reaches 14.6 GB and the kernel kills the server), YuE ~9 GB,
@@ -60,6 +50,11 @@
   results arrive all at once: four 2K images showed nothing for 45 minutes.
   MCP `wait_for_job` waits silently, and Claude Code terminates tools silent
   for 300 seconds.
+- A running job cannot be stopped: Cancel removes only jobs not yet sent, and
+  the contract has no way to interrupt a generation.
+- Imported video and audio are converted with ffmpeg inside the import
+  request, without progress: a long clip holds the request until it is done.
+- No backup command: copy the data directory while the studio is stopped.
 - Configuration loads only at startup; adding a server requires a restart.
 - Imported files have no link to their source mesh and concept.
 - No heightmap, seamless texture or sky panorama mode.

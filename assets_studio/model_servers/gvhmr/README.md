@@ -40,8 +40,8 @@ rotations (including wrist twist), aligned to
 the rest bone directions, to
 the input rig; differing proportions and bone rest poses affect the result.
 
-Source, weights and environments live under `~/.cache/assets-studio`, outside
-Dropbox (`XDG_CACHE_HOME` supported). `GVHMR_SOURCE`, `GVHMR_PYTHON` and
+Source, weights and environments live under `~/.cache/assets-studio`
+(`$XDG_CACHE_HOME/assets-studio` when set). `GVHMR_SOURCE`, `GVHMR_PYTHON` and
 `BLENDER` override the source checkout, worker interpreter and Blender binary.
 The server uses Python 3.11; the worker uses Python 3.10, torch 2.3/CUDA 12.1.
 
@@ -63,8 +63,8 @@ SMPL-X has separate terms. See the pinned source's LICENSE for full conditions.
 
 Validation: server unit tests and the SDK/launcher tests pass. All four
 checkpoint downloads were SHA256 verified; HMR2 and ViTPose each completed
-a one-frame CUDA inference on the laptop (about 2.7 GiB peak allocated
-VRAM per process). A synthetic
+a one-frame CUDA inference on an RTX 3070 Laptop GPU (about 2.7 GiB peak
+allocated VRAM per process). A synthetic
 30-frame motion was written by the worker's BVH exporter, retargeted with
 Blender 5.1.1 and reimported: the FBX preserves a 1 m root path and arm
 motion. The server's full file-processing path was checked with real video
@@ -72,17 +72,13 @@ encoding, GLB conversion and Blender in both root-motion modes, substituting
 a synthetic BVH for the neural prediction.
 
 Full neural capture validated on 2026-10-18 with the registered SMPL-X model:
-`workspace/human/human_0m04-0m08.mp4` (4 s), retargeted onto
-`guard_kimodo_7a531b.fbx`. Static camera + world motion: 54 s; moving camera
-(SimpleVO) + in-place motion: 59 s. Each output has 120 frames and 22 bones.
-Blender reimport found finite joint positions in every frame and preserved
-the textured mesh. Unity 6000.6.0f1 imported the world-motion FBX as Generic
-with a 120-frame clip; sampling the clip changed 16 bones by more than 1°.
-This checks import and animation sampling, not gameplay or foot-contact quality.
-
-Results: `workspace/human/guard_gvhmr_world.fbx`,
-`guard_gvhmr_in_place.fbx`, and `guard_gvhmr_preview.png`.
-The preview shows the static-camera world-motion result.
+a 4 s clip of a person, retargeted onto a rigged guard character. Static
+camera + world motion: 54 s; moving camera (SimpleVO) + in-place motion: 59 s.
+Each output has 120 frames and 22 bones. Blender reimport found finite joint
+positions in every frame and preserved the textured mesh. Unity 6000.6.0f1
+imported the world-motion FBX as Generic with a 120-frame clip; sampling the
+clip changed 16 bones by more than 1°. This checks import and animation
+sampling, not gameplay or foot-contact quality.
 
 For operator diagnostics, set `ASSETS_STUDIO_DEBUG_DIR=/path` on the server.
 Each request retains its inputs, preprocessing, `body_motion.npz`, raw

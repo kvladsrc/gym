@@ -1,15 +1,11 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-# Heavy files live outside the Dropbox-synced working copy.
-cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+import "../common.just"
 
 export UV_PROJECT_ENVIRONMENT := cache / "venvs/wan"
 export HF_HUB_DISABLE_TELEMETRY := "1"
 # Wan weights are public; a token only raises download limits.
 export HF_TOKEN := env("HF_TOKEN", env("HUGGINGFACE_TOKEN", ""))
-
-# PyTorch wheels need the C++ runtime and the host NVIDIA driver on the library path.
-gpu_shell := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
 
 # Show the available commands
 default:

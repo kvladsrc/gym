@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from studio_flow.models import Graph
+from studio_flow.models import DEFAULT_PROJECT, Graph
 
 
 class Conflict(ValueError):
@@ -51,6 +51,7 @@ class Store:
     def unpack(row: sqlite3.Row) -> dict[str, Any]:
         data = dict(row)
         data["graph"] = json.loads(data["graph"])
+        data["graph"].setdefault("project", DEFAULT_PROJECT)  # saved before projects
         if "jobs" in data:
             data["jobs"] = json.loads(data["jobs"])
         return data

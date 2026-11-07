@@ -12,12 +12,11 @@ def main() -> None:
     parser.add_argument("--studio", default="http://127.0.0.1:9000")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=9001)
-    data = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share")))
+    data = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
     parser.add_argument("--database", type=Path, default=data / "assets-studio/flow.sqlite3")
     args = parser.parse_args()
-    uvicorn.run(
-        create_app(database=args.database, studio_url=args.studio), host=args.host, port=args.port
-    )
+    app = create_app(database=args.database, studio_url=args.studio, extra_hosts=[args.host])
+    uvicorn.run(app, host=args.host, port=args.port)
 
 
 if __name__ == "__main__":

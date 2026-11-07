@@ -11,7 +11,7 @@ import pytest
 from pydantic import BaseModel
 from studio.domain import CANONICAL_MIME, MIME_KINDS, AssetKind, JobStatus
 from studio.media import UnsupportedMedia, detect_mime, to_canonical
-from studio.services.library import ImportError_
+from studio.services.library import AssetImportError
 from studio.storage.db import Database
 from support import live_server
 from test_studio import model_server, running_studio, wait_for
@@ -180,8 +180,11 @@ def test_upgrade_keeps_assets_tags_and_references(tmp_path: Path) -> None:
 
     database = Database(path)
     connection = database.connection
-    assert database.schema_version == 8
+    assert database.schema_version == 9
     assert connection.execute("SELECT tag FROM asset_tags").fetchall()[0][0] == "мох"
+    # 0009: what existed before projects belongs to the default one.
+    assert connection.execute("SELECT project FROM assets").fetchall()[0][0] == "default"
+    assert connection.execute("SELECT project FROM jobs").fetchall()[0][0] == "default"
     assert connection.execute("SELECT asset_id FROM job_inputs").fetchall()[0][0] == "a1"
     assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
     assert connection.execute("PRAGMA foreign_keys").fetchone()[0] == 1
@@ -414,7 +417,7 @@ def test_webm_is_stored_as_mp4_and_audio_only_webm_is_rejected(tmp_path: Path) -
     with running_studio(tmp_path / "studio") as studio:
         asset = studio.library.import_bytes(video)
         assert (asset.kind, asset.mime) == ("video", "video/mp4")
-        with pytest.raises(ImportError_, match="no video stream"):
+        with pytest.raises(AssetImportError, match="no video stream"):
             studio.library.import_bytes(sound)
 
 
@@ -564,10 +567,26 @@ def test_motions_stored_as_text_become_motion_assets_once(tmp_path: Path) -> Non
     note = studio.library.import_bytes(b"a note\n")
     studio.close()
     assert (motion.kind, motion.mime) == ("motion", media.SMPLX_MOTION)
-    # as a studio before 0008 stored it: text, a .txt file
-    connection = sqlite3.connect(tmp_path / "studio.sqlite3")
-    connection.execute(
-        "UPDATE assets SET kind = 'text', mime = 'text/plain' WHERE id = ?", (motion.id,)
+    # as a studio before 0008 stored it: text, a .txt file, in a database of schema 0007
+    path = tmp_path / "studio.sqlite3"
+    connection = sqlite3.connect(path)
+    columns = "id, kind, blob_sha256, mime, size_bytes, origin, created_at"
+    rows = connection.execute(f"SELECT {columns} FROM assets").fetchall()
+    connection.close()
+    for file in tmp_path.glob("studio.sqlite3*"):
+        file.unlink()
+    migrations = resources.files("studio.storage").joinpath("migrations")
+    connection = sqlite3.connect(path)
+    for name in sorted(item.name for item in migrations.iterdir() if item.name < "0008"):
+        connection.executescript(migrations.joinpath(name).read_text())
+    connection.executemany(
+        f"INSERT INTO assets ({columns}) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [
+            (id_, "text", sha, "text/plain", size, origin, created)
+            if id_ == motion.id
+            else (id_, kind, sha, mime, size, origin, created)
+            for id_, kind, sha, mime, size, origin, created in rows
+        ],
     )
     connection.execute("PRAGMA user_version = 7")
     connection.commit()

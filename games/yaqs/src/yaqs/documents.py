@@ -1,4 +1,8 @@
-"""Read finished OCR text; rendering and recognition live outside YAQS."""
+"""Read prepared UTF-8 text: TXT, or JSONL with one page per line.
+
+YAQS does not extract text from PDF or EPUB files and does not run OCR; do that first and
+pass the result here. See docs/data-format.md for both formats.
+"""
 
 import hashlib
 import json
@@ -6,13 +10,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from yaqs import CHUNK_TOKENS, OVERLAP_TOKENS
+from yaqs import CHUNK_TOKENS, MIN_CHUNK_TOKENS, OVERLAP_TOKENS, SECTION_TOKENS, TEXT_FORMAT
 
 
 @dataclass(frozen=True)
 class Page:
     # Zero means unpaginated text, not a fabricated source-page citation.
     number: int
+    # The printed page number ("xiv", "23"), when the extraction knows it.
     label: str | None
     chapter: str
     text: str
@@ -23,11 +28,11 @@ class Page:
 @dataclass(frozen=True)
 class Document:
     path: str
-    sha256: str
+    sha256: str  # of the input file's bytes: the book's identity in the database
     title: str
     author: str
     pages: list[Page]
-    import_profile: str
+    import_profile: str  # JSON of the settings that shaped the chunks; see import_profile()
 
 
 def fingerprint(path: Path) -> str:
@@ -36,26 +41,30 @@ def fingerprint(path: Path) -> str:
 
 
 def normalize_text(text: str) -> str:
-    """Keep OCR paragraphs, tables and code; normalize only BOM and newlines."""
+    """Normalize BOM and newlines; yaqs.cleaning tidies whitespace at import."""
     return text.removeprefix("\ufeff").replace("\r\n", "\n").replace("\r", "\n").strip()
 
 
 def import_profile(suffix: str) -> str:
+    """Settings that change stored text or chunks; a change requires --rebuild."""
     return json.dumps(
         {
             "input": suffix,
-            "text_format": 1,
+            "text_format": TEXT_FORMAT,
             "chunk_tokens": CHUNK_TOKENS,
             "overlap_tokens": OVERLAP_TOKENS,
+            "min_chunk_tokens": MIN_CHUNK_TOKENS,
+            "section_tokens": SECTION_TOKENS,
         },
         sort_keys=True,
     )
 
 
 def read_document(path: Path, *, title: str = "", author: str = "") -> Document:
+    """Validate a TXT or JSONL file; title and author override the file's own metadata."""
     path = path.expanduser().resolve(strict=True)
     if path.suffix.lower() not in {".txt", ".jsonl"}:
-        raise ValueError("YAQS accepts only UTF-8 TXT or OCR-page JSONL text")
+        raise ValueError("YAQS accepts only UTF-8 TXT or page JSONL text")
     text = path.read_text(encoding="utf-8-sig")
     if path.suffix.lower() == ".txt":
         parts = text.split("\f")
@@ -69,7 +78,7 @@ def read_document(path: Path, *, title: str = "", author: str = "") -> Document:
     else:
         records = [json.loads(line) for line in text.splitlines() if line.strip()]
         if not records:
-            raise ValueError("OCR page file is empty")
+            raise ValueError("JSONL file has no pages")
         pages = []
         totals = set()
         for record in records:
@@ -77,7 +86,7 @@ def read_document(path: Path, *, title: str = "", author: str = "") -> Document:
                 raise ValueError("Each JSONL record must be a page object")
             number = record.get("page")
             if type(number) is not int or number < 1 or not isinstance(record.get("text"), str):
-                raise ValueError("Each OCR page needs a positive integer page and a text string")
+                raise ValueError("Each JSONL page needs a positive integer page and a text string")
             if record.get("total_pages") is not None:
                 total = record["total_pages"]
                 if type(total) is not int or total < number:
@@ -111,9 +120,9 @@ def read_document(path: Path, *, title: str = "", author: str = "") -> Document:
             )
         numbers = [page.number for page in pages]
         if len(set(numbers)) != len(numbers):
-            raise ValueError("Duplicate OCR page numbers")
+            raise ValueError("Duplicate page numbers")
         if totals and (len(totals) != 1 or set(numbers) != set(range(1, next(iter(totals)) + 1))):
-            raise ValueError("OCR document is incomplete; wait for every declared page")
+            raise ValueError("Document is incomplete: total_pages declares missing pages")
         pages.sort(key=lambda page: page.number)
         title = title or str(records[0].get("title", ""))
         author = author or str(records[0].get("author", ""))

@@ -8,7 +8,7 @@ produce sequential movements with transitions.
 
 ```sh
 just setup     # source, Python 3.11 + PyTorch 2.8/CUDA 12.9 environment;
-               # build Kimodo with MotionCorrection (C++) in nix develop .#assets-studio-cuda
+               # build Kimodo with MotionCorrection (C++) in the CUDA shell
 just download  # Kimodo (~1.1 GB), LLM2Vec adapters, Llama-3-8B (~16 GB);
                # requires HF_TOKEN
 just doctor

@@ -1,4 +1,4 @@
-# M7b: image-to-video (video from a first frame)
+# Image to video (video from a first frame)
 
 <!-- markdownlint-disable MD013 -->
 
@@ -48,27 +48,16 @@ Defaults (720p × 5 s) would take several hours to check, motivating `--param`.
 **720p × 5 s with final configuration: 3643 s (61 min)**, at least 5 GB free RAM,
 7.8 GB peak VRAM (mostly activations). Tagged BT.709 color.
 
-## Review
+## Integration findings
 
-Critic, iteration 1: REVISE.
-
-1. **Color.** ffmpeg used BT.601 RGB → YUV without tags; browsers interpret
-   untagged HD as BT.709, shifting reds/greens in every clip. The SDK bug would
-   affect every video server. Fixed with tagged BT.709 (red Y/U/V 63/102/240
-   instead of 81/90/240), shared SDK/Studio options; Studio transcodes uploaded
-   video lacking BT.709 tags.
-2. README/docstring memory descriptions lagged behind final configuration.
-
-Recommendations implemented: center-crop first frame rather than stretching
-(16:9 at 480p stretched 4.4%); aspect ratio at most 1:4 (100:1 would yield
-9472×64); nearest 4k+1 frame count (1.1 seconds previously gave 29 instead of
-25 frames); original Chinese negative prompt; ffmpeg logs to file (a full pipe
-could hang encoding); fixed x264 thread count (identical bytes across machines);
-`doctor` reports ffmpeg/libx264; removed unused bf16 weight cache (19 GB).
-
-Iteration 2: REVISE. The first fix transcoded every untagged video but let
-ffmpeg assume BT.601. HD (usually actually BT.709) shifted colors the other way
-(red 58/105/229). Untagged sources are now BT.709 above 576 lines, otherwise
-BT.601, matching players. Tests cover red 720p and 240p inputs.
-
-Iteration 3: ACCEPT.
+- **Color.** Clips are encoded as tagged BT.709: browsers read untagged HD as
+  BT.709, and untagged BT.601 shifted reds and greens in every clip (red Y/U/V
+  81/90/240 instead of 63/102/240). The SDK and the studio share these
+  options. The studio transcodes uploaded video without BT.709 tags, reading
+  untagged sources as BT.709 above 576 lines and BT.601 below, as players do.
+- The first frame is center-cropped rather than stretched; the aspect ratio is
+  at most 1:4 (100:1 would yield 9472×64); the frame count is the nearest
+  4k+1; the original Chinese negative prompt is kept.
+- ffmpeg logs to a file (a full pipe could hang encoding), and a fixed x264
+  thread count gives identical bytes across machines. `doctor` reports
+  ffmpeg and libx264.

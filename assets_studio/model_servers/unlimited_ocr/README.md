@@ -13,12 +13,12 @@ Upstream: [Unlimited-OCR](https://github.com/baidu/Unlimited-OCR).
 
 ## Install and run
 
-From the monorepo root:
+From `model_servers/`:
 
 ```sh
-nix develop -c just assets_studio model_servers setup unlimited_ocr
-nix develop -c just assets_studio model_servers doctor unlimited_ocr
-nix develop -c just assets_studio model_servers unlimited_ocr
+just setup unlimited_ocr
+just doctor unlimited_ocr
+just unlimited_ocr
 ```
 
 The server listens on `127.0.0.1:9132`; `--port` overrides it. Add the
@@ -28,7 +28,7 @@ when a job needs it and stops it before switching to another GPU model.
 
 The isolated environment lives in
 `~/.cache/assets-studio/venvs/unlimited_ocr`; the Hugging Face cache holds
-the weights (~6.7 GB). Neither is stored in Dropbox. Installation excludes
+the weights (~6.7 GB). Installation excludes
 demo images, PDFs and the custom SGLang wheel. Native Transformers inference
 uses the CUDA PyTorch wheels shared with the other Studio environments.
 
@@ -67,7 +67,7 @@ Read the resulting text asset after the job succeeds.
 ## Checks
 
 ```sh
-nix develop -c just assets_studio model_servers test unlimited_ocr
+just test unlimited_ocr  # from model_servers/
 ```
 
 These tests cover the adapter without loading weights or using the GPU.
@@ -82,8 +82,7 @@ with the compiled kernels cached; 6838 MiB peak PyTorch allocation.
 Actual memory use includes CUDA overhead as well.
 The launcher also stopped the model after its idle timeout.
 
-Local smoke artifacts: `workspace/review/unlimited-ocr/smoke.json` and
-`job.json` from the monorepo root. Recognizing a synthetic page does not
+Recognizing a synthetic page does not
 measure book OCR accuracy, reading order on complex layouts, or broad
 language coverage. Tiled inference is an option, not a tested 8 GiB budget
 for every page; disable it if memory is exhausted.

@@ -1,6 +1,6 @@
 import { render } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import type { Asset, Server, Task } from "../api/client";
+import type { Asset, Project, Server, Task } from "../api/client";
 import {
   defaults,
   invalidParams,
@@ -18,10 +18,12 @@ import {
 } from "./api";
 import "./style.css";
 
+// The key order of a saved graph (the dirty check compares JSON).
 const fresh = (): Graph => ({
   schema_version: 1,
   title: "Новый граф",
   nodes: [],
+  project: "default",
 });
 const statusText: Record<string, string> = {
   submitting: "Создаются задания",
@@ -54,6 +56,8 @@ function App() {
   const [selected, setSelected] = useState<string | null>(null);
   const [servers, setServers] = useState<Server[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [everyProject, setEveryProject] = useState(false);
   const [studio, setStudio] = useState("http://127.0.0.1:9000");
   const [palette, setPalette] = useState("");
   const [search, setSearch] = useState("");
@@ -89,12 +93,15 @@ function App() {
   };
 
   async function refreshLibrary() {
-    const [nextServers, nextAssets] = await Promise.all([
+    // Every project's assets: an input may come from any, and a node's type is looked up here.
+    const [nextServers, nextAssets, nextProjects] = await Promise.all([
       request<Server[]>("/studio/servers"),
       request<Asset[]>("/studio/assets?limit=1000"),
+      request<Project[]>("/studio/projects"),
     ]);
     setServers(nextServers);
     setAssets(nextAssets);
+    setProjects(nextProjects);
   }
   useEffect(() => {
     act(async () => {
@@ -400,10 +407,12 @@ function App() {
     }
     changeNode(node.id, { inputs });
   }
-  const matchingAssets = assets.filter((asset) =>
-    `${asset.title ?? ""} ${asset.id} ${asset.tags.join(" ")}`
-      .toLowerCase()
-      .includes(search.toLowerCase()),
+  const matchingAssets = assets.filter(
+    (asset) =>
+      (everyProject || asset.project === graph.project) &&
+      `${asset.title ?? ""} ${asset.id} ${asset.tags.join(" ")}`
+        .toLowerCase()
+        .includes(search.toLowerCase()),
   );
   const sourceOptions = (task: Task, role: string) =>
     shown.nodes.filter((item) => {
@@ -446,6 +455,31 @@ function App() {
             {dirty ? " · не сохранён" : ""}
           </span>
         </div>
+        <label
+          class="flow-project"
+          title="Сюда попадут задания графа и их результаты"
+        >
+          Проект
+          <select
+            value={graph.project}
+            disabled={!!run}
+            onChange={(event) => {
+              const project = event.currentTarget.value;
+              setGraph((previous) => ({ ...previous, project }));
+            }}
+          >
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.title}
+              </option>
+            ))}
+            {!projects.some((project) => project.id === graph.project) && (
+              <option value={graph.project}>
+                {graph.project} (нет в студии)
+              </option>
+            )}
+          </select>
+        </label>
         <a href={studio} target="_blank" rel="noreferrer">
           Открыть студию ↗
         </a>
@@ -573,6 +607,16 @@ function App() {
               setSearch(event.currentTarget.value);
             }}
           />
+          <label class="flow-check">
+            <input
+              type="checkbox"
+              checked={everyProject}
+              onChange={(event) => {
+                setEveryProject(event.currentTarget.checked);
+              }}
+            />
+            Из всех проектов
+          </label>
           <select
             aria-label="Ассет из библиотеки"
             value={assetChoice}

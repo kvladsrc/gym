@@ -4,7 +4,8 @@ from collections.abc import Callable, Iterable, Mapping
 from typing import Any
 
 from studio.config import StudioConfig
-from studio.domain import Dependency, Job, JobStatus, new_id
+from studio.domain import DEFAULT_PROJECT, Dependency, Job, JobStatus, new_id
+from studio.storage import repository
 from studio.storage.repository import InputDeleted, Repository, now
 
 
@@ -43,10 +44,12 @@ class Generation:
         dependencies: Mapping[str, Dependency] | None = None,
         idempotency_key: str | None = None,
         retry_of: str | None = None,
+        project: str = DEFAULT_PROJECT,
     ) -> Job:
-        """Queue a job. Each input role is filled either by an asset or by the
-        output of another job, never both. Parameters are validated by the
-        model server when the job is sent."""
+        """Queue a job of ``project``; its outputs go to that project. Each input role is
+        filled either by an asset or by the output of another job, never both; inputs may come
+        from any project (ADR-010). Parameters are validated by the model server when the job
+        is sent."""
         inputs = dict(inputs or {})
         dependencies = dict(dependencies or {})
         try:
@@ -55,6 +58,9 @@ class Generation:
             raise JobRequestError(f"unknown server: {server}") from None
         if count < 1:
             raise JobRequestError("count must be at least 1")
+        found = self._repository.project(project)
+        if found is None or found.deleted_at is not None:
+            raise JobRequestError(f"project {project} not found")
         both = sorted(set(inputs) & set(dependencies))
         if both:
             raise JobRequestError(f"roles filled twice: {', '.join(both)}")
@@ -94,10 +100,13 @@ class Generation:
                     dependencies=dependencies,
                     idempotency_key=idempotency_key,
                     retry_of=retry_of,
+                    project=project,
                 )
             )
         except InputDeleted as error:
             raise JobRequestError(f"an input {error}") from error
+        except repository.ProjectNotFound as error:
+            raise JobRequestError(str(error)) from error
         self._on_change(job.id)
         self._wake()
         return job
@@ -152,6 +161,7 @@ class Generation:
             inputs=job.inputs,
             dependencies=dependencies,
             retry_of=job.id,
+            project=job.project,
         )
         if self._repository.delete_job(job.id):
             self._on_change(job.id)
@@ -170,8 +180,14 @@ class Generation:
     def job(self, job_id: str) -> Job | None:
         return self._repository.job(job_id)
 
-    def jobs(self, *, statuses: Iterable[JobStatus] | None = None, limit: int = 100) -> list[Job]:
-        return self._repository.jobs(statuses=statuses, limit=limit)
+    def jobs(
+        self,
+        *,
+        statuses: Iterable[JobStatus] | None = None,
+        project: str | None = None,
+        limit: int = 100,
+    ) -> list[Job]:
+        return self._repository.jobs(statuses=statuses, project=project, limit=limit)
 
     def producer(self, asset_id: str) -> Job | None:
         """The job that made the asset: its prompt, parameters, seed and inputs."""

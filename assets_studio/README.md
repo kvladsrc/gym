@@ -33,10 +33,28 @@ model at a time, and stops it when it has nothing left to do.
 | `model_server_sdk/` | SDK and contract checker for model servers |
 | `model_servers/` | One server per model, each with its own environment |
 | `asset_processing/` | Shared Blender steps: conversion, rig preparation, motion transfer, retopology, normal baking |
-| `sweep/` | Parameter sweeps over a model, with a gallery of the variants |
-| `docs/adr/` | Design decisions: the contract, storage, sections, ratings, flow |
-| `docs/models/` | Why each model was chosen, with measurements |
+| `agent_tools/` | `describe_media.py`: an agent asks the studio's vision model about an image or video and reads text |
+| `docs/adr/` | Design decisions: the contract, storage, sections, ratings, flow, projects |
+| `docs/models/` | Why the models were chosen, with measurements |
 | `docs/guides/` | How to make game assets: 3D, characters, quadrupeds, engine, audio |
+
+## Requirements
+
+- Linux on x86-64 with an NVIDIA GPU. The models were chosen and measured on
+  an 8 GB RTX 3070 Laptop GPU with 30 GB of RAM; several of them keep their
+  weights in RAM and move them to the GPU step by step.
+- [uv](https://docs.astral.sh/uv/) and [just](https://just.systems/). The
+  studio needs Python 3.12 or newer, model servers bring their own (uv
+  downloads what is missing).
+- Node.js 20.19+ or 22.12+ to build the web UI.
+- ffmpeg, for video.
+- Blender (tested with 5.1) on `PATH` or in `BLENDER`, for rigs, motion
+  transfer and mesh processing.
+- [Nix](https://nixos.org/) with flakes, unless you replace the GPU shells
+  (below).
+
+Each server's README lists its own needs: weights and disk space, Hugging Face
+access to gated models (`HF_TOKEN`), native modules.
 
 ## Quick start
 
@@ -53,11 +71,47 @@ README):
 
 ```sh
 cd model_servers
-just setup qwen_image
+just setup qwen_image   # the server's directory in model_servers/
+just doctor qwen_image  # what it sees: PyTorch, the GPU, the weights
 ```
 
-The launcher runs `just <server>` from `model_servers/` when a job for that
-server is ready; a server can also be started by hand the same way.
+When a job is ready, the launcher starts its server with a `model_servers/`
+recipe (`just qwen_image` there), one GPU model at a time; a server can also
+be started by hand the same way. The launcher is a stand-in outside the
+studio: its `RECIPES` table in `launcher/launcher.py` maps the server ids of
+`studio.example.toml` to their recipes, and it leaves other servers alone, so
+a server may run elsewhere.
+
+## Configuration
+
+`studio.example.toml` lists every server with its address and documents the
+other settings. The studio reads `~/.config/assets-studio/studio.toml`, or
+the file given with `--config`.
+The library (database and files) is in `~/.local/share/assets-studio`; model
+environments, sources and weights are in `~/.cache/assets-studio`
+(`XDG_DATA_HOME` and `XDG_CACHE_HOME` move them).
+
+### GPU shells
+
+A model server's commands (`setup`, `serve`, `test`…) run in a dev shell of
+the repository's `flake.nix`: `assets-studio-gpu` provides Python 3.11, uv and
+the C++ runtime, and adds the NVIDIA driver from `/run/opengl-driver/lib`
+(NixOS) or `/usr/lib64`; `assets-studio-cuda` adds the CUDA toolkit for the
+servers that build native extensions. Without Nix, or when the driver is
+elsewhere (as on Debian and Ubuntu), replace them
+([`model_servers/common.just`](model_servers/common.just)):
+
+```sh
+export ASSETS_STUDIO_GPU_SHELL=""   # run the commands as they are
+export ASSETS_STUDIO_CUDA_SHELL=""  # needs nvcc, CUDA_HOME and CXX
+export TORCH_CUDA_ARCH_LIST=8.9     # GPU of native modules (default 8.6)
+```
+
+A non-empty value is a command prefix, such as a wrapper script that sets up
+the environment. Set them before `just setup`: an environment made in the Nix
+shell uses its Python and C++ runtime and does not run without it.
+`TORCH_CUDA_ARCH_LIST` is the GPU architecture that native modules are built
+for: `nvidia-smi --query-gpu=compute_cap --format=csv`.
 
 ## Models
 
@@ -84,12 +138,44 @@ server is ready; a server can also be started by hand the same way.
 | Text | `gemma`, `qwen` | Gemma 4 12B, Qwen3.8 27B | Text; Qwen also describes images and videos |
 | | `unlimited_ocr` | Unlimited-OCR 2 | Document page image → text; [setup](model_servers/unlimited_ocr/README.md) |
 
-Licences differ per model and several are non-commercial; each server
-reports its licence, and the UI shows it on the model's card.
+`model_servers/` also keeps four retired servers: `flux` (FLUX.1-schnell),
+`hunyuan3d` (Hunyuan3D-2mini), `hunyuan_paint` (Hunyuan3D-Paint 2.0) and
+`triposg` (TripoSG). The servers above replaced them; their code stays as a
+starting point and is not maintained. Bringing one back follows steps 2–4 of
+[Adding a model](#adding-a-model).
 
-A new model is a server on `model_server_sdk` plus an entry in the config;
-the studio needs no changes. Check a server with
-`just check-server http://127.0.0.1:<port>`.
+Licences differ per model: several are non-commercial, and some exclude
+territories (Hunyuan3D 2.1 is not licensed in the EU, the UK and South
+Korea). Each server reports its licence, and the UI shows it on the model's
+card.
+
+## Adding a model
+
+A model is a server on `model_server_sdk`, in its own project and
+environment; the studio needs no changes, it learns the tasks, parameters
+and licence from the server ([SDK README](model_server_sdk/README.md)).
+
+1. Start from a similar server in `model_servers/`. Its justfile imports
+   `../common.just` and has `setup`, `serve`, `doctor` and `test` recipes.
+2. Add a recipe that starts it to `model_servers/justfile`, and its directory
+   to the `servers` list there (`just setup`, `doctor` and `test` without a
+   name go through the list).
+3. Add a `[[servers]]` entry to your config and to `studio.example.toml`, and
+   its id with that recipe to `RECIPES` in `launcher/launcher.py`; then
+   restart the studio and the launcher.
+4. Check the contract: `just check-server http://127.0.0.1:<port>`.
+
+`just fake-server` starts a GPU-free server with every task on port 9100;
+add it to the config to try the studio without models.
+
+## Projects
+
+Every asset and job belongs to a project; what existed before projects is in
+**Default**. The top bar picks the open project: the library, the history and
+the sections show it, and new jobs and uploads go there. The queue is shared.
+Inputs can come from any project, and an asset moves to another project from
+its details. Agents pass `project` to the API and MCP; without it, everything
+goes to `default` ([ADR 0010](docs/adr/0010-projects.md)).
 
 ## Inspecting a mesh
 
@@ -99,9 +185,30 @@ Open a GLB in the library and switch the preview between **Material**,
 camera stays where it was. Counts show triangles and vertices, including
 vertices split at UV seams; quads exported to GLB appear as triangles.
 
+## Security
+
+The studio is a single-user tool for one machine. It listens on 127.0.0.1
+without authentication, so any local process can use it, and it accepts only
+local `Host` names, so web pages cannot reach it through DNS rebinding; flow
+does the same. Do not expose either on a network: MCP `import_asset` copies
+any local file the studio can read into the library, URL imports download what
+they are given, and model servers run the code of upstream projects.
+
 ## Development
 
 ```sh
 just check                     # lint, types, tests, web UI (no GPU)
 cd model_servers && just test  # each server's own tests (no GPU)
 ```
+
+The lint step includes import-linter: the studio's layers (API and MCP, core,
+services, dispatch, storage, domain) import only the layers below them, and
+the contracts are in `pyproject.toml`. The studio takes the contract and its
+media formats from `model_server_sdk` and reaches the model servers only over
+HTTP.
+
+## License
+
+The code is under the GNU General Public License v3, the repository's
+`LICENSE`. Models and their weights are not covered by it: each has its own
+licence (see [Models](#models)).

@@ -118,9 +118,8 @@ without corresponding constraints.
 Frame-by-frame Qwen comparison is an additional observer: it can flag visible
 differences but cannot measure hidden joints or prove an error's cause. Compare
 its output with numerical bone and surface trajectories. The controlled
-experiment is in `workspace/rigging_lab/`: simple geometry, native animation,
-known weights and an MIA rig. Its graph is saved in Studio Flow; frame review
-is in `index.html`.
+experiment behind this table used simple geometry, native animation, known
+weights and an MIA rig.
 
 A debugging example: the guard's ankle-to-toe bone is tilted about −46°, versus
 SMPL-X's −25°. This reflects joint placement inside the boot, not an instruction

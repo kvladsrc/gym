@@ -1,4 +1,7 @@
-"""Restartable book import; extraction and all derived index writes stay local."""
+"""Restartable book import: read, clean, chunk, store, then embed in resumable batches.
+
+Progress goes to stderr as one JSON object per line; the result is returned to the caller.
+"""
 
 import json
 import sys
@@ -7,8 +10,9 @@ from pathlib import Path
 from typing import Any
 
 from yaqs.chunking import chunk_document
+from yaqs.cleaning import clean_document
 from yaqs.documents import Document, read_document
-from yaqs.embedding import QwenEncoder
+from yaqs.embedding import QwenEncoder, document_text
 from yaqs.locking import import_lock
 from yaqs.store import KnowledgeBase
 
@@ -24,6 +28,11 @@ def import_book(
     author: str = "",
     wait_for_lock: bool = False,
 ) -> dict[str, Any]:
+    """Import a TXT or JSONL file; importing the same bytes again resumes missing vectors.
+
+    title and author override the file's own metadata. rebuild replaces a book that is
+    already in the database, keeping its id but giving it new chunk ids.
+    """
     document = read_document(source, title=title, author=author)
     return import_document(
         database,
@@ -48,6 +57,7 @@ def import_document(
     author: str = "",
     wait_for_lock: bool = False,
 ) -> dict[str, Any]:
+    """Import an already read document; see import_book."""
     if not 1 <= batch_size <= 32:
         raise ValueError("batch_size must be between 1 and 32")
     started = time.perf_counter()
@@ -55,6 +65,7 @@ def import_document(
         store = KnowledgeBase(database, create=True)
         existing = store.book_by_hash(document.sha256)
         if existing is None or rebuild:
+            document = clean_document(document)
             chunks = list(chunk_document(document, encoder.tokenizer))
             if not chunks:
                 raise ValueError("The document contains no searchable text")
@@ -76,19 +87,10 @@ def import_document(
         initial_pending = len(pending)
         for start in range(0, len(pending), batch_size):
             rows = pending[start : start + batch_size]
-            texts = [f"{row['title']}\n{row['chapter']}\n\n{row['text']}" for row in rows]
-            vectors = encoder.encode(texts)
-            store.add_vectors(rows, vectors)
-            print(
-                json.dumps(
-                    {
-                        "embedded": min(start + batch_size, len(pending)),
-                        "pending_at_start": len(pending),
-                    }
-                ),
-                file=sys.stderr,
-                flush=True,
-            )
+            texts = [document_text(row["title"], row["chapter"], row["text"]) for row in rows]
+            store.add_vectors(rows, encoder.encode(texts))
+            progress = {"embedded": start + len(rows), "pending_at_start": initial_pending}
+            print(json.dumps(progress), file=sys.stderr, flush=True)
         store.finish_index(book_id)
         book = next(book for book in store.books() if book["id"] == book_id)
         return {

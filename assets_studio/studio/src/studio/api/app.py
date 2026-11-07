@@ -5,6 +5,9 @@ application and stops with it. Errors always have the shape
 ``{"detail": "<message>"}``.
 """
 
+# Handlers are registered by their decorators, inside the factory function.
+# pyright: reportUnusedFunction=false
+
 import asyncio
 import json
 import logging
@@ -27,13 +30,17 @@ from studio.api.schemas import (
     JobCreate,
     JobOut,
     ParentOut,
+    ProjectCreate,
+    ProjectOut,
+    ProjectUpdate,
     ServerOut,
 )
 from studio.core import Studio
-from studio.domain import FILE_EXTENSIONS, Asset, AssetKind, Dependency, JobStatus
+from studio.domain import DEFAULT_PROJECT, FILE_EXTENSIONS, Asset, AssetKind, Dependency, JobStatus
 from studio.mcp.server import build_mcp
 from studio.services.generation import JobRequestError, JobStateError
-from studio.services.library import AssetInUse, BadTag, ImportError_, Unset
+from studio.services.library import AssetImportError, AssetInUse, BadTag, Unset
+from studio.services.projects import ProjectConflict, ProjectError
 from studio.services.skeleton import NotAMotion
 
 logger = logging.getLogger("studio.api")
@@ -71,7 +78,7 @@ def create_app(
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
 
     @app.exception_handler(RequestValidationError)
-    async def validation_error(_: Request, error: RequestValidationError) -> JSONResponse:  # pyright: ignore[reportUnusedFunction]
+    async def validation_error(_: Request, error: RequestValidationError) -> JSONResponse:
         parts = [
             f"{'.'.join(str(part) for part in item['loc'] if part != 'body')}: {item['msg']}"
             for item in error.errors()
@@ -93,12 +100,56 @@ def create_app(
     def servers() -> list[ServerOut]:
         return [ServerOut.of(server, studio) for server in studio.config.servers]
 
+    def known_project(project_id: str | None) -> None:
+        """404 for a filter by a project that never existed (a deleted one keeps its jobs)."""
+        if project_id is not None and studio.projects.find(project_id) is None:
+            raise HTTPException(404, f"project {project_id} not found")
+
+    def live_project(project_id: str) -> None:
+        try:
+            studio.projects.get(project_id)
+        except ProjectError as error:
+            raise HTTPException(404, str(error)) from error
+
+    @app.get("/api/projects")
+    def list_projects() -> list[ProjectOut]:
+        """Projects (ADR-010), the default one first, with how many assets each has."""
+        return [ProjectOut.of(project) for project in studio.projects.all()]
+
+    @app.post("/api/projects", status_code=201)
+    def create_project(request: ProjectCreate) -> ProjectOut:
+        try:
+            return ProjectOut.of(studio.projects.create(request.title, request.id))
+        except ProjectError as error:
+            raise HTTPException(422, str(error)) from error
+        except ProjectConflict as error:
+            raise HTTPException(409, str(error)) from error
+
+    @app.patch("/api/projects/{project_id}")
+    def rename_project(project_id: str, request: ProjectUpdate) -> ProjectOut:
+        live_project(project_id)
+        try:
+            return ProjectOut.of(studio.projects.rename(project_id, request.title))
+        except ProjectError as error:
+            raise HTTPException(422, str(error)) from error
+
+    @app.delete("/api/projects/{project_id}")
+    def delete_project(project_id: str) -> ProjectOut:
+        """Only an empty project: no assets in the library, no unfinished jobs (409)."""
+        live_project(project_id)
+        try:
+            return ProjectOut.of(studio.projects.delete(project_id))
+        except ProjectError as error:
+            raise HTTPException(404, str(error)) from error
+        except ProjectConflict as error:
+            raise HTTPException(409, str(error)) from error
+
     @app.get("/api/servers")
-    def list_servers() -> list[ServerOut]:  # pyright: ignore[reportUnusedFunction]
+    def list_servers() -> list[ServerOut]:
         return servers()
 
     @app.post("/api/jobs", status_code=201)
-    def create_job(request: JobCreate) -> JobOut:  # pyright: ignore[reportUnusedFunction]
+    def create_job(request: JobCreate) -> JobOut:
         try:
             job = studio.generation.submit(
                 request.server,
@@ -113,24 +164,29 @@ def create_app(
                     for role, dependency in request.dependencies.items()
                 },
                 idempotency_key=request.idempotency_key,
+                project=request.project,
             )
         except JobRequestError as error:
             raise HTTPException(422, str(error)) from error
         return JobOut.of(job)
 
     @app.get("/api/jobs")
-    def list_jobs(  # pyright: ignore[reportUnusedFunction]
+    def list_jobs(
         status: Annotated[list[JobStatus] | None, Query()] = None,
+        project: str | None = None,
         limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     ) -> list[JobOut]:
-        return [JobOut.of(job) for job in studio.generation.jobs(statuses=status, limit=limit)]
+        """Newest first; ``project``: only its jobs (every project's when absent)."""
+        known_project(project)
+        jobs = studio.generation.jobs(statuses=status, project=project, limit=limit)
+        return [JobOut.of(job) for job in jobs]
 
     @app.get("/api/jobs/{job_id}")
-    def get_job(job_id: str) -> JobOut:  # pyright: ignore[reportUnusedFunction]
+    def get_job(job_id: str) -> JobOut:
         return job_or_404(job_id)
 
     @app.post("/api/jobs/{job_id}/wait")
-    async def wait_job(  # pyright: ignore[reportUnusedFunction]
+    async def wait_job(
         job_id: str, timeout_s: Annotated[float, Query(gt=0, le=_MAX_WAIT_S)] = 60
     ) -> JobOut:
         """Long poll: return when the job is finished, the timeout passes or
@@ -139,7 +195,7 @@ def create_app(
         return JobOut.of(await run_in_threadpool(studio.wait, job_id, timeout_s))
 
     @app.post("/api/jobs/{job_id}/cancel")
-    def cancel_job(job_id: str) -> JobOut:  # pyright: ignore[reportUnusedFunction]
+    def cancel_job(job_id: str) -> JobOut:
         job_or_404(job_id)
         try:
             return JobOut.of(studio.generation.cancel(job_id))
@@ -147,7 +203,7 @@ def create_app(
             raise HTTPException(409, str(error)) from error
 
     @app.delete("/api/jobs/{job_id}")
-    def delete_job(job_id: str) -> JobOut:  # pyright: ignore[reportUnusedFunction]
+    def delete_job(job_id: str) -> JobOut:
         """Remove a failed or cancelled job from the history."""
         job_or_404(job_id)
         try:
@@ -156,7 +212,7 @@ def create_app(
             raise HTTPException(409, str(error)) from error
 
     @app.post("/api/jobs/{job_id}/retry", status_code=201)
-    def retry_job(job_id: str) -> JobOut:  # pyright: ignore[reportUnusedFunction]
+    def retry_job(job_id: str) -> JobOut:
         job_or_404(job_id)
         try:
             return JobOut.of(studio.generation.retry(job_id))
@@ -166,7 +222,8 @@ def create_app(
             raise HTTPException(422, str(error)) from error
 
     @app.get("/api/assets")
-    def list_assets(  # pyright: ignore[reportUnusedFunction]
+    def list_assets(
+        project: str | None = None,
         kind: AssetKind | None = None,
         favorite: bool | None = None,
         tag: Annotated[list[str] | None, Query()] = None,
@@ -175,9 +232,12 @@ def create_app(
         motion: bool | None = None,
         limit: Annotated[int, Query(ge=1, le=1000)] = 100,
     ) -> list[AssetOut]:
-        """Assets matching all filters; ``tag`` may repeat (all must match); ``motion``: made by
-        a motion task or not (the library's Animations filter, whatever the file format)."""
+        """Assets matching all filters; ``project``: of that project (every project's when
+        absent); ``tag`` may repeat (all must match); ``motion``: made by a motion task or not
+        (the library's Animations filter, whatever the file format)."""
+        known_project(project)
         assets = studio.library.assets(
+            project=project,
             kind=kind,
             favorite=favorite,
             tags=[t.strip().lower() for t in tag or []],
@@ -189,29 +249,33 @@ def create_app(
         return [AssetOut.of(asset) for asset in assets]
 
     @app.post("/api/assets", status_code=201)
-    def upload_asset(  # pyright: ignore[reportUnusedFunction]
+    def upload_asset(
         data: Annotated[bytes, Body(media_type="application/octet-stream")],
         title: str | None = None,
+        project: str = DEFAULT_PROJECT,
     ) -> AssetOut:
         """Upload a file as the raw request body; the format is detected by content."""
         try:
-            return AssetOut.of(studio.library.import_bytes(data, title=title))
-        except ImportError_ as error:
+            return AssetOut.of(studio.library.import_bytes(data, title=title, project=project))
+        except (AssetImportError, ProjectError) as error:
             raise HTTPException(422, str(error)) from error
 
     @app.post("/api/assets/import-url", status_code=201)
-    def import_url(request: ImportUrl) -> AssetOut:  # pyright: ignore[reportUnusedFunction]
+    def import_url(request: ImportUrl) -> AssetOut:
         try:
-            return AssetOut.of(studio.library.import_url(request.url, title=request.title))
-        except ImportError_ as error:
+            asset = studio.library.import_url(
+                request.url, title=request.title, project=request.project
+            )
+        except (AssetImportError, ProjectError) as error:
             raise HTTPException(422, str(error)) from error
+        return AssetOut.of(asset)
 
     @app.get("/api/assets/{asset_id}")
-    def get_asset(asset_id: str) -> AssetOut:  # pyright: ignore[reportUnusedFunction]
+    def get_asset(asset_id: str) -> AssetOut:
         return AssetOut.of(asset_or_404(asset_id))
 
     @app.delete("/api/assets/{asset_id}")
-    def delete_asset(asset_id: str) -> AssetOut:  # pyright: ignore[reportUnusedFunction]
+    def delete_asset(asset_id: str) -> AssetOut:
         """Remove from the library (ADR-004); jobs and lineage still show it."""
         try:
             asset = studio.library.delete(asset_id)
@@ -222,7 +286,7 @@ def create_app(
         return AssetOut.of(asset)
 
     @app.patch("/api/assets/{asset_id}")
-    def update_asset(asset_id: str, request: AssetUpdate) -> AssetOut:  # pyright: ignore[reportUnusedFunction]
+    def update_asset(asset_id: str, request: AssetUpdate) -> AssetOut:
         asset_or_404(asset_id)
         try:
             updated = studio.library.update(
@@ -231,14 +295,15 @@ def create_app(
                 favorite=request.favorite,
                 rating=request.rating if "rating" in request.model_fields_set else Unset,
                 tags=request.tags,
+                project=request.project,
             )
-        except BadTag as error:
+        except (BadTag, ProjectError) as error:
             raise HTTPException(422, str(error)) from error
         assert updated is not None
         return AssetOut.of(updated)
 
     @app.get("/api/assets/{asset_id}/file")
-    def asset_file(asset_id: str) -> FileResponse:  # pyright: ignore[reportUnusedFunction]
+    def asset_file(asset_id: str) -> FileResponse:
         asset = asset_or_404(asset_id)
         if asset.deleted_at is not None:
             raise HTTPException(410, f"asset {asset_id} was deleted")
@@ -255,20 +320,18 @@ def create_app(
         )
 
     @app.post("/api/assets/{asset_id}/frames", status_code=201)
-    def save_video_frame(  # pyright: ignore[reportUnusedFunction]
-        asset_id: str, time_s: Annotated[float, Query(ge=0)]
-    ) -> AssetOut:
+    def save_video_frame(asset_id: str, time_s: Annotated[float, Query(ge=0)]) -> AssetOut:
         """The frame of a video at ``time_s`` as a new image asset, made from the video."""
         asset = asset_or_404(asset_id)
         if asset.deleted_at is not None:
             raise HTTPException(410, f"asset {asset_id} was deleted")
         try:
             return AssetOut.of(studio.library.video_frame(asset, time_s))
-        except ImportError_ as error:
+        except AssetImportError as error:
             raise HTTPException(422, str(error)) from error
 
     @app.get("/api/assets/{asset_id}/skeleton")
-    def asset_skeleton(asset_id: str) -> dict[str, Any]:  # pyright: ignore[reportUnusedFunction]
+    def asset_skeleton(asset_id: str) -> dict[str, Any]:
         """A native motion (SMPL-X or SOMA) as joint positions per frame, for the viewer."""
         asset = asset_or_404(asset_id)
         if asset.deleted_at is not None:
@@ -279,7 +342,7 @@ def create_app(
             raise HTTPException(422, str(error)) from error
 
     @app.get("/api/assets/{asset_id}/lineage")
-    def lineage(asset_id: str) -> list[ParentOut]:  # pyright: ignore[reportUnusedFunction]
+    def lineage(asset_id: str) -> list[ParentOut]:
         asset_or_404(asset_id)
         return [
             ParentOut(asset_id=parent, relation=relation)
@@ -287,7 +350,7 @@ def create_app(
         ]
 
     @app.get("/api/assets/{asset_id}/job")
-    def producer(asset_id: str) -> JobOut | None:  # pyright: ignore[reportUnusedFunction]
+    def producer(asset_id: str) -> JobOut | None:
         """The job that made the asset (prompt, parameters, seed, inputs, model);
         null for an imported asset."""
         asset_or_404(asset_id)
@@ -295,7 +358,7 @@ def create_app(
         return None if job is None else JobOut.of(job)
 
     @app.get("/api/events")
-    async def events(request: Request) -> StreamingResponse:  # pyright: ignore[reportUnusedFunction]
+    async def events(request: Request) -> StreamingResponse:
         """Server-sent events: ``job`` on job changes, ``servers`` when a server's
         state changes (and once on connect). Rapid changes of one job are
         coalesced into one event with its latest state."""
@@ -310,7 +373,7 @@ def create_app(
         methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         include_in_schema=False,
     )
-    def unknown_api_path(path: str) -> None:  # pyright: ignore[reportUnusedFunction]
+    def unknown_api_path(path: str) -> None:
         """Keep the error shape for unknown API paths (the root mount answers in text)."""
         raise HTTPException(404, f"no such API endpoint: /api/{path}")
 
@@ -371,10 +434,11 @@ def _serve_web_ui(app: FastAPI, web_dir: Path | None) -> None:
     index = None if web_dir is None else web_dir / "index.html"
 
     @app.get("/", include_in_schema=False, response_model=None)
-    def web_ui() -> FileResponse | PlainTextResponse:  # pyright: ignore[reportUnusedFunction]
+    def web_ui() -> FileResponse | PlainTextResponse:
         if index is None or not index.is_file():
             return PlainTextResponse(
-                "The web UI is not built. Run: just assets_studio web-build", status_code=503
+                "The web UI is not built. Run: just web-install web-build (in assets_studio/)",
+                status_code=503,
             )
         return FileResponse(index, headers={"Cache-Control": "no-cache"})
 

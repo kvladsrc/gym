@@ -40,7 +40,9 @@ from model_server_sdk import EXIT_GPU_BROKEN
 
 logger = logging.getLogger("launcher")
 
-# Studio server ids (studio.example.toml) and their model_servers/justfile recipes.
+# Studio server ids (as in studio.example.toml) and the model_servers/justfile
+# recipes that start them. The launcher leaves servers missing here alone: start
+# them yourself, or add yours here when your config names them differently.
 RECIPES = {
     "qwen_image": "qwen_image",
     "birefnet": "birefnet",
@@ -78,7 +80,7 @@ STALE_S = 30.0
 
 ACTIVE = ("queued", "waiting_model", "running")
 MODEL_SERVERS = Path(__file__).resolve().parent.parent / "model_servers"
-LOGS = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "assets-studio" / "launcher"
+LOGS = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "assets-studio/launcher"
 
 
 @dataclass(frozen=True)
