@@ -9,8 +9,9 @@ from model_server_sdk.media import MOTION_FORMATS
 
 from model_server_sdk import media as signatures
 from studio.config import StudioConfig
-from studio.domain import MIME_KINDS, Asset, AssetKind, Origin, new_id
+from studio.domain import DEFAULT_PROJECT, MIME_KINDS, Asset, AssetKind, Origin, new_id
 from studio.media import UnsupportedMedia, detect_mime, for_storage, video_frame
+from studio.services.projects import ProjectError
 from studio.services.skeleton import NotAMotion, skeleton
 from studio.storage import repository
 from studio.storage.blobs import BlobStore
@@ -19,11 +20,11 @@ from studio.storage.repository import Repository, Unset, now
 _URL_TIMEOUT_S = 30.0
 
 
-__all__ = ["AssetInUse", "BadTag", "ImportError_", "Library", "Unset"]
+__all__ = ["AssetImportError", "AssetInUse", "BadTag", "Library", "Unset"]
 
 
-class ImportError_(ValueError):
-    """A file cannot be imported: wrong format, too large or unreachable."""
+class AssetImportError(ValueError):
+    """A file cannot become an asset: unsupported format, too large or unreachable."""
 
 
 class BadTag(ValueError):
@@ -55,15 +56,18 @@ class Library:
         title: str | None = None,
         origin: Origin = Origin.UPLOAD,
         source_url: str | None = None,
+        project: str = DEFAULT_PROJECT,
     ) -> Asset:
+        """A file as a new asset of ``project`` (``ProjectError`` if there is no such project)."""
+        self._check_project(project)
         if len(data) > self._config.max_import_bytes:
-            raise ImportError_(f"file is larger than {self._config.max_import_bytes} bytes")
+            raise AssetImportError(f"file is larger than {self._config.max_import_bytes} bytes")
         try:
             mime = detect_mime(data)
             # Text normalised, video in the canonical MP4 (ADR-003).
             data, mime = for_storage(data, mime)
         except UnsupportedMedia as error:
-            raise ImportError_(str(error)) from error
+            raise AssetImportError(str(error)) from error
         with self._blobs.lock:  # the file and its asset, together
             asset = Asset(
                 id=new_id(),
@@ -75,13 +79,21 @@ class Library:
                 created_at=now(),
                 title=title,
                 source_url=source_url,
+                project=project,
             )
-            self._repository.add_asset(asset)
+            try:
+                self._repository.add_asset(asset)
+            except repository.ProjectNotFound as error:
+                # Deleted just now. The file stays, unused; the same content finds it again.
+                raise ProjectError(str(error)) from error
         return asset
 
-    def import_url(self, url: str, *, title: str | None = None) -> Asset:
+    def import_url(
+        self, url: str, *, title: str | None = None, project: str = DEFAULT_PROJECT
+    ) -> Asset:
         if not url.startswith(("http://", "https://")):
-            raise ImportError_("only http(s) URLs can be imported")
+            raise AssetImportError("only http(s) URLs can be imported")
+        self._check_project(project)  # before downloading
         limit = self._config.max_import_bytes
         try:
             with httpx.stream(
@@ -93,18 +105,26 @@ class Library:
                 for chunk in response.iter_bytes():
                     size += len(chunk)
                     if size > limit:
-                        raise ImportError_(f"file is larger than {limit} bytes")
+                        raise AssetImportError(f"file is larger than {limit} bytes")
                     chunks.append(chunk)
         except httpx.HTTPError as error:
-            raise ImportError_(f"cannot download {url}: {error}") from error
-        return self.import_bytes(b"".join(chunks), title=title, origin=Origin.URL, source_url=url)
+            raise AssetImportError(f"cannot download {url}: {error}") from error
+        return self.import_bytes(
+            b"".join(chunks), title=title, origin=Origin.URL, source_url=url, project=project
+        )
 
     def asset(self, asset_id: str) -> Asset | None:
         return self._repository.asset(asset_id)
 
+    def _check_project(self, project_id: str) -> None:
+        found = self._repository.project(project_id)
+        if found is None or found.deleted_at is not None:
+            raise ProjectError(f"project {project_id} not found")
+
     def assets(
         self,
         *,
+        project: str | None = None,
         kind: AssetKind | None = None,
         favorite: bool | None = None,
         tags: Iterable[str] = (),
@@ -114,6 +134,7 @@ class Library:
         limit: int = 100,
     ) -> list[Asset]:
         return self._repository.assets(
+            project=project,
             kind=kind,
             favorite=favorite,
             tags=tags,
@@ -131,13 +152,17 @@ class Library:
         favorite: bool | None = None,
         rating: int | type[Unset] | None = Unset,
         tags: Iterable[str] | None = None,
+        project: str | None = None,
     ) -> Asset | None:
-        """Rename, (un)mark as favourite, rate (0-5; None clears) or retag
-        (replacing the tags); an empty title clears it."""
+        """Rename, (un)mark as favourite, rate (0-5; None clears), retag (replacing the
+        tags) or move to another project (ADR-010); an empty title clears it."""
         clean = None if tags is None else [_tag(tag) for tag in tags]
-        return self._repository.update_asset(
-            asset_id, title=title, favorite=favorite, rating=rating, tags=clean
-        )
+        try:
+            return self._repository.update_asset(
+                asset_id, title=title, favorite=favorite, rating=rating, tags=clean, project=project
+            )
+        except repository.ProjectNotFound as error:
+            raise ProjectError(str(error)) from error
 
     def delete(self, asset_id: str) -> Asset | None:
         """Remove an asset from the library (ADR-004); None if there is none.
@@ -185,12 +210,14 @@ class Library:
     def video_frame(self, asset: Asset, time_s: float) -> Asset:
         """The frame of a video at ``time_s`` as a new image asset, made from the video."""
         if asset.kind != AssetKind.VIDEO:
-            raise ImportError_("only a video has frames")
+            raise AssetImportError("only a video has frames")
         try:
             png = video_frame(self.file(asset).read_bytes(), asset.mime, time_s)
         except UnsupportedMedia as error:
-            raise ImportError_(str(error)) from error
-        frame = self.import_bytes(png, title=f"{asset.title or asset.id} · {time_s:.2f} s")
+            raise AssetImportError(str(error)) from error
+        frame = self.import_bytes(
+            png, title=f"{asset.title or asset.id} · {time_s:.2f} s", project=asset.project
+        )
         self._repository.add_input_lineage(asset.id, frame.id)
         return frame
 

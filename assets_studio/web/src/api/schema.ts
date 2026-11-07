@@ -4,6 +4,48 @@
  */
 
 export interface paths {
+    "/api/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Projects
+         * @description Projects (ADR-010), the default one first, with how many assets each has.
+         */
+        get: operations["list_projects_api_projects_get"];
+        put?: never;
+        /** Create Project */
+        post: operations["create_project_api_projects_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Project
+         * @description Only an empty project: no assets in the library, no unfinished jobs (409).
+         */
+        delete: operations["delete_project_api_projects__project_id__delete"];
+        options?: never;
+        head?: never;
+        /** Rename Project */
+        patch: operations["rename_project_api_projects__project_id__patch"];
+        trace?: never;
+    };
     "/api/servers": {
         parameters: {
             query?: never;
@@ -28,7 +70,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Jobs */
+        /**
+         * List Jobs
+         * @description Newest first; ``project``: only its jobs (every project's when absent).
+         */
         get: operations["list_jobs_api_jobs_get"];
         put?: never;
         /** Create Job */
@@ -124,8 +169,9 @@ export interface paths {
         };
         /**
          * List Assets
-         * @description Assets matching all filters; ``tag`` may repeat (all must match); ``motion``: made by
-         *     a motion task or not (the library's Animations filter, whatever the file format).
+         * @description Assets matching all filters; ``project``: of that project (every project's when
+         *     absent); ``tag`` may repeat (all must match); ``motion``: made by a motion task or not
+         *     (the library's Animations filter, whatever the file format).
          */
         get: operations["list_assets_api_assets_get"];
         put?: never;
@@ -337,6 +383,8 @@ export interface components {
             rating: number | null;
             /** Tags */
             tags: string[];
+            /** Project */
+            project: string;
             /** File Url */
             file_url: string;
         };
@@ -350,6 +398,8 @@ export interface components {
             rating?: number | null;
             /** Tags */
             tags?: string[] | null;
+            /** Project */
+            project?: string | null;
         };
         /** DependencyIn */
         DependencyIn: {
@@ -379,6 +429,11 @@ export interface components {
             url: string;
             /** Title */
             title?: string | null;
+            /**
+             * Project
+             * @default default
+             */
+            project: string;
         };
         /** InputSpec */
         InputSpec: {
@@ -427,6 +482,11 @@ export interface components {
             };
             /** Idempotency Key */
             idempotency_key?: string | null;
+            /**
+             * Project
+             * @default default
+             */
+            project: string;
         };
         /** JobOut */
         JobOut: {
@@ -490,6 +550,8 @@ export interface components {
             finished_at: string | null;
             /** Deleted At */
             deleted_at: string | null;
+            /** Project */
+            project: string;
         };
         /**
          * JobStatus
@@ -519,6 +581,34 @@ export interface components {
             asset_id: string;
             /** Relation */
             relation: string;
+        };
+        /** ProjectCreate */
+        ProjectCreate: {
+            /** Title */
+            title: string;
+            /** Id */
+            id?: string | null;
+        };
+        /**
+         * ProjectOut
+         * @description A project (ADR-010): its assets and the jobs that made them.
+         */
+        ProjectOut: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Created At */
+            created_at: string;
+            /** Deleted At */
+            deleted_at: string | null;
+            /** Asset Count */
+            asset_count: number;
+        };
+        /** ProjectUpdate */
+        ProjectUpdate: {
+            /** Title */
+            title: string;
         };
         /** ServerOut */
         ServerOut: {
@@ -585,6 +675,125 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    list_projects_api_projects_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectOut"][];
+                };
+            };
+        };
+    };
+    create_project_api_projects_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_project_api_projects__project_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rename_project_api_projects__project_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProjectUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_servers_api_servers_get: {
         parameters: {
             query?: never;
@@ -609,6 +818,7 @@ export interface operations {
         parameters: {
             query?: {
                 status?: components["schemas"]["JobStatus"][] | null;
+                project?: string | null;
                 limit?: number;
             };
             header?: never;
@@ -830,6 +1040,7 @@ export interface operations {
     list_assets_api_assets_get: {
         parameters: {
             query?: {
+                project?: string | null;
                 kind?: components["schemas"]["AssetKind"] | null;
                 favorite?: boolean | null;
                 tag?: string[] | null;
@@ -868,6 +1079,7 @@ export interface operations {
         parameters: {
             query?: {
                 title?: string | null;
+                project?: string;
             };
             header?: never;
             path?: never;

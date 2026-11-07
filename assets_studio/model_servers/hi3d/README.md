@@ -29,8 +29,10 @@ just test      # no GPU or weights needed
   default) restores the coarse mesh's position and size. Hi3D itself simplifies
   the result to 1M triangles (2M at 1536³); `max_faces` lowers the target for
   that same simplification of the full surface, rather than adding a second
-  pass. Before painting, set it to the painter's retained budget (Paint 2.1:
-  up to 200K). The simplification (pyfqmr) leaves a few zero-area triangles;
+  pass. Before painting, set it to the game mesh's budget (40K in the
+  [3D guide](../../docs/guides/3d.md)): TRELLIS.2 Paint keeps the mesh as it
+  is, Paint 2.1 keeps at most 200K. The simplification (pyfqmr) leaves a few
+  zero-area triangles;
   the server drops them (`degenerate_triangles_removed`), since TRELLIS.2
   Paint's UV unwrap would drop them and fail its triangle-count check.
 - `voxel_budget_percent` selects the initial occupied-voxel budget: 100

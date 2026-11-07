@@ -1,9 +1,11 @@
-// Every model's jobs: the queue (waiting and running, in the order they will run) and the
-// history of finished ones, newest first, filtered by outcome.
+// Every model's jobs: the queue of every project (waiting and running, in the order they will run;
+// the GPU is shared) and the open project's history of finished ones, newest first, filtered by
+// outcome.
 import { useMemo, useState } from "preact/hooks";
 
 import type { Job } from "../api/client";
 import { JobRow } from "../components/JobList";
+import { currentProject } from "../state/projects";
 import { isPending, jobs } from "../state/store";
 import { type Key, t } from "../i18n";
 
@@ -25,9 +27,13 @@ export function JobsPage() {
   const queue = all
     .filter(isPending)
     .sort((a: Job, b: Job) => (a.created_at < b.created_at ? -1 : 1));
+  const project = currentProject.value;
   const history = all
     .filter(
-      (job) => !isPending(job) && (outcome === "all" || job.status === outcome),
+      (job) =>
+        job.project === project &&
+        !isPending(job) &&
+        (outcome === "all" || job.status === outcome),
     )
     .sort((a: Job, b: Job) => (a.created_at < b.created_at ? 1 : -1));
   return (

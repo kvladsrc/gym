@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_PROMPT = (
-    "Кратко опиши видимое. Укажи число людей, видимость головы, кистей и стоп, "
-    "перекрытия и обрезанные части тела. Для анимации отметь видимые проблемы позы. "
-    "Не додумывай закрытые детали и не делай выводов о 3D-риге по одному изображению."
+    "Briefly describe what is visible. Give the number of people, whether their heads, "
+    "hands and feet are visible, occlusions and cut-off body parts. For animation, note "
+    "visible pose problems. Do not guess hidden details or judge a 3D rig from one image."
 )
 
 
@@ -90,7 +90,7 @@ def describe(args: argparse.Namespace) -> dict[str, Any]:
     }
     key = hashlib.sha256(json.dumps(signature, sort_keys=True).encode()).hexdigest()
     cache = (
-        Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
+        Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
         / "assets-studio/media-reports"
     )
     cache.mkdir(parents=True, exist_ok=True)

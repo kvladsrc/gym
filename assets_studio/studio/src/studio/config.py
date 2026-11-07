@@ -17,11 +17,11 @@ DEFAULT_DATA_DIR = _xdg("XDG_DATA_HOME", ".local/share") / "assets-studio"
 
 
 class Server(BaseModel):
-    """A model server (the launcher starts it when a job needs it); the studio sorts its tasks
-    into sections by what they produce."""
+    """A model server; the studio sorts its tasks into sections by what they produce."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
+    # Jobs refer to it: keep it when the model behind the server changes.
     id: Slug
     url: HttpUrl
     # Shown in the UI; by default the model's name from /v1/info.
@@ -41,6 +41,11 @@ class StudioConfig(BaseModel):
     servers: tuple[Server, ...] = ()
     max_import_bytes: int = Field(default=200 * 1024 * 1024, gt=0)
     poll_interval_s: float = Field(default=2.0, gt=0)
+
+    @field_validator("data_dir")
+    @classmethod
+    def _expand_home(cls, data_dir: Path) -> Path:
+        return data_dir.expanduser()
 
     @field_validator("servers")
     @classmethod

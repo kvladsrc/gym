@@ -1,7 +1,7 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-# Heavy files live outside the Dropbox-synced working copy.
-cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+import "../common.just"
+
 source := cache / "triposg-source"
 revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/triposg_model_server/server.py`
 
@@ -9,11 +9,6 @@ export UV_PROJECT_ENVIRONMENT := cache / "venvs/triposg"
 export TRIPOSG_SOURCE := source
 export U2NET_HOME := cache / "u2net"
 export HF_HUB_DISABLE_TELEMETRY := "1"
-
-root := quote(justfile_directory() / "../../..")
-gpu_shell := "nix develop " + root + "#assets-studio-gpu --command"
-# With the CUDA toolkit: only to build diso.
-cuda_shell := "nix develop " + root + "#assets-studio-cuda --command"
 
 # Show the available commands
 default:
@@ -28,9 +23,8 @@ setup:
         || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
     git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
     {{ gpu_shell }} uv sync --extra test
-    # The laptop's RTX 3070 is sm_86: build for it only.
-    {{ cuda_shell }} env TORCH_CUDA_ARCH_LIST=8.6 MAX_JOBS=2 uv pip install --python "$UV_PROJECT_ENVIRONMENT" \
-        --no-build-isolation diso==0.1.4
+    {{ cuda_shell }} env TORCH_CUDA_ARCH_LIST={{ quote(cuda_arch) }} MAX_JOBS={{ quote(build_jobs) }} uv pip install \
+        --python "$UV_PROJECT_ENVIRONMENT" --no-build-isolation diso==0.1.4
 
 # Download the weights (~8 GB, network only, no GPU)
 download:

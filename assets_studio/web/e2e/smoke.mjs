@@ -463,7 +463,7 @@ await step("library lists results and shows details", async () => {
 });
 
 await step("delete an asset from the library", async () => {
-  await page.getByRole("button", { name: "Все" }).click();
+  await page.getByRole("button", { name: "Все", exact: true }).click();
   // The favourites grid (one card) is replaced by the full list.
   await page.waitForFunction(
     () => document.querySelectorAll(".grid .card").length > 1,
@@ -502,6 +502,57 @@ await step(
       (count) => document.querySelectorAll(".jobs .job-row").length === count,
       before - 1,
     );
+  },
+);
+
+await step(
+  "projects: a new one is empty, its jobs and files stay in it",
+  async () => {
+    const open = page.locator(".topbar .project-select");
+    await open.selectOption({ label: "Управление проектами…" });
+    await page.locator(".projects-page").waitFor();
+    if ((await open.inputValue()) !== "default")
+      throw new Error("the manage option must not change the open project");
+    await page.getByRole("textbox", { name: "Новый проект" }).fill("Лес");
+    await page.getByRole("button", { name: "Создать" }).click();
+    // Created and opened: the library is empty, as is the section's history.
+    await page.getByText(/^Здесь пока пусто/).waitFor();
+    if ((await open.inputValue()) !== "les")
+      throw new Error(
+        `the new project should be open, got ${await open.inputValue()}`,
+      );
+    await pick("Картинки", "Текст → картинка");
+    await page.getByText("Заданий пока нет").waitFor();
+    await page.locator("textarea").fill("лесная тропа");
+    await page.getByRole("button", { name: "1", exact: true }).click();
+    await generate();
+    if ((await rows.count()) !== 1)
+      throw new Error("only the new project's job belongs in its history");
+    await openResult();
+    const move = page.locator(".details").getByRole("combobox", {
+      name: "Проект",
+    });
+    if ((await move.inputValue()) !== "les")
+      throw new Error("a job's result belongs to the job's project");
+    await page.locator(".grid .card").first().waitFor();
+    await move.selectOption({ label: "Default" });
+    await page.waitForFunction(
+      () => document.querySelectorAll(".grid .card").length === 0,
+    );
+    await noHorizontalScroll();
+    // Empty now: deleted, and the default project opens again.
+    await open.selectOption({ label: "Управление проектами…" });
+    await page
+      .locator('.project-row[data-project="les"]')
+      .getByRole("button", { name: "Удалить" })
+      .click();
+    await page.getByText("Проект Лес удалён").waitFor();
+    await page.screenshot({ path: join(screens, "9a-projects.png") });
+    if ((await open.inputValue()) !== "default")
+      throw new Error(
+        "the default project should open after deleting the open one",
+      );
+    await openLibrary();
   },
 );
 

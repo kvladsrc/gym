@@ -22,6 +22,7 @@ export interface Skeleton {
   positions: number[][];
 }
 export type Asset = Schemas["AssetOut"];
+export type Project = Schemas["ProjectOut"];
 export type Parent = Schemas["ParentOut"];
 
 export class ApiError extends Error {}
@@ -53,7 +54,33 @@ const json = (value: unknown) => JSON.stringify(value);
 
 export const api = {
   servers: () => request<Server[]>("GET", "/api/servers"),
-  jobs: (limit = 300) => request<Job[]>("GET", `/api/jobs?limit=${limit}`),
+  projects: () => request<Project[]>("GET", "/api/projects"),
+  createProject: (title: string) =>
+    request<Project>(
+      "POST",
+      "/api/projects",
+      json({ title }),
+      "application/json",
+    ),
+  renameProject: (id: string, title: string) =>
+    request<Project>(
+      "PATCH",
+      `/api/projects/${encodeURIComponent(id)}`,
+      json({ title }),
+      "application/json",
+    ),
+  deleteProject: (id: string) =>
+    request<Project>("DELETE", `/api/projects/${encodeURIComponent(id)}`),
+  /** Newest first: of one project, or of every project when none is given. */
+  jobs: (
+    query: { project?: string; status?: string[]; limit?: number } = {},
+  ) => {
+    const params = new URLSearchParams();
+    if (query.project) params.set("project", query.project);
+    for (const status of query.status ?? []) params.append("status", status);
+    params.set("limit", String(query.limit ?? 300));
+    return request<Job[]>("GET", `/api/jobs?${params.toString()}`);
+  },
   job: (id: string) => request<Job>("GET", `/api/jobs/${id}`),
   createJob: (body: JobCreate) =>
     request<Job>("POST", "/api/jobs", json(body), "application/json"),
@@ -61,6 +88,8 @@ export const api = {
   retryJob: (id: string) => request<Job>("POST", `/api/jobs/${id}/retry`),
   deleteJob: (id: string) => request<Job>("DELETE", `/api/jobs/${id}`),
   assets: (query: {
+    /** Of this project; of every project when absent. */
+    project?: string | undefined;
     kind?: string;
     favorite?: boolean;
     tags?: string[];
@@ -71,6 +100,7 @@ export const api = {
     limit?: number;
   }) => {
     const params = new URLSearchParams();
+    if (query.project) params.set("project", query.project);
     if (query.kind) params.set("kind", query.kind);
     if (query.favorite !== undefined)
       params.set("favorite", String(query.favorite));
@@ -97,6 +127,8 @@ export const api = {
       favorite?: boolean;
       rating?: number | null;
       tags?: string[];
+      /** Moves the asset to this project. */
+      project?: string;
     },
   ) =>
     request<Asset>(
@@ -105,18 +137,21 @@ export const api = {
       json(body),
       "application/json",
     ),
-  upload: (file: Blob, title?: string) =>
-    request<Asset>(
+  upload: (file: Blob, project: string, title?: string) => {
+    const params = new URLSearchParams({ project });
+    if (title) params.set("title", title);
+    return request<Asset>(
       "POST",
-      `/api/assets${title ? `?title=${encodeURIComponent(title)}` : ""}`,
+      `/api/assets?${params.toString()}`,
       file,
       "application/octet-stream",
-    ),
-  importUrl: (url: string) =>
+    );
+  },
+  importUrl: (url: string, project: string) =>
     request<Asset>(
       "POST",
       "/api/assets/import-url",
-      json({ url }),
+      json({ url, project }),
       "application/json",
     ),
   deleteAsset: (id: string) => request<Asset>("DELETE", `/api/assets/${id}`),

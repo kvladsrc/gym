@@ -3,6 +3,7 @@
 import { computed } from "@preact/signals";
 
 import type { Job, Server, Task } from "../api/client";
+import { currentProject } from "./projects";
 import { assetById, jobs, servers } from "./store";
 import { isMotionMime, isMotionTask } from "../format";
 import { type Key, t } from "../i18n";
@@ -118,6 +119,7 @@ export function sectionOfJob(job: Job): string | undefined {
       "3d-refine",
       "3d-retopo",
       "3d-bake-normals",
+      "3d-bake-colour",
     ].includes(job.task)
   )
     return "mesh";
@@ -132,12 +134,13 @@ export const allResultsDeleted = (job: Job) =>
   job.outputs.length > 0 &&
   job.outputs.every((id) => assetById(id)?.deleted_at);
 
-/** Jobs of a section, newest first (ids are time-ordered); deleted jobs and
- * jobs whose results were all deleted are left out. */
+/** Jobs of a section in the open project, newest first (ids are time-ordered); deleted jobs
+ * and jobs whose results were all deleted are left out. */
 export const jobsOfSection = (sectionId: string) =>
   [...jobs.value.values()]
     .filter(
       (job) =>
+        job.project === currentProject.value &&
         sectionOfJob(job) === sectionId &&
         !job.deleted_at &&
         !allResultsDeleted(job),

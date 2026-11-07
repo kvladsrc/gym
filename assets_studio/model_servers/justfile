@@ -87,6 +87,11 @@ gemx *args:
 htd_refine *args:
     just --justfile htd_refine/justfile serve "$@"
 
+# PromptHMR-video: native human motion with saved camera/pose artifacts (port 9126)
+[positional-arguments]
+prompthmr *args:
+    just --justfile prompthmr/justfile serve "$@"
+
 # Prepare rigs and transfer humanoid animation, Blender without neural weights (port 9124)
 [positional-arguments]
 animation_tools *args:
@@ -161,11 +166,11 @@ _each recipe model:
             echo "unknown model server: $model (one of: {{ servers }})" >&2
             exit 1
         fi
+        # For all servers, skip those without the recipe (not every one has a doctor).
+        if [ "{{ model }}" = all ] \
+            && ! just --justfile "$model/justfile" --summary | tr ' ' '\n' | grep -qx "{{ recipe }}"; then
+            continue
+        fi
         echo "== $model"
         just --justfile "$model/justfile" {{ recipe }}
     done
-
-# Native human motion with saved camera/pose artifacts (port 9126)
-[positional-arguments]
-prompthmr *args:
-    just --justfile prompthmr/justfile serve "$@"

@@ -67,8 +67,8 @@ T5_REVISION = "a9723ea7f1b39c1eae772870f3b547bf6ef7e6c1"  # pragma: allowlist se
 # Only the PyTorch weights: the repositories also hold ONNX, TF and Flax ones.
 PYTORCH_FILES = ["*.json", "*.safetensors", "*.model"]
 
-# Longer clips are refused rather than cut. A 6 s clip peaked at 7.6 GB of
-# the laptop's 8 (upstream encodes the frames with DINOv2 in batches of 512).
+# Longer clips are refused rather than cut. A 6 s clip peaked at 7.6 GB of an
+# 8 GB GPU (upstream encodes the frames with DINOv2 in batches of 512).
 MAX_SECONDS = 10
 JOB_TIMEOUT_S = 3600
 

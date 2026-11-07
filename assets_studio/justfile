@@ -76,11 +76,6 @@ flow *args:
 flow-test:
     uv run pytest -q flow/tests
 
-# Breadth-first search over asset combinations: queue, tag or status of a sweep spec
-[positional-arguments]
-sweep *args:
-    uv run python sweep/sweep.py "$@"
-
 # Start the GPU-free fake model server (default port 9100)
 [positional-arguments]
 fake-server *args:

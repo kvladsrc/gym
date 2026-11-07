@@ -1,8 +1,9 @@
 // Actions on an asset, shared by the section view and the library.
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import { api, type Asset } from "../api/client";
 import { acceptingTasks, sendTo } from "../state/drafts";
+import { currentProject } from "../state/projects";
 import { go, hrefSection } from "../state/router";
 import { sections } from "../state/sections";
 import {
@@ -127,6 +128,7 @@ export function PaintButtons({ asset }: { asset: Asset }) {
               void attempt(() =>
                 api.createJob({
                   server: server.id,
+                  project: currentProject.value,
                   task,
                   count: 1,
                   inputs: { mesh: asset.id, image },
@@ -167,6 +169,7 @@ export function RemoveBackgroundButtons({ asset }: { asset: Asset }) {
             void attempt(() =>
               api.createJob({
                 server: server.id,
+                project: currentProject.value,
                 task: "image-to-image",
                 count: 1,
                 inputs: { image: asset.id },
@@ -210,6 +213,87 @@ export function DeleteButton({ asset }: { asset: Asset }) {
       }
     >
       {t("asset.deleteConfirm")}
+    </button>
+  );
+}
+
+/** A bounded batch using the same API and inline confirmation as DeleteButton. */
+export function DeleteSelectedButton({
+  ids,
+  onDeleted,
+  onBusy,
+}: {
+  ids: string[];
+  onDeleted: (id: string) => void;
+  onBusy: (busy: boolean) => void;
+}) {
+  const key = JSON.stringify(ids);
+  const [confirmation, setConfirmation] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{
+    done: number;
+    total: number;
+  } | null>(null);
+  const running = useRef(false);
+  const asking = confirmation === key;
+
+  async function remove() {
+    if (running.current) return;
+    running.current = true;
+    onBusy(true);
+    setConfirmation(null);
+    setProgress({ done: 0, total: ids.length });
+    const pending = ids.values();
+    let deleted = 0;
+    let done = 0;
+    const failures: string[] = [];
+    async function worker() {
+      for (const id of pending) {
+        try {
+          const asset = await api.deleteAsset(id);
+          putAsset(asset);
+          onDeleted(id);
+          deleted++;
+        } catch (error) {
+          failures.push(error instanceof Error ? error.message : String(error));
+        }
+        setProgress({ done: ++done, total: ids.length });
+      }
+    }
+    try {
+      await Promise.all(
+        Array.from({ length: Math.min(4, ids.length) }, worker),
+      );
+      say(
+        failures.length
+          ? t("library.deleteFailed", {
+              deleted,
+              failed: failures.length,
+              reason: [...new Set(failures)].join("; "),
+            })
+          : t("library.deletedSelected", { n: deleted }),
+        failures.length > 0,
+      );
+    } finally {
+      running.current = false;
+      setProgress(null);
+      onBusy(false);
+    }
+  }
+
+  return (
+    <button
+      class={`button small${asking ? " danger" : ""}`}
+      disabled={progress !== null || ids.length === 0}
+      aria-live="polite"
+      onBlur={() => setConfirmation(null)}
+      onClick={() => (asking ? void remove() : setConfirmation(key))}
+    >
+      {progress
+        ? t("library.deletingSelected", progress)
+        : t(
+            asking ? "library.deleteSelectedConfirm" : "library.deleteSelected",
+            { n: ids.length },
+          )}
     </button>
   );
 }

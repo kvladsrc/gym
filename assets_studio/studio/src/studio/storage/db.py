@@ -43,6 +43,22 @@ class Database:
             raise
         connection.execute("COMMIT")
 
+    @contextmanager
+    def snapshot(self) -> Generator[sqlite3.Connection]:
+        """Reads that see one state of the database: a deferred, read-only transaction.
+
+        Inside a transaction already (a read during a write), it reads within that one.
+        """
+        connection = self.connection
+        if connection.in_transaction:
+            yield connection
+            return
+        connection.execute("BEGIN")
+        try:
+            yield connection
+        finally:
+            connection.execute("ROLLBACK")  # nothing to keep: it only ends the read
+
     def close(self) -> None:
         connection: sqlite3.Connection | None = getattr(self._local, "connection", None)
         if connection is not None:

@@ -5,12 +5,50 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 DEFAULT_CONTEXT_TOKENS = 4096
+DEFAULT_PAGE_TOKENS = 8192
 MAX_BLOCK_TOKENS = 1024
 
 
 def validate_budget(max_tokens: int) -> None:
     if not 256 <= max_tokens <= 16384:
         raise ValueError("max_tokens must be between 256 and 16384")
+
+
+def page_window(
+    page: dict[str, Any],
+    tokenizer: Any,
+    *,
+    start_char: int = 0,
+    max_tokens: int = DEFAULT_PAGE_TOKENS,
+) -> dict[str, Any]:
+    """Return page text from start_char within max_tokens; long pages are read in windows.
+
+    Consecutive windows cover the page exactly: the next one starts at next_start_char.
+    """
+    validate_budget(max_tokens)
+    text = page["text"]
+    if start_char < 0 or (text and start_char >= len(text)) or (not text and start_char):
+        raise ValueError(f"start_char must be between 0 and {max(len(text) - 1, 0)}")
+    offsets = tokenizer(text[start_char:], add_special_tokens=False, return_offsets_mapping=True)[
+        "offset_mapping"
+    ]
+    if len(offsets) > max_tokens:
+        end, tokens = start_char + offsets[max_tokens - 1][1], max_tokens
+    else:
+        end, tokens = len(text), len(offsets)
+    window = text[start_char:end]
+    result = dict(page)
+    result.update(
+        text=window,
+        start_char=start_char,
+        end_char=end,
+        total_chars=len(text),
+        token_count=tokens,
+        sha256=hashlib.sha256(window.encode()).hexdigest(),
+        complete=start_char == 0 and end == len(text),
+        next_start_char=end if end < len(text) else None,
+    )
+    return result
 
 
 def assemble_context(

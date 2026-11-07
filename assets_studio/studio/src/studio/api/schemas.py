@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from studio.config import Server
 from studio.core import Studio
-from studio.domain import Asset, Job
+from studio.domain import DEFAULT_PROJECT, Asset, Job, Project
 
 ServerState = Literal["unavailable", "loading", "ready", "busy", "error"]
 
@@ -33,6 +33,8 @@ class JobCreate(BaseModel):
     # Input role -> output of another job.
     dependencies: dict[str, DependencyIn] = Field(default_factory=dict[str, DependencyIn])
     idempotency_key: str | None = None
+    # Its outputs go to this project; inputs may come from any (ADR-010).
+    project: str = DEFAULT_PROJECT
 
 
 class AssetUpdate(BaseModel):
@@ -44,6 +46,8 @@ class AssetUpdate(BaseModel):
     rating: Annotated[int, Field(ge=0, le=5)] | None = None
     # Replaces all tags, e.g. ["style:cartoon", "model:hunyuan3d"].
     tags: list[str] | None = None
+    # Moves the asset to this project; the job that made it stays where it ran.
+    project: str | None = None
 
 
 class ImportUrl(BaseModel):
@@ -51,6 +55,39 @@ class ImportUrl(BaseModel):
 
     url: str
     title: str | None = None
+    project: str = DEFAULT_PROJECT
+
+
+class ProjectCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    # A slug; by default made from the title ("Выучка" -> "vyuchka").
+    id: str | None = None
+
+
+class ProjectUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+
+
+class ProjectOut(BaseModel):
+    """A project (ADR-010): its assets and the jobs that made them."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    title: str
+    created_at: str
+    # Set once an empty project is deleted.
+    deleted_at: str | None
+    # Assets in the library (deleted ones not counted).
+    asset_count: int
+
+    @classmethod
+    def of(cls, project: Project) -> "ProjectOut":
+        return cls.model_validate(project)
 
 
 class DependencyOut(BaseModel):
@@ -89,6 +126,7 @@ class JobOut(BaseModel):
     # Set when a failed or cancelled job was deleted: it is gone from the
     # history, retries and dependents still refer to it (ADR-004).
     deleted_at: str | None
+    project: str
 
     @classmethod
     def of(cls, job: Job) -> "JobOut":
@@ -114,6 +152,7 @@ class AssetOut(BaseModel):
     deleted_at: str | None
     rating: int | None
     tags: list[str]
+    project: str
     file_url: str
 
     @classmethod

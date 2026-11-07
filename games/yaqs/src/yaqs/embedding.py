@@ -1,9 +1,12 @@
-"""Pinned, unquantized Qwen3 embeddings; lazy CPU serving and batched GPU indexing."""
+"""Pinned, unquantized Qwen3 embeddings; lazy CPU serving and batched GPU indexing.
 
-import json
+PROFILE is stored in every database and checked when it is opened. Changing the model,
+its revision, the instruction or the document template therefore needs a new database:
+``yaqs rebuild --output NEW_DB`` re-embeds the stored text with the current profile.
+"""
+
 import threading
-import urllib.error
-import urllib.request
+from pathlib import Path
 from typing import Any
 
 REPO = "Qwen/Qwen3-Embedding-0.6B"
@@ -12,6 +15,7 @@ DIMENSIONS = 1024
 INSTRUCTION = (
     "Given a game development question, retrieve relevant passages that answer the question"
 )
+DOCUMENT_TEMPLATE = "{title}\n{chapter}\n\n{text}"
 PROFILE = {
     "model": REPO,
     "revision": REVISION,
@@ -19,17 +23,25 @@ PROFILE = {
     "pooling": "last-token",
     "normalization": "l2-float32",
     "query_instruction": INSTRUCTION,
-    "document_template": "{title}\n{chapter}\n\n{text}",
+    "document_template": DOCUMENT_TEMPLATE,
     "quantized": False,
 }
+MAX_INPUT_TOKENS = 1024  # longer inputs are rejected, never silently truncated
 TOKENIZER_FILES = ("config.json", "tokenizer_config.json", "tokenizer.json")
 MODEL_FILES = (*TOKENIZER_FILES, "model.safetensors")
 
 
+def document_text(title: str, chapter: str, text: str) -> str:
+    """Embedding input of a chunk, as recorded in PROFILE."""
+    return DOCUMENT_TEMPLATE.format(title=title, chapter=chapter, text=text)
+
+
+def query_text(query: str) -> str:
+    return f"Instruct: {INSTRUCTION}\nQuery: {query}"
+
+
 def cache_status() -> dict[str, Any]:
     """Inspect the pinned local checkpoint without downloading or loading weights."""
-    from pathlib import Path
-
     from huggingface_hub import try_to_load_from_cache
 
     files = {name: try_to_load_from_cache(REPO, name, revision=REVISION) for name in MODEL_FILES}
@@ -53,9 +65,7 @@ def require_cache(*, model: bool = False) -> None:
     needed = MODEL_FILES if model else TOKENIZER_FILES
     if absent := [name for name in missing if name in needed]:
         raise RuntimeError(
-            "Qwen checkpoint is missing "
-            + ", ".join(absent)
-            + "; run just yaqs setup or yaqs download"
+            "Qwen checkpoint is missing " + ", ".join(absent) + "; run yaqs download"
         )
 
 
@@ -67,20 +77,20 @@ def download() -> str:
     )
 
 
-def check_gpu_idle(studio_url: str = "http://127.0.0.1:9000") -> None:
-    """Give Studio priority over this short-lived indexing process."""
-    try:
-        with urllib.request.urlopen(
-            studio_url + "/api/jobs?status=queued&status=waiting_model&status=running&limit=1000",
-            timeout=5,
-        ) as response:
-            jobs = json.load(response)
-    except urllib.error.URLError as error:
-        if not isinstance(error.reason, ConnectionRefusedError):
-            raise RuntimeError("Cannot check the Studio GPU queue") from error
-        jobs = []
-    if jobs:
-        raise RuntimeError("Studio has active jobs; retry indexing when its queue is empty")
+class SerializedTokenizer:
+    """Calls the encoder's tokenizer under its own lock.
+
+    A fast tokenizer keeps padding state in one Rust object: a padded query batch
+    overlapping an unpadded token count raises "RuntimeError: Already borrowed".
+    MCP runs synchronous tools in worker threads, so every call is serialized.
+    """
+
+    def __init__(self, encoder: "QwenEncoder") -> None:
+        self._encoder = encoder
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        with self._encoder._tokenizer_lock:
+            return self._encoder._load_tokenizer()(*args, **kwargs)
 
 
 class QwenEncoder:
@@ -92,10 +102,16 @@ class QwenEncoder:
         self._tokenizer: Any = None
         self._model: Any = None
         self._lock = threading.RLock()
+        # Separate from the model lock: counting tokens need not wait for inference.
+        self._tokenizer_lock = threading.RLock()
+        self._serialized = SerializedTokenizer(self)
 
     @property
-    def tokenizer(self) -> Any:
-        with self._lock:
+    def tokenizer(self) -> SerializedTokenizer:
+        return self._serialized
+
+    def _load_tokenizer(self) -> Any:
+        with self._tokenizer_lock:
             if self._tokenizer is None:
                 from transformers import AutoTokenizer
 
@@ -113,13 +129,8 @@ class QwenEncoder:
         from transformers import AutoModel
 
         torch.set_num_threads(self.threads)
-        if self.device == "cuda":
-            check_gpu_idle()
-            if not torch.cuda.is_available():
-                raise RuntimeError("CUDA is unavailable; use --device cpu")
-            free, total = torch.cuda.mem_get_info()
-            if total - free - torch.cuda.memory_reserved() > 768 * 1024**2:
-                raise RuntimeError("GPU is occupied; use CPU or retry after Studio releases it")
+        if self.device == "cuda" and not torch.cuda.is_available():
+            raise RuntimeError("CUDA is unavailable; use --device cpu")
         self._model = (
             AutoModel.from_pretrained(
                 REPO,
@@ -141,15 +152,14 @@ class QwenEncoder:
         if not texts:
             return np.empty((0, DIMENSIONS), dtype=np.float32)
         with self._lock:
-            if self.device == "cuda":
-                check_gpu_idle()
             self._load()
             if query:
-                texts = [f"Instruct: {INSTRUCTION}\nQuery: {text}" for text in texts]
+                texts = [query_text(text) for text in texts]
             batch = self.tokenizer(texts, padding=True, truncation=False, return_tensors="pt")
-            if batch["input_ids"].shape[1] > 1024:
+            if batch["input_ids"].shape[1] > MAX_INPUT_TOKENS:
                 raise ValueError(
-                    "Embedding input exceeds 1024 tokens; no text was silently truncated"
+                    f"Embedding input exceeds {MAX_INPUT_TOKENS} tokens; "
+                    "no text was silently truncated"
                 )
             with torch.inference_mode():
                 batch = batch.to(self.device)

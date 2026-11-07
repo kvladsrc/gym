@@ -24,5 +24,5 @@ a favorite flag alone is insufficient.
 
 ## Consequences
 
-- Tags are assigned by whoever runs the sweep (currently a REST script);
-  Studio does not yet understand jobs with sweep axes.
+- Tags are assigned by whoever runs a sweep; Studio does not yet understand
+  jobs with sweep axes.

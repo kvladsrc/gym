@@ -1,5 +1,6 @@
 import asyncio
 import json
+from pathlib import Path
 
 import httpx2
 import pytest
@@ -60,6 +61,8 @@ class StudioStub:
                 "output_mime": ["model/x-fbx"],
             }
             return httpx2.Response(200, json=[{"id": "tools", "tasks": [task]}])
+        if path == "/api/projects":
+            return httpx2.Response(200, json=[{"id": "default"}, {"id": "forest"}])
         if path == "/api/assets/mesh":
             return httpx2.Response(200, json={"id": "mesh", "mime": "model/x-fbx"})
         if path == "/api/jobs" and request.method == "POST":
@@ -102,6 +105,13 @@ def test_graph_rejects_cycles_dangling_edges_and_invalid_output_indices():
             Graph.model_validate(data)
 
 
+def test_the_example_graphs_import():
+    examples = sorted((Path(__file__).resolve().parents[1] / "examples").glob("*.json"))
+    assert examples
+    for path in examples:
+        Graph.model_validate_json(path.read_text())
+
+
 def test_versions_and_run_snapshots_survive_edits_and_restart(tmp_path):
     store = Store(tmp_path / "flow.sqlite3")
     saved = store.save(graph())
@@ -138,6 +148,7 @@ def test_resume_after_lost_post_response_creates_no_duplicate_jobs(tmp_path):
             assert len(stub.jobs) == 2
             assert store.run(run["id"])["state"] == "submitted"
             bodies = list(stub.bodies.values())
+            assert {body["project"] for body in bodies} == {"default"}
             assert bodies[0]["inputs"] == {"rig": "mesh"}
             assert bodies[1]["dependencies"] == {"rig": {"job_id": "job0", "output_index": 0}}
             assert bodies[1]["inputs"] == {}
@@ -176,11 +187,38 @@ def test_preflight_rejects_missing_inputs_types_and_unknown_models():
                 lambda data: data["nodes"][1].update(server="missing"),
                 lambda data: data["nodes"][1].update(params={"unknown": 1}),
                 lambda data: data["nodes"][1].update(count=3),
+                lambda data: data.update(project="missing"),
             ]:
                 data = graph().model_dump()
                 change(data)
                 with pytest.raises(GraphError):
                     await preflight(Graph.model_validate(data), client)
+
+    asyncio.run(scenario())
+
+
+def test_jobs_go_to_the_graph_project_and_old_graphs_read_as_default(tmp_path):
+    async def scenario():
+        stub = StudioStub()
+        store = Store(tmp_path / "flow.sqlite3")
+        old = graph().model_dump(mode="json")
+        del old["project"]  # as saved before projects
+        saved = store.save(graph())
+        with store.connect() as db:
+            db.execute("UPDATE flows SET graph = ?", (json.dumps(old),))
+        reread = store.flow(saved["id"])
+        assert reread is not None
+        assert reread["graph"] == graph().model_dump(mode="json")  # same keys, same order
+        assert list(reread["graph"])[-1] == "project"
+
+        forest = Graph.model_validate({**old, "project": "forest"})
+        run = store.new_run(store.save(forest), "request")
+        async with httpx2.AsyncClient(
+            base_url="http://studio", transport=httpx2.MockTransport(stub.handle)
+        ) as client:
+            await preflight(forest, client)
+            await Engine(store, client).submit(run["id"])
+        assert {body["project"] for body in stub.bodies.values()} == {"forest"}
 
     asyncio.run(scenario())
 
@@ -213,7 +251,7 @@ def test_http_save_reload_conflicts_and_deleted_flow_history(tmp_path):
     app = create_app(
         database=tmp_path / "flow.sqlite3", transport=httpx2.MockTransport(stub.handle)
     )
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://127.0.0.1") as client:
         saved = client.post("/flow-api/flows", json=graph().model_dump()).json()
         assert client.get("/flow-api/flows").json()[0]["id"] == saved["id"]
         path = "/flow-api/flows/" + saved["id"]
@@ -300,8 +338,19 @@ def test_output_download_keeps_filename_and_forces_attachment(tmp_path):
         )
 
     app = create_app(database=tmp_path / "flow.sqlite3", transport=httpx2.MockTransport(handler))
-    with TestClient(app) as client:
+    with TestClient(app, base_url="http://127.0.0.1") as client:
         response = client.get("/flow-api/studio/assets/output/file")
         assert response.content == b"fake FBX"
         assert response.headers["content-disposition"] == 'attachment; filename="character.fbx"'
         assert response.headers["content-type"] == "model/x-fbx"
+
+
+def test_only_local_host_names_reach_the_api(tmp_path):
+    """DNS rebinding: a page on another hostname resolving to 127.0.0.1."""
+    stub = StudioStub()
+    app = create_app(
+        database=tmp_path / "flow.sqlite3", transport=httpx2.MockTransport(stub.handle)
+    )
+    with TestClient(app, base_url="http://127.0.0.1") as client:
+        assert client.get("/flow-api/flows", headers={"Host": "evil.example"}).status_code == 400
+        assert client.get("/flow-api/flows", headers={"Host": "localhost"}).status_code == 200

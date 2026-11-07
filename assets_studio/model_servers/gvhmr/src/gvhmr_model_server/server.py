@@ -43,7 +43,7 @@ CHECKPOINTS = (
 
 
 def source_directory() -> Path:
-    cache = Path(os.environ.get("XDG_CACHE_HOME", "~/.cache")).expanduser()
+    cache = Path(os.environ.get("XDG_CACHE_HOME") or "~/.cache").expanduser()
     return Path(
         os.environ.get("GVHMR_SOURCE", str(cache / "assets-studio/gvhmr-source"))
     ).expanduser()

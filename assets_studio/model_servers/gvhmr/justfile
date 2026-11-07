@@ -1,7 +1,7 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-# Heavy files live outside the Dropbox-synced working copy.
-cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+import "../common.just"
+
 source := cache / "gvhmr-source"
 worker_env := cache / "venvs/gvhmr-worker"
 revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/gvhmr_model_server/server.py`
@@ -11,8 +11,6 @@ checkpoints := "https://drive.google.com/drive/folders/1eebJ13FUEXrKBawHpJroW0sN
 export UV_PROJECT_ENVIRONMENT := cache / "venvs/gvhmr"
 export GVHMR_SOURCE := source
 export GVHMR_PYTHON := worker_env / "bin/python"
-
-gpu_shell := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
 
 # Show the available commands
 default:

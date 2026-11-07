@@ -4,6 +4,7 @@ import { useEffect, useState } from "preact/hooks";
 
 import { api, type Job } from "../api/client";
 import { duration, statusLabel, taskLabel, time } from "../format";
+import { currentProject, projectTitle } from "../state/projects";
 import { hrefLibrary } from "../state/router";
 import { serverById } from "../state/sections";
 import { attempt, isPending, mergeJob } from "../state/store";
@@ -33,7 +34,8 @@ function waiting(job: Job, elapsed: string) {
     : t("status.queued");
 }
 
-/** One job. ``wide``: also its task and model, for the list of every job. */
+/** One job. ``wide``: also its task and model, and its project when not the open one, for the
+ * list of every job. */
 export function JobRow({ job, wide = false }: { job: Job; wide?: boolean }) {
   const pending = isPending(job);
   const now = useNow(pending);
@@ -56,6 +58,11 @@ export function JobRow({ job, wide = false }: { job: Job; wide?: boolean }) {
         {wide && (
           <span class="job-model">
             {serverById(job.server)?.title ?? job.server}
+          </span>
+        )}
+        {wide && job.project !== currentProject.value && (
+          <span class="job-project">
+            {t("project.other", { title: projectTitle(job.project) })}
           </span>
         )}
         <span class="job-time">{pending ? elapsed : took}</span>

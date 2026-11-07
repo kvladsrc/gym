@@ -1,29 +1,29 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
-cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+
+import "../common.just"
+
 export UV_PROJECT_ENVIRONMENT := cache / "venvs/unlimited_ocr"
 export HF_HUB_DISABLE_TELEMETRY := "1"
 export PYTORCH_CUDA_ALLOC_CONF := "expandable_segments:True"
-# A parent GPU shell may expose host libcurl to Nix itself; start Nix clean.
-runner := "env -u LD_LIBRARY_PATH /nix/var/nix/profiles/default/bin/nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
 
 default:
     @just --justfile {{ justfile() }} --list
 
-# Install the isolated runtime and pinned weights (~6.7 GB, outside Dropbox)
+# Install the isolated runtime and the pinned weights (~6.7 GB)
 setup:
-    {{ runner }} uv sync --extra test
+    {{ gpu_shell }} uv sync --extra test
     @just --justfile {{ justfile() }} download
 
 download:
-    {{ runner }} uv run --no-sync python -c "from unlimited_ocr_model_server.server import download; print(download())"
+    {{ gpu_shell }} uv run --no-sync python -c "from unlimited_ocr_model_server.server import download; print(download())"
 
 doctor:
-    {{ runner }} uv run --no-sync python -m unlimited_ocr_model_server.doctor
+    {{ gpu_shell }} uv run --no-sync python -m unlimited_ocr_model_server.doctor
 
 [positional-arguments]
 serve *args:
-    {{ runner }} uv run --no-sync unlimited-ocr-model-server "$@"
+    {{ gpu_shell }} uv run --no-sync unlimited-ocr-model-server "$@"
 
 # Contract, input validation and output handling; no weights or GPU
 test:
-    {{ runner }} uv run --no-sync pytest -q tests
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

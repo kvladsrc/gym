@@ -52,7 +52,7 @@ def checkout(url: str, revision: str, target: Path) -> None:
 
 
 def main() -> None:
-    root = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "assets-studio"
+    root = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache") / "assets-studio"
     source = source_directory()
     checkout("https://github.com/microsoft/TRELLIS.2.git", SOURCE_REVISION, source)
     # Current trimesh exposes cached normals as read-only. Geometry is unchanged.

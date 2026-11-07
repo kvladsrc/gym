@@ -54,8 +54,7 @@ SkinTokens README requests ≥14 GB VRAM; ten beams actually used about 2 GB.
 
 Post-fix checks (horse / chicken / wolf / goblin): SkinTokens joints inside
 body 30/33, 35/35, 29/29, 51/52; limb-aligned bones 24/33, 23/35, 24/29, 38/52
-(UniRig 23/30, 12/15, 22/31, 27/49). Validation-animation page:
-`~/.local/share/assets-studio/sweeps/rigs1/`.
+(UniRig 23/30, 12/15, 22/31, 27/49).
 
 Full compatibility and automatic preparation map:
 [rigging and motion](rigging-and-motion.md). Save chains in

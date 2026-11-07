@@ -1,6 +1,7 @@
 # TripoSG model server
 
-> Retired from the active Studio catalog; weights and local environment removed.
+> Retired: `hunyuan3d21` replaced it. The code stays as a starting point for
+> bringing it back; it is not in `model_servers/justfile` and is not maintained.
 
 The `image-to-3d` task turns an image into a shape (GLB without color). Based on
 [TripoSG](https://github.com/VAST-AI-Research/TripoSG) from VAST (Tripo's authors):

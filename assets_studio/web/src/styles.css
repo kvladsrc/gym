@@ -123,6 +123,8 @@ textarea {
 .app {
   display: grid;
   grid-template-rows: 44px 1fr;
+  /* Nothing widens the page: the nav scrolls on a narrow screen. */
+  grid-template-columns: minmax(0, 1fr);
   height: 100vh;
 }
 
@@ -168,6 +170,16 @@ textarea {
 }
 .topbar .spacer {
   flex: 1;
+}
+/* The open project (ADR-010). */
+.topbar .project-select {
+  /* As wide as the open project's title, not as the longest option. */
+  field-sizing: content;
+  width: auto;
+  max-width: 220px;
+  margin-right: 8px;
+  padding: 3px 6px;
+  text-overflow: ellipsis;
 }
 .queue {
   color: var(--muted);
@@ -216,6 +228,44 @@ a.queue:hover {
 .job-model {
   color: var(--muted);
   white-space: nowrap;
+}
+.job-project {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Projects: one per row. */
+.project-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  display: grid;
+  gap: 6px;
+}
+.project-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+  gap: 8px;
+  align-items: center;
+}
+.project-row.current input {
+  border-color: var(--accent);
+}
+.project-id {
+  color: var(--muted);
+  font-size: 12px;
+}
+.project-new {
+  max-width: 480px;
+}
+@media (max-width: 720px) {
+  .project-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .topbar .project-select {
+    max-width: 140px;
+  }
 }
 
 .dot {
@@ -881,6 +931,31 @@ details .fields {
 .card.selected {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);
+}
+.selectable-card {
+  position: relative;
+  min-width: 0;
+}
+.selectable-card .card {
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+.asset-select {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.selection-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .card .thumb {
   width: 100%;

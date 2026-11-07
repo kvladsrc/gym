@@ -50,21 +50,26 @@ def test_invalid_image_does_not_reach_inference():
         vision.image_part(b"not an image")
 
 
-def test_comparison_labels_and_prompt_are_preserved():
+@pytest.mark.parametrize("system", [None, "", " \n\t", "Answer in English with a table."])
+def test_comparison_preserves_prompt_labels_and_optional_system(system):
     job = Job(
         "image-to-text",
         "Compare hands only",
         {"image": InputData("image/png", png()), "reference": InputData("image/png", png("blue"))},
-        vision.Params(),
+        vision.Params() if system is None else vision.Params(system=system),
         (5,),
     )
     chat, meta = vision.request(job)
-    content = chat[1]["content"]
+    content = chat[-1]["content"]
     assert content[0]["text"] == "Image: image"
     assert content[2]["text"] == "Image: reference"
     assert content[-1]["text"] == "Compare hands only"
     assert meta["images"] == 2
-    assert "предположений" in chat[0]["content"]
+    if system and system.strip():
+        assert [message["role"] for message in chat] == ["system", "user"]
+        assert chat[0]["content"] == system
+    else:
+        assert [message["role"] for message in chat] == ["user"]
 
 
 def test_visual_generation_returns_only_text_and_observation_provenance(monkeypatch):
@@ -107,7 +112,8 @@ def test_video_requests_record_timestamps_and_sampling_limitations(monkeypatch):
     assert meta["sample_times_s"] == [0.5, 1.5]
     assert meta["audio_analyzed"] is False
     assert meta["continuous_motion_analyzed"] is False
-    assert chat[1]["content"][0]["text"] == "Sample at 0.500s"
+    assert [message["role"] for message in chat] == ["user"]
+    assert chat[0]["content"][0]["text"] == "Sample at 0.500s"
 
 
 def test_video_duration_is_rejected_before_decoding_frames(monkeypatch):

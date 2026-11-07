@@ -19,6 +19,10 @@ async def preflight(graph: Graph, client: httpx2.AsyncClient) -> None:
     servers_response = await client.get("/api/servers")
     servers_response.raise_for_status()
     servers = {server["id"]: server for server in servers_response.json()}
+    projects_response = await client.get("/api/projects")
+    projects_response.raise_for_status()
+    if graph.project not in {project["id"] for project in projects_response.json()}:
+        raise GraphError(f"studio project {graph.project} not found")
     outputs: dict[str, list[str]] = {}
     tasks = 0
     for node in graph.ordered():
@@ -121,6 +125,7 @@ class Engine:
                             "inputs": inputs,
                             "dependencies": dependencies,
                             "idempotency_key": f"flow-{identity}-{node.id}",
+                            "project": graph.project,
                         },
                     )
                     response.raise_for_status()

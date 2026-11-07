@@ -1,10 +1,12 @@
 import {
   hrefJobs,
   hrefLibrary,
+  hrefProjects,
   hrefSection,
   lastSection,
   route,
 } from "../state/router";
+import { currentProject, openProject, projects } from "../state/projects";
 import { bestState, sections, unseenServers } from "../state/sections";
 import { activeJobs } from "../state/store";
 import { nextTheme, type ThemeChoice, themeChoice } from "../state/theme";
@@ -21,6 +23,36 @@ const stateTitle = (state: string) => {
   return has(key) ? t(key) : state;
 };
 
+const MANAGE = "\u0000manage"; // not a project id: ids are slugs
+
+/** The open project, and the way to the list of projects. */
+function ProjectSelect() {
+  const list = projects.value;
+  return (
+    <select
+      class="project-select"
+      aria-label={t("project.label")}
+      title={t("project.title")}
+      value={currentProject.value}
+      disabled={!list.length}
+      onChange={(event) => {
+        const select = event.currentTarget;
+        if (select.value === MANAGE) {
+          select.value = currentProject.value;
+          location.hash = hrefProjects;
+        } else openProject(select.value);
+      }}
+    >
+      {list.map((project) => (
+        <option key={project.id} value={project.id}>
+          {project.title}
+        </option>
+      ))}
+      <option value={MANAGE}>{t("project.manage")}</option>
+    </select>
+  );
+}
+
 export function TopBar() {
   const current = route.value;
   const queue = activeJobs.value;
@@ -30,6 +62,7 @@ export function TopBar() {
       <a class="brand" href="#/">
         {t("brand")}
       </a>
+      <ProjectSelect />
       <nav class="nav">
         <a
           href={hrefSection(lastSection.value ?? sections.value[0]?.id ?? "")}

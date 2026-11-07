@@ -98,8 +98,7 @@ TASKS = (
 
 def denoising_steps(steps: int, strength: float) -> int:
     """Steps FluxImg2ImgPipeline really runs: it skips ``int(steps - steps *
-    strength)`` of the schedule, so at any strength above 0 at least one runs.
-    (SDXL rounds differently: see model_server_sdk.images.denoising_steps.)"""
+    strength)`` of the schedule, so at any strength above 0 at least one runs."""
     return steps - int(max(steps - steps * strength, 0))
 
 

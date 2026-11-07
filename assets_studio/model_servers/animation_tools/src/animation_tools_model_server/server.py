@@ -146,6 +146,23 @@ class BakeParams(BaseModel):
     )
 
 
+class BakeColourParams(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    texture_size: Literal[1024, 2048, 4096] = Field(
+        default=2048,
+        description="Colour texture size, pixels",
+        json_schema_extra=ui(ru="Размер текстуры цвета, пиксели", primary=True),
+    )
+    ray_distance: float = Field(
+        default=0.015,
+        ge=0.001,
+        le=0.1,
+        description="How far rays look for the painted surface, as a share of the model's size",
+        json_schema_extra=ui(ru="Как далеко лучи ищут покраску, доля размера модели"),
+    )
+
+
 GLB = ["model/gltf-binary"]
 RETOPO = TaskSpec(
     "3d-retopo",
@@ -183,6 +200,31 @@ BAKE = TaskSpec(
             mime=GLB,
             description="The painted game mesh (UVs and material) that gets them",
             labels={"ru": "Покрашенная игровая сетка (UV и материал), куда они запекаются"},
+        ),
+    ),
+    max_count=1,
+)
+BAKE_COLOUR = TaskSpec(
+    "3d-bake-colour",
+    BakeColourParams,
+    ("model/gltf-binary",),
+    prompt="none",
+    inputs=(
+        InputSpec(
+            role="painted",
+            mime=GLB,
+            description="The painted mesh the base colour comes from, such as LOD0",
+            labels={"ru": "Покрашенная сетка, откуда берётся цвет, например LOD0"},
+        ),
+        InputSpec(
+            role="mesh",
+            mime=GLB,
+            description="A mesh of the same shape that gets it, such as a coarser LOD; "
+            "unwrapped when it has no UVs",
+            labels={
+                "ru": "Сетка той же формы, куда он запекается, например LOD грубее; "
+                "без UV она развернётся"
+            },
         ),
     ),
     max_count=1,
@@ -295,10 +337,10 @@ class AnimationToolsServer(ModelServer):
     model = ModelInfo(
         id="animation-tools",
         name="Animation tools (Blender)",
-        revision="18",
+        revision="19",
         license="Repository code; Blender: GPL-3.0-or-later",
     )
-    tasks = (PREPARE, RETARGET, NATIVE_RETARGET, RETOPO, BAKE)
+    tasks = (PREPARE, RETARGET, NATIVE_RETARGET, RETOPO, BAKE, BAKE_COLOUR)
 
     def __init__(self) -> None:
         self._blender: str | None = None
@@ -310,7 +352,7 @@ class AnimationToolsServer(ModelServer):
 
     def generate(self, job: Job) -> list[Output]:
         assert self._blender
-        if job.task in (RETOPO.task, BAKE.task):
+        if job.task in (RETOPO.task, BAKE.task, BAKE_COLOUR.task):
             return [self._mesh(job)]
         with tempfile.TemporaryDirectory(prefix="animation-tools-") as directory:
             work = Path(directory)
@@ -398,7 +440,7 @@ class AnimationToolsServer(ModelServer):
                         }
                     ),
                 ]
-            else:
+            elif job.task == BAKE.task:
                 assert isinstance(job.params, BakeParams)
                 high, low = work / "high.glb", work / "low.glb"
                 high.write_bytes(job.inputs["high"].data)
@@ -407,6 +449,19 @@ class AnimationToolsServer(ModelServer):
                     "bake",
                     str(high),
                     str(low),
+                    str(target),
+                    str(job.params.texture_size),
+                    str(job.params.ray_distance),
+                ]
+            else:
+                assert isinstance(job.params, BakeColourParams)
+                painted, mesh = work / "painted.glb", work / "mesh.glb"
+                painted.write_bytes(job.inputs["painted"].data)
+                mesh.write_bytes(job.inputs["mesh"].data)
+                args = [
+                    "bake-colour",
+                    str(painted),
+                    str(mesh),
                     str(target),
                     str(job.params.texture_size),
                     str(job.params.ray_distance),

@@ -16,26 +16,22 @@ Bone names are only part of compatibility. Joint positions, bone directions,
 scales, rest poses and skin bindings also matter. A shared `mixamorig:` prefix
 does not make Kimodo's skeleton ready-made animation for a particular MIA mesh.
 
-## Fixes now integrated into jobs
+## What the jobs handle
 
-- Texture export and mesh welding were already part of rigging servers.
-- MoCapAnything already handles custom-rig conventions, reference rest animation,
+- Rigging servers export textures and weld the mesh.
+- MoCapAnything handles custom-rig conventions, reference rest animation,
   quadruped naming and rotation-lock removal. No manual preparation scripts needed.
-- `retarget-motion` replaces manual `asset_processing/retarget.py` calls for
-  Kimodo/Mixamo. It resets old target animation, checks bones/skin, normalizes
-  weights, preserves textures and exports animated FBX.
+- `retarget-motion` transfers Kimodo or Mixamo motion to a rig. It resets old
+  target animation, checks bones/skin, normalizes weights, preserves textures
+  and exports animated FBX.
 - Shared transfer, including GVHMR/MoCapAnything, checks/normalizes weights.
   Unweighted vertices are not guessed; such input is rejected.
 - Full rotation transfer preserves twist and end-joint motion lost by
   direction-only transfer.
-- Old Kimodo clips prioritize actual Mixamo bones over colliding extra SOMA
-  joints. New exports avoid collisions with `soma_*` names.
+- In older Kimodo clips, transfer prefers the real Mixamo bones over extra SOMA
+  joints of the same name; Kimodo now exports its extra joints as `soma_*`.
 - Shared transfer handles imported FBX frame-rate changes and range rounding.
   Export does not simplify keys.
-
-The checked old guard rig had all 22 bones and no unweighted vertices. Maximum
-weight-sum error was about 1.7%. The new graph's FBX has error <1e-6, with finite
-positions/rotations across all 120 frames.
 
 ## Building pipelines
 
@@ -56,20 +52,15 @@ positions/rotations across all 120 frames.
    is ready for later animation; preparation removes animation and restores
    the rig's own rest pose.
 
-Save chains in [Studio Flow](../../flow/README.md). Guard tests covered a full
-MIA + Kimodo + transfer graph, existing asset processing and direct video +
-MIA rig → GVHMR. Preparation also tested on SkinTokens/UniRig FBX. Blender
-regressions cover A/T-poses, wrist rotation, heading, in-place movement, weights
-and frame-count preservation.
+Save chains in [Studio Flow](../../flow/README.md). Blender regression tests
+cover A/T-poses, wrist rotation, heading, in-place movement, weights and
+frame-count preservation.
 
 Weapon contact, neural joint accuracy and foot sliding are separate output
 properties. Correct rigs/transfer do not guarantee contact: current inputs
 lack weapon geometry/grip points. New chains need no external compatibility
 fixes; artistic review and game integration remain separate stages.
 
-Practical game-clip control: [sword combo debugging](sword-combo-debugging.md).
-
 GVHMR uses a separate `smpl` profile: neutral pelvis, spine, neck and head retain
 MIA's bind pose while full movements/rotations transfer. SMPL joint positions
-are not instructions to bend the target torso. See
-[GVHMR neutral pose](gvhmr-rest-pose.md).
+are not instructions to bend the target torso.

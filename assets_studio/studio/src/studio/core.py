@@ -11,6 +11,7 @@ from studio.dispatch.dispatcher import Dispatcher, ServerStatus
 from studio.domain import FINISHED, Job
 from studio.services.generation import Generation, JobRequestError
 from studio.services.library import Library
+from studio.services.projects import Projects
 from studio.storage.blobs import BlobStore
 from studio.storage.db import Database
 from studio.storage.repository import Repository
@@ -49,6 +50,7 @@ class Studio:
         self.closing = threading.Event()
         self._waiters: set[threading.Event] = set()
         self.dispatcher = Dispatcher(config, repository, blobs, on_change=self._job_changed)
+        self.projects = Projects(repository)
         self.library = Library(config, repository, blobs)
         if 8 in self.database.applied:  # 0008_motion_kind
             self.library.retype_motions()

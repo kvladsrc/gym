@@ -84,12 +84,18 @@ are limited to a 1280-pixel side; the vision encoder uses 1024–1536 tokens per
 frame. Context: 16,384 tokens, one request at a time. Short responses may be
 cut off by the limit; metadata records `finish_reason=length`.
 
+Visual tasks send no system message by default. Use the task prompt to specify
+what to inspect, the response language, format and detail. The optional
+`system` parameter adds a system instruction only when it contains more than
+whitespace. Text-task system defaults are separate. The visual adapter revision
+is `vision.2`, so cached reports from the previous defaults are not reused.
+
 ```sh
-# From the monorepo root, without loading media into the agent context:
+# From the repository root, without loading media into the agent context:
 python assets_studio/agent_tools/describe_media.py \
   --path /absolute/path/image.png --prompt 'Describe visible details and uncertainty.'
 python assets_studio/agent_tools/describe_media.py \
-  --path /absolute/path/clip.mp4 --frames 4 --output workspace/review/report.json
+  --path /absolute/path/clip.mp4 --frames 4 --output report.json
 # From assets_studio/: just describe-media --path /absolute/path/image.png
 ```
 
@@ -97,8 +103,7 @@ Reports are saved in the Studio library and cached by content, question, model
 revision and parameters. Results include provenance, sample times and limitations;
 helper stdout contains text only. The first synthetic queue smoke test correctly
 identified a red square on the left, a blue circle on the right and “ALPHA 73”.
-This validates connectivity, not fencing analysis quality. The model runs partly
+This validates the path, not the quality of descriptions. The model runs partly
 in RAM and is slower than small VLMs.
 
-Shared Codex and Claude instructions: [media-analysis.md](../../../../.agents/media-analysis.md).
-Experimental approach review: [mocap-approach.md](../../docs/reviews/mocap-approach.md).
+Shared Codex and Claude instructions: [media-analysis.md](../../../.agents/media-analysis.md).

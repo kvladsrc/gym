@@ -1,7 +1,7 @@
 set shell := ["bash", "-euo", "pipefail", "-c"]
 
-# Heavy files live outside the Dropbox-synced working copy.
-cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "assets-studio"
+import "../common.just"
+
 source := cache / "hunyuan3d21-source"
 revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/hunyuan3d21_model_server/server.py`
 
@@ -11,8 +11,6 @@ export HUNYUAN3D21_SOURCE := source
 export HY3DGEN_MODELS := cache / "hy3dgen"
 export U2NET_HOME := cache / "u2net"
 export HF_HUB_DISABLE_TELEMETRY := "1"
-
-gpu_shell := "nix develop " + quote(justfile_directory() / "../../..") + "#assets-studio-gpu --command"
 
 # Show the available commands
 default:

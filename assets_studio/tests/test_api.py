@@ -511,13 +511,18 @@ def test_a_video_frame_becomes_an_image_made_from_the_video(tmp_path: Path) -> N
     frames = [bytes([25 * n] * (32 * 32 * 3)) for n in range(10)]
     video = encode_mp4(frames, width=32, height=32, fps=10)
     with fake_and_studio(tmp_path) as (_, http):
+        http.post("/api/projects", json={"title": "Clips"})
         uploaded = http.post(
-            "/api/assets", content=video, headers={"Content-Type": "application/octet-stream"}
+            "/api/assets",
+            content=video,
+            params={"project": "clips"},
+            headers={"Content-Type": "application/octet-stream"},
         ).json()
         frame = http.post(f"/api/assets/{uploaded['id']}/frames", params={"time_s": 0.5})
         assert frame.status_code == 201, frame.text
         image = frame.json()
         assert (image["kind"], image["mime"]) == ("image", "image/png")
+        assert image["project"] == "clips"  # where its video is
         assert http.get(f"/api/assets/{image['id']}/lineage").json() == [
             {"asset_id": uploaded["id"], "relation": "input"}
         ]

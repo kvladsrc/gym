@@ -2,6 +2,7 @@ import sqlite3
 from contextlib import closing
 
 import pytest
+from helpers import ATTACK
 
 from yaqs import SCHEMA_VERSION
 from yaqs.maintenance import backup_database, rebuild_database
@@ -50,7 +51,7 @@ def test_rebuild_legacy_schema_uses_stored_text_without_source_files(library, en
         old["author"],
         old["sha256"],
     )
-    assert rebuilt.page(book["id"], 1)["text"] == "Enemy attack anticipation."
+    assert rebuilt.page(book["id"], 1)["text"] == ATTACK
     assert result["integrity"]["pending_chunks"] == 0
     with closing(sqlite3.connect(library.path)) as db:
         assert db.execute("PRAGMA user_version").fetchone()[0] == 1

@@ -18,9 +18,12 @@ The Python environment is in `~/.cache/assets-studio/venvs/animation_tools`.
 
 ## Tasks
 
-`3d-retopo` reduces a finished GLB mesh before painting. `method` offers
-`decimate` (target in triangles), `quadriflow` and `autoremesher` (target in
-quads; actual counts may differ). AutoRemesher works directly on the surface,
+`3d-retopo` reduces a detailed GLB mesh, such as Hi3D's million triangles, and
+drops loose specks. `method` offers `decimate` (target in triangles), which
+keeps a painted mesh's UVs and material, so it can follow painting;
+`quadriflow` and `autoremesher` (target in quads; actual counts may differ)
+rebuild the surface and drop the paint (`material_dropped` in the job
+metadata). AutoRemesher works directly on the surface,
 without an initial voxel remesh. GLB stores triangles; the original quad count
 is retained in job metadata. Decimation cannot collapse non-manifold edges
 (Hi3D's thin branches have thousands); when it stops more than 10 % above
@@ -42,6 +45,13 @@ The standard local Studio inherits it from the desktop.
 `3d-bake-normals` bakes details from the source high-resolution mesh into a
 normal map for an already painted low-resolution mesh with UVs. To compare
 painters, use the same high-resolution source and bake settings.
+
+`3d-bake-colour` moves a painted mesh's base colour onto another mesh of the
+same shape, such as a coarser LOD: Hi3D at a lower `max_faces` gives the
+shape, the painted LOD0 its colours. Separate paints per LOD differ, and the
+painter left a 1,800-triangle tree almost one colour. A mesh without UVs is
+unwrapped with Smart UV Project. Only the base colour carries over; the result
+is matte and non-metal. A 1,800-triangle tree bakes in about 5 s on the CPU.
 
 Three animation tasks cover rig preparation, motion transfer using Mixamo
 bone names (Kimodo-SOMA, Mixamo), and native SMPL-X motion transfer. Trimming,
@@ -114,8 +124,7 @@ transfer is unchanged.
 
 `rest_alignment=matched-neutral` also preserves neutral limb directions. Use
 it only when the target's original surface is already in the same neutral
-pose as SMPL. It is not universal for arbitrary A-poses. Checks and frame-by-frame
-examples are in `workspace/rigging_lab/`.
+pose as SMPL. It is not universal for arbitrary A-poses.
 
 For meshes, bones, weights and transfer, see the
 [animation pipeline](../../docs/animation-pipeline.md).

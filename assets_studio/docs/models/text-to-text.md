@@ -1,8 +1,8 @@
-# M7a: text-to-text (LLM)
+# Text to text (LLM)
 
 ## Outcome
 
-`model_servers/llm` (llama.cpp b11312 + GGUF), two models with separate tabs:
+`model_servers/llm` (llama.cpp b11312 + GGUF), two models as two servers:
 
 - **Gemma 4 12B, Q8_0**: default (`just gemma`, port 9106).
 - **Qwen3.8 27B, UD-Q4_K_M**: richer, slower (`just qwen`, port 9107).
@@ -20,7 +20,7 @@ only author-published models were considered.
 | Gemma 4 12B (Google, May 2026) | Selected: Q8 nearly lossless, 6.6 GB on GPU |
 | Qwen3.8 27B (Alibaba, August 2026) | Selected: latest dense model, 16.5 GB in Q4 |
 | Qwen3.6 35B-A3B (MoE) | Untested: 22 GB in Q4, barely fits free RAM |
-| GLM-5.3-Flash | 321B parameters, unsuitable for a laptop |
+| GLM-5.3-Flash | 321B parameters: far beyond 8 GB of VRAM and 30 GB of RAM |
 | Gemma 4 26B-A4B, 31B | Untested; dense 31B is slower than Qwen3.8 27B |
 
 ## Runtime

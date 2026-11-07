@@ -2,6 +2,7 @@ import { HomePage } from "./pages/HomePage";
 import { FramePage } from "./pages/FramePage";
 import { JobsPage } from "./pages/JobsPage";
 import { LibraryPage } from "./pages/LibraryPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
 import { SectionPage } from "./pages/SectionPage";
 import { TopBar } from "./components/TopBar";
 import { route } from "./state/router";
@@ -28,6 +29,8 @@ export function App() {
           <LibraryPage selectedId={current.assetId} />
         ) : current.page === "jobs" ? (
           <JobsPage />
+        ) : current.page === "projects" ? (
+          <ProjectsPage />
         ) : current.page === "tool" && current.toolId === "frame" ? (
           <FramePage />
         ) : section ? (

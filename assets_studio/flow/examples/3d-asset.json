@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "title": "3D asset: reference, shape, surface, paint",
+  "nodes": [
+    {
+      "id": "reference",
+      "kind": "task",
+      "server": "qwen_image",
+      "task": "text-to-image",
+      "title": "Reference (Qwen-Image)",
+      "x": 70,
+      "y": 70,
+      "prompt": "Game item for a 3D model: three thick melted ivory wax candles of different heights standing together on a small round tarnished iron dish with three short legs, heavy wax drips running down, unlit black wicks, three-quarter view from slightly above, dark fantasy painterly style, even soft lighting, centered, isolated, no background, no shadow",
+      "params": { "resolution": "1024x1024", "transparent": true, "steps": 40 },
+      "inputs": {}
+    },
+    {
+      "id": "shape",
+      "kind": "task",
+      "server": "hunyuan3d21",
+      "task": "image-to-3d",
+      "title": "Coarse shape (Hunyuan3D-2.1)",
+      "x": 370,
+      "y": 70,
+      "params": {
+        "steps": 50,
+        "guidance_scale": 5.0,
+        "octree_resolution": 384
+      },
+      "inputs": { "image": { "node": "reference" } }
+    },
+    {
+      "id": "surface",
+      "kind": "task",
+      "server": "hi3d",
+      "task": "3d-refine",
+      "title": "Surface, 40K triangles (Hi3D)",
+      "x": 670,
+      "y": 70,
+      "params": { "resolution": 512, "steps": 25, "max_faces": 40000 },
+      "inputs": {
+        "mesh": { "node": "shape" },
+        "image": { "node": "reference" }
+      }
+    },
+    {
+      "id": "paint",
+      "kind": "task",
+      "server": "trellis2_paint",
+      "task": "3d-paint",
+      "title": "PBR paint (TRELLIS.2)",
+      "x": 970,
+      "y": 70,
+      "params": { "texture_size": 2048, "steps": 12 },
+      "inputs": {
+        "mesh": { "node": "surface" },
+        "image": { "node": "reference" }
+      }
+    }
+  ]
+}

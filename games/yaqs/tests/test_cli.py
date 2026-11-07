@@ -59,7 +59,7 @@ def test_doctor_distinguishes_missing_checkpoint(library, monkeypatch):
     result = diagnostics.diagnose(library.path)
     assert result["database"]["ready"]
     assert not result["ready"]
-    assert "setup" in result["model"]["hint"]
+    assert "yaqs download" in result["model"]["hint"]
 
 
 def test_interrupt_reports_brief_error(monkeypatch, capsys):
@@ -72,3 +72,15 @@ def test_interrupt_reports_brief_error(monkeypatch, capsys):
         cli.main()
     assert error.value.code == 130
     assert json.loads(capsys.readouterr().err)["error"] == "Interrupted"
+
+
+def test_doctor_reports_missing_packages_as_json(library, monkeypatch, capsys):
+    monkeypatch.setitem(sys.modules, "sqlite_vec", None)
+    monkeypatch.setattr(sys, "argv", ["yaqs", "doctor", "--db", str(library.path)])
+    with pytest.raises(SystemExit) as error:
+        cli.main()
+    assert error.value.code == 1
+    result = json.loads(capsys.readouterr().out)
+    assert not result["ready"] and not result["runtime"]["ready"]
+    assert "sqlite_vec" in result["runtime"]["error"]
+    assert "uv's own Python" in result["runtime"]["hint"]

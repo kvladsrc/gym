@@ -5,6 +5,9 @@ Everything the contract promises — background loading, validation, error
 codes, seeds, one generation at a time — is handled here.
 """
 
+# Handlers are registered by their decorators, inside the factory function.
+# pyright: reportUnusedFunction=false
+
 import asyncio
 import base64
 import binascii
@@ -269,24 +272,24 @@ def create_app(server: ModelServer) -> FastAPI:
     app = FastAPI(title=f"{model.name} — model server", lifespan=lifespan)
 
     @app.exception_handler(_ContractError)
-    async def contract_error(_: Request, error: _ContractError) -> JSONResponse:  # pyright: ignore[reportUnusedFunction]
+    async def contract_error(_: Request, error: _ContractError) -> JSONResponse:
         return _error_response(error)
 
     @app.exception_handler(RequestValidationError)
-    async def validation_error(_: Request, error: RequestValidationError) -> JSONResponse:  # pyright: ignore[reportUnusedFunction]
+    async def validation_error(_: Request, error: RequestValidationError) -> JSONResponse:
         return _error_response(_invalid(_describe(error.errors())))
 
     @app.exception_handler(StarletteHTTPException)
-    async def http_error(_: Request, error: StarletteHTTPException) -> JSONResponse:  # pyright: ignore[reportUnusedFunction]
+    async def http_error(_: Request, error: StarletteHTTPException) -> JSONResponse:
         return _error_response(_invalid(str(error.detail), status=error.status_code))
 
     @app.exception_handler(Exception)
-    async def unexpected_error(_: Request, error: Exception) -> JSONResponse:  # pyright: ignore[reportUnusedFunction]
+    async def unexpected_error(_: Request, error: Exception) -> JSONResponse:
         logger.exception("unexpected error")
         return _error_response(_internal(f"{type(error).__name__}: {error}"))
 
     @app.get("/v1/info")
-    def info() -> Info:  # pyright: ignore[reportUnusedFunction]
+    def info() -> Info:
         return Info(
             contract=CONTRACT_VERSION,
             status=state.status,
@@ -300,7 +303,7 @@ def create_app(server: ModelServer) -> FastAPI:
     }
 
     @app.post("/v1/generate", responses=error_responses)
-    async def generate(request: GenerateRequest) -> GenerateResponse:  # pyright: ignore[reportUnusedFunction]
+    async def generate(request: GenerateRequest) -> GenerateResponse:
         if state.load_error is not None:
             raise _ContractError(
                 503, "not_ready", f"model failed to load: {state.load_error}", retryable=False

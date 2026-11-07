@@ -1,4 +1,4 @@
-# M0d: text-to-audio and audio-to-audio
+# Text to audio and audio to audio
 
 ## Outcome
 
@@ -65,33 +65,21 @@ text-to-audio, 6.4 GB for audio-to-audio; 7.6 GB card-wide with allocator cache.
 Independent of duration because the model always computes 47-second windows.
 Run the server alone; release cache after every request.
 
-## Correction
+## Integration findings
 
-The first report claimed a diffusers bug: noise state allegedly survived
-requests. That was incorrect; diffusers 0.40 resets it in `set_timesteps`
-(found by the critic). The redundant server reset was removed; a test ensures
-partial schedules preserve this behavior.
+- diffusers 0.40 resets the noise state in `set_timesteps`, so the server does
+  not; a test checks that partial schedules keep this behavior.
+- Output is WAV. Gain is capped at +40 dB; audio-to-audio matches the source
+  loudness and reads only the 47-second window. The strength scale was
+  measured on several seeds.
 
 ## Not tested
 
 - Stable Audio Open Small (341M): faster but lower quality; speed is not the issue.
 - AudioLDM 2, MusicGen: lower effects quality; MusicGen is music only.
-- Vocal music and long tracks require a separate track of work (ACE-Step, etc.).
+- ACE-Step and other song models: vocal songs come from YuE2 (below).
 
-## Review
-
-Critic: two iterations, ACCEPT.
-
-1. There was no diffusers noise-reset bug (see Correction).
-2. The report gave idle VRAM (3.5 GB), not peak (6.4 GB), and recommended
-   running beside XTTS/TripoSR. Fixed: run alone.
-3. FLAC/OGG were advertised while Studio stored only WAV. Now declares WAV;
-   transcoding imports are planned for M7.
-
-Recommendations adopted: +40 dB gain cap, audio-to-audio loudness matched to
-source, reading only the 47-second window, strength scale measured on multiple seeds.
-
-## YuE2 3B — server ready
+## YuE2 3B: songs
 
 Vocal songs from lyrics and style (`model_servers/yue2`, port 9110, “Text → song”).
 Stable Audio remains for effects and short instrumentals. Tested October 2,

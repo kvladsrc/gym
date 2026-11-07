@@ -6,7 +6,7 @@ with servers and sections.
 ## Context
 
 Studio stores assets, provenance and model-server job queues (ADR-001). One
-Studio process runs on one laptop. Users start model servers; Studio does not
+Studio process runs on one machine. Users start model servers; Studio does not
 know when they will appear and does not monitor resources.
 
 ## Decision
@@ -14,8 +14,9 @@ know when they will appear and does not monitor resources.
 ### Data location
 
 The data directory is `$XDG_DATA_HOME/assets-studio` (default
-`~/.local/share/assets-studio`), overridable in config. It must not be inside
-Dropbox. Contents:
+`~/.local/share/assets-studio`), overridable in config. It must not be in a
+folder that a sync client (Dropbox and the like) copies: it would copy the
+SQLite database mid-write. Contents:
 
 ```text
 studio.sqlite3           # metadata and queue

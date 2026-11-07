@@ -141,7 +141,7 @@ def _mapped_loads() -> Iterator[None]:
     """``torch.load`` of weight files maps them instead of reading them in.
     The model's own loader reads its .bin checkpoints whole and the model
     then copies them: loading peaked at 14.6 GB of RAM and the kernel killed
-    the server on a 30 GB laptop."""
+    the server on a machine with 30 GB."""
     import torch
 
     original = torch.load

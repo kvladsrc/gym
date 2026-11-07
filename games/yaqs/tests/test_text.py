@@ -2,14 +2,10 @@ import hashlib
 import json
 
 import pytest
+from helpers import CharacterTokenizer
 
 from yaqs.chunking import chunk_document
 from yaqs.documents import Document, Page, read_document
-
-
-class CharacterTokenizer:
-    def __call__(self, text, **kwargs):
-        return {"offset_mapping": [(i, i + 1) for i in range(len(text))]}
 
 
 def test_chunk_offsets_cover_the_page_and_stay_inside_the_source():
@@ -38,7 +34,7 @@ def test_chunks_preserve_page_boundaries_and_empty_pages():
         ],
         "v1",
     )
-    result = list(chunk_document(doc, CharacterTokenizer()))
+    result = list(chunk_document(doc, CharacterTokenizer(), min_tokens=1))
     assert [(c.page_number, c.text) for c in result] == [(1, "first page"), (3, "third page")]
 
 

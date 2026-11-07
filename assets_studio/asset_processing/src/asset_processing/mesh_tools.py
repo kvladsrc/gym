@@ -4,6 +4,7 @@
     retopo IN.glb OUT.glb FACES METHOD [OPTIONS]   METHOD: quadriflow | decimate | autoremesher
                                               OPTIONS: AutoRemesher settings, JSON
     bake HIGH.glb LOW.glb OUT.glb SIZE RAY    RAY: ray distance, a share of the size
+    bake-colour PAINTED.glb MESH.glb OUT.glb SIZE RAY
 
 Prints ``MESH_REPORT {json}`` when done, ``MESH_INVALID <reason>`` for an input
 it cannot use.
@@ -31,6 +32,12 @@ it cannot use.
   it into the material, so the GLB carries base colour, metal-roughness and
   normals. The painter may have rescaled the mesh: the detailed one is put
   over it by their bounding boxes (centre, largest side) first.
+- Colour baking moves a painted mesh's base colour onto another mesh of the
+  same shape, such as a coarser level of detail made from the same surface:
+  every level then wears the same paint. A separate paint per level differs
+  (TRELLIS.2 painted a 1,000-triangle tree almost one colour). A mesh
+  without UVs is unwrapped first (Smart UV Project). The result has one
+  matte, non-metal material: only the base colour carries over.
 """
 
 import json
@@ -453,6 +460,60 @@ def bake(high_path: Path, low_path: Path, target: Path, size: int, ray: float) -
     export(low, target, materials=True)
 
 
+def bake_colour(painted_path: Path, mesh_path: Path, target: Path, size: int, ray: float) -> None:
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    painted = import_joined(painted_path, "painted mesh")
+    low = import_joined(mesh_path, "mesh")
+    if not painted.data.uv_layers or not painted.data.materials:
+        invalid("the painted mesh has no UVs or material")
+    put_over(painted, low)
+    unwrapped = not low.data.uv_layers
+    if unwrapped:
+        edit(low, lambda: bpy.ops.uv.smart_project(island_margin=0.004))
+    for polygon in low.data.polygons:
+        polygon.use_smooth = True
+        polygon.material_index = 0
+
+    scene = bpy.context.scene
+    scene.render.engine = "CYCLES"
+    scene.cycles.device = "CPU"
+    scene.cycles.samples = 1
+    colour = bpy.data.images.new("base colour", size, size, alpha=False)
+    material = bpy.data.materials.new("baked")
+    material.use_nodes = True
+    low.data.materials.clear()
+    low.data.materials.append(material)
+    tree = material.node_tree
+    texture = tree.nodes.new("ShaderNodeTexImage")
+    texture.image = colour
+    tree.nodes.active = texture  # the bake target
+
+    diagonal = (Vector(low.dimensions)).length
+    activate(painted, low)  # selected to active: from the painted onto the mesh
+    bpy.ops.object.bake(
+        type="DIFFUSE",
+        pass_filter={"COLOR"},
+        use_selected_to_active=True,
+        cage_extrusion=ray * diagonal,
+        max_ray_distance=2 * ray * diagonal,
+        margin=16,
+    )
+    colour.pack()
+    principled = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    tree.links.new(texture.outputs["Color"], principled.inputs["Base Color"])
+    principled.inputs["Metallic"].default_value = 0.0
+    principled.inputs["Roughness"].default_value = 1.0
+
+    bpy.data.objects.remove(painted, do_unlink=True)
+    report(
+        texture_size=size,
+        ray_share=ray,
+        triangles=triangles(low),
+        unwrapped=unwrapped,
+    )
+    export(low, target, materials=True)
+
+
 def main() -> None:
     args = sys.argv[sys.argv.index("--") + 1 :]
     if args[0] == "retopo":
@@ -460,6 +521,8 @@ def main() -> None:
         retopo(Path(args[1]), Path(args[2]), int(args[3]), args[4], options)
     elif args[0] == "bake":
         bake(Path(args[1]), Path(args[2]), Path(args[3]), int(args[4]), float(args[5]))
+    elif args[0] == "bake-colour":
+        bake_colour(Path(args[1]), Path(args[2]), Path(args[3]), int(args[4]), float(args[5]))
     else:
         invalid(f"unknown operation {args[0]}")
 

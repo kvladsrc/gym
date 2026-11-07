@@ -5,6 +5,11 @@ from typing import Annotated, Any, Literal, TypeAlias
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 NodeId: TypeAlias = Annotated[str, Field(pattern=r"^[a-zA-Z0-9_-]{1,80}$")]
+# A studio project id (ADR-010), the studio's slug.
+ProjectId: TypeAlias = Annotated[
+    str, Field(pattern=r"^[a-z0-9]+(?:[-_][a-z0-9]+)*$", max_length=64)
+]
+DEFAULT_PROJECT = "default"
 
 
 class StrictModel(BaseModel):
@@ -46,6 +51,9 @@ class Graph(StrictModel):
     schema_version: Literal[1] = 1
     title: str = Field(min_length=1, max_length=200)
     nodes: list[Node] = Field(default_factory=lambda: list[Node](), max_length=200)
+    # The studio project its jobs and their results go to. Last: graphs saved before it
+    # existed get it appended when read, in the same key order (store.unpack).
+    project: ProjectId = DEFAULT_PROJECT
 
     @model_validator(mode="after")
     def valid_edges(self) -> "Graph":

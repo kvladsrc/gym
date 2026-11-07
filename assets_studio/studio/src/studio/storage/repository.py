@@ -13,7 +13,17 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Any
 
-from studio.domain import PENDING, Asset, AssetKind, Dependency, Job, JobStatus, Origin
+from studio.domain import (
+    DEFAULT_PROJECT,
+    PENDING,
+    Asset,
+    AssetKind,
+    Dependency,
+    Job,
+    JobStatus,
+    Origin,
+    Project,
+)
 from studio.storage.db import Database
 
 # Motion of any file format: a motion asset (SMPL-X, SOMA), or made by a motion task (the
@@ -62,13 +72,78 @@ class Repository:
     def __init__(self, database: Database) -> None:
         self.db = database
 
+    # Projects (ADR-010)
+
+    def projects(self) -> list[Project]:
+        """Projects not deleted: the default one first, then by title."""
+        rows = self.db.connection.execute(
+            f"""SELECT {_PROJECT_COLUMNS} FROM projects p WHERE deleted_at IS NULL
+                ORDER BY p.id = ? DESC, lower(p.title), p.id""",
+            (DEFAULT_PROJECT,),
+        )
+        return [_project(row) for row in rows]
+
+    def project(self, project_id: str) -> Project | None:
+        """A project, deleted ones included."""
+        row = self.db.connection.execute(
+            f"SELECT {_PROJECT_COLUMNS} FROM projects p WHERE id = ?", (project_id,)
+        ).fetchone()
+        return None if row is None else _project(row)
+
+    def add_project(self, project: Project) -> None:
+        """``ProjectExists`` if the id is taken, also by a deleted project: its jobs keep it."""
+        try:
+            self.db.connection.execute(
+                "INSERT INTO projects (id, title, created_at) VALUES (?, ?, ?)",
+                (project.id, project.title, project.created_at),
+            )
+        except sqlite3.IntegrityError as error:
+            raise ProjectExists(f"project id {project.id} is taken") from error
+
+    def rename_project(self, project_id: str, title: str) -> None:
+        with self.db.transaction() as connection:
+            _check_project(connection, project_id)
+            connection.execute("UPDATE projects SET title = ? WHERE id = ?", (title, project_id))
+
+    def delete_project(self, project_id: str) -> None:
+        """Mark an empty project deleted: no assets in the library, no unfinished jobs.
+        ``ProjectNotEmpty`` otherwise, and always for the default project."""
+        with self.db.transaction() as connection:
+            _check_project(connection, project_id)
+            if project_id == DEFAULT_PROJECT:
+                raise ProjectNotEmpty("the default project cannot be deleted")
+            assets = connection.execute(
+                "SELECT count(*) FROM assets WHERE project = ? AND deleted_at IS NULL",
+                (project_id,),
+            ).fetchone()[0]
+            if assets:
+                raise ProjectNotEmpty(f"project {project_id} still has {assets} assets")
+            unfinished = connection.execute(
+                f"""SELECT id FROM jobs WHERE project = ?
+                    AND status IN ({_PENDING_SQL}, 'running') ORDER BY id LIMIT 1""",
+                (project_id,),
+            ).fetchone()
+            if unfinished is not None:
+                raise ProjectNotEmpty(
+                    f"job {unfinished['id']} of project {project_id} is unfinished"
+                )
+            connection.execute(
+                "UPDATE projects SET deleted_at = ? WHERE id = ?", (now(), project_id)
+            )
+
     # Assets
 
     def add_asset(self, asset: Asset, connection: sqlite3.Connection | None = None) -> None:
-        (connection or self.db.connection).execute(
+        """``ProjectNotFound`` unless its project exists and is not deleted."""
+        if connection is None:
+            with self.db.transaction() as connection:
+                self.add_asset(asset, connection)
+            return
+        _check_project(connection, asset.project)
+        connection.execute(
             """INSERT INTO assets (id, kind, blob_sha256, mime, size_bytes, origin, source_url,
-                                   title, favorite, meta, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                   title, favorite, meta, created_at, project)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 asset.id,
                 asset.kind,
@@ -81,6 +156,7 @@ class Repository:
                 int(asset.favorite),
                 _json(asset.meta),
                 asset.created_at,
+                asset.project,
             ),
         )
 
@@ -93,6 +169,7 @@ class Repository:
     def assets(
         self,
         *,
+        project: str | None = None,
         kind: AssetKind | None = None,
         favorite: bool | None = None,
         tags: Iterable[str] = (),
@@ -101,11 +178,15 @@ class Repository:
         motion: bool | None = None,
         limit: int = 100,
     ) -> list[Asset]:
-        """Assets matching every filter given; ``tags``: having all of them; ``motion``: a motion
-        asset or made by a motion task (True), or neither (False)."""
+        """Assets matching every filter given; ``project``: of that project (all when None);
+        ``tags``: having all of them; ``motion``: a motion asset or made by a motion task
+        (True), or neither (False)."""
         query = f"SELECT {_ASSET_COLUMNS} FROM assets"
         conditions: list[str] = ["deleted_at IS NULL"]
         arguments: list[object] = []
+        if project is not None:
+            conditions.append("project = ?")
+            arguments.append(project)
         if kind is not None:
             conditions.append("kind = ?")
             arguments.append(kind)
@@ -139,28 +220,34 @@ class Repository:
         favorite: bool | None = None,
         rating: int | type[Unset] | None = Unset,
         tags: Iterable[str] | None = None,
+        project: str | None = None,
     ) -> Asset | None:
         """Change the editable fields that are given; return the updated asset.
-        ``rating=None`` clears the rating; ``tags`` replaces all tags."""
-        if rating is not Unset:
-            self.db.connection.execute(
-                "UPDATE assets SET rating = ? WHERE id = ?", (rating, asset_id)
-            )
-        if tags is not None:
-            with self.db.transaction() as connection:
+        ``rating=None`` clears the rating; ``tags`` replaces all tags; ``project`` moves the
+        asset (only the asset: the job that made it stays where it ran). All or nothing:
+        ``ProjectNotFound`` leaves the asset as it was."""
+        with self.db.transaction() as connection:
+            if project is not None:
+                _check_project(connection, project)
+                connection.execute(
+                    "UPDATE assets SET project = ? WHERE id = ?", (project, asset_id)
+                )
+            if rating is not Unset:
+                connection.execute("UPDATE assets SET rating = ? WHERE id = ?", (rating, asset_id))
+            if tags is not None:
                 connection.execute("DELETE FROM asset_tags WHERE asset_id = ?", (asset_id,))
                 connection.executemany(
                     "INSERT INTO asset_tags (asset_id, tag) VALUES (?, ?)",
                     [(asset_id, tag) for tag in sorted(set(tags))],
                 )
-        if title is not None:
-            self.db.connection.execute(
-                "UPDATE assets SET title = ? WHERE id = ?", (title or None, asset_id)
-            )
-        if favorite is not None:
-            self.db.connection.execute(
-                "UPDATE assets SET favorite = ? WHERE id = ?", (int(favorite), asset_id)
-            )
+            if title is not None:
+                connection.execute(
+                    "UPDATE assets SET title = ? WHERE id = ?", (title or None, asset_id)
+                )
+            if favorite is not None:
+                connection.execute(
+                    "UPDATE assets SET favorite = ? WHERE id = ?", (int(favorite), asset_id)
+                )
         return self.asset(asset_id)
 
     def delete_asset(self, asset_id: str) -> tuple[Asset, bool] | None:
@@ -277,10 +364,12 @@ class Repository:
             ).fetchone()
             if gone is not None:
                 raise InputDeleted(f"asset {gone['id']} was deleted")
+            # Here too: an empty project may be deleted after the caller looked.
+            _check_project(connection, job.project)
             connection.execute(
                 """INSERT INTO jobs (id, server, task, prompt, params, count, seed, status,
-                                     idempotency_key, retry_of, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                     idempotency_key, retry_of, created_at, project)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     job.id,
                     job.server,
@@ -293,6 +382,7 @@ class Repository:
                     job.idempotency_key,
                     job.retry_of,
                     job.created_at,
+                    job.project,
                 ),
             )
             connection.executemany(
@@ -326,41 +416,32 @@ class Repository:
         return found
 
     def job(self, job_id: str) -> Job | None:
-        connection = self.db.connection
-        row = connection.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
-        if row is None:
-            return None
-        inputs = {
-            item["role"]: item["asset_id"]
-            for item in connection.execute(
-                "SELECT role, asset_id FROM job_inputs WHERE job_id = ?", (job_id,)
-            )
-        }
-        dependencies = {
-            item["input_role"]: Dependency(item["depends_on"], item["output_index"])
-            for item in connection.execute(
-                "SELECT * FROM job_dependencies WHERE job_id = ?", (job_id,)
-            )
-        }
-        outputs = [
-            item["asset_id"]
-            for item in connection.execute(
-                "SELECT asset_id FROM job_outputs WHERE job_id = ? ORDER BY position", (job_id,)
-            )
-        ]
-        return _job(row, inputs, dependencies, outputs)
+        with self.db.snapshot() as connection:
+            rows = connection.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchall()
+            found = _jobs(connection, rows)
+        return found[0] if found else None
 
-    def jobs(self, *, statuses: Iterable[JobStatus] | None = None, limit: int = 100) -> list[Job]:
-        query = "SELECT id FROM jobs WHERE deleted_at IS NULL"
+    def jobs(
+        self,
+        *,
+        statuses: Iterable[JobStatus] | None = None,
+        project: str | None = None,
+        limit: int = 100,
+    ) -> list[Job]:
+        """Newest first, deleted ones left out; ``project``: of that project (all when None)."""
+        query = "SELECT * FROM jobs WHERE deleted_at IS NULL"
         arguments: list[object] = []
+        if project is not None:
+            query += " AND project = ?"
+            arguments.append(project)
         if statuses is not None:
             wanted = list(statuses)
             query += f" AND status IN ({_placeholders(wanted)})"
             arguments += wanted
         query += " ORDER BY id DESC LIMIT ?"
         arguments.append(limit)
-        ids = [row["id"] for row in self.db.connection.execute(query, arguments)]
-        return [job for job_id in ids if (job := self.job(job_id)) is not None]
+        with self.db.snapshot() as connection:
+            return _jobs(connection, connection.execute(query, arguments).fetchall())
 
     def next_ready(self, servers: Sequence[str]) -> Job | None:
         """The earliest pending job of these servers whose dependencies have succeeded.
@@ -575,6 +656,29 @@ class InputDeleted(ValueError):
     pass
 
 
+class ProjectNotFound(ValueError):
+    """No such project, or it was deleted."""
+
+
+class ProjectExists(ValueError):
+    pass
+
+
+class ProjectNotEmpty(ValueError):
+    pass
+
+
+def _check_project(connection: sqlite3.Connection, project_id: str) -> None:
+    """``ProjectNotFound`` unless the project exists and is not deleted."""
+    row = connection.execute(
+        "SELECT deleted_at FROM projects WHERE id = ?", (project_id,)
+    ).fetchone()
+    if row is None:
+        raise ProjectNotFound(f"project {project_id} not found")
+    if row["deleted_at"] is not None:
+        raise ProjectNotFound(f"project {project_id} was deleted")
+
+
 def _fail_dependents(connection: sqlite3.Connection, job_id: str) -> list[str]:
     """Fail pending jobs that (transitively) depend on ``job_id``; return their ids."""
     rows = connection.execute(
@@ -609,6 +713,23 @@ _ASSET_COLUMNS = (
 )
 
 
+# Columns of a project row (alias p), with the number of its assets in the library.
+_PROJECT_COLUMNS = (
+    "p.*, (SELECT count(*) FROM assets a WHERE a.project = p.id AND a.deleted_at IS NULL)"
+    " AS asset_count"
+)
+
+
+def _project(row: sqlite3.Row) -> Project:
+    return Project(
+        id=row["id"],
+        title=row["title"],
+        created_at=row["created_at"],
+        deleted_at=row["deleted_at"],
+        asset_count=row["asset_count"],
+    )
+
+
 def _asset(row: sqlite3.Row) -> Asset:
     return Asset(
         id=row["id"],
@@ -625,7 +746,42 @@ def _asset(row: sqlite3.Row) -> Asset:
         deleted_at=row["deleted_at"],
         rating=row["rating"],
         tags=tuple(row["tag_list"].split("\x1f")) if row["tag_list"] else (),
+        project=row["project"],
     )
+
+
+def _jobs(connection: sqlite3.Connection, rows: Sequence[sqlite3.Row]) -> list[Job]:
+    """The jobs of these rows, in their order, with inputs, dependencies and outputs: three
+    queries however many jobs there are (the API lists up to 1000)."""
+    ids = [row["id"] for row in rows]
+    if not ids:
+        return []
+    marks = _placeholders(ids)
+    inputs: dict[str, dict[str, str]] = {job_id: {} for job_id in ids}
+    for item in connection.execute(
+        f"SELECT job_id, role, asset_id FROM job_inputs WHERE job_id IN ({marks})"
+        " ORDER BY job_id, role",
+        ids,
+    ):
+        inputs[item["job_id"]][item["role"]] = item["asset_id"]
+    dependencies: dict[str, dict[str, Dependency]] = {job_id: {} for job_id in ids}
+    for item in connection.execute(
+        f"SELECT * FROM job_dependencies WHERE job_id IN ({marks}) ORDER BY job_id, input_role",
+        ids,
+    ):
+        dependencies[item["job_id"]][item["input_role"]] = Dependency(
+            item["depends_on"], item["output_index"]
+        )
+    outputs: dict[str, list[str]] = {job_id: [] for job_id in ids}
+    for item in connection.execute(
+        f"SELECT job_id, asset_id FROM job_outputs WHERE job_id IN ({marks})"
+        " ORDER BY job_id, position",
+        ids,
+    ):
+        outputs[item["job_id"]].append(item["asset_id"])
+    return [
+        _job(row, inputs[row["id"]], dependencies[row["id"]], outputs[row["id"]]) for row in rows
+    ]
 
 
 def _job(
@@ -659,4 +815,5 @@ def _job(
         started_at=row["started_at"],
         finished_at=row["finished_at"],
         deleted_at=row["deleted_at"],
+        project=row["project"],
     )

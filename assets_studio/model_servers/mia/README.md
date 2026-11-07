@@ -15,7 +15,7 @@ just serve     # http://127.0.0.1:9113
 just test      # no GPU or weights needed
 ```
 
-Downloads (outside Dropbox):
+Downloads:
 
 - Source at revision `bbd8b15` and `jasongzy/Make-It-Animatable` weights
   (`output/best/v2`): `~/.cache/assets-studio/mia-source`.

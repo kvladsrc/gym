@@ -5,6 +5,7 @@ import { useState } from "preact/hooks";
 import { api } from "../api/client";
 import { promptLabel } from "../format";
 import { draftFor, targetOf, updateDraft } from "../state/drafts";
+import { currentProject } from "../state/projects";
 import type { Section } from "../state/sections";
 import { assetById, mergeJob } from "../state/store";
 import { InputPicker } from "./InputPicker";
@@ -72,6 +73,7 @@ export function GenerationForm({
     try {
       const job = await api.createJob({
         server: server.id,
+        project: currentProject.value,
         task: task.task,
         prompt:
           task.prompt === "none" || !draft.prompt.trim()

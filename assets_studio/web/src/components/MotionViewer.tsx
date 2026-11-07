@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 
 import { api, type Asset, type Skeleton } from "../api/client";
 import { t } from "../i18n";
+import { currentProject } from "../state/projects";
 import { attempt, mergeJob, say, servers } from "../state/store";
 import { cssColor, dark } from "../state/theme";
 
@@ -189,6 +190,7 @@ export function MotionViewer({ asset }: { asset: Asset }) {
     const job = await attempt(() =>
       api.createJob({
         server: server.id,
+        project: currentProject.value,
         task,
         prompt,
         count: 1,

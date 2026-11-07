@@ -24,7 +24,7 @@ from studio.config import Server, StudioConfig, load_config
 from studio.core import DataDirectoryBusy, Studio
 from studio.domain import Dependency, Job, JobStatus, new_id
 from studio.services.generation import JobRequestError, JobStateError
-from studio.services.library import ImportError_
+from studio.services.library import AssetImportError
 from studio.storage.blobs import BlobStore
 from studio.storage.repository import JobNotRunning, Repository
 from support import live_server
@@ -784,14 +784,14 @@ def test_import_detects_format_and_deduplicates_files(tmp_path: Path) -> None:
         fbx = studio.library.import_bytes(media.FBX_MAGIC + b"\x34\x1d\x00\x00" + b"\0" * 64)
         assert (fbx.kind, fbx.mime) == ("mesh", "model/x-fbx")
         assert len(list((tmp_path / "blobs").rglob("*.fbx"))) == 1
-        with pytest.raises(ImportError_, match="unsupported file format"):
+        with pytest.raises(AssetImportError, match="unsupported file format"):
             studio.library.import_bytes(b"\x00\x01 binary garbage")
 
 
 def test_import_size_limit(tmp_path: Path) -> None:
     studio = Studio(StudioConfig(data_dir=tmp_path, max_import_bytes=100))
     try:
-        with pytest.raises(ImportError_, match="larger than 100"):
+        with pytest.raises(AssetImportError, match="larger than 100"):
             studio.library.import_bytes(png() + b"\0" * 200)
     finally:
         studio.close()
@@ -813,11 +813,11 @@ def test_import_from_url(tmp_path: Path) -> None:
         try:
             asset = studio.library.import_url(f"{url}/picture.png")
             assert (asset.origin, asset.source_url) == ("url", f"{url}/picture.png")
-            with pytest.raises(ImportError_, match="larger than 1000"):
+            with pytest.raises(AssetImportError, match="larger than 1000"):
                 studio.library.import_url(f"{url}/large")
-            with pytest.raises(ImportError_, match="cannot download"):
+            with pytest.raises(AssetImportError, match="cannot download"):
                 studio.library.import_url(f"{url}/missing")
-            with pytest.raises(ImportError_, match="http"):
+            with pytest.raises(AssetImportError, match="http"):
                 studio.library.import_url("file:///etc/passwd")
         finally:
             studio.close()

@@ -46,28 +46,6 @@ def fit_input(width: int, height: int) -> tuple[int, int]:
     )
 
 
-def denoising_steps(steps: int, strength: float) -> int:
-    """Steps SDXL image-to-image really runs (``int(steps * strength)``).
-    Other pipelines round differently: FLUX runs at least one step."""
-    return int(steps * strength)
-
-
-def min_steps(strength: float) -> int:
-    """The fewest steps that denoise at least once at this strength."""
-    return math.ceil(1 / strength - 1e-9)
-
-
-def check_denoising(steps: int, strength: float) -> int:
-    """Denoising steps for image-to-image; InvalidInput if there would be none."""
-    denoising = denoising_steps(steps, strength)
-    if denoising < 1:
-        raise InvalidInput(
-            f"at strength {strength} {steps} steps denoise nothing; "
-            f"use at least {min_steps(strength)} steps"
-        )
-    return denoising
-
-
 def open_image(data: bytes, *, keep_alpha: bool = False) -> Image.Image:
     """Decode an input upright (EXIF). As RGB with transparency composited on
     white, or, with ``keep_alpha``, as RGBA when the image has transparency

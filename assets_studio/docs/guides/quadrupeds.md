@@ -9,9 +9,10 @@ model animates the painted creature seen by two locked cameras, a joint reader
 trained on that one creature finds every joint in both views, and a fit turns
 the joints into bone rotations. Nothing in the result is keyframed by hand.
 
-The tooling around AnyMove lives in `workspace/anymove_src/` (not in git):
-`repo/` is the AnyMove clone with two local patches (below), `markup/` holds
-the hand-markup pages, `single_view/` the Blender and Python helpers.
+The tooling around AnyMove is not part of this repository; the commands below
+refer to its layout: `repo/` is the AnyMove clone with two local patches
+(below), `markup/` holds the hand-markup pages, `single_view/` the Blender and
+Python helpers.
 
 ## Pipeline
 
