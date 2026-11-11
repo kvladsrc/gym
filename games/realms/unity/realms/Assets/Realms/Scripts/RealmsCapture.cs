@@ -25,6 +25,12 @@ namespace Realms
             Directory.CreateDirectory(captureDir);
             World world = state.World;
             yield return null;
+            if (captureOnly == "menu")
+            {
+                yield return MenuShots();
+                Application.Quit();
+                yield break;
+            }
 
             // The whole seen land, pulled back as far as the camera goes over it (a little south
             // of its middle, so the land sits between the top bar and the bottom panel).
@@ -654,6 +660,23 @@ namespace Realms
             // The end of the game: the players' crown set with the three gems they are nearest to.
             yield return CrownShot();
             Application.Quit();
+        }
+
+        /// <summary>
+        /// Only the menus, to look at their buttons in a few seconds: the menu beside the map, the
+        /// new game's screen and the main menu with a game behind it and without one.
+        /// </summary>
+        IEnumerator MenuShots()
+        {
+            hud.ShowMenu(true);
+            yield return Shot("15b-menu");
+            hud.ShowNewGame(state.World.Seed, difficulty);
+            yield return Shot("15e-new-game");
+            hud.ShowTitle(Words.TitleContinueLine(state.World.Countries[state.World.Player].Label, state.Turn));
+            yield return Shot("15j-title");
+            hud.ShowTitle("");
+            yield return Shot("15k-title-new");
+            hud.ShowMenu(false);
         }
 
         /// <summary>

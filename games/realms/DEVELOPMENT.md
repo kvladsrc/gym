@@ -10,14 +10,16 @@ tested with plain dotnet.
 The first iteration is the map: generation, borders, the look of cities,
 resources and lairs, the interface, and the turn button with income. The second
 is building: field buildings on resources, the town panel (growth, levels,
-market, granary, tavern), buying land, the turn report and small tasks. The
-third is adventure on a larger map (70 × 42) under fog of war: heroes lead
-armies hired in the towns (barracks, archery range, stables), fight seven kinds
-of monster groups in a tactical battle mode of its own and visit chests, piles,
-shrines and watchtowers. Settlers found new towns, walls keep the monsters near
-a town from growing, and a castle lets a town grow into a royal city. The
-kingdoms do not fight each other. Later iterations follow the notes after
-playing; [DESIGN.md](DESIGN.md) plans them.
+market, granary, tavern), the turn report and small tasks. The third is
+adventure on a larger map (70 × 42) under fog of war: heroes lead armies hired
+in the towns (barracks, archery range, stables), fight seven kinds of monster
+groups in a tactical battle mode of its own and visit chests, piles, shrines
+and watchtowers. Settlers found new towns, and a castle lets a town grow into a
+royal city. Later came the plans' steps: the crown of gems as the goal,
+borders that grow from the towns' influence (land is no longer bought),
+neighbours that play their own turns, lairs' raids that walls beat off, saves,
+the guiding lines, the menu and English. The kingdoms do not fight each other.
+[DESIGN.md](DESIGN.md) has the rules and the plans.
 
 ## Commands
 
@@ -27,7 +29,7 @@ From the monorepo root, through the Nix environment:
 nix develop -c just realms fetch-art  # Studio art -> Assets/Realms/Art
 nix develop -c just realms build      # Realms/Setup, then the Linux player
 nix develop -c just realms build windows  # Windows player (Mono), on Linux
-nix develop -c just realms package    # both players packed into Builds/dist
+nix develop -c just realms package    # players and sources packed into Builds/dist
 nix develop -c just realms play       # NVIDIA PRIME offload, native Wayland
 nix develop -c just realms test       # generator and economy, no Unity
 ```
@@ -43,7 +45,9 @@ builds through the Editor when the project is open there, otherwise headless
 (the first headless import takes several minutes).
 `tools/package.sh` packs `Builds/Linux` and `Builds/Windows` as
 `Builds/dist/hexcrown-<version>-linux.tar.gz` and `-windows.zip`, one folder
-each, without Unity's backup and debug folders.
+each, without Unity's backup and debug folders, and the sources as
+`-source.zip`: what Git keeps, the Studio art that `fetch-art` brought and the
+repository's licence. `tools/package.sh source` packs only the sources.
 
 Other arguments of the player: `-realmsCapture DIR` takes the screenshots of
 `RealmsCapture` into DIR and quits, `-realmsPromo DIR` records the promo's

@@ -3145,6 +3145,9 @@
 
 .menu-foot {
     flex-shrink: 0;
+}
+
+.menu-foot-text {
     font-size: 14px;
     color: #988F7F;
 }
@@ -3541,15 +3544,8 @@
     display: none;
 }
 
-.on-main .menu-foot {
-    position: absolute;
-    right: 24px;
-    bottom: 16px;
-    color: #F3EEE2;
-    text-shadow: 1px 1px 3px rgba(21, 19, 15, 0.9);
-}
-
-/* On the main menu the languages stand at its bottom left corner, the version at the right. */
+/* On the main menu the languages stand at its bottom left corner, the version at the right
+   (its plate is with the menu's buttons below). */
 .on-main .menu-langs {
     position: absolute;
     left: 24px;
@@ -3663,4 +3659,261 @@
 .new-game-gap {
     flex-shrink: 0;
     height: 18px;
+}
+
+/* ----- The menu's buttons as the players' reference page draws them (2026-11-11) ----- */
+
+/* Bevel.cs draws each one: an underlay with cut corners, on it a face with a rim and a darker
+   plate inside, a soft shadow under the whole. The colours are the reference's own. Its sizes
+   are for a button 290 wide and the main menu's is 440, so each is the reference's times 1.517
+   (its 7 px cut is 10.6 here, its 4 px underlay 6, its 9 px gap 14), in the column too, where
+   the buttons are as high and only narrower. The painted pictures of the other buttons are
+   not used. The bottom padding is the underlay's depth, so the content sits on the face. */
+.menu .menu-button,
+.menu .menu-button.button-primary,
+.menu .menu-lang,
+.menu .menu-lang.button-primary {
+    background-image: none;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    border-radius: 0;
+}
+
+/* The shade is the reference's inner shadow as it comes out at the plate's bottom edge (its
+   0.55 blurred is 0.41 there), over its 8 px. */
+.menu .menu-button {
+    height: 62px;
+    margin: 0 0 14px 0;
+    padding: 0 15px 6px 15px;
+    --bevel-face: #261E16;
+    --bevel-face-low: #17120D;
+    --bevel-rim: #594630;
+    --bevel-side: #110D09;
+    --bevel-cut: 10.6;
+    --bevel-depth: 6;
+    --bevel-rim-width: 2.3;
+    --bevel-light: rgba(255, 255, 255, 0.12);
+    --bevel-shade: rgba(0, 0, 0, 0.41);
+    --bevel-shade-size: 12;
+    --bevel-shadow: rgba(0, 0, 0, 0.48);
+    --bevel-shadow-drop: 6;
+    --bevel-shadow-blur: 4.5;
+    --bevel-time: 0.22;
+    --bevel-press-time: 0.08;
+    --bevel-shadow-time: 0.18;
+    --bevel-rim-time: 0.2;
+}
+
+.menu .menu-button.button-primary {
+    --bevel-face: #382914;
+    --bevel-face-low: #21170B;
+    --bevel-rim: #FFD666;
+    --bevel-rim-low: #E8A325;
+    --bevel-side: #8F5306;
+    --bevel-light: rgba(255, 224, 130, 0.25);
+    --bevel-shade: rgba(0, 0, 0, 0.49);
+}
+
+/* Quitting is the red one. */
+.menu .menu-button.menu-danger {
+    --bevel-face: #301518;
+    --bevel-face-low: #1F0D0F;
+    --bevel-rim: #69292F;
+    --bevel-side: #17080A;
+}
+
+/* The captions keep their colours under the pointer. Their weights are set in HudMenu.cs. */
+.menu .menu-button .button-caption {
+    font-size: 22px;
+    color: #EFE6D5;
+    letter-spacing: 0.6px;
+    text-shadow: 0 1.5px 3px rgba(0, 0, 0, 0.85);
+}
+
+.menu .menu-button.button-primary .button-caption {
+    color: #FFD666;
+    letter-spacing: 1.2px;
+}
+
+.menu .menu-button.menu-danger .button-caption {
+    color: #EB8D93;
+}
+
+/* How the buttons move, from the reference's own transitions; Bevel.cs eases these, each in
+   its time (the widening 0.22 s on the reference's curve, the shadow 0.18 s, the rim 0.2 s, the
+   press 0.08 s). Under the pointer a button widens to both sides without changing its height
+   or pushing its neighbours, its shadow falls further and darker, and its rim lights up; the
+   plate and the caption keep their colours. The reference widens by 18 px to each side; in the
+   column that would run over the edge of the screen and onto the map, so there a button widens
+   by what the column's margin of 22 px has room for. A held button keeps its width, so it does
+   not shrink away from a pointer near its end. */
+.menu .menu-button:hover:enabled,
+.menu .menu-button:active:enabled {
+    --bevel-grow: 12;
+    --bevel-rim: #B88C4A;
+    --bevel-shadow: rgba(0, 0, 0, 0.58);
+    --bevel-shadow-drop: 9;
+    --bevel-shadow-blur: 7.6;
+}
+
+.menu .menu-button.button-primary:hover:enabled,
+.menu .menu-button.button-primary:active:enabled {
+    --bevel-rim: #FFE699;
+    --bevel-rim-low: #F5B335;
+}
+
+.menu .menu-button.menu-danger:hover:enabled,
+.menu .menu-button.menu-danger:active:enabled {
+    --bevel-rim: #A83E47;
+}
+
+/* On the main menu there is room for the reference's whole widening. */
+.on-main .menu-buttons > .menu-button:hover:enabled,
+.on-main .menu-buttons > .menu-button:active:enabled {
+    --bevel-grow: 27;
+}
+
+/* While held the face goes down onto its underlay, the caption and the key with it, by the
+   reference's 3 px of 4 (a whole 5 px of 6 here, so the caption stays sharp), and the shadow
+   draws in under it; the button itself stays where it was (see HudPress.cs). */
+.menu .menu-button:active:enabled {
+    --bevel-sink: 5;
+    --bevel-shadow: rgba(0, 0, 0, 0.6);
+    --bevel-shadow-drop: 1.5;
+    --bevel-shadow-blur: 1.5;
+}
+
+.menu .menu-continue {
+    height: 80px;
+}
+
+/* The game's line gives way with three dots before it runs under the key. */
+.menu .menu-continue-words {
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.menu .menu-continue-line {
+    font-size: 16px;
+    color: #B8A88A;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The key on a small flat plate of the same shape, a darker plate inside a thin rim, its
+   letters the reference's gold-tan on every button. */
+.key-plate {
+    flex-shrink: 0;
+    margin-left: 8px;
+    padding: 0;
+    --bevel-face: #14100C;
+    --bevel-rim: #594630;
+    --bevel-cut: 4.5;
+    --bevel-rim-width: 1.5;
+    --bevel-light: rgba(255, 255, 255, 0.08);
+}
+
+.button-primary .key-plate {
+    --bevel-rim: #B88228;
+}
+
+.key-plate .key-hint,
+.key-plate .key-hint-dark,
+.button-primary .key-plate .key-hint,
+.button-primary .key-plate .key-hint-dark {
+    margin: 0;
+    padding: 2px 9px 1px 9px;
+    font-size: 15px;
+    color: #D9B675;
+    letter-spacing: 0.76px;
+    background-color: rgba(0, 0, 0, 0);
+    border-radius: 0;
+}
+
+/* The key's unseen twin at the button's other end (HudMenu.cs): as wide as the key while there
+   is room, so the caption is in the button's middle, and the first to give way to a long one. */
+.key-twin {
+    visibility: hidden;
+    flex-shrink: 1000;
+    min-width: 0;
+    overflow: hidden;
+    margin: 0 8px 0 0;
+}
+
+/* The languages: one dark strip in a rim, flat, the chosen one filling its end with gold. The
+   buttons stand inside the rim, and the gold takes the strip's inner corners at its end. */
+.menu .menu-langs {
+    align-self: flex-start;
+    padding: 2px;
+    --bevel-face: #18130E;
+    --bevel-rim: #594630;
+    --bevel-cut: 7.6;
+    --bevel-rim-width: 2.3;
+    --bevel-shadow: rgba(0, 0, 0, 0.5);
+    --bevel-shadow-drop: 4.5;
+    --bevel-shadow-blur: 4.5;
+}
+
+/* --bevel-ink is the colour of the button's words, which Bevel.cs eases as the reference does. */
+.menu .menu-lang {
+    height: 36px;
+    min-width: 0;
+    margin: 0;
+    padding: 0 17px;
+    --bevel-ink: #9E8E75;
+    --bevel-ink-time: 0.15;
+}
+
+.menu .menu-lang:hover {
+    --bevel-ink: #EFE6D5;
+}
+
+.menu .menu-lang.button-primary {
+    --bevel-face: #F2B838;
+    --bevel-face-low: #C98314;
+    --bevel-ink: #1F1406;
+}
+
+.menu .menu-lang-first {
+    --bevel-cut-left: 6.3;
+}
+
+.menu .menu-lang-last {
+    --bevel-cut-right: 6.3;
+}
+
+.menu .menu-lang .button-caption {
+    font-size: 16px;
+}
+
+/* The chosen language's tick, drawn in HudMenu.cs. */
+.menu-lang-tick {
+    flex-shrink: 0;
+    width: 13px;
+    height: 12px;
+    margin-right: 7px;
+}
+
+/* The version on the main menu: a plate like the languages' strip, at the other corner. In the
+   column it stays a plain line. */
+.on-main .menu-foot {
+    position: absolute;
+    right: 24px;
+    bottom: 16px;
+    padding: 8px 20px;
+    --bevel-face: #18130E;
+    --bevel-rim: #4A3A28;
+    --bevel-cut: 7.6;
+    --bevel-rim-width: 2.3;
+    --bevel-shadow: rgba(0, 0, 0, 0.5);
+    --bevel-shadow-drop: 4.5;
+    --bevel-shadow-blur: 4.5;
+}
+
+.on-main .menu-foot-text {
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    color: #B8A88A;
 }

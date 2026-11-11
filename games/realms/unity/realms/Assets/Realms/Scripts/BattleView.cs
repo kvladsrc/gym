@@ -1097,43 +1097,6 @@ namespace Realms
         /// </summary>
         public float Hands;
 
-        /// <summary>
-        /// The promo's camera: eases over <paramref name="seconds"/> towards the middle of the
-        /// living stacks and nearer by <paramref name="share"/> of its distance to the field.
-        /// </summary>
-        public IEnumerator Nearer(float share, float seconds)
-        {
-            if (cam == null || battle == null)
-                yield break;
-            Transform eye = cam.transform;
-            Vector3 from = eye.position, forward = eye.forward;
-            if (forward.y > -0.05f)
-                yield break;
-            float along = (Origin.y - from.y) / forward.y;
-            Vector3 look = from + forward * along, middle = Vector3.zero;
-            int count = 0;
-            foreach (KeyValuePair<int, Transform> pair in figures)
-            {
-                if (battle.Fighters[pair.Key].Alive)
-                {
-                    middle += pair.Value.position;
-                    count++;
-                }
-            }
-            if (count == 0)
-                yield break;
-            middle /= count;
-            middle.y = look.y;
-            Vector3 to = from + (middle - look) + forward * (along * share);
-            for (float t = 0f; t < seconds && battle != null; t += Time.deltaTime)
-            {
-                eye.position = Vector3.Lerp(from, to, Mathf.SmoothStep(0f, 1f, t / seconds));
-                yield return null;
-            }
-            if (battle != null)
-                eye.position = to;
-        }
-
         /// <summary>Turns the auto battle on or off (as the A key does).</summary>
         public void SetAuto(bool on)
         {

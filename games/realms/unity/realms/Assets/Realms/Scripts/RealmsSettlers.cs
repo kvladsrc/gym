@@ -47,13 +47,17 @@ namespace Realms
                 yield break;
             }
             busy = true;
-            string suggestion = Settling.NewName(state.World);
+            // The offered name is shown in the game's language; kept as offered, the town takes the
+            // name's key, so it reads in either language (in English the field offered the Russian
+            // key, 2026-11-11).
+            string suggestion = Settling.NewName(state.World), shown = NameWords.Shown(suggestion);
             TextField field = null;
             int choice = 1;
             yield return AskAndWait(T("Новый город", "New town"), "icon_cart", T("Поселенцы готовы строить. Как назовём город?", "The settlers are ready to build. What shall we call the town?"),
-                new[] { T("Основать", "Found"), T("Отмена", "Cancel") }, k => choice = k, body => field = hud.NameField(body, suggestion));
+                new[] { T("Основать", "Found"), T("Отмена", "Cancel") }, k => choice = k, body => field = hud.NameField(body, shown));
             int[] before = Marks();
-            if (choice != 0 || state.Found(founder, field != null ? field.value : suggestion) != Refusal.None)
+            string typed = field != null ? field.value : shown;
+            if (choice != 0 || state.Found(founder, typed.Trim() == shown ? suggestion : typed) != Refusal.None)
             {
                 busy = false;
                 yield break;

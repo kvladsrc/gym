@@ -1,7 +1,7 @@
 # Hexcrown
 
 A calm, turn-based fantasy strategy game on a hex map, made to be played
-together with a child, or alone over one evening. Single player, mouse and
+together with a child; a game fits into one evening. Single player, mouse and
 keyboard, English and Russian, Windows and Linux.
 
 Six kingdoms share a generated land of meadows, forests, hills and coasts under

@@ -12,9 +12,10 @@ fetch-art *args:
 build platform="linux":
     tools/build.sh {{platform}}
 
-# Pack the built players into Builds/dist (hexcrown-<version>-linux.tar.gz, -windows.zip)
-package:
-    tools/package.sh
+# Pack the built players and the sources into Builds/dist (hexcrown-<version>-linux.tar.gz,
+# -windows.zip, -source.zip); name some of linux, windows, source to pack only those
+package *what:
+    tools/package.sh {{what}}
 
 # Play the player build on the NVIDIA GPU (-seed N for a given map)
 play *args:
