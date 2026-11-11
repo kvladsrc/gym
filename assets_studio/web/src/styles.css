@@ -25,6 +25,11 @@
   --viewer: #fafbfc;
   --wave: #b8c2d0;
   --checker: #e3e6ea;
+  /* A model's colour (ModelChip.tsx): OKLCH lightness and chroma per use; the hue is the model's. */
+  --model-bg: 95% 0.035;
+  --model-line: 85% 0.08;
+  --model-text: 42% 0.13;
+  --model-mark: 65% 0.17;
   color-scheme: light;
   --radius: 6px;
   --gap: 12px;
@@ -65,6 +70,10 @@
     --viewer: #22272e;
     --wave: #4a5563;
     --checker: #2c323a;
+    --model-bg: 30% 0.05;
+    --model-line: 44% 0.09;
+    --model-text: 86% 0.09;
+    --model-mark: 70% 0.15;
     color-scheme: dark;
   }
 }
@@ -93,6 +102,10 @@
   --viewer: #22272e;
   --wave: #4a5563;
   --checker: #2c323a;
+  --model-bg: 30% 0.05;
+  --model-line: 44% 0.09;
+  --model-text: 86% 0.09;
+  --model-mark: 70% 0.15;
   color-scheme: dark;
 }
 
@@ -196,8 +209,17 @@ a.queue:hover {
   text-decoration: underline;
 }
 
-/* Every job: the queue, then the history. */
+/* Every job: the queue, then the history; one job's details beside them. */
 .jobs-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+}
+.jobs-page.with-details {
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 480px);
+}
+.jobs-lists {
+  min-height: 0;
   overflow-y: auto;
   padding: 16px max(16px, env(safe-area-inset-right, 0px)) 24px
     max(16px, env(safe-area-inset-left, 0px));
@@ -225,9 +247,199 @@ a.queue:hover {
   font-weight: 500;
   white-space: nowrap;
 }
-.job-model {
-  color: var(--muted);
+a.job-task {
+  color: var(--text);
+}
+a.job-task:hover {
+  text-decoration: underline;
+}
+
+/* A model as a chip in its colour (ModelChip.tsx); the element brings the hue (--hue). */
+.model-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 1px 9px 1px 7px;
+  border: 1px solid oklch(var(--model-line) var(--hue, 250));
+  border-radius: 999px;
+  background: oklch(var(--model-bg) var(--hue, 250));
+  color: oklch(var(--model-text) var(--hue, 250));
+  font-size: 12px;
+  font-weight: 600;
   white-space: nowrap;
+}
+.model-chip .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.model-chip .dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: oklch(var(--model-mark) var(--hue, 250));
+}
+/* The queue's models with their number of jobs; one narrows the queue to it. */
+.queue-models {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+button.model-chip {
+  padding: 4px 11px 4px 9px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+button.model-chip .count {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+button.model-chip:hover {
+  border-color: oklch(var(--model-mark) var(--hue, 250));
+}
+button.model-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+button.model-chip.active {
+  border-color: oklch(var(--model-text) var(--hue, 250));
+  background: oklch(var(--model-text) var(--hue, 250));
+  color: var(--surface);
+}
+button.model-chip.active .dot {
+  background: var(--surface);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .model-chip.running .dot {
+    animation: model-running 1.2s ease-in-out infinite;
+  }
+}
+@keyframes model-running {
+  50% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+}
+/* On the jobs page a row carries its model's colour and opens its details. */
+.job-row.model-row {
+  padding: 7px 10px;
+  border-left: 4px solid oklch(var(--model-mark) var(--hue, 250));
+  cursor: pointer;
+}
+.job-row.model-row:hover {
+  background: var(--sunken);
+}
+.job-row.model-row.selected {
+  background: var(--accent-soft);
+}
+
+/* One job in full. */
+.job-details {
+  min-height: 0;
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  padding: 14px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.job-details-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.job-details-head .close {
+  margin-left: auto;
+  padding: 0 7px 2px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1.2;
+}
+.job-details-head .close:hover {
+  color: var(--text);
+  background: var(--sunken);
+}
+.job-details .job-details-title {
+  margin: 0;
+  font-size: 16px;
+}
+.job-details p,
+.job-details dl {
+  margin: 0;
+}
+.job-details .mono {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px;
+}
+.job-error {
+  max-height: 20em;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.job-inputs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.job-input {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.job-input .thumb {
+  width: 56px;
+  height: 56px;
+}
+.thumb.empty {
+  cursor: default;
+}
+.job-input-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.job-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+.job-link:hover > span:not(.badge):not(.model-chip) {
+  text-decoration: underline;
+}
+.job-json pre {
+  max-height: 28em;
+  font-size: 11px;
+}
+.job-json .row {
+  margin-top: 6px;
+}
+@media (max-width: 900px) {
+  .jobs-page.with-details {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .job-details {
+    position: fixed;
+    inset: 44px 0 0;
+    z-index: 20;
+    border-left: 0;
+  }
 }
 .job-project {
   color: var(--muted);
@@ -421,8 +633,9 @@ button.link:hover {
 }
 .job-line {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
 }
 .job-row .prompt {
   overflow: hidden;
@@ -626,13 +839,26 @@ details .fields {
   padding: 0;
 }
 .thumb img,
-.thumb video,
-.thumb model-viewer {
+.thumb video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
   pointer-events: none;
+}
+/* A mesh's picture is cut to the model's outline: shown whole, never cropped.
+   Out of the flow, so a tall picture cannot stretch the thumbnail's row. */
+.mesh-thumb {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+.thumb .mesh-thumb img {
+  position: absolute;
+  inset: 0;
+  object-fit: contain;
 }
 .thumb.selected {
   border-color: var(--accent);

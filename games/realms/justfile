@@ -1,0 +1,25 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Show all available commands
+default:
+    @just --list --list-submodules
+
+# Copy the models and icons in art.json from Assets Studio into Assets/Realms/Art
+fetch-art *args:
+    python3 tools/fetch_art.py {{args}}
+
+# Build the player, linux (default) or windows (through the open Editor, or headless when it is closed)
+build platform="linux":
+    tools/build.sh {{platform}}
+
+# Pack the built players into Builds/dist (hexcrown-<version>-linux.tar.gz, -windows.zip)
+package:
+    tools/package.sh
+
+# Play the player build on the NVIDIA GPU (-seed N for a given map)
+play *args:
+    ./play.sh {{args}}
+
+# Map generator and economy tests without Unity
+test:
+    cd tools/core/Tests && PATH="$HOME/Unity/Hub/Editor/6000.6.0f1/Editor/Data/DotNetSdk:$PATH" DOTNET_CLI_TELEMETRY_OPTOUT=1 DOTNET_NOLOGO=1 MSBUILDDISABLENODEREUSE=1 dotnet test --no-restore

@@ -56,6 +56,11 @@ title = "TRELLIS.2 Paint"
 url = "http://127.0.0.1:9131"
 
 [[servers]]
+id = "hairdeck"
+title = "HairDeck"
+url = "http://127.0.0.1:9133"
+
+[[servers]]
 id = "paint21"
 title = "Hunyuan3D-Paint 2.1"
 url = "http://127.0.0.1:9120"
@@ -117,12 +122,12 @@ id = "prompthmr"
 title = "PromptHMR-video · native pilot"
 url = "http://127.0.0.1:9126"
 
-# Video
-
 [[servers]]
-id = "video"
-title = "Wan 2.2"
-url = "http://127.0.0.1:9108"
+id = "vitpose"
+title = "ViTPose++ · 2D joints"
+url = "http://127.0.0.1:9134"
+
+# Video
 
 [[servers]]
 id = "sam2"

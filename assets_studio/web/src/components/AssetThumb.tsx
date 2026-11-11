@@ -1,8 +1,7 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import type { Asset } from "../api/client";
 import { assetName, isMotionAsset, isReadableText } from "../format";
-import { clayIfShapeOnly, useModelViewer } from "./AssetPreview";
 import {
   CubeIcon,
   DataIcon,
@@ -12,6 +11,7 @@ import {
   TrashIcon,
   WaveIcon,
 } from "./Icons";
+import { useMeshPreview } from "./meshPreviews";
 
 function VideoThumb({ asset }: { asset: Asset }) {
   const [failed, setFailed] = useState(false);
@@ -30,22 +30,28 @@ function VideoThumb({ asset }: { asset: Asset }) {
   );
 }
 
-/** The model itself, still and front-on. All <model-viewer> elements share
- * one WebGL context; lazy ones load when they scroll into view. FBX (rigs,
- * ADR-006) cannot be shown: a cube. */
+/** A still picture of the model, front-on, drawn by this browser the first
+ * time it is shown (ADR-011): a live 3D view per thumbnail would load every
+ * model in the list at once. FBX (rigs, ADR-006) cannot be drawn: a cube. */
 function MeshThumb({ asset }: { asset: Asset }) {
-  const glb = asset.mime === "model/gltf-binary";
-  const ready = useModelViewer(glb);
-  if (!glb || !ready) return <CubeIcon />;
+  const box = useRef<HTMLSpanElement>(null);
+  const [broken, setBroken] = useState<string | null>(null);
+  const { url, drawing } = useMeshPreview(asset, box, broken);
   return (
-    <model-viewer
-      src={asset.file_url}
-      loading="lazy"
-      interaction-prompt="none"
-      shadow-intensity="0"
-      aria-label={assetName(asset)}
-      onLoad={clayIfShapeOnly(asset)}
-    />
+    <span class="mesh-thumb" ref={box}>
+      {url ? (
+        <img
+          src={url}
+          alt={assetName(asset)}
+          loading="lazy"
+          onError={() => setBroken(url)}
+        />
+      ) : drawing ? (
+        <span class="spinner" />
+      ) : (
+        <CubeIcon />
+      )}
+    </span>
   );
 }
 

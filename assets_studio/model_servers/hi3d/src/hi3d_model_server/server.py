@@ -68,8 +68,10 @@ DEGENERATE_HEIGHT = 1e-6
 class Params(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    # 512 by default: on 8 GB a 1024³ job seldom fits on the first try (the
+    # second pass's decoding runs out of memory and retries at a lower budget).
     resolution: Literal[512, 1024, 1536] = Field(
-        default=1024,
+        default=512,
         description="Surface grid: 512 one pass, 1024 two, 1536 three",
         json_schema_extra=ui(
             ru="Сетка поверхности: 512 — один проход, 1024 — два, 1536 — три", primary=True
@@ -199,6 +201,22 @@ def place_like(mesh: Any, reference: Any) -> Any:
     return mesh
 
 
+def simplified_to(postprocess: Any, mesh: Any, target_face_count: int) -> Any:
+    """``mesh`` through Hi3D's postprocess (simplify, centre, unit scale), again
+    while it keeps more than ``target_face_count`` triangles and a pass removes
+    some. Its pyfqmr stops after 100 iterations with an absolute error
+    threshold, so the raw surface, millions of triangles before the unit
+    scaling, can end far above a low target: 3109 triangles for a tree asked for
+    1000. The next pass starts on the unit-scale result and reaches it."""
+    mesh = postprocess(mesh, target_face_count=target_face_count)
+    while len(mesh.faces) > target_face_count:
+        fewer = postprocess(mesh, target_face_count=target_face_count)
+        if len(fewer.faces) >= len(mesh.faces):
+            break
+        mesh = fewer
+    return mesh
+
+
 def drop_degenerate(mesh: Any) -> tuple[Any, int]:
     """``mesh`` without zero-area triangles (three corners on one line, under
     a millionth of the largest side high), and how many went. Hi3D's
@@ -208,6 +226,44 @@ def drop_degenerate(mesh: Any) -> tuple[Any, int]:
     keep = np.asarray(mesh.area_faces) > (DEGENERATE_HEIGHT * size) ** 2
     if keep.all():
         return mesh, 0
+    mesh = mesh.copy()
+    mesh.update_faces(keep)
+    mesh.remove_unreferenced_vertices()
+    return mesh, int((~keep).sum())
+
+
+def drop_folds(mesh: Any) -> tuple[Any, int]:
+    """``mesh`` without folds, and how many triangles went. At low face
+    budgets pyfqmr pinches some thin parts to nothing: the same three corners
+    twice, facing opposite ways (a fin of no thickness), sometimes with extra
+    same-facing copies. A viewer shows such a fin from both sides, but
+    Blender keeps one triangle per set of corners, so a bake there culls the
+    fin from one side: a hole. Each opposite-facing pair goes and one copy of
+    what is left stays. The fin covered nothing, so no edge opens: checked on
+    130 outputs from 400 to a million faces."""
+    faces = np.asarray(mesh.faces)
+    if len(faces) < 2:
+        return mesh, 0
+    corners = np.sort(faces, axis=1)
+    # A triangle's facing is the parity of its corner order: rotations keep
+    # it, a reversal flips it.
+    swaps = (
+        (faces[:, 0] > faces[:, 1]).astype(int)
+        + (faces[:, 0] > faces[:, 2])
+        + (faces[:, 1] > faces[:, 2])
+    )
+    facing = 1 - 2 * (swaps % 2)
+    _, group, count = np.unique(corners, axis=0, return_inverse=True, return_counts=True)
+    group = group.reshape(-1)
+    shared = count[group] > 1
+    if not shared.any():
+        return mesh, 0
+    left = np.rint(np.bincount(group, weights=facing)).astype(int)
+    wanted = np.sign(left)[group]
+    candidates = np.flatnonzero(shared & (facing == wanted) & (wanted != 0))
+    _, first = np.unique(group[candidates], return_index=True)
+    keep = ~shared
+    keep[candidates[first]] = True
     mesh = mesh.copy()
     mesh.update_faces(keep)
     mesh.remove_unreferenced_vertices()
@@ -354,7 +410,7 @@ class Hi3DServer(ModelServer):
         def simplified_to_the_limit(mesh: Any, *, target_face_count: int) -> Any:
             if self._max_faces:
                 target_face_count = min(target_face_count, self._max_faces)
-            return postprocess(mesh, target_face_count=target_face_count)
+            return simplified_to(postprocess, mesh, target_face_count)
 
         self._pipeline._postprocess_mesh = simplified_to_the_limit
         self._rembg_session = rembg.new_session(BACKGROUND_MODEL)
@@ -412,11 +468,13 @@ class Hi3DServer(ModelServer):
         finally:
             sparc3d_pipeline.PASS_BUDGETS = budgets
         mesh, degenerate = drop_degenerate(mesh)
+        mesh, folded = drop_folds(mesh)
         if params.keep_placement:
             mesh = place_like(mesh, coarse)
         meta = {
             **describe(mesh, params.resolution),
             "degenerate_triangles_removed": degenerate,
+            "folded_triangles_removed": folded,
             "initial_voxel_budget_percent": params.voxel_budget_percent,
             "voxel_budget_share": share,
         }

@@ -1,0 +1,422 @@
+{
+  "comment": "Assets Studio -> Assets/Realms/Art (not in Git): tools/fetch_art.py. Models are copied as Studio made them (at the game's budget; 'triangles' records what it made); a model with 'texture_size' has its embedded maps resized to that size, because the map carries hundreds of it. The first models (troll, wolf, boar, sheep): Hunyuan3D shape, Hi3D refine with max_faces, colour baked at 1024. The iteration-2 buildings (farm, fishery, lumber_camp, quarry, granary) and the iteration-3 models (hero ... watchtower): the baked-detail chain of the Studio 3D guide, colour and normal maps at 2048. The scatter models linden, peak, peak_snow, crag: the same chain with maps at 1024 at the map's budget (trees 600, peaks 1500, crags 1200). The town walls (wall, tower): the same chain at 2048. The trees broadleaf_1 ... young_round_3 come from the Studio project 'procedural' (its style-D trees at LOD1000, rated 4-5 there), as do the castles castle_a, castle_d, castle_b (40000 triangles, high-poly because they are few and large). The town hall, the tavern, the market, the cottages cottage_a, cottage_b and the workshops spinnery ... smelter (which also stand as town houses) were redrawn by Codex in the castles' style and made in the project 'realms' by the same chain with match_colours at 6000 triangles (the hall and the market 8000), maps at 2048; hunters_lodge and smelter were drawn a second time with roof courses of uneven width, as the first ones' shingles came out as a stacked grid. The conifers spruce_2, spruce_3, conifer_4, the bushes bush_round, bush_wide and the props boulder, boulder_mossy, pebbles, log, mushrooms, outcrop, standing_stone (from style-D reference pictures of the project 'procedural') and goldore, stoneblocks, haystack, logpile, the mine gold_mine and the windmill (from Codex pictures of the project 'realms') were made in the project 'realms' by the same chain with match_colours at the map's budget (trees and bushes 1000, props 400-1000, the mine 2500, the windmill 2000), the scattered ones' maps at 2048 resized to 1024. The town and road things fountain, lamp, signpost, fence, cart, barrels, stall and the heap of gold were drawn by Codex in the same style without small details and made the same way (600-2500 triangles); all but the fountain are scattered, with maps resized to 1024. The boat was drawn without a sail (the game hangs a cloth sail in the owner's colours on its mast) and made the same way at 2000 triangles, scattered. The gatehouse gate, the barracks, archery_range, stables and granary, the fishery, quarry, shrine_attack and the well were drawn again by Codex in that style (the old ones were too bright, or primitives) and made the same way (the gatehouse and the town buildings at 6000 triangles, the fishery 5000, the quarry and the well 3000, the shrine 2000). Hi3D's low-poly meshes once kept folded triangle pairs that the colour bake turned into holes: those five, lamp, fountain, gold and the conifers were made again without them, the conifers' colour baked with a longer ray (0.04), so that none of their surface stays black. All of them are rated 4-5 in the Studio; of the older models, the unrated rider stays until its replacement is rated. Icons are resized to 256. Textures: the tileable ground layers in GroundLayer order, then cobble and the road strip; all are resized to 1024 wide (the road strip is 1024x512). grass ... dirt and cobble are the style-D textures of the project 'procedural'; snow and road are the Codex textures of the project 'realms'.",
+  "models": {
+    "town_hall": {
+      "id": "01a1c3c05229f9be43d155",
+      "triangles": 7955
+    },
+    "tavern": {
+      "id": "01a1c3c008a168ea89c26a",
+      "triangles": 5977
+    },
+    "spinnery": {
+      "id": "01a1c3c0e988db2b6e1f4b",
+      "triangles": 5962
+    },
+    "weaver": {
+      "id": "01a1c3c132d246ad50a68c",
+      "triangles": 5908
+    },
+    "tailor": {
+      "id": "01a1c3c17bd12f35280325",
+      "triangles": 5982
+    },
+    "hunters_lodge": {
+      "id": "01a1c52e89fddecfa5f4ef",
+      "triangles": 5892
+    },
+    "tannery": {
+      "id": "01a1c3c1c4fb323c14bb2f",
+      "triangles": 5954
+    },
+    "smelter": {
+      "id": "01a1c52edcbf2f91f5c8f1",
+      "triangles": 5953
+    },
+    "troll": {
+      "id": "01a1bb70645c520239a9a9",
+      "triangles": 3994
+    },
+    "wolf": {
+      "id": "01a1bb70706e2329a8c5ba",
+      "triangles": 2469
+    },
+    "boar": {
+      "id": "01a1c7b0527dc433852b5f",
+      "triangles": 2991
+    },
+    "sheep": {
+      "id": "01a1bb708753dbd357b8fb",
+      "triangles": 2693
+    },
+    "farm": {
+      "id": "01a1bc6876d68439792300",
+      "triangles": 2960
+    },
+    "fishery": {
+      "id": "01a1c75dccee77a8c94521",
+      "triangles": 4943
+    },
+    "lumber_camp": {
+      "id": "01a1bc6901149c9d828bad",
+      "triangles": 3469
+    },
+    "quarry": {
+      "id": "01a1c75e14bfe0464337e7",
+      "triangles": 2976
+    },
+    "gold_mine": {
+      "id": "01a1c347606e04e6182f9d",
+      "triangles": 2498
+    },
+    "market": {
+      "id": "01a1c3c09ab68045800361",
+      "triangles": 7977
+    },
+    "granary": {
+      "id": "01a1c712d2996d47e0ac9f",
+      "triangles": 5985
+    },
+    "cottage_a": {
+      "id": "01a1c3bf309350fb48ae4b",
+      "triangles": 5972
+    },
+    "cottage_b": {
+      "id": "01a1c3bf76f6ad52c6ebb4",
+      "triangles": 5993
+    },
+    "hero": {
+      "id": "01a1bda323a8b9e1adef4e",
+      "triangles": 2979
+    },
+    "spearman": {
+      "id": "01a1bda36796fab9b970b4",
+      "triangles": 2465
+    },
+    "archer": {
+      "id": "01a1bda3a174e64afc6c1c",
+      "triangles": 2480
+    },
+    "rider": {
+      "id": "01a1bda3e1c5be6f0bb245",
+      "triangles": 2981
+    },
+    "goblin": {
+      "id": "01a1bda4235f83db612f71",
+      "triangles": 2497
+    },
+    "bandit": {
+      "id": "01a1bda4606b1efc8f22bc",
+      "triangles": 2481
+    },
+    "skeleton": {
+      "id": "01a1bda4a38aafa654a1ac",
+      "triangles": 2662
+    },
+    "spider": {
+      "id": "01a1bda4e4dc4717d2b6b1",
+      "triangles": 2488
+    },
+    "barracks": {
+      "id": "01a1c711f2546d401b46bc",
+      "triangles": 5978
+    },
+    "archery_range": {
+      "id": "01a1c7123e36a77bd65f60",
+      "triangles": 5862
+    },
+    "stables": {
+      "id": "01a1c712897d653cd0c1e1",
+      "triangles": 5977
+    },
+    "chest": {
+      "id": "01a1bda5f1b5ecb8a701b5",
+      "triangles": 2513
+    },
+    "shrine_attack": {
+      "id": "01a1c75e5b9e8b3001d7a3",
+      "triangles": 1930
+    },
+    "shrine_defence": {
+      "id": "01a1bda67500f7912dc76c",
+      "triangles": 1890
+    },
+    "watchtower": {
+      "id": "01a1bda6b755626363dbeb",
+      "triangles": 2486
+    },
+    "linden": {
+      "id": "01a1c05601f6ab5e09c0d7",
+      "triangles": 599
+    },
+    "peak": {
+      "id": "01a1c05638c0248e9c372f",
+      "triangles": 1500
+    },
+    "peak_snow": {
+      "id": "01a1c0566fa02d591013f1",
+      "triangles": 1499
+    },
+    "crag": {
+      "id": "01a1c056a57c905502d8dd",
+      "triangles": 1199
+    },
+    "wall": {
+      "id": "01a1c0b55ffa8200d7820b",
+      "triangles": 600
+    },
+    "tower": {
+      "id": "01a1c0b5a3deb0fafc6e96",
+      "triangles": 797
+    },
+    "broadleaf_1": {
+      "id": "01a1c1e97e66ea554c79e3",
+      "triangles": 975,
+      "texture_size": 1024
+    },
+    "oak_bare_4": {
+      "id": "01a1c1ea0a29272196caae",
+      "triangles": 1000,
+      "texture_size": 1024
+    },
+    "oak_bare_5": {
+      "id": "01a1c1ea99108d43bf1b58",
+      "triangles": 999,
+      "texture_size": 1024
+    },
+    "oak_leafy_2": {
+      "id": "01a1c1eb29115a12615d1d",
+      "triangles": 992,
+      "texture_size": 1024
+    },
+    "oak_leafy_4": {
+      "id": "01a1c1ebb8b0a886223ddb",
+      "triangles": 982,
+      "texture_size": 1024
+    },
+    "oak_leafy_5": {
+      "id": "01a1c1ec4b6e4407ef1e44",
+      "triangles": 985,
+      "texture_size": 1024
+    },
+    "oak_tall_1": {
+      "id": "01a1c1ecdb662d79dfbe2c",
+      "triangles": 981,
+      "texture_size": 1024
+    },
+    "oak_tall_2": {
+      "id": "01a1c1ed6c52e8c2ace398",
+      "triangles": 980,
+      "texture_size": 1024
+    },
+    "ochre_2": {
+      "id": "01a1c1ee8ed8fba11b7a41",
+      "triangles": 984,
+      "texture_size": 1024
+    },
+    "snag_1": {
+      "id": "01a1c1ef1ca44aac741e5f",
+      "triangles": 1000,
+      "texture_size": 1024
+    },
+    "willow_1": {
+      "id": "01a1c1efab7f662c827da2",
+      "triangles": 990,
+      "texture_size": 1024
+    },
+    "windswept_2": {
+      "id": "01a1c1f03d32170674c5a8",
+      "triangles": 974,
+      "texture_size": 1024
+    },
+    "young_round_2": {
+      "id": "01a1c1f0ce517caa8f2a96",
+      "triangles": 999,
+      "texture_size": 1024
+    },
+    "young_round_3": {
+      "id": "01a1c1f15e1cf5a366685f",
+      "triangles": 998,
+      "texture_size": 1024
+    },
+    "spruce_2": {
+      "id": "01a1c7613f5e8a695fb10c",
+      "triangles": 997,
+      "texture_size": 1024
+    },
+    "spruce_3": {
+      "id": "01a1c761846278951a6583",
+      "triangles": 984,
+      "texture_size": 1024
+    },
+    "conifer_4": {
+      "id": "01a1c761c861c936c727af",
+      "triangles": 999,
+      "texture_size": 1024
+    },
+    "bush_round": {
+      "id": "01a1c52f2b225fc8f1abce",
+      "triangles": 999,
+      "texture_size": 1024
+    },
+    "bush_wide": {
+      "id": "01a1c52f75d81e407f45b2",
+      "triangles": 997,
+      "texture_size": 1024
+    },
+    "castle_a": {
+      "id": "01a1c1a28c6317d21f7888",
+      "triangles": 39999
+    },
+    "castle_d": {
+      "id": "01a1c1a26cc7b6d9954527",
+      "triangles": 39999
+    },
+    "castle_b": {
+      "id": "01a1c1a22ef5261ca6c0a9",
+      "triangles": 40000
+    },
+    "gate": {
+      "id": "01a1c711a6b5f9e773fa27",
+      "triangles": 5976
+    },
+    "boulder": {
+      "id": "01a1c3446ac00d84e48100",
+      "triangles": 600,
+      "texture_size": 1024
+    },
+    "boulder_mossy": {
+      "id": "01a1c344275a6832e9b0a2",
+      "triangles": 600,
+      "texture_size": 1024
+    },
+    "pebbles": {
+      "id": "01a1c34605ffcfa3e68f32",
+      "triangles": 599,
+      "texture_size": 1024
+    },
+    "log": {
+      "id": "01a1c3457de12f9fd4eb4d",
+      "triangles": 500,
+      "texture_size": 1024
+    },
+    "mushrooms": {
+      "id": "01a1c345c2dd97dd6a6d48",
+      "triangles": 399,
+      "texture_size": 1024
+    },
+    "goldore": {
+      "id": "01a1c346d60caa0320d694",
+      "triangles": 800,
+      "texture_size": 1024
+    },
+    "stoneblocks": {
+      "id": "01a1c3471b8481bd0dc875",
+      "triangles": 800,
+      "texture_size": 1024
+    },
+    "haystack": {
+      "id": "01a1c3464bd290e7d7a90a",
+      "triangles": 600,
+      "texture_size": 1024
+    },
+    "logpile": {
+      "id": "01a1c34691615d77454ffb",
+      "triangles": 999,
+      "texture_size": 1024
+    },
+    "outcrop": {
+      "id": "01a1c344af408b7e7a8dac",
+      "triangles": 799,
+      "texture_size": 1024
+    },
+    "standing_stone": {
+      "id": "01a1c344f4dfa8e65dc4e0",
+      "triangles": 398,
+      "texture_size": 1024
+    },
+    "windmill": {
+      "id": "01a1c347a690ef8bafa5a9",
+      "triangles": 1999
+    },
+    "fountain": {
+      "id": "01a1c7142344a31c5ed8b4",
+      "triangles": 2496
+    },
+    "lamp": {
+      "id": "01a1c713da710181100a14",
+      "triangles": 794,
+      "texture_size": 1024
+    },
+    "signpost": {
+      "id": "01a1c6662c7b618cc55893",
+      "triangles": 1200,
+      "texture_size": 1024
+    },
+    "fence": {
+      "id": "01a1c666c9db6e08e67f09",
+      "triangles": 599,
+      "texture_size": 1024
+    },
+    "cart": {
+      "id": "01a1c665e973beb1074155",
+      "triangles": 1500,
+      "texture_size": 1024
+    },
+    "barrels": {
+      "id": "01a1c666707e2cf22aae91",
+      "triangles": 1200,
+      "texture_size": 1024
+    },
+    "stall": {
+      "id": "01a1c665a681513888e146",
+      "triangles": 1999,
+      "texture_size": 1024
+    },
+    "gold": {
+      "id": "01a1c7146c5ee229e75d3f",
+      "triangles": 1193,
+      "texture_size": 1024
+    },
+    "boat": {
+      "id": "01a1c75d83598af5f4801f",
+      "triangles": 2000,
+      "texture_size": 1024
+    },
+    "well": {
+      "id": "01a1c7331b804073cdc3ec",
+      "triangles": 3000
+    }
+  },
+  "icons": {
+    "coins": "01a1a5f258140cec1c208b",
+    "ingot": "01a1a3a55dd8d39e4fd9fb",
+    "sheep": "01a1a6008b50717f29afb9",
+    "wheat": "01a1bad9875574b4c4a296",
+    "logs": "01a1bad98782a8bca2296a",
+    "stone": "01a1bad9879daef356517b",
+    "fish": "01a1bad987b64dc62beaf9",
+    "crown": "01a1bad987cf2fec35d21c",
+    "swords": "01a1bad987e8e8e30e89f3",
+    "lair": "01a1bad98804d42a638aa2",
+    "hammer": "01a1bad9881df05f055866",
+    "shield_red": "01a1bad9a980fcbf64884e",
+    "shield_blue": "01a1bad9a9a6a9a5730b25",
+    "shield_yellow": "01a1bad9a9c55462b8b542",
+    "shield_green": "01a1bad9a9e176bae97d6e",
+    "shield_violet": "01a1bad9aa01c397799766",
+    "shield_orange": "01a1bad9aa1c95cbe9b713"
+  },
+  "textures": {
+    "grass": "01a1c0833680919607535a",
+    "drygrass": "01a1c075e1b310ad656402",
+    "forest": "01a1c0a447c1beeaa483e5",
+    "sand": "01a1c0a447e192d135d45c",
+    "scree": "01a1c0a4474b526e4a2255",
+    "rock": "01a1c0a447306091a919d7",
+    "snow": "01a1c1261df1e56cf045b4",
+    "dirt": "01a1c0a4479fdcf13b7fd2",
+    "cobble": "01a1c083365a403a3da9ce",
+    "road": "01a1c1261e22d6275154cf"
+  }
+}

@@ -14,9 +14,11 @@ leaves servers it did not start alone.
   waiting in the studio. Its output is in ~/.cache/assets-studio/launcher/.
   One that exits with EXIT_GPU_BROKEN (a generation broke its CUDA state, the
   model is fine) is started again at once.
-- On exit a busy or loading server is left running, its pid in
-  ~/.cache/assets-studio/launcher/<server>.pid; the next launcher takes it
-  over (a restart must not lose a generation in progress).
+- The pid of the server it runs is in ~/.cache/assets-studio/launcher/<server>.pid
+  until it stops that server. On exit (Ctrl+C, SIGTERM, SIGHUP) a busy or
+  loading server is left running, and so is any server when the launcher dies
+  without exiting; the next launcher takes it over. A restart must not lose a
+  generation in progress, and a server nobody manages blocks every other one.
 
     uv run python launcher/launcher.py [--studio http://127.0.0.1:9000]
 """
@@ -49,6 +51,7 @@ RECIPES = {
     "hunyuan3d21": "hunyuan3d21",
     "hi3d": "hi3d",
     "trellis2_paint": "trellis2_paint",
+    "hairdeck": "hairdeck",
     "rig": "mia",
     "skintokens": "skintokens",
     "unirig": "unirig",
@@ -59,6 +62,7 @@ RECIPES = {
     "gemx": "gemx",
     "htd_refine": "htd_refine",
     "prompthmr": "prompthmr",
+    "vitpose": "vitpose",
     "animation_tools": "animation_tools",
     "sam2": "sam2",
     "paint21": "hunyuan_paint21",
@@ -68,7 +72,6 @@ RECIPES = {
     "gemma": "gemma",
     "qwen": "qwen",
     "unlimited_ocr": "unlimited_ocr",
-    "video": "wan",
 }
 
 POLL_S = 3.0
@@ -154,6 +157,7 @@ class Launcher:
                     BACKOFF_S,
                 )
                 self.failed_at[current.server] = now
+            _forget(current.server)
             self.current = current = None
         if current is not None:
             if demand.wants(current.server):
@@ -165,6 +169,7 @@ class Launcher:
             if now - current.idle_since >= (SWITCH_S if others else IDLE_S):
                 logger.info("stopping %s: no jobs left", current.server)
                 current.process.stop()
+                _forget(current.server)
                 self.stopped_at[current.server] = now
                 self.current = None
             return
@@ -188,6 +193,7 @@ class Launcher:
         self._waiting_for = None
         logger.info("starting %s (just %s)", wanted, self.recipes[wanted])
         self.current = Current(wanted, self.start(self.recipes[wanted]))
+        _remember(wanted, self.current.process.pid)
 
     def _startable(self, now: float, demand: Demand) -> list[str]:
         return [
@@ -198,7 +204,7 @@ class Launcher:
 
     def shutdown(self) -> None:
         """Stop the server, unless it is busy or loading: then leave it running
-        and leave its pid for the next launcher, which takes it over (a
+        and its pid file for the next launcher, which takes it over (a
         restart of the launcher must not lose a generation in progress)."""
         current = self.current
         if current is None:
@@ -208,29 +214,39 @@ class Launcher:
             "loading",
         )
         if busy:
-            LOGS.mkdir(parents=True, exist_ok=True)
-            (LOGS / f"{current.server}.pid").write_text(str(current.process.pid))
             logger.info(
                 "leaving %s running (busy); the next launcher takes it over", current.server
             )
         else:
             logger.info("stopping %s", current.server)
             current.process.stop()
+            _forget(current.server)
         self.current = None
 
     def adopt(self) -> None:
-        """Take over a server a previous launcher left running."""
+        """Take over a server a previous launcher left running; its pid file stays."""
         for path in sorted(LOGS.glob("*.pid")):
             server = path.stem
             try:
                 pid = int(path.read_text())
             except ValueError:
                 pid = 0
-            path.unlink(missing_ok=True)
             process = AdoptedProcess(pid)
             if self.current is None and server in self.recipes and process.poll() is None:
                 logger.info("taking over %s (pid %d) from the previous launcher", server, pid)
                 self.current = Current(server, process)
+            else:
+                path.unlink(missing_ok=True)
+
+
+def _remember(server: str, pid: int) -> None:
+    """Record a server the launcher runs, for a launcher after this one."""
+    LOGS.mkdir(parents=True, exist_ok=True)
+    (LOGS / f"{server}.pid").write_text(str(pid))
+
+
+def _forget(server: str) -> None:
+    (LOGS / f"{server}.pid").unlink(missing_ok=True)
 
 
 def _stop_group(pid: int, wait: Callable[[float], bool]) -> None:
@@ -331,6 +347,8 @@ def main() -> None:
     launcher = Launcher(start=ServerProcess)
     launcher.adopt()
     signal.signal(signal.SIGTERM, _exit)
+    # A closed terminal or desktop session.
+    signal.signal(signal.SIGHUP, _exit)
     query = "&".join(f"status={status}" for status in ACTIVE)
     reachable = True
     try:

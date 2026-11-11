@@ -4,7 +4,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 # these recipes only dispatch to them. `just <model>` starts the server,
 # extra arguments go to it (e.g. `just qwen_image --port 9200`).
 
-servers := "qwen_image birefnet sam2 hunyuan3d21 hi3d trellis2_paint hunyuan_paint21 mia skintokens unirig kimodo mocapanything gvhmr gemx htd_refine prompthmr animation_tools xtts stable_audio yue2 llm wan unlimited_ocr"
+servers := "qwen_image birefnet sam2 hunyuan3d21 hi3d trellis2_paint hairdeck hunyuan_paint21 mia skintokens unirig kimodo mocapanything gvhmr gemx htd_refine prompthmr vitpose animation_tools xtts stable_audio yue2 llm unlimited_ocr"
 
 # Show the available commands
 default:
@@ -41,6 +41,11 @@ hunyuan_paint21 *args:
 [positional-arguments]
 trellis2_paint *args:
     just --justfile trellis2_paint/justfile serve "$@"
+
+# HairDeck: hair cards from a character image (port 9133; SAM 3 and DINOv3 on HF_TOKEN)
+[positional-arguments]
+hairdeck *args:
+    just --justfile hairdeck/justfile serve "$@"
 
 # Make-It-Animatable v2: a Mixamo skeleton for a character mesh (port 9113; needs HF_TOKEN)
 [positional-arguments]
@@ -92,6 +97,11 @@ htd_refine *args:
 prompthmr *args:
     just --justfile prompthmr/justfile serve "$@"
 
+# ViTPose++: the joints of a character in a video, as 2D pose observations (port 9134)
+[positional-arguments]
+vitpose *args:
+    just --justfile vitpose/justfile serve "$@"
+
 # Prepare rigs and transfer humanoid animation, Blender without neural weights (port 9124)
 [positional-arguments]
 animation_tools *args:
@@ -128,11 +138,6 @@ gemma *args:
 [positional-arguments]
 qwen *args:
     just --justfile llm/justfile serve --model qwen3.8-27b --port 9107 "$@"
-
-# Wan2.2 TI2V-5B: video from a first frame (port 9108)
-[positional-arguments]
-wan *args:
-    just --justfile wan/justfile serve "$@"
 
 # Unlimited-OCR 2: a document page image to text (port 9132)
 [positional-arguments]

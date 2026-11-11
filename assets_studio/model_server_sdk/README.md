@@ -170,7 +170,7 @@ Rules:
   identical frames give identical bytes. Requires `ffmpeg` (system installation
   or `video` extra, `imageio-ffmpeg`).
 - `model_server_sdk.offload` provides disk block storage for diffusers group
-  offload (FLUX, Wan): version-fingerprinted directories, locking, `complete`
+  offload (FLUX, Qwen-Image): version-fingerprinted directories, locking, `complete`
   markers and disk-space checks. No torch dependency.
 
 ### Images: `model_server_sdk.images`

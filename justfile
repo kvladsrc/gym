@@ -8,6 +8,8 @@ mod neural_network
 mod? pointandclick "games/pointandclick"
 mod presentations
 mod? procedural "games/procedural"
+mod? realms "games/realms"
+mod? skateknight "games/skateknight"
 mod? soulslike "games/soulslike"
 mod talos "production/kubernetes/talos"
 mod? tents "games/tents"

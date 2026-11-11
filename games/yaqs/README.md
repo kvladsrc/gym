@@ -235,6 +235,30 @@ host name, so another website cannot read the library through the browser.
 browser's language (English or Russian); `?lang=en` or `?lang=ru` in the address
 picks one. Translations are the `STRINGS` table in `src/yaqs/static/app.js`.
 
+## Query log
+
+`serve`, `web` and the CLI's `search`, `passage` and `page` append one JSON line per
+request to `NAME.queries.jsonl` beside the database (by default
+`data/knowledge.queries.jsonl`, not in Git). A record holds the time, the interface
+(`mcp`, `web` or `cli`), for MCP the client from its `initialize` and the HTTP session id
+when the protocol has one, the operation and its arguments, and what came back: block ids,
+chunk ids, books, pages and scores, or the error. The returned text itself is not logged.
+
+```json
+{"time":"2026-11-08T11:13:02.205Z","interface":"mcp","client":"example-agent 1.0","operation":"search","arguments":{"query":"coyote time","limit":1,"book_id":null,"mode":"lexical","max_tokens":4096,"detail":"compact"},"result":{"hits":[{"id":2733,"chunk_ids":[2733],"book_id":8,"page_number":157,"score":0.0164}],"used_tokens":391,"omitted_blocks":12},"elapsed_ms":28.1}
+```
+
+```sh
+jq -c 'select(.operation == "search") | [.time, .interface, .arguments.query]' \
+  games/yaqs/data/knowledge.queries.jsonl
+```
+
+`YAQS_QUERY_LOG=/path/to/file.jsonl` writes elsewhere, `YAQS_QUERY_LOG=off` turns the log
+off. The file only grows; delete or rotate it when you like, the next request starts a new
+one. Writers lock each line, so several servers and CLI calls can share one file. A log that
+cannot be written prints one warning and never fails a request. `KnowledgeService` in Python
+logs only when given `query_log=`.
+
 ## Adapting YAQS
 
 The library is tuned for game-development books, but the domain is held in a few

@@ -35,6 +35,10 @@ just test      # no GPU or weights needed
   zero-area triangles;
   the server drops them (`degenerate_triangles_removed`), since TRELLIS.2
   Paint's UV unwrap would drop them and fail its triangle-count check.
+- `resolution` defaults to 512 (one pass). On the 8 GB RTX 3070 Laptop GPU a
+  1024 job seldom fits on the first try: its second pass's decoding runs out
+  of memory and the job retries at a lower voxel budget (below), so ask for
+  1024 or 1536 only when 512 lacks detail.
 - `voxel_budget_percent` selects the initial occupied-voxel budget: 100
   (default), 75 or 55. If a shape is already known to need 55, start there to
   skip two expensive OOM attempts. Retries use only lower remaining levels;

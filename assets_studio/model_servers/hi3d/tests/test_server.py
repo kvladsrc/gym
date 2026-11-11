@@ -3,6 +3,7 @@
 import io
 import sys
 from types import ModuleType, SimpleNamespace
+from typing import Any
 
 import pytest
 import trimesh
@@ -14,9 +15,11 @@ from hi3d_model_server.server import (
     Params,
     describe,
     drop_degenerate,
+    drop_folds,
     is_cut_out,
     place_like,
     read_mesh,
+    simplified_to,
 )
 from PIL import Image
 from pydantic import ValidationError
@@ -64,6 +67,38 @@ def test_zero_area_triangles_are_dropped() -> None:
     assert drop_degenerate(box)[1] == 0
 
 
+def test_folds_are_dropped_without_opening_the_surface() -> None:
+    box = trimesh.creation.box()
+    a, b, c = box.faces[0]
+    # A fin of no thickness on one of the box's edges (the same triangle
+    # facing both ways, as pyfqmr leaves), and one face twice over.
+    vertices = [*box.vertices, (0.0, 0.0, 2.0)]
+    faces = [*box.faces, (a, b, 8), (b, a, 8), (b, c, a)]
+    mesh = trimesh.Trimesh(vertices=vertices, faces=faces, process=False)
+    cleaned, removed = drop_folds(mesh)
+    assert (removed, len(cleaned.faces), len(cleaned.vertices)) == (3, 12, 8)
+    assert cleaned.is_watertight
+    assert drop_folds(box)[1] == 0
+
+
+def test_simplification_repeats_until_the_face_limit() -> None:
+    # Like pyfqmr on the raw surface: each pass stops at a third of what it got.
+    seen: list[int] = []
+
+    def postprocess(mesh: Any, *, target_face_count: int) -> Any:
+        seen.append(len(mesh.faces))
+        return SimpleNamespace(faces=range(max(target_face_count, len(mesh.faces) // 3)))
+
+    raw = SimpleNamespace(faces=range(30_000))
+    assert len(simplified_to(postprocess, raw, 1000).faces) == 1000
+    assert seen == [30_000, 10_000, 3333, 1111]
+
+    def stuck(mesh: Any, *, target_face_count: int) -> Any:
+        return SimpleNamespace(faces=range(1500))
+
+    assert len(simplified_to(stuck, raw, 1000).faces) == 1500
+
+
 def test_a_cut_out_image_is_recognised() -> None:
     assert not is_cut_out(Image.new("RGB", (4, 4), "white"))
     assert is_cut_out(Image.new("RGBA", (4, 4), (255, 0, 0, 0)))
@@ -80,6 +115,10 @@ def test_running_out_of_memory_is_not_retried_by_the_studio() -> None:
     assert "decoding" in str(error)
     assert BUDGET_SHARES[0] == 1.0
     assert list(BUDGET_SHARES) == sorted(BUDGET_SHARES, reverse=True)
+
+
+def test_resolution_defaults_to_one_pass() -> None:
+    assert Params().resolution == 512
 
 
 def test_only_supported_starting_budgets_are_accepted() -> None:
@@ -118,7 +157,9 @@ def test_generation_skips_higher_budgets_and_restores_pipeline_state(
 
     server = Hi3DServer()
     server._pipeline = pipeline
-    output = server._one(Image.new("RGB", (4, 4)), mesh, 42, Params(voxel_budget_percent=start))
+    output = server._one(
+        Image.new("RGB", (4, 4)), mesh, 42, Params(resolution=1024, voxel_budget_percent=start)
+    )
     assert attempted_budgets == [
         tuple(round(budget * share) for budget in original_budgets) for share in expected_shares
     ]

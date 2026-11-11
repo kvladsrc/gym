@@ -110,6 +110,24 @@ export function time(iso: string) {
   });
 }
 
+/** To the second, with the year: for a job's own timeline. */
+export function exactTime(iso: string) {
+  return new Date(iso).toLocaleString(language.value, {
+    year: "numeric",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+/** Seconds from one moment to another (an ISO time, or milliseconds such as Date.now()). */
+export const secondsBetween = (from: string, to: string | number) =>
+  ((typeof to === "number" ? to : new Date(to).getTime()) -
+    new Date(from).getTime()) /
+  1000;
+
 export function duration(seconds: number) {
   return seconds < 60
     ? t("unit.seconds", { s: Math.round(seconds) })

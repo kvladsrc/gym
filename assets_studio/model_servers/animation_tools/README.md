@@ -51,7 +51,10 @@ same shape, such as a coarser LOD: Hi3D at a lower `max_faces` gives the
 shape, the painted LOD0 its colours. Separate paints per LOD differ, and the
 painter left a 1,800-triangle tree almost one colour. A mesh without UVs is
 unwrapped with Smart UV Project. Only the base colour carries over; the result
-is matte and non-metal. A 1,800-triangle tree bakes in about 5 s on the CPU.
+is matte and non-metal. The colour is baked as emission: Cycles' diffuse
+colour is the base colour times (1 - metallic), and TRELLIS.2 marks whole tree
+crowns as metal, which baked black. A 1,800-triangle tree bakes in about 5 s
+on the CPU.
 
 Three animation tasks cover rig preparation, motion transfer using Mixamo
 bone names (Kimodo-SOMA, Mixamo), and native SMPL-X motion transfer. Trimming,

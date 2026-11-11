@@ -1,19 +1,21 @@
 // Hash routes: #/<section> (image, mesh, animation, audio, text, video), #/library,
-// #/library/<asset id>, #/jobs (the queue and the history of every model), #/tool/<id> (the
-// studio's own tools, no model: tool/frame saves a video frame as an image), #/projects.
+// #/library/<asset id>, #/jobs (the queue and the history of every model), #/jobs/<job id> (the
+// same with one job's details), #/tool/<id> (the studio's own tools, no model: tool/frame saves
+// a video frame as an image), #/projects.
 import { signal } from "@preact/signals";
 
 export type Route =
   | { page: "section"; sectionId: string }
   | { page: "library"; assetId: string | null }
-  | { page: "jobs" }
+  | { page: "jobs"; jobId: string | null }
   | { page: "projects" }
   | { page: "tool"; toolId: string }
   | { page: "home" };
 
 function parse(hash: string): Route {
   const [page, id] = hash.replace(/^#\/?/, "").split("/");
-  if (page === "jobs") return { page: "jobs" };
+  if (page === "jobs")
+    return { page: "jobs", jobId: id ? decodeURIComponent(id) : null };
   if (page === "projects") return { page: "projects" };
   if (page === "tool") return { page: "tool", toolId: id ?? "" };
   if (page === "library")
@@ -35,6 +37,7 @@ window.addEventListener("hashchange", () => {
 export const hrefSection = (sectionId: string) =>
   `#/${encodeURIComponent(sectionId)}`;
 export const hrefJobs = "#/jobs";
+export const hrefJob = (jobId: string) => `#/jobs/${encodeURIComponent(jobId)}`;
 export const hrefProjects = "#/projects";
 export const hrefTool = (toolId: string) =>
   `#/tool/${encodeURIComponent(toolId)}`;

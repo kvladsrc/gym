@@ -1,0 +1,3666 @@
+/* The game's interface: dark warm opaque panels with square corners attached to the screen's
+   edges - the information bar on top, the dock below (hero, place, minimap), the town and hero
+   screens at the sides, lists dropping from the bar - with a muted gold line where a panel meets
+   the map. Only dialogs are framed windows. The panels stay darker and calmer than the map so the
+   land, not the interface, draws the eye; full colour is kept for what needs attention. */
+
+.hud {
+    flex-grow: 1;
+    font-size: 18px;
+    color: #E9E1CF;
+}
+
+/* The cards' ornament: a thin inner border just inside the edge. */
+.card-frame {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    right: 5px;
+    bottom: 5px;
+    border-width: 2px;
+    border-color: rgba(214, 190, 140, 0.16);
+    border-radius: 0;
+}
+
+.labels {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* ----- Top bar ----- */
+
+.top-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 66px;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 14px;
+    padding-right: 14px;
+    background-color: #1E1C1A;
+    border-radius: 0;
+    border-bottom-width: 3px;
+    border-bottom-color: #6B5A3E;
+}
+
+/* The kingdom's name gives way last: the task beside it shortens first. */
+.kingdom {
+    flex-direction: row;
+    flex-shrink: 0.3;
+    min-width: 60px;
+    align-items: center;
+    margin-right: 18px;
+    overflow: hidden;
+}
+
+.kingdom-shield {
+    flex-shrink: 0;
+    width: 46px;
+    height: 52px;
+    margin-right: 8px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* A long name in a narrow window ends in "…" instead of running under the treasury. */
+.kingdom-name {
+    flex-shrink: 1;
+    font-size: 23px;
+    color: #E9E1CF;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.treasury {
+    flex-direction: row;
+    align-items: center;
+    padding-left: 12px;
+    border-left-width: 2px;
+    border-left-color: rgba(233, 225, 207, 0.1);
+}
+
+.goods {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 10px;
+    padding: 4px 12px 4px 6px;
+    background-color: rgba(233, 225, 207, 0.05);
+    border-radius: 3px;
+}
+
+.goods-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    margin-right: 4px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.goods-amount {
+    font-size: 23px;
+    color: #E9E1CF;
+}
+
+.goods-income {
+    font-size: 15px;
+    color: #8DBA6E;
+    margin-left: 5px;
+    margin-top: 4px;
+}
+
+/* The towns take more food for their growth than the land brings in. */
+.goods-loss {
+    color: #DB8A4E;
+}
+
+.spacer {
+    flex-grow: 1;
+}
+
+/* Season and year: a coloured dot, the season with a pip a season, the year and turn below. */
+.turn {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 12px;
+    padding-left: 14px;
+    border-left-width: 2px;
+    border-left-color: rgba(233, 225, 207, 0.1);
+}
+
+.season-dot {
+    width: 30px;
+    height: 30px;
+    margin-right: 9px;
+    border-radius: 15px;
+    border-width: 3px;
+    border-color: #E9E1CF;
+}
+
+.turn-season-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.turn-season {
+    font-size: 19px;
+    color: #E9E1CF;
+    padding: 0;
+    margin: 0;
+}
+
+.turn-pips {
+    flex-direction: row;
+    margin-left: 8px;
+}
+
+.turn-pip {
+    width: 9px;
+    height: 9px;
+    margin-right: 3px;
+    border-radius: 2px;
+    background-color: rgba(233, 225, 207, 0.13);
+}
+
+.turn-year {
+    font-size: 15px;
+    color: #B9AF9C;
+    padding: 0;
+    margin: -2px 0 0 0;
+}
+
+/* ----- Buttons ----- */
+
+.button,
+.button-primary,
+.button-round {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    margin: 0 0 0 10px;
+    padding: 0 18px;
+    border-width: 0;
+    border-radius: 16px;
+    border-bottom-width: 4px;
+    background-color: #3A3631;
+    border-bottom-color: #1E1C1A;
+}
+
+.button:hover,
+.button-round:hover {
+    background-color: #47423C;
+}
+
+.button-primary {
+    background-color: #C99A45;
+    border-bottom-color: #8E6A2B;
+}
+
+.button-primary:hover {
+    background-color: #D6A853;
+}
+
+/* A pressed button keeps its place: one that moved down under the pointer lost the release
+   when pressed near its top edge (the players' build and buy buttons, 2026-11-11). */
+
+.button-round {
+    width: 48px;
+    padding: 0;
+    border-radius: 24px;
+}
+
+/* A toggle that is on: gold like the main button. */
+.button-round.button-on {
+    background-color: #C99A45;
+    border-bottom-color: #8E6A2B;
+}
+
+.button-round.button-on:hover {
+    background-color: #D6A853;
+}
+
+.button-icon {
+    width: 32px;
+    height: 32px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.key-hint-dark {
+    font-size: 14px;
+    color: #B9AF9C;
+    padding: 1px 7px;
+    background-color: rgba(233, 225, 207, 0.07);
+    border-radius: 3px;
+}
+
+/* On a button that turned gold (Авто while it is on) the key reads dark, as .key-hint does. */
+.button-primary .key-hint-dark {
+    color: #2B1F0C;
+    background-color: rgba(0, 0, 0, 0.16);
+}
+
+/* ----- Kingdoms ----- */
+
+.kingdoms {
+    position: absolute;
+    top: 66px;
+    right: 0;
+    width: 400px;
+    padding: 12px 14px 14px 14px;
+    background-color: #1E1C1A;
+    border-radius: 0;
+    border-left-width: 3px;
+    border-bottom-width: 3px;
+    border-left-color: #6B5A3E;
+    border-bottom-color: #6B5A3E;
+}
+
+/* The list ends above the bottom panel (Hud.LateUpdate); only the kingdoms' rows give way, and scroll. */
+.kingdoms > * {
+    flex-shrink: 0;
+}
+
+.kingdoms > .kingdoms-rows {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.kingdoms-rows .unity-scroller--vertical {
+    width: 8px;
+    margin-left: 4px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.kingdoms-rows .unity-scroller__low-button,
+.kingdoms-rows .unity-scroller__high-button {
+    display: none;
+}
+
+.kingdoms-rows .unity-scroller__slider {
+    margin: 0;
+}
+
+.kingdoms-rows .unity-base-slider__tracker {
+    border-width: 0;
+    border-radius: 0;
+    background-color: rgba(233, 225, 207, 0.06);
+}
+
+.kingdoms-rows .unity-base-slider__dragger {
+    border-width: 0;
+    border-radius: 0;
+    background-color: #6B5A3E;
+}
+
+.kingdoms-rows .unity-base-slider__dragger-border {
+    display: none;
+}
+
+.kingdoms-head {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 4px 4px 4px;
+}
+
+.kingdoms-title {
+    font-size: 18px;
+    color: #E9E1CF;
+}
+
+.kingdoms-note {
+    margin: 0 4px 2px 4px;
+    padding: 0;
+    font-size: 14px;
+    color: #A89F8E;
+    white-space: normal;
+}
+
+.kingdom-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 5px;
+    padding: 6px 10px 7px 8px;
+    border-radius: 3px;
+    border-left-width: 5px;
+    background-color: rgba(233, 225, 207, 0.04);
+}
+
+.kingdom-row:hover {
+    background-color: rgba(233, 225, 207, 0.09);
+}
+
+.kingdom-row-player {
+    background-color: rgba(201, 154, 69, 0.2);
+}
+
+.kingdom-row-player:hover {
+    background-color: rgba(201, 154, 69, 0.34);
+}
+
+.kingdom-row-shield {
+    flex-shrink: 0;
+    width: 32px;
+    height: 37px;
+    margin-right: 9px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.kingdom-row-body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    overflow: hidden;
+}
+
+.kingdom-row-name {
+    font-size: 16px;
+    color: #E9E1CF;
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kingdom-row-stats {
+    flex-direction: row;
+    align-items: center;
+}
+
+.kingdom-row-stat {
+    font-size: 15px;
+    color: #CFC5B2;
+    padding: 0;
+    margin: 0;
+}
+
+.kingdom-row-dot {
+    font-size: 15px;
+    color: #7B7366;
+    padding: 0;
+    margin: 0 5px;
+}
+
+.kingdom-row-coin {
+    width: 18px;
+    height: 18px;
+    margin-right: 2px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* The gem a neighbour goes after, after its crown's count. */
+.kingdom-row-aim {
+    width: 18px;
+    height: 18px;
+    margin-left: 5px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.kingdom-row-land {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 4px;
+    height: 14px;
+}
+
+.kingdom-row-bar {
+    flex-grow: 1;
+    height: 6px;
+    border-radius: 2px;
+    background-color: rgba(233, 225, 207, 0.1);
+    overflow: hidden;
+}
+
+/* The cells the kingdom's towns took last turn, beside its land bar. */
+.kingdom-row-gain {
+    width: 30px;
+    margin: 0 0 0 6px;
+    padding: 0;
+    font-size: 14px;
+    color: #B5D19A;
+    -unity-text-align: middle-right;
+}
+
+.kingdom-row-fill {
+    height: 100%;
+    border-radius: 2px;
+}
+
+.button-caption {
+    font-size: 19px;
+    color: #E9E1CF;
+    padding: 0;
+    margin: 0;
+}
+
+.button-primary .button-caption {
+    color: #241A0C;
+}
+
+.key-hint {
+    font-size: 14px;
+    color: #2B1F0C;
+    margin-left: 8px;
+    padding: 1px 6px;
+    background-color: rgba(0, 0, 0, 0.16);
+    border-radius: 3px;
+}
+
+/* ----- Info card ----- */
+
+.info {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-direction: row;
+    margin-right: 16px;
+    padding-right: 16px;
+    border-right-width: 1px;
+    border-right-color: rgba(214, 190, 140, 0.14);
+}
+
+.info-main {
+    width: 420px;
+    flex-shrink: 1;
+    padding-right: 16px;
+}
+
+.info-side {
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding-left: 16px;
+    border-left-width: 1px;
+    border-left-color: rgba(214, 190, 140, 0.14);
+}
+
+.info-side > .info-hint {
+    margin-top: 6px;
+    padding-top: 0;
+    border-top-width: 0;
+}
+
+.info-side > .info-town {
+    margin-top: 0;
+    padding-top: 0;
+    border-top-width: 0;
+}
+
+.info-head {
+    flex-direction: row;
+    align-items: center;
+}
+
+.info-icon {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    margin-right: 12px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.info-titles {
+    flex-shrink: 1;
+}
+
+.info-title {
+    font-size: 24px;
+    color: #E9E1CF;
+    white-space: normal;
+}
+
+.info-owner {
+    flex-direction: row;
+    align-items: center;
+}
+
+.info-dot {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    margin-right: 6px;
+}
+
+.info-subtitle {
+    font-size: 15px;
+    color: #B9AF9C;
+}
+
+.info-lines {
+    margin-top: 8px;
+}
+
+.info-line {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 3px;
+}
+
+.info-key {
+    font-size: 15px;
+    color: #988F7F;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.info-value {
+    font-size: 15px;
+    color: #E9E1CF;
+    flex-shrink: 1;
+    white-space: normal;
+}
+
+.danger {
+    color: #E07070;
+}
+
+/* What a monster group is like: calm text, the danger is the swords' line. */
+.monster-hint {
+    color: #D6C9AE;
+}
+
+.danger-icon {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    margin-right: 3px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.danger-off {
+    opacity: 0.22;
+}
+
+.info-chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.chip {
+    flex-direction: row;
+    align-items: center;
+    margin: 2px 6px 2px 0;
+    padding: 2px 10px 2px 3px;
+    border-radius: 3px;
+    background-color: rgba(233, 225, 207, 0.06);
+}
+
+.chip-pale {
+    opacity: 0.55;
+}
+
+.chip-icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    margin-right: 2px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.chip-text {
+    font-size: 16px;
+    color: #8DBA6E;
+    padding: 0;
+    margin: 0;
+}
+
+.info-tags {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.tag {
+    font-size: 14px;
+    color: #E3C27A;
+    margin: 0 6px 5px 0;
+    padding: 2px 9px;
+    border-radius: 3px;
+    background-color: rgba(201, 154, 69, 0.24);
+}
+
+.info-hint {
+    font-size: 15px;
+    color: #B9AF9C;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top-width: 1px;
+    border-top-color: rgba(233, 225, 207, 0.1);
+    white-space: normal;
+}
+
+.warn {
+    color: #DB8A4E;
+}
+
+.good {
+    color: #8DBA6E;
+}
+
+.muted {
+    color: #ADA491;
+    font-size: 15px;
+}
+
+/* ----- Town panel ----- */
+
+.info-town {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top-width: 1px;
+    border-top-color: rgba(233, 225, 207, 0.1);
+}
+
+.growth-bar {
+    flex-grow: 1;
+    flex-shrink: 1;
+    height: 14px;
+    margin-right: 8px;
+    border-radius: 2px;
+    background-color: rgba(233, 225, 207, 0.1);
+    overflow: hidden;
+}
+
+.growth-fill {
+    height: 100%;
+    border-radius: 2px;
+    background-color: #8DB062;
+}
+
+.growth-text {
+    font-size: 14px;
+    color: #A9C48A;
+    flex-shrink: 0;
+}
+
+/* ----- Build and buy buttons ----- */
+
+.info-actions {
+    margin-top: 8px;
+}
+
+.action {
+    flex-direction: row;
+    align-items: center;
+    margin: 4px 0 0 0;
+    padding: 6px 10px 7px 6px;
+    border-width: 0;
+    border-radius: 3px;
+    border-bottom-width: 4px;
+    background-color: #4A3F2B;
+    border-bottom-color: #2E2618;
+}
+
+.action:hover {
+    background-color: #574A32;
+}
+
+/* Cannot be done yet: pale, and the line under the name says why. */
+.action-off,
+.action-off:hover {
+    background-color: rgba(233, 225, 207, 0.05);
+    border-bottom-color: rgba(233, 225, 207, 0.1);
+}
+
+.action-off .action-icon {
+    opacity: 0.4;
+}
+
+.action-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    margin-right: 8px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.action-words {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.action-name {
+    -unity-text-align: middle-left;
+    font-size: 17px;
+    color: #E9E1CF;
+    padding: 0;
+    margin: 0;
+}
+
+.action-what,
+.action-why {
+    -unity-text-align: middle-left;
+    font-size: 15px;
+    padding: 0;
+    margin: 0;
+    white-space: normal;
+}
+
+.action-what {
+    color: #D2B880;
+}
+
+.action-why {
+    color: #E07070;
+}
+
+.action-cost {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-left: 6px;
+}
+
+/* Cost and reward chips: an icon of the good and the amount. */
+.cost,
+.reward {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 4px;
+    padding: 1px 8px 1px 2px;
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.22);
+}
+
+.cost .chip-icon,
+.reward .chip-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.cost-text,
+.reward-text {
+    font-size: 14px;
+    padding: 0;
+    margin: 0;
+}
+
+.cost-text {
+    color: #E9E1CF;
+}
+
+.reward-text {
+    color: #8DBA6E;
+}
+
+/* ----- Tasks ----- */
+
+/* The tasks are lines of text over the map under the bar, with no window: an icon, the task and
+   the reward, outlined so they read over sea, sand and snow alike. */
+.quests {
+    position: absolute;
+    top: 78px;
+    left: 18px;
+    max-width: 560px;
+}
+
+.quest {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.quest-icon {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    margin-right: 8px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.quest-text {
+    flex-shrink: 1;
+    font-size: 17px;
+    color: #FFFAF0;
+    white-space: normal;
+}
+
+.quest .reward {
+    margin-left: 8px;
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.quest .reward-text {
+    font-size: 16px;
+    /* Pale gold, not green: green figures vanish over the grass. */
+    color: #F6E2AA;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: #15130F;
+    text-shadow: 1px 2px 4px rgba(21, 19, 15, 0.8);
+}
+
+/* Text with a dark halo (Hud.Halo): the text, and under it a dark copy with a wide outline and a
+   soft shadow, so the lines read on forest, roofs and borders (review of 2026-11-10) without the
+   outline thinning the letters. The text itself shows at full brightness. */
+.halo {
+    flex-shrink: 1;
+}
+
+.quests .halo-under {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    color: #15130F;
+    -unity-text-outline-width: 3px;
+    -unity-text-outline-color: #15130F;
+    text-shadow: 0 1px 6px rgba(21, 19, 15, 0.68);
+}
+
+.quests .halo-over {
+    -unity-text-outline-width: 0;
+    text-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+/* A band of a lair going for one of the players' towns (raids): warm, so it reads as a warning. */
+.quests .quest-raid {
+    color: #F4BE8E;
+}
+
+/* The guide's thin «как» line under a task (the interface plan's 3.3): smaller than the task,
+   set in under its text, in the rewards' pale gold. */
+.quest-guide-row {
+    flex-direction: row;
+    margin-left: 38px;
+    margin-top: -3px;
+    margin-bottom: 6px;
+}
+
+.quest-guide {
+    flex-shrink: 1;
+    font-size: 15px;
+    color: #F6E2AA;
+    white-space: normal;
+}
+
+/* The gold outline on the button the guide points at, inside its edge so nothing moves; it
+   breathes in Hud.PulseGuide. Hidden on the other buttons that may get it. */
+.guide-ring {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-left-width: 3px;
+    border-right-width: 3px;
+    border-top-width: 3px;
+    border-bottom-width: 3px;
+    border-left-color: #FFB531;
+    border-right-color: #FFB531;
+    border-top-color: #FFB531;
+    border-bottom-color: #FFB531;
+    display: none;
+}
+
+.guide-target > .guide-ring {
+    display: flex;
+}
+
+/* ----- Turn report ----- */
+
+.report {
+    position: absolute;
+    top: 66px;
+    left: 50%;
+    translate: -50% 0;
+    width: 560px;
+    padding: 12px 18px 14px 18px;
+    background-color: #1E1C1A;
+    border-radius: 0;
+    border-left-width: 3px;
+    border-right-width: 3px;
+    border-bottom-width: 3px;
+    border-left-color: #6B5A3E;
+    border-right-color: #6B5A3E;
+    border-bottom-color: #6B5A3E;
+}
+
+.report-title {
+    font-size: 22px;
+    color: #E9E1CF;
+    margin-bottom: 4px;
+}
+
+.report-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.report-link:hover {
+    background-color: rgba(201, 154, 69, 0.22);
+}
+
+.report-icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.report-text {
+    flex-shrink: 1;
+    font-size: 15px;
+    color: #E9E1CF;
+    white-space: normal;
+}
+
+.report-warn {
+    color: #DB8A4E;
+}
+
+/* ----- Minimap ----- */
+
+.minimap-frame {
+    flex-shrink: 0;
+    align-self: center;
+    border-width: 2px;
+    border-color: rgba(214, 190, 140, 0.22);
+    border-radius: 0;
+}
+
+.minimap {
+    border-radius: 0;
+    overflow: hidden;
+}
+
+/* The camera's view, drawn as an outline over the whole minimap. */
+.minimap-view {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* Where north is on the screen; hidden while the map faces north. */
+.compass {
+    position: absolute;
+    left: -12px;
+    top: -12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 17px;
+    border-width: 2px;
+    border-color: #B8955A;
+    background-color: #1E1C1A;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.compass:hover {
+    background-color: #3A332B;
+}
+
+.compass-off {
+    display: none;
+}
+
+.compass-north {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    color: #E8DCC4;
+    -unity-text-align: middle-center;
+    height: 15px;
+}
+
+.compass-needle {
+    width: 4px;
+    height: 10px;
+    background-color: #D9534A;
+}
+
+/* ----- Messages and help ----- */
+
+/* Bottom centre above the dock: the report has the top. */
+/* Messages drop from under the top bar (Hud moves them below the turn report while it shows),
+   clear of the map's middle and the bottom panel. */
+.toast {
+    position: absolute;
+    top: 72px;
+    left: 50%;
+    translate: -50% 0;
+    padding: 8px 22px;
+    font-size: 19px;
+    color: #F1EADB;
+    background-color: #181614;
+    border-radius: 0;
+    white-space: nowrap;
+}
+
+.help-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    /* Centred below the top bar, so the card never covers it. */
+    padding-top: 69px;
+    align-items: center;
+    justify-content: center;
+    /* Blended in linear light: 0.55 left the dark panels at two thirds of their brightness,
+       still competing with the card. */
+    background-color: rgba(8, 8, 8, 0.78);
+}
+
+/* Wide enough that most rows keep to one line, and the rows tight enough that the longest
+   column, the note and the button fit under the top bar: at 1340px the note and the button lay
+   over the map column's last rows (2026-11-11). */
+.help-card {
+    width: 1560px;
+    padding: 24px 40px 24px 40px;
+    background-color: #26231F;
+    border-radius: 0;
+    border-bottom-width: 6px;
+    border-bottom-color: rgba(0, 0, 0, 0.4);
+}
+
+.help-title {
+    font-size: 32px;
+    color: #E9E1CF;
+    margin-bottom: 2px;
+}
+
+/* Two columns of groups; the margins make a 48px gap between them. */
+.help-columns {
+    flex-direction: row;
+    flex-shrink: 0;
+    align-items: flex-start;
+    margin-left: -24px;
+    margin-right: -24px;
+}
+
+.help-column {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-left: 24px;
+    margin-right: 24px;
+}
+
+.help-group {
+    margin-top: 14px;
+    padding-bottom: 6px;
+    font-size: 22px;
+    color: #E9E1CF;
+    border-bottom-width: 2px;
+    border-bottom-color: rgba(217, 169, 79, 0.5);
+}
+
+.help-row {
+    flex-direction: row;
+    align-items: flex-start;
+    padding: 6px 0 6px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(233, 225, 207, 0.08);
+}
+
+.help-key {
+    width: 240px;
+    flex-shrink: 0;
+    margin-right: 12px;
+    font-size: 18px;
+    color: #D9A94F;
+    white-space: normal;
+}
+
+.help-text {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+    font-size: 18px;
+    color: #E9E1CF;
+    white-space: normal;
+}
+
+.help-note {
+    margin-top: 16px;
+    font-size: 17px;
+    color: #CFC5B2;
+    white-space: normal;
+}
+
+/* The help's page tabs keep to the left, not across the whole card. */
+.help-tabs {
+    width: 620px;
+    margin-top: 10px;
+}
+
+.help-body {
+    min-height: 460px;
+}
+
+.help-basic {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 0 10px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(233, 225, 207, 0.08);
+}
+
+.help-basic-icon {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    margin-right: 20px;
+}
+
+.help-basic-words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0;
+}
+
+.help-basic-head {
+    font-size: 22px;
+    color: #D9A94F;
+    margin-bottom: 2px;
+}
+
+.help-hint-dot {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    margin-right: 12px;
+}
+
+.help-page .help-row {
+    align-items: center;
+}
+
+.help-card .button-primary {
+    align-self: center;
+    margin-top: 14px;
+    margin-left: 0;
+    width: 200px;
+}
+
+/* ----- Labels over the map ----- */
+
+.anchor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+}
+
+.plate-base {
+    position: absolute;
+    flex-direction: row;
+    align-items: center;
+    translate: -50% -100%;
+    padding: 2px 12px 2px 4px;
+    background-color: #181614;
+    border-width: 2px;
+    border-radius: 0;
+}
+
+.plate-capital {
+    padding: 3px 14px 3px 5px;
+    border-width: 3px;
+    border-radius: 0;
+}
+
+.plate-crown {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    top: -27px;
+    left: 50%;
+    translate: -50% 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.plate-shield {
+    flex-shrink: 0;
+    width: 22px;
+    height: 26px;
+    margin-right: 5px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.plate-name {
+    font-size: 16px;
+    color: #F1EADB;
+    white-space: nowrap;
+    padding: 0;
+    margin: 0;
+}
+
+.plate-capital .plate-name {
+    font-size: 20px;
+}
+
+.plate-capital .plate-shield {
+    width: 26px;
+    height: 30px;
+}
+
+/* A hero's shield in the kingdom's colours over the figure, from afar (Hud.PlaceHeroShields):
+   22-25 pixels on a 900-pixel screen. */
+.hero-shield {
+    position: absolute;
+    translate: -50% -50%;
+    width: 26px;
+    height: 30px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.resource-badge,
+.lair-badge {
+    position: absolute;
+    translate: -50% -50%;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The map's badges show while Alt is held (Hud.LateUpdate), in the middle of their cells at the
+   height of the cell's rim, not lifted above it (Hud.CellMiddle), scaled with the land to about
+   seven tenths of a cell across (Hud.BadgeScale): the players asked for bigger badges in the
+   middle of the hex (2026-11-10). The sizes here are before that scale. */
+.resource-badge {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    background-color: #24211E;
+    border-width: 2px;
+    border-color: rgba(233, 225, 207, 0.22);
+}
+
+.resource-wild {
+    opacity: 0.7;
+}
+
+/* Its field building stands: a little smaller, green. */
+.resource-built {
+    width: 42px;
+    height: 42px;
+    border-radius: 21px;
+    background-color: #2F4128;
+    border-width: 3px;
+    border-color: #8DBA6E;
+}
+
+.resource-built .badge-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.lair-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    background-color: #2F2B28;
+    border-width: 3px;
+    border-color: #CDBF9F;
+}
+
+.badge-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.lair-badge .badge-icon {
+    width: 32px;
+    height: 32px;
+}
+
+/* ----- Monster groups and places on the map ----- */
+
+/* Monsters wear charcoal with a bone rim: red and blue belong to the kingdoms. */
+.group-badge {
+    position: absolute;
+    translate: -50% -50%;
+    flex-direction: row;
+    align-items: center;
+    padding: 3px 13px 3px 4px;
+    border-radius: 24px;
+    background-color: #2F2B28;
+    border-width: 3px;
+    border-color: #CDBF9F;
+}
+
+/* A lair: darker, the den's sign. */
+.group-lair {
+    background-color: #1B1816;
+}
+
+.group-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    margin-right: 4px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.group-count {
+    font-size: 22px;
+    color: #F1EADB;
+    padding: 0;
+    margin: 0;
+}
+
+.place-badge {
+    position: absolute;
+    translate: -50% -50%;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    background-color: #4A3F2B;
+    border-width: 2px;
+    border-color: #8E6A2B;
+}
+
+/* ----- Heroes ----- */
+
+/* A level-up waits for its card. */
+.hero-row-star {
+    width: 12px;
+    height: 12px;
+    margin-left: 6px;
+    border-radius: 6px;
+    background-color: #C99A45;
+    border-width: 2px;
+    border-color: #8E6A2B;
+}
+
+.dock {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 248px;
+    flex-direction: row;
+    align-items: stretch;
+    padding: 12px 14px 12px 14px;
+    background-color: #1E1C1A;
+    border-radius: 0;
+    border-top-width: 3px;
+    border-top-color: #6B5A3E;
+}
+
+.dock-empty {
+    margin-top: 10px;
+    font-size: 15px;
+    color: #988F7F;
+    white-space: normal;
+}
+
+.hero-card {
+    flex-shrink: 0;
+    width: 650px;
+    flex-direction: row;
+    align-items: flex-start;
+    margin-right: 16px;
+    padding-right: 16px;
+    border-right-width: 1px;
+    border-right-color: rgba(214, 190, 140, 0.14);
+}
+
+.hero-details {
+    flex-direction: row;
+}
+
+.hero-main {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.hero-army .army-slot {
+    width: 58px;
+    height: 58px;
+}
+
+.hero-tabs {
+    flex-direction: row;
+    margin-bottom: 8px;
+    border-bottom-width: 2px;
+    border-bottom-color: rgba(214, 190, 140, 0.22);
+}
+
+.hero-tab {
+    flex-shrink: 1;
+    min-width: 0;
+    margin-right: 4px;
+    padding: 4px 12px 5px 12px;
+    background-color: rgba(233, 225, 207, 0.05);
+}
+
+.hero-tab:hover {
+    background-color: rgba(233, 225, 207, 0.1);
+}
+
+.hero-tab-on,
+.hero-tab-on:hover {
+    background-color: rgba(201, 154, 69, 0.26);
+}
+
+.hero-tab-line {
+    flex-direction: row;
+    align-items: center;
+}
+
+.hero-tab-name {
+    flex-shrink: 1;
+    font-size: 15px;
+    color: #E9E1CF;
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hero-tab-bar {
+    height: 4px;
+    margin-top: 4px;
+    background-color: rgba(233, 225, 207, 0.1);
+    overflow: hidden;
+}
+
+.hero-tab-fill {
+    height: 100%;
+    background-color: #6DAA5C;
+}
+
+.hero-portrait {
+    flex-shrink: 0;
+    width: 112px;
+    height: 112px;
+    margin-right: 14px;
+    border-radius: 3px;
+    background-color: #3A3631;
+    border-bottom-width: 6px;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.hero-body {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.hero-top {
+    flex-direction: row;
+    align-items: center;
+}
+
+.hero-level {
+    flex-grow: 1;
+    font-size: 14px;
+    color: #988F7F;
+    padding: 0;
+    margin: 0;
+}
+
+.hero-levelup {
+    padding: 3px 12px 4px 12px;
+    border-radius: 3px;
+    background-color: #C99A45;
+    border-bottom-width: 3px;
+    border-bottom-color: #8E6A2B;
+}
+
+.hero-levelup:hover {
+    background-color: #D6A853;
+}
+
+.hero-levelup-text {
+    font-size: 14px;
+    color: #E9E1CF;
+    padding: 0;
+    margin: 0;
+}
+
+.hero-xp {
+    height: 7px;
+    margin-top: 4px;
+    border-radius: 2px;
+    background-color: rgba(233, 225, 207, 0.1);
+    overflow: hidden;
+}
+
+.hero-xp-fill {
+    height: 100%;
+    background-color: #C99A45;
+}
+
+.hero-stats {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.hero-stat {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 14px;
+}
+
+.hero-stat-icon {
+    width: 26px;
+    height: 26px;
+    margin-right: 4px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.hero-stat-value {
+    font-size: 18px;
+    color: #E9E1CF;
+    padding: 0;
+    margin: 0;
+}
+
+.hero-moves {
+    flex-grow: 1;
+    flex-direction: row;
+    align-items: center;
+}
+
+.hero-moves-key {
+    font-size: 14px;
+    color: #988F7F;
+    padding: 0;
+    margin: 0 6px 0 0;
+}
+
+.hero-moves-bar {
+    flex-grow: 1;
+    height: 10px;
+    border-radius: 2px;
+    background-color: rgba(233, 225, 207, 0.1);
+    overflow: hidden;
+}
+
+.hero-moves-fill {
+    height: 100%;
+    border-radius: 2px;
+    background-color: #6DAA5C;
+}
+
+.hero-moves-value {
+    font-size: 14px;
+    color: #E9E1CF;
+    padding: 0;
+    margin: 0 0 0 6px;
+}
+
+.hero-army-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.hero-army {
+    flex-direction: row;
+}
+
+/* The hero's buttons beside the details: the hero screen, founding, exchanges. */
+.hero-swaps {
+    flex-shrink: 0;
+    width: 160px;
+    margin-left: 12px;
+}
+
+.hero-swaps .swap-button {
+    margin: 0 0 6px 0;
+}
+
+.swap-button {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    margin: 2px 0;
+    padding: 0 12px;
+    border-width: 0;
+    border-radius: 3px;
+    border-bottom-width: 3px;
+    border-bottom-color: rgba(0, 0, 0, 0.4);
+    background-color: #3A3631;
+}
+
+.swap-button:hover {
+    background-color: #47423C;
+}
+
+.swap-button .button-caption {
+    font-size: 14px;
+}
+
+/* The exchange dialog: a row a kind of unit, one army on each side, the arrows between them. */
+.swap-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.swap-name {
+    width: 170px;
+    font-size: 18px;
+    color: #E9E1CF;
+}
+
+.swap-name-right {
+    -unity-text-align: middle-right;
+}
+
+.swap-side {
+    width: 170px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.swap-side-right {
+    flex-direction: row-reverse;
+}
+
+.swap-side .army-slot {
+    margin: 0 8px;
+}
+
+.swap-unit {
+    font-size: 14px;
+    color: #B9AF9C;
+}
+
+.swap-arrows {
+    flex-direction: row;
+    justify-content: center;
+    width: 250px;
+}
+
+.swap-arrow {
+    width: 42px;
+    height: 42px;
+    margin: 0 3px;
+    padding: 0;
+    border-width: 0;
+    border-radius: 3px;
+    border-bottom-width: 3px;
+    border-bottom-color: rgba(0, 0, 0, 0.4);
+    background-color: #3A3631;
+}
+
+.swap-arrow:hover {
+    background-color: #574A32;
+}
+
+.swap-arrow:disabled {
+    opacity: 0.35;
+}
+
+.swap-arrow .button-caption {
+    font-size: 20px;
+}
+
+.swap-warn {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #E07070;
+    white-space: normal;
+}
+
+.army-slot {
+    flex-shrink: 0;
+    width: 62px;
+    height: 62px;
+    margin-right: 6px;
+    border-radius: 3px;
+    background-color: #3A3631;
+    border-width: 2px;
+    border-color: rgba(233, 225, 207, 0.15);
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.army-slot-empty {
+    background-color: rgba(233, 225, 207, 0.04);
+    border-color: rgba(233, 225, 207, 0.08);
+}
+
+.army-count {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    padding: 0 6px;
+    font-size: 14px;
+    color: #F1EADB;
+    background-color: #1C1A18;
+    border-radius: 9px;
+}
+
+.hero-note {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #E07070;
+    white-space: normal;
+}
+
+.hero-tip {
+    color: #988F7F;
+}
+
+/* A unit's or a hero's picture on a hire button. */
+.action-portrait {
+    width: 44px;
+    height: 44px;
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.2);
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+/* ----- Dialogs ----- */
+
+.modal-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(8, 8, 8, 0.45);
+}
+
+.modal-card {
+    min-width: 520px;
+    max-width: 760px;
+    padding: 22px 30px 22px 30px;
+    background-color: #26231F;
+    border-radius: 0;
+    border-bottom-width: 6px;
+    border-bottom-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-head {
+    flex-direction: row;
+    align-items: center;
+}
+
+.modal-icon {
+    width: 52px;
+    height: 52px;
+    margin-right: 12px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.modal-title {
+    font-size: 31px;
+    color: #E9E1CF;
+}
+
+.modal-text {
+    margin-top: 8px;
+    font-size: 19px;
+    color: #E9E1CF;
+    white-space: normal;
+}
+
+.modal-body {
+    margin-top: 10px;
+}
+
+.modal-line {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.modal-key {
+    font-size: 17px;
+    color: #988F7F;
+    margin-right: 10px;
+}
+
+.modal-value {
+    font-size: 19px;
+    color: #E9E1CF;
+}
+
+.modal-chips {
+    flex-direction: row;
+    margin-top: 6px;
+}
+
+.modal-chips .reward {
+    margin-left: 0;
+    margin-right: 6px;
+    background-color: rgba(141, 176, 98, 0.2);
+}
+
+.modal-army {
+    flex-direction: row;
+    margin-top: 6px;
+}
+
+.modal-stack {
+    align-items: center;
+    margin-right: 8px;
+}
+
+.modal-stack .army-slot {
+    margin-right: 0;
+}
+
+.modal-loss,
+.modal-safe {
+    margin-top: 6px;
+    font-size: 15px;
+}
+
+.modal-loss {
+    color: #E07070;
+}
+
+.modal-safe {
+    color: #8DBA6E;
+}
+
+.modal-buttons {
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.modal-buttons .button-primary,
+.modal-buttons .button {
+    margin: 0 6px;
+    min-width: 150px;
+}
+
+/* The neighbours' pace in the new game's question: the chosen one gold, like a toggle that is on. */
+.difficulty-title {
+    font-size: 17px;
+    color: #E9E1CF;
+    margin-top: 4px;
+}
+
+.difficulty-row {
+    flex-direction: row;
+    margin-top: 6px;
+}
+
+.difficulty-row > .button {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin: 0 4px;
+}
+
+.difficulty-row > .button.button-on {
+    background-color: #C99A45;
+    border-bottom-color: #8E6A2B;
+}
+
+.difficulty-row > .button.button-on:hover {
+    background-color: #D6A853;
+}
+
+.difficulty-row > .button.button-on .button-caption {
+    color: #241A0C;
+}
+
+.difficulty-note {
+    font-size: 15px;
+    color: #CFC5B2;
+    margin-top: 8px;
+    white-space: normal;
+}
+
+/* ----- The flag editor (a wide dialog) ----- */
+
+.modal-wide {
+    max-width: 1000px;
+}
+
+.flag-editor {
+    flex-direction: row;
+    margin-top: 4px;
+}
+
+.flag-left {
+    width: 340px;
+    margin-right: 26px;
+    align-items: center;
+}
+
+.flag-preview {
+    width: 330px;
+    height: 220px;
+    margin-top: 8px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.flag-kingdom {
+    margin-top: 10px;
+    font-size: 22px;
+    color: #F2E6C8;
+    -unity-text-align: middle-center;
+}
+
+.flag-taken {
+    margin-top: 2px;
+    font-size: 15px;
+    color: #E0A060;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.flag-shield-row {
+    flex-direction: row;
+    align-items: center;
+    align-self: stretch;
+    margin-top: 16px;
+}
+
+.flag-shield {
+    flex-shrink: 0;
+    width: 69px;
+    height: 78px;
+    margin-right: 12px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.flag-note {
+    flex-shrink: 1;
+    font-size: 16px;
+    color: #988F7F;
+    white-space: normal;
+}
+
+.flag-random {
+    align-self: stretch;
+    margin-top: 16px;
+}
+
+.flag-right {
+    width: 480px;
+}
+
+.flag-head {
+    font-size: 18px;
+    color: #C9B98F;
+    margin-top: 8px;
+    margin-bottom: 4px;
+}
+
+.flag-tiles {
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.flag-pattern,
+.flag-emblem,
+.flag-swatch {
+    border-width: 3px;
+    border-color: rgba(0, 0, 0, 0.35);
+}
+
+.flag-pattern {
+    width: 72px;
+    height: 50px;
+    margin: 0 6px 6px 0;
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.flag-colours {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.flag-colour-label {
+    width: 86px;
+    font-size: 17px;
+    color: #E9E1CF;
+}
+
+.flag-swatch {
+    width: 34px;
+    height: 34px;
+    margin-right: 4px;
+}
+
+.flag-emblem {
+    width: 50px;
+    height: 50px;
+    margin: 0 5px 5px 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.flag-emblem-icon {
+    width: 36px;
+    height: 36px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.flag-emblem-none {
+    font-size: 14px;
+    color: #F1EADB;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: rgba(0, 0, 0, 0.6);
+}
+
+.flag-pattern:hover,
+.flag-emblem:hover,
+.flag-swatch:hover {
+    border-color: rgba(242, 193, 78, 0.6);
+}
+
+.flag-pattern.flag-picked,
+.flag-emblem.flag-picked,
+.flag-swatch.flag-picked {
+    border-color: #F2C14E;
+}
+
+.kingdom-shield:hover {
+    scale: 1.08 1.08;
+}
+
+/* ----- Tags and floating numbers over the world ----- */
+
+.tags {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.world-tag {
+    position: absolute;
+    translate: -50% -50%;
+    padding: 0 9px;
+    font-size: 17px;
+    border-radius: 3px;
+    border-width: 2px;
+    white-space: nowrap;
+}
+
+.battle-count {
+    color: #F1EADB;
+    background-color: #1C1A18;
+    border-color: #E7C86A;
+}
+
+/* The player's stacks take the kingdom's colour on the rim (Hud.Mine); the monsters' are charcoal and bone. */
+.battle-count-enemy {
+    color: #F1EADB;
+    background-color: #2F2B28;
+    border-color: #CDBF9F;
+}
+
+.float {
+    position: absolute;
+    translate: -50% -100%;
+    font-size: 27px;
+    white-space: nowrap;
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: rgba(15, 14, 13, 0.85);
+}
+
+/* Damage: big and white with a dark red outline, so it reads on any ground. */
+.float-hit {
+    color: #FFF6EE;
+    font-size: 40px;
+    -unity-text-outline-width: 3px;
+    -unity-text-outline-color: rgba(86, 14, 18, 0.95);
+}
+
+.float-heal {
+    color: #6BEA86;
+}
+
+.float-defend {
+    color: #9FD6FF;
+    font-size: 22px;
+}
+
+.float-web {
+    color: #F2F2F8;
+    font-size: 22px;
+}
+
+/* The monsters offer to give up: a pale parchment colour, as a white flag. */
+.float-yield {
+    color: #F4ECD6;
+    font-size: 24px;
+}
+
+/* ----- The battle ----- */
+
+/* The map's panels step aside during a battle (their display is set in code, so visibility). */
+.in-battle .top-bar,
+.in-battle .quests,
+.in-battle .report,
+.in-battle .kingdoms,
+.in-battle .dock,
+.in-battle .labels {
+    visibility: hidden;
+}
+
+.battle-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 18px 8px 18px;
+    background-color: #1E1C1A;
+    border-radius: 0;
+    border-bottom-width: 3px;
+    border-bottom-color: #6B5A3E;
+}
+
+.battle-head {
+    flex-direction: row;
+    align-items: center;
+    margin-right: 24px;
+}
+
+.battle-title {
+    font-size: 25px;
+    color: #E9E1CF;
+    margin-right: 12px;
+}
+
+.battle-round {
+    font-size: 15px;
+    color: #988F7F;
+}
+
+.battle-queue {
+    flex-direction: row;
+    align-items: center;
+}
+
+.queue-slot {
+    width: 54px;
+    height: 54px;
+    margin: 0 3px;
+    border-radius: 3px;
+    border-width: 3px;
+    background-color: #3A3631;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+/* Rimmed in the player's kingdom colour from the code (Hud.Mine). */
+.queue-mine {
+    border-color: #C99A45;
+}
+
+.queue-enemy {
+    border-color: #CDBF9F;
+    background-color: rgba(47, 43, 40, 0.85);
+}
+
+.queue-now {
+    width: 72px;
+    height: 72px;
+    border-width: 4px;
+    border-color: #C99A45;
+}
+
+/* The round after the current one, after a thin bar: smaller and dimmer. */
+.queue-gap {
+    width: 2px;
+    height: 44px;
+    margin: 0 8px 0 7px;
+    background-color: #6B5A3E;
+}
+
+.queue-next {
+    width: 44px;
+    height: 44px;
+    border-width: 2px;
+    opacity: 0.7;
+}
+
+.queue-next .army-count {
+    padding: 0 4px;
+    font-size: 12px;
+}
+
+.battle-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 84px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px 0 20px;
+    background-color: #1E1C1A;
+    border-radius: 0;
+    border-top-width: 3px;
+    border-top-color: #6B5A3E;
+}
+
+.battle-words {
+    width: 470px;
+    margin-right: 6px;
+}
+
+.battle-who {
+    font-size: 21px;
+    color: #E9E1CF;
+}
+
+.battle-hint {
+    font-size: 14px;
+    color: #B9AF9C;
+    white-space: normal;
+}
+
+.battle-bar-waiting .battle-who {
+    color: #E07070;
+}
+
+.battle-info {
+    position: absolute;
+    left: 0;
+    bottom: 84px;
+    width: 400px;
+    padding: 12px 16px 14px 14px;
+    background-color: #1E1C1A;
+    border-radius: 0;
+    border-top-width: 6px;
+    border-top-color: #6C93D6;
+    border-right-width: 3px;
+    border-right-color: #6B5A3E;
+}
+
+.battle-info-enemy {
+    border-top-color: #CDBF9F;
+}
+
+.battle-info-head {
+    flex-direction: row;
+    align-items: center;
+}
+
+.battle-info-face {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    margin-right: 12px;
+    border-radius: 3px;
+    background-color: #3A3631;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.battle-info-name {
+    flex-shrink: 1;
+    font-size: 22px;
+    color: #E9E1CF;
+    white-space: normal;
+}
+
+.battle-info-lines {
+    margin-top: 6px;
+}
+
+.battle-info-row {
+    flex-direction: row;
+    margin-top: 2px;
+}
+
+.battle-info-cell {
+    flex-direction: row;
+    align-items: center;
+    width: 50%;
+}
+
+.battle-info-ability {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #D2B880;
+    white-space: normal;
+}
+
+.battle-info-expect {
+    margin-top: 8px;
+    padding: 4px 10px;
+    font-size: 16px;
+    color: #F1EADB;
+    background-color: #A8363D;
+    border-radius: 3px;
+    white-space: normal;
+}
+
+/* ----- The town and hero screens ----- */
+
+/* The map's panels step aside while a screen is open; the top bar stays for the treasury. */
+.on-screen .quests,
+.on-screen .report,
+.on-screen .kingdoms,
+.on-screen .dock,
+.on-screen .labels,
+.on-screen .tags {
+    visibility: hidden;
+}
+
+/* The town screen is attached to the left edge, the hero screen to the right; the subject between. */
+.screen {
+    position: absolute;
+    top: 66px;
+    bottom: 0;
+    padding: 16px 18px 14px 18px;
+    background-color: #1E1C1A;
+    border-radius: 0;
+}
+
+.town-screen {
+    left: 0;
+    width: 480px;
+    border-right-width: 3px;
+    border-right-color: #6B5A3E;
+}
+
+.hero-screen {
+    right: 0;
+    width: 460px;
+    border-left-width: 3px;
+    border-left-color: #6B5A3E;
+}
+
+.screen-head {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.screen-icon {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    margin-right: 14px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.screen-portrait {
+    flex-shrink: 0;
+    width: 120px;
+    height: 120px;
+    margin-right: 14px;
+    border-radius: 0;
+    background-color: #3A3631;
+    border-bottom-width: 6px;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.screen-titles {
+    flex-shrink: 1;
+}
+
+.screen-title {
+    font-size: 29px;
+    color: #E9E1CF;
+    white-space: normal;
+}
+
+.screen-subtitle {
+    font-size: 16px;
+    color: #B9AF9C;
+}
+
+.screen-stats {
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.screen-tabs {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-top: 14px;
+    border-bottom-width: 2px;
+    border-bottom-color: rgba(214, 190, 140, 0.3);
+}
+
+.screen-tab {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+    height: 42px;
+    margin: 0 4px 0 0;
+    padding: 0 10px;
+    border-width: 0;
+    border-radius: 0;
+    border-top-width: 3px;
+    border-top-color: rgba(0, 0, 0, 0);
+    background-color: #2A2724;
+}
+
+.screen-tab:hover {
+    background-color: #36322D;
+}
+
+/* The caption fills the tab and centres its text itself: centred as a box it sat high. */
+.screen-tab .button-caption {
+    flex-grow: 1;
+    align-self: stretch;
+    -unity-text-align: middle-center;
+    font-size: 16px;
+    color: #B9AF9C;
+}
+
+.screen-tab-on,
+.screen-tab-on:hover {
+    background-color: #3A332B;
+    border-top-color: #C99A45;
+}
+
+.screen-tab-on .button-caption {
+    color: #F1EADB;
+}
+
+.screen-scroll {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-top: 6px;
+}
+
+/* Room under the last line, so the end of a list is not cut by the panel's edge. */
+.screen-scroll > .unity-scroll-view__content-viewport > .unity-scroll-view__content-container {
+    padding-bottom: 16px;
+}
+
+/* The scroller: a thin dark groove with a bronze handle, no arrow buttons. */
+.screen-scroll .unity-scroller--vertical {
+    width: 8px;
+    margin-left: 6px;
+    border-width: 0;
+    background-color: #141210;
+}
+
+.screen-scroll .unity-scroller__low-button,
+.screen-scroll .unity-scroller__high-button {
+    display: none;
+}
+
+.screen-scroll .unity-scroller__slider {
+    margin: 0;
+    width: 8px;
+}
+
+.screen-scroll .unity-base-slider__tracker {
+    left: 0;
+    right: 0;
+    margin: 0;
+    border-width: 0;
+    background-color: #141210;
+}
+
+.screen-scroll .unity-base-slider__dragger {
+    left: 0;
+    width: 8px;
+    margin: 0;
+    border-width: 0;
+    border-radius: 0;
+    background-color: #6B5A3A;
+}
+
+.screen-scroll .unity-base-slider__dragger:hover {
+    background-color: #8A7448;
+}
+
+.screen-scroll .unity-base-slider__dragger-border {
+    display: none;
+}
+
+.screen-section {
+    margin-top: 14px;
+    margin-bottom: 2px;
+    padding-bottom: 3px;
+    font-size: 17px;
+    color: #D2B880;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(214, 190, 140, 0.18);
+}
+
+.screen-note {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #988F7F;
+    white-space: normal;
+}
+
+/* Why the entries below it are pale, said once (a full town's build list). */
+.screen-why {
+    margin: 2px 0 6px 0;
+    font-size: 15px;
+    color: #E07070;
+    white-space: normal;
+}
+
+.screen-warn {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #E07070;
+    white-space: normal;
+}
+
+/* The town's places: built ones warm, free ones only outlined. Three to a row; the longest name
+   (Стрельбище, about 90px at 14px) fits beside the picture without breaking: its label drops the
+   default label's margins and padding, which left it 85px, and it broke after the "щ". */
+.town-slots {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.town-slot {
+    width: 140px;
+    height: 54px;
+    margin: 0 4px 6px 0;
+    padding: 4px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-color: #3A332B;
+    border-width: 0;
+    border-bottom-width: 3px;
+    border-bottom-color: rgba(0, 0, 0, 0.4);
+    border-radius: 0;
+}
+
+.town-slot-hall {
+    background-color: #4A3F2B;
+    border-bottom-color: #8E6A2B;
+}
+
+.town-slot-free {
+    background-color: rgba(233, 225, 207, 0.03);
+    border-width: 1px;
+    border-color: rgba(233, 225, 207, 0.12);
+}
+
+.town-slot-name {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 0;
+    padding: 0 1px;
+    font-size: 14px;
+    color: #E9E1CF;
+    -unity-text-align: middle-center;
+    white-space: normal;
+}
+
+/* What stands on the place, left of its name. */
+.town-slot-icon {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    margin-right: 3px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.town-slot-free .town-slot-name {
+    color: #6F685C;
+}
+
+.screen-exchange {
+    margin-top: 4px;
+}
+
+/* On the narrow town screen the unit's name stands under its picture and the five arrows get
+   the room between: beside the picture the names ran into the arrows, which were wider than
+   their box (the players saw it, 2026-11-11). 104 + 202 + 104 fits the panel's 444 with the
+   scroller. */
+.screen-exchange .swap-name {
+    width: 104px;
+    font-size: 15px;
+    white-space: normal;
+}
+
+.screen-exchange .swap-side {
+    width: 104px;
+    flex-direction: column;
+    align-items: center;
+}
+
+.screen-exchange .swap-side .army-slot {
+    margin: 0;
+}
+
+.screen-exchange .swap-unit {
+    margin-top: 6px;
+    -unity-text-align: upper-center;
+}
+
+.screen-exchange .swap-arrows {
+    width: 202px;
+    flex-shrink: 0;
+}
+
+.screen-exchange .swap-arrow {
+    width: 34px;
+    height: 36px;
+    margin: 0 3px;
+}
+
+/* The hero's level and moves. */
+.screen-level {
+    color: #E9E1CF;
+}
+
+.screen-xp-fill,
+.screen-moves-fill {
+    height: 100%;
+    border-radius: 2px;
+}
+
+.screen-xp-fill {
+    background-color: #C99A45;
+}
+
+.screen-moves-fill {
+    background-color: #6DAA5C;
+}
+
+.screen-levelup {
+    margin: 10px 0 0 0;
+}
+
+.screen-stat {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+    padding: 4px 8px 4px 4px;
+    background-color: #2A2724;
+}
+
+.screen-stat-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    margin-right: 8px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.screen-stat-name {
+    width: 76px;
+    font-size: 16px;
+    color: #B9AF9C;
+}
+
+.screen-stat-value {
+    width: 40px;
+    font-size: 22px;
+    color: #F1EADB;
+}
+
+.screen-stat-what {
+    flex-shrink: 1;
+    font-size: 15px;
+    color: #ADA491;
+    white-space: normal;
+}
+
+/* A stack of the hero's army. */
+.screen-unit {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+    padding: 5px 8px 5px 5px;
+    background-color: #2A2724;
+}
+
+.screen-unit-free {
+    background-color: rgba(233, 225, 207, 0.02);
+}
+
+.screen-unit-free-text {
+    margin-left: 6px;
+    font-size: 14px;
+    color: #6F685C;
+}
+
+.screen-free-slot {
+    width: 30px;
+    height: 30px;
+    margin-right: 4px;
+    background-color: rgba(233, 225, 207, 0.04);
+    border-width: 1px;
+    border-color: rgba(233, 225, 207, 0.1);
+}
+
+.screen-unit-words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-left: 6px;
+}
+
+.screen-unit-name {
+    font-size: 16px;
+    color: #E9E1CF;
+}
+
+.screen-unit-numbers {
+    font-size: 15px;
+    color: #CFC5B2;
+    white-space: normal;
+}
+
+.screen-unit-ability {
+    margin-top: 2px;
+    font-size: 15px;
+    color: #D2B880;
+    white-space: normal;
+}
+
+.screen-swaps {
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.screen-swaps .swap-button {
+    margin: 0 6px 6px 0;
+}
+
+/* Previous, back to the map, next. */
+.screen-nav {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top-width: 1px;
+    border-top-color: rgba(214, 190, 140, 0.18);
+}
+
+.screen-step {
+    width: 52px;
+    height: 48px;
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    border-radius: 0;
+    border-bottom-width: 4px;
+    border-bottom-color: #1E1C1A;
+    background-color: #3A3631;
+}
+
+.screen-step:hover {
+    background-color: #47423C;
+}
+
+.screen-step .button-caption {
+    flex-grow: 1;
+    align-self: stretch;
+    -unity-text-align: middle-center;
+    font-size: 34px;
+}
+
+.screen-back {
+    flex-grow: 1;
+    margin: 0 8px;
+    border-radius: 0;
+}
+
+/* The way into the town's screen on the map's town card. */
+.info-enter {
+    margin: 10px 0 0 0;
+    border-radius: 0;
+}
+
+/* ----- The painted art -----
+   Frames, buttons, tabs, slots and bars from UI/Art (made by Codex, see its manifest.json),
+   nine-sliced with the borders measured there. These rules come last and override the flat
+   colours above, which stay as the fallback. */
+
+.card-frame {
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-width: 0;
+    background-image: url("Art/window.png");
+    -unity-slice-left: 20;
+    -unity-slice-top: 20;
+    -unity-slice-right: 20;
+    -unity-slice-bottom: 20;
+}
+
+/* The painted frame replaces the dialogs' own top and bottom strips. A chosen pace takes the gold
+   picture too: its gold colour alone lay under the dark row picture (the new game's screen, 2026-11-11). */
+.help-card,
+.modal-card {
+    border-top-width: 0;
+    border-bottom-width: 0;
+}
+
+.button,
+.button-round,
+.swap-button,
+.swap-arrow,
+.screen-step {
+    border-radius: 0;
+    border-bottom-width: 0;
+    background-image: url("Art/row.png");
+    -unity-slice-left: 5;
+    -unity-slice-top: 5;
+    -unity-slice-right: 5;
+    -unity-slice-bottom: 5;
+    -unity-background-image-tint-color: rgb(222, 216, 206);
+}
+
+.button:hover,
+.button-round:hover,
+.swap-button:hover,
+.swap-arrow:hover,
+.screen-step:hover {
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.button-primary,
+.button-round.button-on,
+.difficulty-row > .button.button-on {
+    border-radius: 0;
+    border-bottom-width: 0;
+    background-image: url("Art/button_main.png");
+    -unity-slice-left: 6;
+    -unity-slice-top: 6;
+    -unity-slice-right: 6;
+    -unity-slice-bottom: 6;
+    -unity-background-image-tint-color: rgb(238, 234, 226);
+}
+
+.button-primary:hover,
+.button-round.button-on:hover,
+.difficulty-row > .button.button-on:hover {
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.button:active,
+.button-primary:active,
+.button-round:active,
+.swap-button:active,
+.swap-arrow:active,
+.screen-step:active {
+    border-bottom-width: 0;
+    -unity-background-image-tint-color: rgb(196, 190, 180);
+}
+
+.action {
+    border-radius: 0;
+    border-bottom-width: 0;
+    padding-bottom: 9px;
+    background-image: url("Art/row.png");
+    -unity-slice-left: 5;
+    -unity-slice-top: 5;
+    -unity-slice-right: 5;
+    -unity-slice-bottom: 5;
+    -unity-background-image-tint-color: rgb(232, 226, 214);
+}
+
+.action:hover {
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.action:active {
+    border-bottom-width: 0;
+    -unity-background-image-tint-color: rgb(196, 190, 180);
+}
+
+/* Cannot be done yet: sunk into the card instead of standing out. */
+.action-off,
+.action-off:hover,
+.action-off:active {
+    background-image: url("Art/inset.png");
+    -unity-slice-left: 7;
+    -unity-slice-top: 7;
+    -unity-slice-right: 7;
+    -unity-slice-bottom: 7;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.screen-tab {
+    border-top-width: 0;
+    background-image: url("Art/tab.png");
+    -unity-slice-left: 4;
+    -unity-slice-top: 4;
+    -unity-slice-right: 4;
+    -unity-slice-bottom: 0;
+    -unity-background-image-tint-color: rgb(225, 220, 212);
+}
+
+.screen-tab:hover {
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.screen-tab-on,
+.screen-tab-on:hover {
+    background-image: url("Art/tab_active.png");
+    -unity-slice-left: 5;
+    -unity-slice-top: 5;
+    -unity-slice-right: 5;
+    -unity-slice-bottom: 0;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+/* Built places stand out like rows; free ones and free army places are sunk. */
+.town-slot {
+    border-bottom-width: 0;
+    background-image: url("Art/row.png");
+    -unity-slice-left: 5;
+    -unity-slice-top: 5;
+    -unity-slice-right: 5;
+    -unity-slice-bottom: 5;
+}
+
+.town-slot-hall {
+    border-bottom-width: 3px;
+    border-bottom-color: #C99A45;
+}
+
+.town-slot-houses {
+    border-bottom-width: 3px;
+    border-bottom-color: #7E8A5A;
+}
+
+.town-slot-free,
+.army-slot-empty,
+.screen-free-slot {
+    border-width: 0;
+    background-image: url("Art/slot.png");
+    -unity-slice-left: 7;
+    -unity-slice-top: 7;
+    -unity-slice-right: 7;
+    -unity-slice-bottom: 7;
+}
+
+.growth-bar {
+    height: 18px;
+    padding: 4px 7px;
+    border-radius: 0;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: url("Art/bar.png");
+    -unity-slice-left: 18;
+    -unity-slice-top: 0;
+    -unity-slice-right: 18;
+    -unity-slice-bottom: 0;
+}
+
+.growth-fill,
+.screen-xp-fill,
+.screen-moves-fill {
+    border-radius: 0;
+}
+
+.portrait-frame {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("Art/portrait.png");
+    -unity-slice-left: 36;
+    -unity-slice-top: 36;
+    -unity-slice-right: 36;
+    -unity-slice-bottom: 36;
+}
+
+.hero-portrait {
+    border-radius: 0;
+}
+
+/* The painted icons of the hero screen. */
+.screen-stat-icon {
+    width: 44px;
+    height: 44px;
+}
+
+/* Settlers: the found-a-town button, bright where a town may stand, and the town's name field. */
+.found-button {
+    background-image: url("Art/button_main.png");
+    -unity-slice-left: 6;
+    -unity-slice-top: 6;
+    -unity-slice-right: 6;
+    -unity-slice-bottom: 6;
+    -unity-background-image-tint-color: rgb(238, 234, 226);
+}
+
+.found-button .button-caption {
+    color: #241A0C;
+}
+
+.found-button-off .button-caption {
+    color: #A39A8A;
+}
+
+.name-field {
+    margin: 16px 0 6px 0;
+}
+
+.name-field .unity-base-text-field__input,
+.name-field .unity-text-field__input {
+    min-height: 50px;
+    padding: 4px 14px;
+    font-size: 24px;
+    color: #F2EBDD;
+    background-color: #15130F;
+    border-width: 2px;
+    border-color: #8C7A5A;
+    border-radius: 0;
+    --unity-cursor-color: #F2EBDD;
+    --unity-selection-color: rgba(201, 154, 69, 0.55);
+}
+
+/* ----- The menu (Esc) ----- */
+
+/* A column along the left edge, as dark and square as the town screen, under the top bar; the
+   map stays live beside it, without darkening. */
+.menu {
+    position: absolute;
+    left: 0;
+    top: 66px;
+    bottom: 0;
+    width: 420px;
+    padding: 22px 22px 18px 22px;
+    background-color: #1E1C1A;
+    border-radius: 0;
+    border-right-width: 3px;
+    border-right-color: #6B5A3E;
+}
+
+/* In a battle the top bar is away, so the column runs the whole height. */
+.in-battle .menu {
+    top: 0;
+}
+
+/* The map's and the battle's panels step aside while the menu is open. */
+.on-menu .quests,
+.on-menu .report,
+.on-menu .kingdoms,
+.on-menu .dock,
+.on-menu .battle-top,
+.on-menu .battle-bar,
+.on-menu .battle-info {
+    visibility: hidden;
+}
+
+.menu-head {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    padding-bottom: 18px;
+    margin-bottom: 22px;
+    border-bottom-width: 2px;
+    border-bottom-color: rgba(217, 169, 79, 0.5);
+}
+
+.menu-shield {
+    flex-shrink: 0;
+    width: 64px;
+    height: 72px;
+    margin-right: 14px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.menu-buttons {
+    flex-shrink: 0;
+}
+
+/* The menu's buttons fill the column: the caption on the left, the key at the right end. */
+.menu-button {
+    height: 56px;
+    margin: 0 0 12px 0;
+    justify-content: flex-start;
+    padding: 0 18px 0 22px;
+}
+
+.menu-button .button-caption {
+    flex-grow: 1;
+}
+
+.top-bar .key-hint-dark {
+    margin-left: 8px;
+}
+
+.menu-gap {
+    flex-grow: 1;
+}
+
+.menu-foot {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: #988F7F;
+}
+
+/* «Русский / English» above the version (the interface plan's 3.6). */
+.menu-langs {
+    flex-direction: row;
+    flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+.menu-lang {
+    height: 40px;
+    min-width: 120px;
+    margin: 0 10px 0 0;
+    padding: 0 16px;
+    font-size: 15px;
+}
+
+/* «Сохранено» beside the season for two seconds after the game kept itself (Hud.ShowSaved). */
+.turn-saved {
+    font-size: 13px;
+    color: #D9A94F;
+    margin: 0 0 0 10px;
+    padding: 0;
+}
+
+/* ----- The saves' lists, in the menu's column in place of its buttons ----- */
+
+.menu-list {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.menu-list-title {
+    flex-shrink: 0;
+    font-size: 20px;
+    color: #E9E1CF;
+    margin: 0;
+    padding: 0;
+}
+
+.menu-list-scroll {
+    margin-bottom: 12px;
+}
+
+/* A part of the load list: this game, the earlier games, the players' own. */
+.save-part {
+    font-size: 15px;
+    color: #C99A45;
+    margin: 12px 0 6px 2px;
+    padding: 0;
+}
+
+/* A save: shield, kingdom, turn and season, when written and how long played; the slot at the right. */
+.save-row {
+    height: 78px;
+    margin: 0 0 8px 0;
+    padding: 0 14px 0 12px;
+    justify-content: flex-start;
+}
+
+.save-shield {
+    flex-shrink: 0;
+    width: 46px;
+    height: 52px;
+    margin-right: 12px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.save-lines {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.save-name {
+    font-size: 17px;
+    color: #F1EADB;
+    margin: 0;
+    padding: 0;
+    white-space: normal;
+}
+
+.save-turn {
+    font-size: 14px;
+    color: #D8CDB8;
+    margin: 0;
+    padding: 0;
+}
+
+.save-when {
+    font-size: 13px;
+    color: #A99F8C;
+    margin: 0;
+    padding: 0;
+}
+
+.save-slot {
+    flex-shrink: 0;
+    align-self: flex-start;
+    font-size: 13px;
+    color: #988F7F;
+    margin: 12px 0 0 8px;
+    padding: 0;
+}
+
+/* The first empty slot is gold: its words read dark. */
+.button-primary .save-name,
+.button-primary .save-slot {
+    color: #2B1F0C;
+}
+
+.button-primary .save-when {
+    color: #4A3818;
+}
+
+.save-row-bad {
+    opacity: 0.6;
+}
+
+.save-none {
+    font-size: 14px;
+    color: #988F7F;
+    white-space: normal;
+    margin: 0 0 8px 2px;
+    padding: 0;
+}
+
+/* ----- The crown ----- */
+
+/* The bar's crown: the crown and a socket for each gem, lit as the gems come. */
+.crown-button {
+    padding: 0 12px 0 10px;
+}
+
+/* Open, it keeps its own colours (gold on gold would hide the gems) and gets a gold edge. */
+.crown-button.button-on {
+    border-bottom-width: 3px;
+    border-bottom-color: #C99A45;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.crown-gems {
+    flex-direction: row;
+    align-items: center;
+    margin-left: 6px;
+}
+
+.crown-gem {
+    width: 26px;
+    height: 26px;
+    margin-left: 2px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* Until the painted gems are in: a coloured square turned on its corner, a gold rim round an empty socket. */
+.gem-plain-0,
+.gem-plain-1,
+.gem-plain-2,
+.gem-plain-3,
+.gem-plain-4,
+.gem-plain-socket {
+    rotate: 45deg;
+    scale: 0.66 0.66;
+    border-width: 2px;
+    border-color: #E2B65A;
+    border-radius: 2px;
+}
+
+.gem-plain-0 {
+    background-color: #D9A43C;
+}
+
+.gem-plain-1 {
+    background-color: #3E8A5A;
+}
+
+.gem-plain-2 {
+    background-color: #9E3A3A;
+}
+
+.gem-plain-3 {
+    background-color: #3B5E9E;
+}
+
+.gem-plain-4 {
+    background-color: #7D5A9E;
+}
+
+.gem-plain-socket {
+    background-color: #2A2521;
+    border-color: #8C7A5A;
+}
+
+/* The crown's list over the kingdoms: a row for each gem's feat, gold once the gem is in. */
+.crown-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 5px;
+    padding: 5px 10px 6px 6px;
+    background-color: rgba(233, 225, 207, 0.04);
+}
+
+.crown-row-won {
+    background-color: rgba(201, 154, 69, 0.2);
+}
+
+.crown-row-gem {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.crown-row-body {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.crown-row-top {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.crown-row-name {
+    font-size: 16px;
+    color: #E9E1CF;
+    padding: 0;
+    margin: 0;
+}
+
+.crown-row-progress {
+    font-size: 14px;
+    color: #D9B26A;
+    padding: 0;
+    margin: 0 0 0 8px;
+}
+
+.crown-row-won .crown-row-progress {
+    color: #B5D19A;
+}
+
+.crown-row-feat {
+    font-size: 14px;
+    color: #A89F8E;
+    padding: 0;
+    margin: 1px 0 0 0;
+    white-space: normal;
+}
+
+.crown-divider {
+    height: 2px;
+    margin: 12px 4px 10px 4px;
+    background-color: rgba(217, 169, 79, 0.35);
+}
+
+/* The end of the game: the map and turn, the crown's gems by turn, then the game's counts. */
+.crown-end-map {
+    font-size: 16px;
+    color: #A89F8E;
+    padding: 0;
+    margin: 0;
+}
+
+.crown-end-gems {
+    flex-direction: row;
+    justify-content: center;
+    margin: 14px 0 12px 0;
+}
+
+.crown-end-gem {
+    align-items: center;
+    width: 112px;
+    margin: 0 6px;
+}
+
+.crown-end-stone {
+    width: 72px;
+    height: 72px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.crown-end-name {
+    font-size: 17px;
+    color: #E9E1CF;
+    padding: 0;
+    margin: 4px 0 0 0;
+}
+
+.crown-end-turn {
+    font-size: 14px;
+    color: #A89F8E;
+    padding: 0;
+    margin: 0;
+}
+
+/* ----- The main menu and the new game's screen (the interface plan's 3.2), in the menu's column ----- */
+
+/* The game's picture behind the main menu's column, over the whole screen. */
+.title-art {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+/* Away from a game the bars, the toasts and the map's plates are away too. */
+.on-title .top-bar,
+.on-title .toast,
+.on-title .labels,
+.on-title .tags {
+    visibility: hidden;
+}
+
+.on-title .menu {
+    top: 0;
+}
+
+/* The crown with six faces is the new game's emblem: bigger than a kingdom's shield. */
+.on-title .menu-shield {
+    width: 96px;
+    height: 96px;
+}
+
+/* The main menu has no panel: the logo in the middle a little above the centre and the buttons
+   under it stand on the picture itself (the players asked for it so, 2026-11-11). The logo's
+   top is the same on the loading screen, so it stays in place when a game loads. */
+.on-main .menu {
+    left: 0;
+    right: 0;
+    width: auto;
+    padding: 96px 0 0 0;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0);
+    border-right-width: 0;
+}
+
+.on-main .menu-head {
+    display: none;
+}
+
+.title-logo,
+.loading-logo {
+    flex-shrink: 0;
+    width: 860px;
+    height: 400px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.title-logo {
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 22px;
+}
+
+/* Without the painted logo: the crown over the name in letters. */
+.title-logo-crown {
+    width: 220px;
+    height: 220px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.title-logo-name {
+    font-size: 96px;
+    color: #F2D58A;
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: #3A2A14;
+    text-shadow: 2px 4px 6px rgba(21, 19, 15, 0.8);
+    margin: 0;
+    padding: 0;
+}
+
+.on-main .menu-buttons {
+    width: 440px;
+}
+
+/* Over the picture the list of saves keeps a dark panel of its own, under the logo. */
+.on-main .menu-list {
+    width: 640px;
+    flex-grow: 0;
+    max-height: 520px;
+    padding: 18px 20px 8px 20px;
+    background-color: #1E1C1A;
+    border-width: 2px;
+    border-color: #6B5A3E;
+}
+
+.on-main .menu-gap {
+    display: none;
+}
+
+.on-main .menu-foot {
+    position: absolute;
+    right: 24px;
+    bottom: 16px;
+    color: #F3EEE2;
+    text-shadow: 1px 1px 3px rgba(21, 19, 15, 0.9);
+}
+
+/* On the main menu the languages stand at its bottom left corner, the version at the right. */
+.on-main .menu-langs {
+    position: absolute;
+    left: 24px;
+    bottom: 16px;
+    margin-bottom: 0;
+}
+
+/* ----- The loading screen: the picture, the logo where the main menu has it, and a bar ----- */
+
+.loading {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding-top: 96px;
+    align-items: center;
+    background-color: #1E1C1A;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.loading-logo {
+    margin-bottom: 40px;
+}
+
+.loading-title {
+    font-size: 30px;
+    color: #F3EEE2;
+    text-shadow: 1px 2px 4px rgba(21, 19, 15, 0.9);
+    margin: 0;
+    padding: 0;
+}
+
+.loading-line {
+    font-size: 18px;
+    color: #F3EEE2;
+    text-shadow: 1px 1px 3px rgba(21, 19, 15, 0.9);
+    margin: 6px 0 16px 0;
+    padding: 0;
+}
+
+.loading-track {
+    width: 520px;
+    height: 16px;
+    background-color: #1E1C1A;
+    border-width: 2px;
+    border-color: #6B5A3E;
+}
+
+.loading-bar {
+    height: 100%;
+    width: 0;
+    background-color: #D9A94F;
+}
+
+/* «Продолжить» with the game it goes into under it. */
+.menu-continue {
+    height: 74px;
+}
+
+.menu-continue-words {
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.menu-continue-words .button-caption {
+    flex-grow: 0;
+}
+
+.menu-continue-line {
+    font-size: 15px;
+    color: #4A3618;
+    margin: 2px 0 0 0;
+    padding: 0;
+}
+
+.new-game-map {
+    font-size: 22px;
+    color: #E9E1CF;
+    margin: 0 0 12px 2px;
+    padding: 0;
+}
+
+.new-game-label {
+    font-size: 15px;
+    color: #B9AF9C;
+    margin: 2px 0 0 2px;
+    padding: 0;
+}
+
+.new-game-number {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.new-game-number > .number-field {
+    flex-grow: 1;
+    margin: 6px 10px 0 0;
+}
+
+.new-game-number > .button {
+    height: 50px;
+    margin-top: 6px;
+}
+
+.new-game .difficulty-row > .button {
+    margin: 0 8px 0 0;
+}
+
+.new-game-gap {
+    flex-shrink: 0;
+    height: 18px;
+}

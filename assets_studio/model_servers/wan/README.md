@@ -2,6 +2,10 @@
 
 <!-- markdownlint-disable MD013 -->
 
+> Retired: an hour per five-second 720p clip is too slow. The code stays as a
+> starting point for bringing it back; it is not in `model_servers/justfile`
+> and is not maintained.
+
 Video from a first frame (`image-to-video`, ADR-003), based on
 [Wan2.2 TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B-Diffusers)
 (Apache-2.0): 24 fps, about 720p, up to 5 seconds, with a
@@ -13,8 +17,6 @@ just doctor   # GPU, ffmpeg, downloaded weights, block storage and disk space
 just serve    # http://127.0.0.1:9108; first start: ~22 GB download + ~11 GB storage
 just test     # no GPU or weights needed
 ```
-
-From `model_servers/`: `just wan`.
 
 ## Parameters
 

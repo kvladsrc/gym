@@ -17,6 +17,9 @@ import io
 import logging
 import os
 import sys
+import tempfile
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -140,6 +143,23 @@ def describe(mesh: Any) -> dict[str, Any]:
     }
 
 
+@contextmanager
+def scratch_directory() -> Generator[None]:
+    """Temporary files made inside the block go to a directory removed after it.
+
+    hy3dgen's post-processors pass each mesh between trimesh and pymeshlab
+    through NamedTemporaryFile(delete=False) and never delete the files: five
+    PLY a mesh. tempfile.tempdir is process-wide; the SDK runs one generate()
+    at a time.
+    """
+    with tempfile.TemporaryDirectory(prefix="hunyuan3d-") as directory:
+        previous, tempfile.tempdir = tempfile.tempdir, directory
+        try:
+            yield
+        finally:
+            tempfile.tempdir = previous
+
+
 class Hunyuan3DServer(ModelServer):
     model = ModelInfo(
         id="hunyuan3d",
@@ -218,10 +238,11 @@ class Hunyuan3DServer(ModelServer):
             ) from error
         if mesh is None or not len(mesh.faces):
             raise GenerationError("no surface found: the object may be too thin or the image empty")
-        for step in self._cleanup:
-            mesh = step(mesh)
-        if params.max_faces and len(mesh.faces) > params.max_faces:
-            mesh = self._reducer(mesh, max_facenum=params.max_faces)
+        with scratch_directory():
+            for step in self._cleanup:
+                mesh = step(mesh)
+            if params.max_faces and len(mesh.faces) > params.max_faces:
+                mesh = self._reducer(mesh, max_facenum=params.max_faces)
         return Output("model/gltf-binary", mesh.export(file_type="glb"), describe(mesh))
 
     def _prepare(self, data: bytes, params: Params) -> Image.Image:

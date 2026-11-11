@@ -4,8 +4,11 @@
 
 ## Outcome
 
-**Wan2.2 TI2V-5B** (`model_servers/wan`, `just wan`, port 9108): Apache-2.0,
+**Wan2.2 TI2V-5B** (`model_servers/wan`, port 9108): Apache-2.0,
 24 fps, about 720p, up to 5 seconds; GGUF Q8 transformer.
+
+Retired on 2026-11-09: an hour per five-second clip is too slow. The server's
+code stays; the studio configuration and the launcher no longer list it.
 
 ## Candidates (as of 2026-10-01)
 

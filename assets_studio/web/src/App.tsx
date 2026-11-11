@@ -28,7 +28,7 @@ export function App() {
         {current.page === "library" ? (
           <LibraryPage selectedId={current.assetId} />
         ) : current.page === "jobs" ? (
-          <JobsPage />
+          <JobsPage jobId={current.jobId} />
         ) : current.page === "projects" ? (
           <ProjectsPage />
         ) : current.page === "tool" && current.toolId === "frame" ? (

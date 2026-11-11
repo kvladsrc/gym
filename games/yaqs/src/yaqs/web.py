@@ -4,7 +4,7 @@
 so the browser and agents share one embedder. Calls to the service run one at a time in a
 worker thread. Requests must name a local host (or the host the server was bound to), so a
 web page from elsewhere cannot read the library through DNS rebinding. The page renders
-book text as text, never as HTML.
+book text as text, never as HTML. API calls reach the query log as interface "web".
 """
 
 import sqlite3
@@ -21,11 +21,13 @@ from starlette.routing import Route
 
 from yaqs import DEFAULT_SEARCH_MODE, SEARCH_MODES
 from yaqs.context import DEFAULT_CONTEXT_TOKENS, DEFAULT_PAGE_TOKENS
+from yaqs.querylog import Caller
 from yaqs.service import KnowledgeService
 
 STATIC = Path(__file__).with_name("static")
 FILES = {"/": "index.html", "/app.js": "app.js", "/app.css": "app.css"}
 LOCAL_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
+WEB = Caller("web")
 SECURITY_HEADERS = {
     "Cache-Control": "no-store",
     "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self'; "
@@ -53,9 +55,9 @@ def endpoints(service: KnowledgeService, *, host: str = "127.0.0.1") -> dict[str
     lock = threading.Lock()
     allowed = LOCAL_HOSTS | {host.strip("[]")}
 
-    def locked(function: Callable[..., Any], *args: Any) -> Any:
+    def locked(function: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         with lock:
-            return function(*args)
+            return function(*args, **kwargs)
 
     def guard(request: Request) -> Response | None:
         if request.url.hostname not in allowed:
@@ -68,7 +70,7 @@ def endpoints(service: KnowledgeService, *, host: str = "127.0.0.1") -> dict[str
                 return refused
             try:
                 function, args = handler(request)
-                result = await run_in_threadpool(locked, function, *args)
+                result = await run_in_threadpool(locked, function, *args, caller=WEB)
             except KeyError as error:
                 return JSONResponse({"error": error.args[0]}, 404, headers=SECURITY_HEADERS)
             except ValueError as error:
@@ -109,7 +111,7 @@ def endpoints(service: KnowledgeService, *, host: str = "127.0.0.1") -> dict[str
     routes = {path: static(name) for path, name in FILES.items()}
     routes |= {
         "/api/books": api(lambda request: (service.books, ("compact",))),
-        "/api/stats": api(lambda request: (service.store.stats, ())),
+        "/api/stats": api(lambda request: (service.stats, ())),
         "/api/search": api(search),
         "/api/passage/{chunk_id:int}": api(passage),
         "/api/page/{book_id:int}/{page:int}": api(page),

@@ -20,6 +20,7 @@ class SyncGymTest(unittest.TestCase):
             # private, and a copy published before is removed.
             projects = (
                 "games/cothic",
+                "games/realms",
                 "games/yaqs",
                 "games/zooreader",
             )
@@ -125,6 +126,32 @@ class SyncGymTest(unittest.TestCase):
                 path = source / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(payload)
+            # Realms' Studio art is not in this repository's Git, but the
+            # public copy carries it; what Realms/Setup makes from it stays out.
+            art = "games/realms/unity/realms/Assets/Realms/Art"
+            published_art = [
+                f"{art}.meta",
+                f"{art}/Models.meta",
+                f"{art}/Models/boar.glb",
+                f"{art}/Icons/lair.png",
+                f"{art}/Textures/grass.png",
+                f"{art}/manifest.json",
+                "games/realms/unity/realms/UserSettings/Search.settings",
+            ]
+            setup_made = [
+                f"{art}/Prefabs/boar.prefab",
+                f"{art}/Resources/RealmsArt.asset",
+                "games/realms/unity/realms/Assets/Realms/Generated/Map.unity",
+                "games/realms/unity/realms/UserSettings/EditorUserSettings.asset",
+            ]
+            for relative in published_art + setup_made:
+                path = source / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(payload)
+            (source / art / "manifest.json").write_text(
+                "workspace/logo.png\n"
+            )
+
             (source / "README.md").write_text(
                 "![Preview](static/zooreader.gif)\n",
                 encoding="utf-8",
@@ -186,6 +213,34 @@ class SyncGymTest(unittest.TestCase):
                 (destination / "README.md").read_text(),
                 "![Preview](static/zooreader.gif)\n",
             )
+
+            for relative in setup_made:
+                with self.subTest(setup_made=relative):
+                    self.assertFalse((destination / relative).exists())
+            self.assertEqual(
+                (destination / art / "Models/boar.glb").read_bytes(), payload
+            )
+            self.assertEqual(
+                (destination / art / "manifest.json").read_text(),
+                "workspace/logo.png\n",
+            )
+            # The public copy's Git takes the art, and not what Setup makes
+            # there after a checkout.
+            subprocess.run(["git", "init", "-q", str(destination)], check=True)
+            for relative in setup_made:
+                path = destination / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(payload)
+            for relative in published_art + setup_made:
+                with self.subTest(public_git=relative):
+                    self.assertTrue((destination / relative).is_file())
+                    check = subprocess.run(
+                        ["git", "-C", str(destination), "check-ignore", "-q", relative],
+                        check=False,
+                    )
+                    self.assertEqual(
+                        check.returncode, 0 if relative in setup_made else 1
+                    )
 
 
 if __name__ == "__main__":

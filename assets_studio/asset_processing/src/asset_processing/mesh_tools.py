@@ -37,7 +37,10 @@ it cannot use.
   every level then wears the same paint. A separate paint per level differs
   (TRELLIS.2 painted a 1,000-triangle tree almost one colour). A mesh
   without UVs is unwrapped first (Smart UV Project). The result has one
-  matte, non-metal material: only the base colour carries over.
+  matte, non-metal material: only the base colour carries over. It is baked
+  as emission, not as Cycles' diffuse colour, which is the base colour times
+  (1 - metallic): TRELLIS.2 marks whole tree crowns as metal, and they came
+  out black.
 """
 
 import json
@@ -460,6 +463,29 @@ def bake(high_path: Path, low_path: Path, target: Path, size: int, ray: float) -
     export(low, target, materials=True)
 
 
+def emit_base_colour(obj: Any) -> None:
+    """Every Principled material of ``obj`` emits its base colour instead of
+    shading, for an EMIT bake of the colour alone, whatever its metal,
+    transmission or alpha."""
+    for material in obj.data.materials:
+        tree = material.node_tree if material else None
+        if tree is None:
+            continue
+        principled = next((n for n in tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+        output = next(
+            (n for n in tree.nodes if n.type == "OUTPUT_MATERIAL" and n.is_active_output), None
+        )
+        if principled is None or output is None:
+            continue
+        emission = tree.nodes.new("ShaderNodeEmission")
+        base = principled.inputs["Base Color"]
+        if base.is_linked:
+            tree.links.new(base.links[0].from_socket, emission.inputs["Color"])
+        else:
+            emission.inputs["Color"].default_value = base.default_value
+        tree.links.new(emission.outputs["Emission"], output.inputs["Surface"])
+
+
 def bake_colour(painted_path: Path, mesh_path: Path, target: Path, size: int, ray: float) -> None:
     bpy.ops.wm.read_factory_settings(use_empty=True)
     painted = import_joined(painted_path, "painted mesh")
@@ -467,6 +493,7 @@ def bake_colour(painted_path: Path, mesh_path: Path, target: Path, size: int, ra
     if not painted.data.uv_layers or not painted.data.materials:
         invalid("the painted mesh has no UVs or material")
     put_over(painted, low)
+    emit_base_colour(painted)
     unwrapped = not low.data.uv_layers
     if unwrapped:
         edit(low, lambda: bpy.ops.uv.smart_project(island_margin=0.004))
@@ -491,8 +518,7 @@ def bake_colour(painted_path: Path, mesh_path: Path, target: Path, size: int, ra
     diagonal = (Vector(low.dimensions)).length
     activate(painted, low)  # selected to active: from the painted onto the mesh
     bpy.ops.object.bake(
-        type="DIFFUSE",
-        pass_filter={"COLOR"},
+        type="EMIT",
         use_selected_to_active=True,
         cage_extrusion=ray * diagonal,
         max_ray_distance=2 * ray * diagonal,

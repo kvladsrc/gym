@@ -1,0 +1,45 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+import "../common.just"
+
+source := cache / "hairdeck-source"
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/hairdeck_model_server/server.py`
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/hairdeck"
+export HAIRDECK_SOURCE := source
+export HAIRDECK_ROOT := cache / "hairdeck"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+# SAM 3 and DINOv3 are in gated repositories (accept their licences first).
+export HF_TOKEN := env("HF_TOKEN", env("HUGGINGFACE_TOKEN", ""))
+export PYTORCH_CUDA_ALLOC_CONF := "expandable_segments:True"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned HairDeck source and create the environment
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then \
+        git clone --no-checkout https://github.com/hyz317/HairDeck.git "{{ source }}"; \
+    fi
+    git -C "{{ source }}" cat-file -e "{{ revision }}^{commit}" 2>/dev/null \
+        || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ gpu_shell }} uv sync --extra test
+
+# Download the weights (~7 GB; network only): `just download modelscope` takes SAM 3 and DINOv3 from ModelScope
+download gated="huggingface":
+    {{ gpu_shell }} uv run --no-sync python -c "from hairdeck_model_server.server import download; download('{{ gated }}')"
+
+# Report PyTorch, the CUDA device and whether the source and the weights are in place
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m hairdeck_model_server.doctor
+
+# Serve on 127.0.0.1:9133 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync hairdeck-model-server "$@"
+
+# Unit tests (no GPU, no weights, no source)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

@@ -206,6 +206,8 @@ def test_retopology_and_normal_baking(tmp_path):
 
 # A sphere painted red above its equator and blue below (one UV point per
 # face), and a coarse icosphere without UVs or material to take the paint.
+# The paint is metallic, as TRELLIS.2 marks whole tree crowns: its base
+# colour still has to carry over (a diffuse bake turned it black).
 MAKE_PAINTED = """
 import sys, bpy
 work = sys.argv[sys.argv.index("--") + 1]
@@ -226,6 +228,7 @@ texture = material.node_tree.nodes.new("ShaderNodeTexImage")
 texture.image = image
 principled = material.node_tree.nodes["Principled BSDF"]
 material.node_tree.links.new(texture.outputs["Color"], principled.inputs["Base Color"])
+principled.inputs["Metallic"].default_value = 1.0
 painted.data.materials.append(material)
 bpy.ops.export_scene.gltf(filepath=work + "/painted.glb", export_format="GLB", use_selection=True)
 bpy.ops.object.delete()
@@ -240,7 +243,8 @@ bpy.ops.export_scene.gltf(
 """
 
 # Faces well above or below the equator whose baked colour (at their UV
-# centre) is not the paint's there.
+# centre) is not the paint's there, and those whose paint channel came out
+# darker than the paint's 0.8.
 CHECK_PAINT = """
 import sys, bpy
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -250,7 +254,7 @@ image = next(n.image for n in obj.data.materials[0].node_tree.nodes if n.type ==
 w, h = image.size
 pixels = image.pixels[:]
 uv = obj.data.uv_layers.active.data
-checked = wrong = 0
+checked = wrong = dim = 0
 for polygon in obj.data.polygons:
     z = (obj.matrix_world @ polygon.center).z
     if abs(z) < 0.2:
@@ -261,7 +265,8 @@ for polygon in obj.data.polygons:
     red, blue = pixels[at], pixels[at + 2]
     checked += 1
     wrong += (red > blue) != (z > 0)
-print("PAINT_CHECK", checked, wrong)
+    dim += max(red, blue) < 0.7
+print("PAINT_CHECK", checked, wrong, dim)
 """
 
 
@@ -295,9 +300,10 @@ def test_colour_baking_carries_the_paint_to_an_unwrapped_mesh(tmp_path):
         timeout=120,
     )
     line = next(line for line in done.stdout.splitlines() if line.startswith("PAINT_CHECK"))
-    checked, wrong = map(int, line.split()[1:])
+    checked, wrong, dim = map(int, line.split()[1:])
     assert checked > 200
     assert wrong == 0
+    assert dim == 0
 
     # The paint has to come from a mesh that has some.
     swapped = Job("3d-bake-colour", None, {"painted": coarse, "mesh": painted}, params, (0,))
