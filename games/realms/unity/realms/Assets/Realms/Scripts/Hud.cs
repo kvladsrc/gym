@@ -733,6 +733,9 @@ namespace Realms
             toastUntil = ViewClock.Now + seconds;
         }
 
+        /// <summary>The message line gone at once.</summary>
+        public void ClearToast() => toastUntil = 0f;
+
         /// <summary>True when the pointer (screen pixels, origin bottom left) is over a panel.</summary>
         public bool PointerOverUi(Vector2 screen)
         {

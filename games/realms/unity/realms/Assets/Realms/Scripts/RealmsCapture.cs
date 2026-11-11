@@ -717,9 +717,11 @@ namespace Realms
         /// <summary>
         /// One turn of a simple player, for the captures: grow full towns onto a neighbour, build
         /// what it can in its towns and then on its land, hire what its towns offer, send each hero
-        /// on the bot's way (<see cref="Rival.HeroTurn"/>), end the turn.
+        /// on the bot's way (<see cref="Rival.HeroTurn"/>), end the turn. Without <paramref name="show"/>
+        /// the map is not drawn again (the promo plays many such turns, then draws it once);
+        /// without <paramref name="hire"/> the towns keep their recruits.
         /// </summary>
-        TurnReport AutoTurn()
+        TurnReport AutoTurn(bool show = true, bool hire = true)
         {
             World world = state.World;
             int me = world.Player;
@@ -740,6 +742,8 @@ namespace Realms
                 }
                 foreach (Unit unit in Units.Hired)
                 {
+                    if (!hire)
+                        break;
                     int count = state.Affordable(me, index, unit);
                     if (count > 0)
                         state.Recruit(me, index, unit, count);
@@ -755,6 +759,8 @@ namespace Realms
             state.CheckQuests();
             TurnReport report = state.EndTurn();
             changed.AddRange(report.Changed);
+            if (!show)
+                return report;
             if (expanded)
                 RedrawMap();
             else

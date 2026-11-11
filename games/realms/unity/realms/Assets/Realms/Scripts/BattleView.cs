@@ -764,7 +764,10 @@ namespace Realms
                 acted = false;
                 hud.BattleTurn(Words.Count(f.Unit, f.Count), battle.CanShoot(f));
                 Paint();
-                yield return new WaitUntil(() => acted || auto || battle.Outcome != Outcome.Running);
+                float handsAt = Time.time + Hands;
+                yield return new WaitUntil(() => acted || auto || battle.Outcome != Outcome.Running || (Hands > 0f && Time.time >= handsAt));
+                if (!acted && !auto && Hands > 0f && battle.Outcome == Outcome.Running && battle.Current == f)
+                    battle.Auto();
                 waiting = false;
                 hover = -1;
                 hud.BattleInfo(null, null);
@@ -1085,6 +1088,50 @@ namespace Realms
                 return;
             battle.Defend();
             acted = true;
+        }
+
+        /// <summary>
+        /// When above zero (the promo), each of the players' stacks takes the auto battle's choice
+        /// after that many seconds of its turn, the turn shown as the players' own (whose move it
+        /// is, its reach lit) rather than with the auto battle's line.
+        /// </summary>
+        public float Hands;
+
+        /// <summary>
+        /// The promo's camera: eases over <paramref name="seconds"/> towards the middle of the
+        /// living stacks and nearer by <paramref name="share"/> of its distance to the field.
+        /// </summary>
+        public IEnumerator Nearer(float share, float seconds)
+        {
+            if (cam == null || battle == null)
+                yield break;
+            Transform eye = cam.transform;
+            Vector3 from = eye.position, forward = eye.forward;
+            if (forward.y > -0.05f)
+                yield break;
+            float along = (Origin.y - from.y) / forward.y;
+            Vector3 look = from + forward * along, middle = Vector3.zero;
+            int count = 0;
+            foreach (KeyValuePair<int, Transform> pair in figures)
+            {
+                if (battle.Fighters[pair.Key].Alive)
+                {
+                    middle += pair.Value.position;
+                    count++;
+                }
+            }
+            if (count == 0)
+                yield break;
+            middle /= count;
+            middle.y = look.y;
+            Vector3 to = from + (middle - look) + forward * (along * share);
+            for (float t = 0f; t < seconds && battle != null; t += Time.deltaTime)
+            {
+                eye.position = Vector3.Lerp(from, to, Mathf.SmoothStep(0f, 1f, t / seconds));
+                yield return null;
+            }
+            if (battle != null)
+                eye.position = to;
         }
 
         /// <summary>Turns the auto battle on or off (as the A key does).</summary>
