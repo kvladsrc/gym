@@ -664,6 +664,14 @@ namespace Realms
         /// <summary>The ground the cell's field building covers (<see cref="FieldModel"/>), kept clear by the windmill beside it.</summary>
         Footprint? fieldPrint;
 
+        /// <summary>
+        /// What was just built, which rises out of the ground (<see cref="Rise"/>) as its cell is
+        /// dressed again: the field building on <see cref="RisingCell"/>, or <see cref="RisingBuilding"/>
+        /// in the town <see cref="RisingTown"/>. Set only round the redraw after a build.
+        /// </summary>
+        public int RisingCell = -1, RisingTown = -1;
+        public TownBuilding RisingBuilding;
+
         /// <summary>The studio model of a field building near the cell's centre, off the roads; where it stands.</summary>
         Vector2 FieldModel(FieldBuilding building, float cx, float cz)
         {
@@ -674,7 +682,9 @@ namespace Realms
             if (prefab != null)
             {
                 float size = 0.5f * SizeFactor(prefab), yaw = rng.Range(-25f, 25f);
-                Place(prefab, at.x, at.y, size, yaw, false);
+                Transform model = Place(prefab, at.x, at.y, size, yaw, false);
+                if (here.Index == RisingCell)
+                    model.gameObject.AddComponent<Rise>();
                 fieldPrint = new Footprint(at, SidesOf(prefab) * (size / 2f), yaw);
             }
             else
@@ -1385,6 +1395,8 @@ namespace Realms
                 Transform model = Place(prefab, at.x, at.y, scale, turn, false);
                 if (home)
                     Chimneys(prefab.name, model);
+                else if (city.Index == RisingTown && (TownBuilding)lot == RisingBuilding)
+                    model.gameObject.AddComponent<Rise>();
             }
         }
 

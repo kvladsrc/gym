@@ -101,7 +101,7 @@ namespace Realms
             };
             hud.BuildTown += (city, building) =>
             {
-                if (Done(state.Build(state.World.Player, city, building), state.World.Cities[city].Cell))
+                if (Done(state.Build(state.World.Player, city, building), state.World.Cities[city].Cell, building))
                     Learn(Learned.TownBuild);
             };
             hud.ExpandTown += ExpandTown;
@@ -302,8 +302,12 @@ namespace Realms
                 $"{report.Changed.Count} cells dressed, {report.Reshaped.Count} new quarters of the neighbours, the ground laid again: {laid}");
         }
 
-        /// <summary>After a build: show the cell again, pay the tasks it finished, or say why it failed; true when built.</summary>
-        bool Done(Refusal refusal, int cell)
+        /// <summary>
+        /// After a build: show the cell again, the new building rising out of the ground (a town's
+        /// <paramref name="building"/>, or else the field building on the cell), pay the tasks it
+        /// finished, or say why it failed; true when built.
+        /// </summary>
+        bool Done(Refusal refusal, int cell, TownBuilding? building = null)
         {
             if (refusal != Refusal.None)
             {
@@ -315,7 +319,13 @@ namespace Realms
             var changed = new List<int> { cell };
             if (town >= 0)
                 changed.AddRange(state.World.Cities[town].Districts);
-            if (view.Refresh(changed))
+            PropBuilder props = view.Props;
+            props.RisingCell = building == null ? cell : -1;
+            props.RisingTown = building != null ? town : -1;
+            props.RisingBuilding = building ?? default;
+            bool laid = view.Refresh(changed);
+            props.RisingCell = props.RisingTown = -1;
+            if (laid)
                 heroes.Refresh();
             List<Quest> finished = state.CheckQuests();
             hud.Refresh();
