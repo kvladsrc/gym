@@ -23,9 +23,9 @@ songs, text and short videos.
 
 <!-- markdownlint-disable MD013 MD033 -->
 <p>
-  <a href="static/assets_studio/screenshot-2026-10-31-11-03-02.png"><img src="static/assets_studio/screenshot-2026-10-31-11-03-02.png" width="32%" alt="The library: rated assets from trees and boulders to characters, a painted tree with its triangle count"></a>
-  <a href="static/assets_studio/screenshot-2026-10-31-11-02-02.png"><img src="static/assets_studio/screenshot-2026-10-31-11-02-02.png" width="32%" alt="A painted wolf with how it was made: model, task, seed, parameters"></a>
-  <a href="static/assets_studio/generate.png"><img src="static/assets_studio/generate.png" width="32%" alt="Generate: models grouped by what they make, a task form and the model's card"></a>
+  <a href="static/assets_studio/screenshot-2026-11-11-22-16-30.png"><img src="static/assets_studio/screenshot-2026-11-11-22-16-30.png" width="32%" alt="The library of a game's project: trees, town houses, gates and a fountain, a painted spider with its triangle count"></a>
+  <a href="static/assets_studio/screenshot-2026-11-11-22-16-47.png"><img src="static/assets_studio/screenshot-2026-11-11-22-16-47.png" width="32%" alt="A painted spider with how it was made: model, task, seed, parameters"></a>
+  <a href="static/assets_studio/screenshot-2026-11-11-22-17-33.png"><img src="static/assets_studio/screenshot-2026-11-11-22-17-33.png" width="32%" alt="Generate: models grouped by what they make, a text-to-image form and the model's card with its licence and memory use"></a>
 </p>
 <!-- markdownlint-enable MD013 MD033 -->
 

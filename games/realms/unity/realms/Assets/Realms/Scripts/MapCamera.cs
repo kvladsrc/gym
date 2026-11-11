@@ -236,12 +236,49 @@ namespace Realms
             }
         }
 
-        /// <summary>Turns by <paramref name="degrees"/> the way Q and E do, stopping a screen's sway (the promo's slow turn).</summary>
-        public void Turn(float degrees)
+        /// <summary>
+        /// Pans as W A S D do for <paramref name="dt"/> seconds (x right, y up the screen, the way
+        /// the camera faces); <paramref name="fast"/> is Shift. The keys and the promo's player use it.
+        /// </summary>
+        public void Pan(Vector2 move, float dt, bool fast = false)
         {
-            goalYaw += degrees;
+            if (move == Vector2.zero || held != null)
+                return;
+            Vector2 forward = Forward(goalYaw), right = new Vector2(forward.y, -forward.x);
+            Vector2 step = (right * move.x + forward * move.y).normalized;
+            goalTarget = Clamp(goalTarget + step * (goalDistance * 0.9f * (fast ? 2f : 1f) * dt));
+        }
+
+        /// <summary>Turns as Q (+1) and E (-1) do for <paramref name="dt"/> seconds, stopping a screen's sway.</summary>
+        public void TurnKeys(float turn, float dt, bool fast = false)
+        {
+            if (turn == 0f)
+                return;
+            goalYaw += turn * turnSpeed * (fast ? 2f : 1f) * dt;
             if (held != null)
                 held.Sway = 0f;
+        }
+
+        /// <summary>Zooms as + (-1) and - (+1) do for <paramref name="dt"/> seconds.</summary>
+        public void ZoomKeys(float zoom, float dt)
+        {
+            if (zoom != 0f)
+                goalDistance = ClampDistance(goalDistance * Mathf.Pow(2.2f, zoom * dt));
+        }
+
+        /// <summary>The mouse wheel's <paramref name="notches"/> (positive: nearer), towards the ground under <paramref name="pointer"/>.</summary>
+        public void Wheel(float notches, Vector2 pointer)
+        {
+            bool hadGround = GroundUnder(pointer, out Vector3 before);
+            float oldGoal = goalDistance;
+            goalDistance = ClampDistance(goalDistance * Mathf.Pow(0.82f, notches));
+            if (hadGround && !dragging && held == null)
+            {
+                // Zoom towards the cursor: move the target along with the change of distance.
+                float share = 1f - goalDistance / oldGoal;
+                Vector2 toCursor = new Vector2(before.x, before.z) - goalTarget;
+                goalTarget = Clamp(goalTarget + toCursor * share);
+            }
         }
 
         /// <summary>A screen is holding the camera.</summary>
@@ -339,30 +376,18 @@ namespace Realms
                 if (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed) move.y -= 1;
                 if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) move.x += 1;
                 if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) move.x -= 1;
-                float boost = keyboard.leftShiftKey.isPressed ? 2f : 1f;
-                if (move != Vector2.zero && held == null)
-                {
-                    // Up the screen is the way the camera faces.
-                    Vector2 forward = Forward(goalYaw), right = new Vector2(forward.y, -forward.x);
-                    Vector2 step = (right * move.x + forward * move.y).normalized;
-                    goalTarget = Clamp(goalTarget + step * (goalDistance * 0.9f * boost * dt));
-                }
+                bool fast = keyboard.leftShiftKey.isPressed;
+                Pan(move, dt, fast);
                 // Q (and Z) turns the map towards the left hand, E (and X) towards the right: the
                 // other way round felt backwards to the players (2026-11-10).
                 float turn = 0f;
                 if (keyboard.qKey.isPressed || keyboard.zKey.isPressed) turn += 1;
                 if (keyboard.eKey.isPressed || keyboard.xKey.isPressed) turn -= 1;
-                if (turn != 0f)
-                {
-                    goalYaw += turn * turnSpeed * boost * dt;
-                    if (held != null)
-                        held.Sway = 0f;
-                }
+                TurnKeys(turn, dt, fast);
                 float zoom = 0f;
                 if (keyboard.equalsKey.isPressed || keyboard.numpadPlusKey.isPressed) zoom -= 1;
                 if (keyboard.minusKey.isPressed || keyboard.numpadMinusKey.isPressed) zoom += 1;
-                if (zoom != 0f)
-                    goalDistance = ClampDistance(goalDistance * Mathf.Pow(2.2f, zoom * dt));
+                ZoomKeys(zoom, dt);
             }
 
             if (mouse != null && !Scripted)
@@ -405,17 +430,7 @@ namespace Realms
                 {
                     // Some platforms report 120 per notch, others 1.
                     float notches = Mathf.Abs(scroll) > 20f ? scroll / 120f : scroll;
-                    notches = Mathf.Clamp(notches, -3f, 3f);
-                    bool hadGround = GroundUnder(pointer, out Vector3 before);
-                    float oldGoal = goalDistance;
-                    goalDistance = ClampDistance(goalDistance * Mathf.Pow(0.82f, notches));
-                    if (hadGround && !dragging && held == null)
-                    {
-                        // Zoom towards the cursor: move the target along with the change of distance.
-                        float share = 1f - goalDistance / oldGoal;
-                        Vector2 toCursor = new Vector2(before.x, before.z) - goalTarget;
-                        goalTarget = Clamp(goalTarget + toCursor * share);
-                    }
+                    Wheel(Mathf.Clamp(notches, -3f, 3f), pointer);
                 }
             }
 

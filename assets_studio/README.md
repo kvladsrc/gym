@@ -7,11 +7,17 @@ UI, agents through a REST API and MCP.
 
 <!-- markdownlint-disable MD013 MD033 -->
 <p>
-  <a href="../static/assets_studio/screenshot-2026-10-31-11-03-02.png"><img src="../static/assets_studio/screenshot-2026-10-31-11-03-02.png" width="240" alt="The library: rated assets from trees and boulders to characters, a painted tree with its triangle count"></a>
-  <a href="../static/assets_studio/screenshot-2026-10-31-11-02-02.png"><img src="../static/assets_studio/screenshot-2026-10-31-11-02-02.png" width="240" alt="A painted wolf with how it was made: model, task, seed, parameters"></a>
-  <a href="../static/assets_studio/generate.png"><img src="../static/assets_studio/generate.png" width="240" alt="Generate: models grouped by what they make, a task form and the model's card"></a>
-  <a href="../static/assets_studio/screenshot-2026-10-25-12-38-27.png"><img src="../static/assets_studio/screenshot-2026-10-25-12-38-27.png" width="240" alt="A generated motion on its skeleton"></a>
-  <a href="../static/assets_studio/screenshot-2026-10-18-20-03-00.png"><img src="../static/assets_studio/screenshot-2026-10-18-20-03-00.png" width="240" alt="Flow: a saved job graph from a character mesh to an animated character"></a>
+  <a href="../static/assets_studio/screenshot-2026-11-11-22-16-30.png"><img src="../static/assets_studio/screenshot-2026-11-11-22-16-30.png" width="240" alt="The library of a game's project: trees, town houses, gates and a fountain, a painted spider with its triangle count"></a>
+  <a href="../static/assets_studio/screenshot-2026-11-11-22-16-00.png"><img src="../static/assets_studio/screenshot-2026-11-11-22-16-00.png" width="240" alt="Jobs: one asset's chain from cut-out and image-to-3D through refining and painting to baked colour and normals"></a>
+  <a href="../static/assets_studio/screenshot-2026-11-11-22-17-33.png"><img src="../static/assets_studio/screenshot-2026-11-11-22-17-33.png" width="240" alt="Generate: models grouped by what they make, a text-to-image form and the model's card with its licence and memory use"></a>
+  <br>
+  <a href="../static/assets_studio/screenshot-2026-11-11-22-16-47.png"><img src="../static/assets_studio/screenshot-2026-11-11-22-16-47.png" width="240" alt="A painted spider with how it was made: model, task, seed, parameters"></a>
+  <a href="../static/assets_studio/screenshot-2026-11-11-22-16-58.png"><img src="../static/assets_studio/screenshot-2026-11-11-22-16-58.png" width="240" alt="A painted conifer, 999 triangles"></a>
+  <a href="../static/assets_studio/screenshot-2026-11-11-22-17-09.png"><img src="../static/assets_studio/screenshot-2026-11-11-22-17-09.png" width="240" alt="A painted wooden house, 4,943 triangles"></a>
+  <br>
+  <a href="../static/assets_studio/screenshot-2026-11-11-22-16-50.png"><img src="../static/assets_studio/screenshot-2026-11-11-22-16-50.png" width="240" alt="The spider as wireframe"></a>
+  <a href="../static/assets_studio/screenshot-2026-11-11-22-17-01.png"><img src="../static/assets_studio/screenshot-2026-11-11-22-17-01.png" width="240" alt="The conifer as wireframe"></a>
+  <a href="../static/assets_studio/screenshot-2026-11-11-22-17-12.png"><img src="../static/assets_studio/screenshot-2026-11-11-22-17-12.png" width="240" alt="The house as wireframe"></a>
 </p>
 <!-- markdownlint-enable MD013 MD033 -->
 

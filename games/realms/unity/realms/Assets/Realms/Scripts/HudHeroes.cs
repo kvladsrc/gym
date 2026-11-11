@@ -396,6 +396,9 @@ namespace Realms
         /// <summary>Answers the open dialog as if its button was clicked (for the captures).</summary>
         public void AnswerModal(int choice) => Answer(choice);
 
+        /// <summary>The open dialog's text field (a new town's name), or null.</summary>
+        public TextField DialogField => DialogOpen ? modalBody?.Q<TextField>() : null;
+
         void Answer(int choice)
         {
             if (modalOverlay.style.display != DisplayStyle.Flex)

@@ -35,7 +35,7 @@ namespace Realms
         public event Action<int> MapNumberPicked;
 
         MenuMode menuMode;
-        VisualElement titleArt, titleLogo, titleLogoCrown, titleButtons, newGamePanel;
+        VisualElement titleArt, titleLogo, titleLogoCrown, titleButtons, newGamePanel, titleNewTwin;
         VisualElement loadingScreen, loadingLogo, loadingBar;
         Label titleLogoName, loadingLine;
         Button continueButton, titleNew, menuToTitle;
@@ -84,19 +84,21 @@ namespace Realms
             titleButtons = Child(column, "menu-buttons");
             continueButton = MenuButton(titleButtons, Words.TitleContinue, "button-primary", "Enter", () => ContinuePicked?.Invoke());
             continueButton.AddToClassList("menu-continue");
-            // The caption with the game's line under it, the key at the right end.
+            // The caption with the game's line under it, in the caption's place between the key and its twin.
             Label caption = continueButton.Q<Label>(className: "button-caption");
             var words = new VisualElement { pickingMode = PickingMode.Ignore };
             words.AddToClassList("menu-continue-words");
-            continueButton.Insert(0, words);
+            continueButton.Insert(continueButton.IndexOf(caption), words);
             words.Add(caption);
-            continueLine = Text(words, "menu-continue-line", "", bold);
+            continueLine = Text(words, "menu-continue-line", "", regular);
             continueLine.pickingMode = PickingMode.Ignore;
             titleNew = MenuButton(titleButtons, Words.MenuNewGame, "button", "Enter", () => TitleNewPicked?.Invoke());
-            titleNewKey = titleNew.Q<Label>(className: "key-hint-dark");
+            // The key's own label is the last one: its unseen twin comes before the caption.
+            titleNewKey = titleNew.Query<Label>(className: "key-hint-dark").Last();
+            titleNewTwin = titleNew.Q(className: "key-twin");
             MenuButton(titleButtons, Words.MenuLoad, "button", null, () => LoadPicked?.Invoke());
             MenuButton(titleButtons, Words.MenuHelp, "button", "F1", () => Help?.Invoke());
-            MenuButton(titleButtons, Words.TitleQuit, "button", null, () => QuitPicked?.Invoke());
+            MenuButton(titleButtons, Words.TitleQuit, "button", null, () => QuitPicked?.Invoke()).AddToClassList("menu-danger");
             titleButtons.style.display = DisplayStyle.None;
         }
 
@@ -190,7 +192,9 @@ namespace Realms
             titleNew.EnableInClassList("button", !fresh);
             titleNewKey.EnableInClassList("key-hint", fresh);
             titleNewKey.EnableInClassList("key-hint-dark", !fresh);
-            titleNewKey.style.display = fresh ? DisplayStyle.Flex : DisplayStyle.None;
+            titleNewKey.parent.style.display = titleNewTwin.style.display = fresh ? DisplayStyle.Flex : DisplayStyle.None;
+            titleNew.Q<Label>(className: "button-caption").text = fresh ? Loud(Words.MenuNewGame) : Words.MenuNewGame;
+            MenuCaptionFont(titleNew, fresh);
             ShowMenu(true, MenuMode.Title);
         }
 
@@ -223,7 +227,7 @@ namespace Realms
                     SetIcon(menuShield, FlagIcon(state.World.Player));
                     menuKingdom.text = state.World.Countries[state.World.Player].Label;
                     menuMap.text = Words.MenuMap(state.World.Seed, state.Turn);
-                    menuBack.text = battle ? Words.MenuBackBattle : Words.MenuBack;
+                    menuBack.text = Loud(battle ? Words.MenuBackBattle : Words.MenuBack);
                     menuQuit.text = battle ? Words.MenuQuitBattle : Words.MenuQuit;
                     DisplayStyle shown = battle ? DisplayStyle.None : DisplayStyle.Flex;
                     menuNew.style.display = menuSave.style.display = menuLoad.style.display = menuToTitle.style.display = shown;

@@ -27,6 +27,9 @@ namespace Realms
         Portraits portraits;
         int hover = -1, select = -1, cityCursor = -1;
         string captureDir;
+
+        /// <summary>"menu": the capture takes only the menu's frames (-realmsCaptureOnly menu).</summary>
+        string captureOnly;
         bool capturing;
 
         /// <summary>The neighbours' pace for the next new game, kept between runs; the captures play at the normal one.</summary>
@@ -55,6 +58,8 @@ namespace Realms
                 }
                 if (args[i] == "-realmsCapture")
                     captureDir = args[i + 1];
+                if (args[i] == "-realmsCaptureOnly")
+                    captureOnly = args[i + 1];
                 // The promo is staged like the captures: a new map, nothing kept.
                 if (args[i] == "-realmsPromo")
                     captureDir = promoDir = args[i + 1];

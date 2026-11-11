@@ -10,52 +10,25 @@ namespace Realms
     /// </summary>
     public sealed class Rise : MonoBehaviour
     {
-        /// <summary>How long the rise takes (the plan's 0.45 s); the promo slows it for the eye to follow.</summary>
-        public static float Seconds = 0.45f;
-
-        /// <summary>How long a new building waits flat before it rises; the promo frames its place first.</summary>
-        public static float Delay;
-
-        /// <summary>The building that began to rise last.</summary>
-        public static Rise Last { get; private set; }
+        /// <summary>How long the rise takes (the plan's 0.45 s).</summary>
+        const float Seconds = 0.45f;
 
         /// <summary>The overshoot's height, as a share of the building's, and when in the rise it comes.</summary>
         const float Over = 1.08f, Peak = 0.7f, Flat = 0.01f;
 
         Vector3 full;
         float clock;
-        Renderer[] hidden;
 
         void Awake()
         {
             full = transform.localScale;
-            clock = -Delay;
-            Last = this;
             Apply(0f);
-            // Waiting, it is not there at all rather than flat on the ground.
-            if (clock < 0f)
-            {
-                hidden = GetComponentsInChildren<Renderer>();
-                foreach (Renderer r in hidden)
-                    r.enabled = false;
-            }
         }
 
         void Update()
         {
             clock += Time.deltaTime;
-            if (clock < 0f)
-                return;
-            if (hidden != null)
-            {
-                foreach (Renderer r in hidden)
-                {
-                    if (r != null)
-                        r.enabled = true;
-                }
-                hidden = null;
-            }
-            float k = Mathf.Clamp01(clock / Mathf.Max(Seconds, 1e-3f));
+            float k = Mathf.Clamp01(clock / Seconds);
             if (k >= 1f)
             {
                 transform.localScale = full;

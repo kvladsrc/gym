@@ -3,21 +3,21 @@ using System.Collections.Generic;
 using System.IO;
 using Realms.Core;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Realms
 {
     /// <summary>
     /// The promo's recording (<c>-realmsPromo DIR</c>; the family asked for a video in English of
-    /// the game's main moments, 2026-11-11). The players' bot first plays some turns, founding
-    /// towns on the way, so the kingdom has towns, roads and buildings to show. Then: the land from
-    /// high above, coming down to the capital; the kingdom with the badges under Alt; a hero's way
-    /// over open land to a monster group and the battle, turn by turn, to its result; settlers
-    /// founding a town; and the capital's screen, a building rising in the middle of the frame and
-    /// troops hired as the camera turns round the town. This second take follows the review of the
-    /// first one's montage: nearer cameras, stills round each action, no auto battle's line, the
-    /// camera's turn away from the fog. Time runs at a steady 30 frames a second whatever the
-    /// laptop manages (<see cref="Time.captureFramerate"/>), and each clip's frames go to a
-    /// folder of DIR of its own, for cutting them together with fades.
+    /// the game's main moments, 2026-11-11, showing only gameplay: no directed shots or camera
+    /// angles). The players' bot first plays some turns off camera, founding towns on the way, so
+    /// the kingdom has towns, roads and buildings; a hero is set near a monster group and a second
+    /// one, with settlers, on a free site. Then it plays as the players do, with their controls
+    /// only: the wheel and Alt over the kingdom; F, the wheel and two right clicks for a hero's
+    /// way; the battle's turns taken one by one; settlers founding a town; Space and the capital's
+    /// screen, a building built and troops hired. Time runs at a steady 30 frames a second
+    /// (<see cref="Time.captureFramerate"/>), and each clip's frames go to a folder of DIR of its
+    /// own, for cutting them together.
     /// </summary>
     public sealed partial class RealmsGame
     {
@@ -36,181 +36,155 @@ namespace Realms
             int me = world.Player;
             yield return Older(PromoTurns);
             City capital = world.Cities[world.Countries[me].Capital];
-            Vector2 capitalAt = At(capital.Cell);
-            Vector2 kingdomAt = KingdomMiddle(me, capitalAt, out Vector2 landAt);
-            StartCoroutine(RecordFrames());
+            List<Hero> mine = PromoHeroes(capital);
+            Hero walker = mine.Count > 0 ? mine[0] : null;
+            int group = walker != null ? PromoGroup(walker) : -1;
+            Hero founder = mine.Count > 1 ? mine[1] : walker;
+            TownBuilding? next = ReadyTown(capital);
+
+            // As a saved game opens: over the capital, facing north, nothing chosen, the camera
+            // where the players left it, nearer than a new game's (the map's own view of the
+            // kingdom is as far as the camera goes, so the wheel would not move it).
             ChooseHero(null, false);
             Select(-1);
-            mapCamera.Face(-24f, true);
-            mapCamera.Focus(landAt, 40f, true);
-            // Settle: the ground, the plants and the fog drawn, the first frames' stalls gone.
+            hud.ClearToast();
+            mapCamera.Face(0f, true);
+            FocusCapital(14f, true);
+            StartCoroutine(RecordFrames());
             yield return Wait(1f);
             Debug.Log($"Promo time: delta {Time.deltaTime:F4}, view {ViewClock.Delta:F4}");
 
-            // 1. The land from high above, no interface, coming down to the capital.
-            hud.Hidden = true;
-            Clip("01-land");
-            Vector2 close = capitalAt - new Vector2(0f, 0.6f);
-            yield return Glide(landAt, 40f, -24f, close, 13f, 0f, 7f);
-            yield return Wait(0.5f);
-            Cut();
-
-            // 2. The kingdom: the interface back over the same view, the camera rising over the
-            // kingdom's land, then the badges of the whole map while Alt is held.
-            hud.Hidden = false;
-            Clip("02-kingdom");
-            yield return Wait(0.5f);
-            yield return Glide(close, 13f, 0f, kingdomAt, 25f, 0f, 1.8f);
-            Vector2 drift = kingdomAt + new Vector2(0.8f, 0.3f);
-            hud.BadgesShown = true;
-            for (float t = 0f; t < 5f; t += Time.deltaTime)
+            // 1. The kingdom: the wheel back over the capital, the keys moving the kingdom's land
+            // to the middle, then Alt held.
+            Clip("01-kingdom");
+            yield return Wait(1.2f);
+            for (int notch = 0; notch < 4; notch++)
             {
-                mapCamera.Focus(Vector2.Lerp(kingdomAt, drift, Smooth(t / 5f)), 25f, true);
-                yield return null;
+                mapCamera.Wheel(-1f, ScreenOf(capital.Cell));
+                yield return Wait(0.3f);
             }
-            hud.BadgesShown = false;
             yield return Wait(0.5f);
+            yield return KeysTo(LandMiddle(me), 3f);
+            yield return Wait(0.8f);
+            hud.BadgesShown = true;
+            yield return Wait(4f);
+            hud.BadgesShown = false;
+            yield return Wait(1f);
             Cut();
 
-            // 3. A hero's way over open land to a monster group, the camera near and following.
-            List<Hero> heroesOfMine = state.HeroesOf(me);
-            Hero first = heroesOfMine.Count > 0 ? heroesOfMine[0] : null;
-            int group = first != null ? PromoGroup(first) : -1;
+            // 2. A hero's way: F, the wheel nearer while the hero and the group both stay in view,
+            // a right click on the group, a second one to walk; the fight's question.
             if (group >= 0)
             {
-                ChooseHero(first, false);
-                Vector2 follow = At(first.Cell) - new Vector2(0f, 0.5f);
-                mapCamera.Focus(follow, 8f, true);
-                yield return Wait(0.3f);
-                Clip("03-way");
-                yield return Wait(1f);
+                Clip("02-way");
+                yield return Wait(0.8f);
+                NextHero();
+                yield return Wait(1.1f);
+                for (int notch = 0; notch < 3 && NearerKeeps(walker.Cell, group); notch++)
+                {
+                    mapCamera.Wheel(1f, (ScreenOf(walker.Cell) + ScreenOf(group)) * 0.5f);
+                    yield return Wait(0.25f);
+                }
+                yield return Wait(0.6f);
                 Order(group);
                 yield return Wait(1.2f);
-                StartCoroutine(Walk());
+                Order(group);
                 while (!hud.DialogOpen)
-                {
-                    follow = Follow(first, follow, 8f);
                     yield return null;
-                }
                 yield return Wait(2.5f);
                 Cut();
-                hud.AnswerModal(0);
 
-                // 4. The battle, each of the players' turns taken as a player would (the reach lit,
-                // a short pause) rather than by the auto battle, to the result's window.
-                battleView.Hands = 0.6f;
-                yield return Wait(0.3f);
-                Clip("04-battle");
-                yield return Wait(1f);
-                bool nearer = false;
-                for (float t = 0f; t < 45f && !hud.DialogOpen; t += Time.deltaTime)
+                // 3. The battle from «Fight!», each of the players' stacks moving after a short
+                // look at its reach, to the result's window and back on the map.
+                Clip("03-battle");
+                hud.AnswerModal(0);
+                yield return null;
+                for (float t = 0f; t < 60f; t += Time.deltaTime)
                 {
-                    if (!nearer && t > 2.5f)
+                    battleView.Hands = Random.Range(0.6f, 1f);
+                    if (hud.DialogOpen)
                     {
-                        nearer = true;
-                        StartCoroutine(battleView.Nearer(0.22f, 1.6f));
+                        if (battleView.Fight == null || !battleView.Fight.Offered)
+                            break;
+                        // Monsters that give up are let go.
+                        yield return Wait(2f);
+                        hud.AnswerModal(0);
                     }
                     yield return null;
                 }
-                // Monsters that give up are let go: the result follows.
-                if (battleView.Fight != null && battleView.Fight.Offered)
-                {
-                    yield return Wait(1.2f);
-                    hud.AnswerModal(0);
-                    yield return null;
-                    while (!hud.DialogOpen)
-                        yield return null;
-                }
-                yield return Wait(3f);
-                Cut();
                 battleView.Hands = 0f;
+                yield return Wait(3f);
+                hud.AnswerModal(0);
+                yield return null;
                 while (busy)
                 {
                     if (hud.DialogOpen)
+                    {
+                        yield return Wait(1.5f);
                         hud.AnswerModal(0);
+                    }
                     yield return null;
                 }
-                ChooseHero(null, false);
-                Select(-1);
+                yield return Wait(1.5f);
+                Cut();
             }
 
-            // 5. Settlers found a town: the hero takes the wagon a few steps on, names the town and it stands.
-            heroesOfMine = state.HeroesOf(me);
-            Hero settler = heroesOfMine.Count > 0 ? heroesOfMine[0] : null;
-            if (settler != null && PromoSite(settler, out int site))
+            // 4. Settlers found a town: F to the hero with the cart, «Found a town», a name typed.
+            if (founder != null && founder.Settlers)
             {
-                hud.ClearToast();
-                settler.Settlers = true;
-                heroes.Refresh();
-                ChooseHero(settler, false);
-                Vector2 follow = Vector2.Lerp(At(settler.Cell), At(site), 0.3f) - new Vector2(0f, 0.5f);
-                mapCamera.Focus(follow, 8f, true);
-                yield return Wait(0.3f);
-                Clip("05-found");
-                yield return Wait(0.8f);
-                Order(site);
-                yield return Wait(0.8f);
-                StartCoroutine(Walk());
-                yield return null;
-                while (busy)
-                {
-                    follow = Follow(settler, follow, 8f);
-                    yield return null;
-                }
+                Clip("04-found");
                 yield return Wait(0.5f);
-                StartCoroutine(Found(settler));
+                NextHero();
+                if (hero != founder)
+                {
+                    yield return Wait(0.4f);
+                    NextHero();
+                }
+                yield return Wait(1f);
+                FoundPicked();
                 while (!hud.DialogOpen)
                     yield return null;
-                yield return Wait(1.5f);
-                hud.AnswerModal(0);
-                yield return Wait(3f);
-                Cut();
-                LeaveScreen();
-                ChooseHero(null, false);
-                Select(-1);
-            }
-
-            // 6. The capital's screen: a building rises in the middle of the frame, troops are
-            // hired, and the camera turns round the town to the side away from the fog.
-            mapCamera.Focus(capitalAt - new Vector2(0f, 1f), 20f, true);
-            TownBuilding? next = ReadyTown(capital);
-            yield return Wait(0.8f);
-            hud.ClearToast();
-            Clip("06-town");
-            EnterTown(capital.Index);
-            mapCamera.Turn(0f);
-            yield return Wait(2f);
-            if (next is TownBuilding building)
-            {
-                Rise.Delay = 1.2f;
-                Rise.Seconds = 1.1f;
-                bool built = Done(state.Build(me, capital.Index, building), capital.Cell, building);
-                Rise.Delay = 0f;
-                Rise.Seconds = 0.45f;
-                hud.ClearToast();
-                Debug.Log($"Promo built {building}: {built}");
-                if (built && Rise.Last != null)
+                yield return Wait(0.5f);
+                TextField field = hud.DialogField;
+                if (field != null)
                 {
-                    // The camera turns so that the building's place lies on the screen's middle line, the nearer way.
-                    Vector3 p = Rise.Last.transform.position;
-                    Vector2 away = new Vector2(p.x, p.z) - capitalAt;
-                    if (away.sqrMagnitude > 0.01f)
+                    string name = TownName();
+                    field.value = "";
+                    foreach (char letter in name)
                     {
-                        float behind = Mathf.Atan2(away.x, away.y) * Mathf.Rad2Deg, before = behind + 180f;
-                        float turn = Mathf.DeltaAngle(mapCamera.Yaw, before);
-                        if (Mathf.Abs(Mathf.DeltaAngle(mapCamera.Yaw, behind)) < Mathf.Abs(turn))
-                            turn = Mathf.DeltaAngle(mapCamera.Yaw, behind);
-                        mapCamera.Turn(turn);
+                        yield return Wait(Random.Range(0.12f, 0.26f));
+                        field.value += letter;
                     }
                 }
-                yield return Wait(1.2f + 1.1f + 1f);
+                yield return Wait(0.4f);
+                hud.AnswerModal(0);
+                while (!OnScreen)
+                    yield return null;
+                yield return Wait(3f);
+                LeaveScreen();
+                yield return Wait(1.5f);
+                Cut();
+            }
+
+            // 5. The capital: Space, its screen, a building built, troops hired and seen in the army.
+            Clip("05-town");
+            yield return Wait(0.7f);
+            FocusCapital(Mathf.Min(mapCamera.Distance, 26f));
+            yield return Wait(0.8f);
+            OpenScreenAt(capital.Cell);
+            yield return Wait(2.5f);
+            if (next is TownBuilding building)
+            {
+                bool built = Done(state.Build(me, capital.Index, building), capital.Cell, building);
+                Debug.Log($"Promo built {building}: {built}");
+                yield return Wait(1.8f);
             }
             hud.ChooseTownTab(1);
             yield return Wait(1.2f);
             foreach (Unit unit in Units.Hired)
             {
                 int count = state.Affordable(me, capital.Index, unit);
-                if (count > 0)
+                if (count > 0 && capital.Buildings.Contains(Units.Building(unit)))
                 {
                     Recruit(capital.Index, unit, count);
                     Debug.Log($"Promo hired {count} {unit}");
@@ -218,14 +192,8 @@ namespace Realms
                 }
             }
             yield return Wait(1.5f);
-            float side = ClearSide(capitalAt, mapCamera.Yaw, 50f);
-            for (float t = 0f; t < 6f; t += Time.deltaTime)
-            {
-                // About 8.5 degrees a second, easing in: the players' own Q and E.
-                mapCamera.Turn(side * 8.5f * Mathf.Clamp01(t / 1.2f) * Time.deltaTime);
-                yield return null;
-            }
-            yield return Wait(0.5f);
+            hud.ChooseTownTab(2);
+            yield return Wait(4.5f);
             Cut();
             LeaveScreen();
             Debug.Log("Promo done");
@@ -272,8 +240,7 @@ namespace Realms
                 return;
             Hero h = mine[0];
             City capital = world.Cities[world.Countries[me].Capital];
-            int site = Nearest(capital.Cell, c => (c.Owner == me || c.Owner < 0) && state.HeroAt(c.Index) == null
-                && Settling.CanFoundOn(world, me, c.Index) == Refusal.None);
+            int site = FreeSite(capital.Cell, me);
             if (site < 0)
                 return;
             int was = h.Cell;
@@ -286,47 +253,143 @@ namespace Realms
                 state.Treasury[me] -= cost;
         }
 
-        /// <summary>The middle of the kingdom's land, and of all the land seen (<paramref name="land"/>).</summary>
-        Vector2 KingdomMiddle(int me, Vector2 fallback, out Vector2 land)
-        {
-            Vector2 mine = Vector2.zero, seen = Vector2.zero;
-            int m = 0, s = 0;
-            foreach (Cell c in state.World.Cells)
-            {
-                if (c.IsWater || !state.Seen[c.Index])
-                    continue;
-                Vector2 at = At(c.Index);
-                seen += at;
-                s++;
-                if (c.Owner == me)
-                {
-                    mine += at;
-                    m++;
-                }
-            }
-            land = s > 0 ? seen / s : fallback;
-            return m > 0 ? mine / m : fallback;
-        }
-
-        /// <summary>The camera eased after the hero's figure, the figure a little above the screen's middle.</summary>
-        Vector2 Follow(Hero h, Vector2 follow, float distance)
-        {
-            if (heroes.FigureAt(h) is Vector3 figure)
-            {
-                Vector2 wanted = new Vector2(figure.x, figure.z) - new Vector2(0f, 0.5f);
-                follow = Vector2.Lerp(follow, wanted, 1f - Mathf.Exp(-2.5f * Time.deltaTime));
-                mapCamera.Focus(follow, distance, true);
-            }
-            return follow;
-        }
-
-        static bool PromoKind(Cell c) => !c.Lair && (c.Monster == Monster.Boar || c.Monster == Monster.Bandits || c.Monster == Monster.Goblins);
+        int FreeSite(int from, int me) => Nearest(from, c => (c.Owner == me || c.Owner < 0) && c.Biome != Biome.Forest
+            && state.HeroAt(c.Index) == null && Settling.CanFoundOn(state.World, me, c.Index) == Refusal.None);
 
         /// <summary>
-        /// A monster group for the hero's way: five to nine steps this turn, over open seen land,
-        /// of a kind that stands out on the grass (boars and bandits before goblins), one the hero
-        /// beats easily but not at once. Without one the hero is set down six cells from one; an
-        /// army too weak for it is topped up.
+        /// The players' heroes for the clips, off camera: a second one hired in the capital (its
+        /// tavern built when it has none), standing with settlers on a free site near the capital.
+        /// </summary>
+        List<Hero> PromoHeroes(City capital)
+        {
+            int me = state.World.Player;
+            List<Hero> mine = state.HeroesOf(me);
+            if (mine.Count < 2)
+            {
+                state.Treasury[me] += new Stock(400, 150, 150, 150);
+                if (!capital.Buildings.Contains(TownBuilding.Tavern))
+                    Done(state.Build(me, capital.Index, TownBuilding.Tavern), capital.Cell, TownBuilding.Tavern);
+                Refusal refusal = state.HireHero(me, capital.Index);
+                Debug.Log($"Promo hires a second hero: {refusal}");
+                mine = state.HeroesOf(me);
+            }
+            if (mine.Count > 1)
+            {
+                Hero second = mine[1];
+                int site = FreeSite(capital.Cell, me);
+                if (site >= 0)
+                {
+                    second.Cell = site;
+                    second.Settlers = true;
+                    second.Moves = HeroRules.MovesPerTurn;
+                    Reveal(site);
+                    Debug.Log($"Promo settlers on {state.World.Cells[site].Biome} at {site}");
+                }
+            }
+            heroes.Refresh();
+            hud.ClearToast();
+            return mine;
+        }
+
+        /// <summary>The middle of the kingdom's land, where the camera looks to have it on the screen's middle.</summary>
+        Vector2 LandMiddle(int me)
+        {
+            Vector2 sum = Vector2.zero;
+            int count = 0;
+            foreach (Cell c in state.World.Cells)
+            {
+                if (c.Owner == me && !c.IsWater)
+                {
+                    sum += new Vector2(state.World.CenterX(c.Index), state.World.CenterZ(c.Index));
+                    count++;
+                }
+            }
+            return count > 0 ? mapCamera.Nearer(sum / count, 1f) : mapCamera.Target;
+        }
+
+        /// <summary>
+        /// The arrow keys held as a player holds them, each on or off, until the camera looks at
+        /// <paramref name="point"/> or <paramref name="most"/> seconds pass (the camera faces north).
+        /// </summary>
+        IEnumerator KeysTo(Vector2 point, float most)
+        {
+            for (float t = 0f; t < most; t += Time.deltaTime)
+            {
+                Vector2 off = point - mapCamera.Target;
+                float slack = mapCamera.Distance * 0.06f;
+                var keys = new Vector2(Mathf.Abs(off.x) > slack ? Mathf.Sign(off.x) : 0f, Mathf.Abs(off.y) > slack ? Mathf.Sign(off.y) : 0f);
+                if (keys == Vector2.zero)
+                    yield break;
+                mapCamera.Pan(keys, Time.deltaTime);
+                yield return null;
+            }
+        }
+
+        /// <summary>
+        /// One more notch of the wheel, towards the middle of the two cells, keeps them both on
+        /// the screen above the bottom panel: each lies 1/0.82 farther from the wheel's point.
+        /// </summary>
+        bool NearerKeeps(int a, int b)
+        {
+            Vector2 pa = ScreenOf(a), pb = ScreenOf(b), middle = (pa + pb) * 0.5f;
+            return Inside(middle + (pa - middle) / 0.82f, 0.15f) && Inside(middle + (pb - middle) / 0.82f, 0.15f);
+        }
+
+        /// <summary>A screen point inside the view less <paramref name="margin"/> of it, above the bottom panel.</summary>
+        bool Inside(Vector2 p, float margin)
+        {
+            float bottom = Mathf.Max(hud.DockTop, 0f) + margin * Screen.height;
+            return p.x > margin * Screen.width && p.x < (1f - margin) * Screen.width && p.y > bottom && p.y < (1f - margin) * Screen.height;
+        }
+
+        Vector2 ScreenOf(int cell)
+        {
+            float x = state.World.CenterX(cell), z = state.World.CenterZ(cell);
+            Vector3 p = Camera.main.WorldToScreenPoint(new Vector3(x, Mathf.Max(view.Field.Height(x, z), 0f), z));
+            return new Vector2(p.x, p.y);
+        }
+
+        /// <summary>A name for the new town the players type, one no town has yet.</summary>
+        string TownName()
+        {
+            foreach (string name in new[] { "Oakfield", "Willowby", "Brookhill", "Elmstead" })
+            {
+                bool taken = false;
+                foreach (City c in state.World.Cities)
+                    taken |= c.Label == name;
+                if (!taken)
+                    return name;
+            }
+            return Settling.NewName(state.World);
+        }
+
+        /// <summary>
+        /// How well a monster group suits the battle's clip, lower first: boars, as the family
+        /// asked (2026-11-11), then others that come at the players across the field; -1 for the
+        /// bandits, who shoot from afar, and for lairs.
+        /// </summary>
+        static int KindRank(Cell c) => c.Lair || c.Band ? -1 : c.Monster switch
+        {
+            Monster.Boar => 0,
+            Monster.Wolves => 1,
+            Monster.Goblins => 2,
+            Monster.Skeletons or Monster.Spiders => 3,
+            Monster.Troll => 4,
+            _ => -1,
+        };
+
+        /// <summary>A small group makes a short fight: up to about 30 counts as small.</summary>
+        static int SizeRank(Cell c) => Mathf.Max(0, c.Count - 30) / 15;
+
+        static int Rank(Cell c) => KindRank(c) * 4 + Mathf.Min(SizeRank(c), 3);
+
+        static bool Open(Cell c) => c.Biome == Biome.Meadow || c.Biome == Biome.Plains;
+
+        /// <summary>
+        /// A monster group for the hero's way: six to ten steps this turn, over open seen land,
+        /// of a kind that comes across the field (<see cref="KindRank"/>). Without one the hero is
+        /// set down on open land a few cells from one. The army is made strong enough to win in a
+        /// round or two, archers among it.
         /// </summary>
         int PromoGroup(Hero h)
         {
@@ -336,38 +399,59 @@ namespace Realms
             float bestScore = float.MaxValue;
             foreach (Cell c in world.Cells)
             {
-                if (!PromoKind(c) || !state.Seen[c.Index])
+                if (KindRank(c) < 0 || !state.Seen[c.Index])
                     continue;
                 HeroPath way = state.Path(h, c.Index);
-                if (way == null || way.Turns[way.Turns.Count - 1] != 0 || way.Cells.Count < 5 || way.Cells.Count > 9)
+                if (way == null || way.Turns[way.Turns.Count - 1] != 0 || way.Cells.Count < 6 || way.Cells.Count > 10)
                     continue;
-                float score = WayScore(h, way, c);
+                float score = WayScore(way, c);
                 if (score < bestScore)
                 {
                     best = c.Index;
                     bestScore = score;
                 }
             }
-            if (best < 0)
-                best = SetDownNear(h);
-            if (best < 0)
-                return -1;
-            if (Armies.Count(h.Army, Unit.Archers) == 0)
-                Armies.Add(h.Army, Unit.Archers, 6);
-            for (int k = 0; k < 4 && state.OddsOf(h, best, 60).Win < Odds.Easy; k++)
+            // A better kind or a smaller group elsewhere: the hero is set down beside it.
+            if (best < 0 || bestScore >= 10f || KindRank(world.Cells[best]) > 0 || SizeRank(world.Cells[best]) > 0)
             {
-                Armies.Add(h.Army, Unit.Spearmen, 6);
-                Armies.Add(h.Army, Unit.Riders, 3);
+                int near = SetDownNear(h);
+                if (near >= 0 && (best < 0 || bestScore >= 10f || Rank(world.Cells[near]) < Rank(world.Cells[best])))
+                    best = near;
+            }
+            if (best < 0)
+            {
+                Debug.Log("Promo: no monster group for the hero's way");
+                return -1;
+            }
+            // The family asked for boars (2026-11-11). Boars live by the kingdoms' borders, and the
+            // bot's hero has beaten them all by turn 20, so the chosen group is made a small boar
+            // group, as the save of another game could hold it.
+            Cell chosen = world.Cells[best];
+            if (chosen.Monster != Monster.Boar || chosen.Count > 30)
+            {
+                Debug.Log($"Promo made {chosen.Monster} x{chosen.Count} a boar group");
+                chosen.Monster = Monster.Boar;
+                chosen.Count = Mathf.Min(chosen.Count, 24);
+                chosen.FirstCount = chosen.Count;
+                RedrawMap(new List<int> { best });
+            }
+            if (Armies.Count(h.Army, Unit.Archers) == 0)
+                Armies.Add(h.Army, Unit.Archers, 8);
+            for (int k = 0; k < 8 && state.OddsOf(h, best, 60).Win < 0.995f; k++)
+            {
+                Armies.Add(h.Army, Unit.Spearmen, 10);
+                Armies.Add(h.Army, Unit.Riders, 6);
+                Armies.Add(h.Army, Unit.Archers, 4);
             }
             Debug.Log($"Promo group {world.Cells[best].Monster} x{world.Cells[best].Count} on {world.Cells[best].Biome}, " +
                 $"win {state.OddsOf(h, best, 60).Win:F2}, way {state.Path(h, best)?.Cells.Count}");
             return Reveal(best);
         }
 
-        /// <summary>Lower for a better way: about seven steps, no wood, no fog, a group that stands out, a fight neither lost nor trivial.</summary>
-        float WayScore(Hero h, HeroPath way, Cell group)
+        /// <summary>Lower for a better way: about eight steps, no wood, no fog, a group that comes across the field, on open ground.</summary>
+        float WayScore(HeroPath way, Cell group)
         {
-            float score = Mathf.Abs(way.Cells.Count - 7) * 0.5f;
+            float score = Mathf.Abs(way.Cells.Count - 8) * 0.5f + Rank(group) * 3f;
             foreach (int cell in way.Cells)
             {
                 Cell c = state.World.Cells[cell];
@@ -376,85 +460,59 @@ namespace Realms
                 if (!state.Seen[cell])
                     score += 3f;
             }
-            if (group.Biome == Biome.Forest)
-                score += 3f;
-            if (group.Monster == Monster.Goblins)
-                score += 3f;
-            float win = state.OddsOf(h, group.Index, 40).Win;
-            return score + (win < Odds.Easy ? 20f : (win - Odds.Easy) * 6f);
+            if (!Open(group))
+                score += 10f;
+            return score;
         }
 
-        /// <summary>The hero set down on open land six cells from a group near the capital, when the way there is one turn's.</summary>
+        /// <summary>
+        /// The hero set down on open land five to seven cells from a group on open land, the
+        /// nearest to the capital of the best kinds, when the way there is one turn's; the land
+        /// round both is seen.
+        /// </summary>
         int SetDownNear(Hero h)
         {
             World world = state.World;
             City capital = world.Cities[world.Countries[world.Player].Capital];
-            int group = Nearest(capital.Cell, c => PromoKind(c) && c.Biome != Biome.Forest);
-            if (group < 0)
-                return -1;
-            Hex hex = world.Cells[group].Hex;
-            int was = h.Cell;
+            Hex home = world.Cells[capital.Cell].Hex;
+            var groups = new List<Cell>();
             foreach (Cell c in world.Cells)
             {
-                if (Hex.Distance(c.Hex, hex) != 6 || c.IsWater || c.Biome == Biome.Forest || c.Biome == Biome.Mountains
-                    || c.Monster != Monster.None || c.City >= 0 || state.HeroAt(c.Index) != null)
-                    continue;
-                h.Cell = c.Index;
-                HeroPath way = state.Path(h, group);
-                if (way != null && way.Turns[way.Turns.Count - 1] == 0)
+                if (KindRank(c) >= 0 && Open(c))
+                    groups.Add(c);
+            }
+            groups.Sort((a, b) => (Rank(a) * 1000 + Hex.Distance(a.Hex, home)).CompareTo(Rank(b) * 1000 + Hex.Distance(b.Hex, home)));
+            int was = h.Cell;
+            for (int g = 0; g < groups.Count && g < 40; g++)
+            {
+                Cell group = groups[g];
+                foreach (int wanted in new[] { 6, 5, 4 })
                 {
-                    state.Reveal(c.Index, 2);
-                    heroes.Refresh();
-                    view.UpdateFog();
-                    return group;
+                    foreach (Cell c in world.Cells)
+                    {
+                        if (Hex.Distance(c.Hex, group.Hex) != wanted || !Open(c) || c.Monster != Monster.None || c.City >= 0
+                            || c.District >= 0 || state.HeroAt(c.Index) != null)
+                            continue;
+                        // A way leads only over seen land: the land round both is seen for
+                        // the try, and the fog comes back when the way is not one turn's.
+                        h.Cell = c.Index;
+                        bool[] seen = (bool[])state.Seen.Clone();
+                        state.Reveal(c.Index, 3);
+                        state.Reveal(group.Index, 2);
+                        HeroPath way = state.Path(h, group.Index);
+                        if (way != null && way.Turns[way.Turns.Count - 1] == 0 && way.Cells.Count >= 4)
+                        {
+                            heroes.Refresh();
+                            view.UpdateFog();
+                            Debug.Log($"Promo set the hero down {wanted} cells from the group, way {way.Cells.Count}");
+                            return group.Index;
+                        }
+                        System.Array.Copy(seen, state.Seen, seen.Length);
+                    }
                 }
             }
             h.Cell = was;
             return -1;
-        }
-
-        /// <summary>
-        /// Free land three to five steps from the hero, on open ground, where the settlers may found
-        /// a town; from the capital when none is near the hero.
-        /// </summary>
-        bool PromoSite(Hero h, out int site)
-        {
-            World world = state.World;
-            for (int attempt = 0; attempt < 2; attempt++)
-            {
-                h.Moves = HeroRules.MovesPerTurn;
-                site = -1;
-                float bestScore = float.MaxValue;
-                foreach (Cell c in world.Cells)
-                {
-                    if (!state.Seen[c.Index] || c.Biome == Biome.Forest || state.HeroAt(c.Index) != null
-                        || Settling.CanFoundOn(world, h.Country, c.Index) != Refusal.None)
-                        continue;
-                    HeroPath way = state.Path(h, c.Index);
-                    if (way == null || way.Turns[way.Turns.Count - 1] != 0 || way.Cells.Count < 3 || way.Cells.Count > 5)
-                        continue;
-                    float score = Mathf.Abs(way.Cells.Count - 4);
-                    foreach (int cell in way.Cells)
-                        score += world.Cells[cell].Biome == Biome.Forest ? 1f : 0f;
-                    if (score < bestScore)
-                    {
-                        site = c.Index;
-                        bestScore = score;
-                    }
-                }
-                if (site >= 0)
-                {
-                    Debug.Log($"Promo settlers' site {site} on {world.Cells[site].Biome}, way {state.Path(h, site).Cells.Count}");
-                    return true;
-                }
-                City capital = world.Cities[world.Countries[h.Country].Capital];
-                if (state.HeroAt(capital.Cell) != null && state.HeroAt(capital.Cell) != h)
-                    break;
-                h.Cell = capital.Cell;
-                heroes.Refresh();
-            }
-            site = -1;
-            return false;
         }
 
         /// <summary>
@@ -480,43 +538,25 @@ namespace Realms
             if (!any)
                 capital.Recruits[(int)Unit.Spearmen] += 6;
             hud.ClearToast();
+            // A capital that holds every building it can gets its walls, then its castle.
             foreach (TownBuilding building in Economy.TownBuildings)
             {
                 if (Economy.TakesSlot(building) && !capital.Buildings.Contains(building))
-                    return building;
+                    return Afford(building);
+            }
+            foreach (TownBuilding building in Economy.Fortifications)
+            {
+                if (!capital.Buildings.Contains(building))
+                    return Afford(building);
             }
             return null;
-        }
 
-        /// <summary>
-        /// Which way the camera turns round the town, +1 or -1: the side whose next
-        /// <paramref name="arc"/> degrees show less unseen land behind the town.
-        /// </summary>
-        float ClearSide(Vector2 centre, float yaw, float arc)
-        {
-            float Fog(float facing)
+            TownBuilding Afford(TownBuilding building)
             {
-                var forward = new Vector2(Mathf.Sin(facing * Mathf.Deg2Rad), Mathf.Cos(facing * Mathf.Deg2Rad));
-                int count = 0;
-                foreach (Cell c in state.World.Cells)
-                {
-                    if (state.Seen[c.Index])
-                        continue;
-                    Vector2 off = At(c.Index) - centre;
-                    float d = off.magnitude;
-                    if (d > 1.5f && d < 7f && Vector2.Dot(off / d, forward) > 0.82f)
-                        count++;
-                }
-                return count;
+                Stock missing = state.Treasury[me].Missing(Economy.Cost(building));
+                state.Treasury[me] += missing;
+                return building;
             }
-            float left = 0f, right = 0f;
-            for (float a = 10f; a <= arc; a += 10f)
-            {
-                right += Fog(yaw + a);
-                left += Fog(yaw - a);
-            }
-            Debug.Log($"Promo turn: unseen cells {right} turning right, {left} turning left");
-            return right <= left ? 1f : -1f;
         }
 
         int Reveal(int cell)
@@ -528,22 +568,6 @@ namespace Realms
             hud.WorldChanged();
             return cell;
         }
-
-        /// <summary>The camera from one pose to another, easing in and out, over <paramref name="seconds"/>.</summary>
-        IEnumerator Glide(Vector2 from, float fromDistance, float fromYaw, Vector2 to, float toDistance, float toYaw, float seconds)
-        {
-            for (float t = 0f; t < seconds; t += Time.deltaTime)
-            {
-                float k = Smooth(t / seconds);
-                mapCamera.Face(Mathf.LerpAngle(fromYaw, toYaw, k), true);
-                mapCamera.Focus(Vector2.Lerp(from, to, k), Mathf.Lerp(fromDistance, toDistance, k), true);
-                yield return null;
-            }
-        }
-
-        static float Smooth(float t) => Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t));
-
-        Vector2 At(int cell) => new Vector2(state.World.CenterX(cell), state.World.CenterZ(cell));
 
         static IEnumerator Wait(float seconds)
         {
