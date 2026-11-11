@@ -4,9 +4,12 @@ Needs the built UI (`just web-build`), its node_modules and Google Chrome;
 skipped otherwise. Screenshots go to build/screens for visual review.
 """
 
+import io
+import json
 import os
 import shutil
 import socket
+import struct
 import subprocess
 import threading
 import time
@@ -17,13 +20,14 @@ import pytest
 import uvicorn
 from fake_model_server import FakeModelServer
 from fastapi import FastAPI
+from PIL import Image, ImageStat
 from studio.api.app import create_app as create_studio_app
 from studio.config import Server, StudioConfig
 from studio.core import Studio
 from support import live_server
 from test_studio import png
 
-from model_server_sdk import create_app
+from model_server_sdk import create_app, media
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"
@@ -197,3 +201,126 @@ def test_mesh_inspection(tmp_path: Path) -> None:
             check=False,
         )
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+def textured_quad() -> bytes:
+    """A square facing the front (+Z), coloured by an embedded PNG as generated
+    models are: red over blue."""
+    texture = Image.new("RGB", (8, 8), (20, 20, 220))
+    texture.paste((220, 20, 20), (0, 0, 8, 4))
+    encoded = io.BytesIO()
+    texture.save(encoded, format="PNG")
+    chunks = (
+        struct.pack("<12f", -1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0),
+        struct.pack("<8f", 0, 1, 1, 1, 1, 0, 0, 0),  # glTF: v=0 is the top
+        struct.pack("<6H", 0, 1, 2, 0, 2, 3),
+        encoded.getvalue(),
+    )
+    views: list[dict[str, int]] = []
+    binary = b""
+    for chunk in chunks:
+        views.append({"buffer": 0, "byteOffset": len(binary), "byteLength": len(chunk)})
+        binary += chunk.ljust(-(-len(chunk) // 4) * 4, b"\0")
+    document = {
+        "asset": {"version": "2.0"},
+        "scene": 0,
+        "scenes": [{"nodes": [0]}],
+        "nodes": [{"mesh": 0}],
+        "meshes": [
+            {
+                "primitives": [
+                    {"attributes": {"POSITION": 0, "TEXCOORD_0": 1}, "indices": 2, "material": 0}
+                ]
+            }
+        ],
+        "materials": [
+            {"pbrMetallicRoughness": {"baseColorTexture": {"index": 0}, "metallicFactor": 0}}
+        ],
+        "textures": [{"source": 0}],
+        "images": [{"bufferView": 3, "mimeType": "image/png"}],
+        "buffers": [{"byteLength": len(binary)}],
+        "bufferViews": views,
+        "accessors": [
+            {
+                "bufferView": 0,
+                "componentType": 5126,
+                "count": 4,
+                "type": "VEC3",
+                "min": [-1, -1, 0],
+                "max": [1, 1, 0],
+            },
+            {"bufferView": 1, "componentType": 5126, "count": 4, "type": "VEC2"},
+            {"bufferView": 2, "componentType": 5123, "count": 6, "type": "SCALAR"},
+        ],
+    }
+    text = json.dumps(document).encode()
+    text = text.ljust(-(-len(text) // 4) * 4, b" ")
+    return (
+        struct.pack("<4sII", b"glTF", 2, 12 + 8 + len(text) + 8 + len(binary))
+        + struct.pack("<I4s", len(text), b"JSON")
+        + text
+        + struct.pack("<I4s", len(binary), b"BIN\0")
+        + binary
+    )
+
+
+def mean_colour(picture: Image.Image) -> tuple[float, ...]:
+    """The mean colour of the picture's opaque pixels."""
+    return tuple(ImageStat.Stat(picture.convert("RGB"), picture.getchannel("A")).mean)
+
+
+def test_mesh_previews(tmp_path: Path) -> None:
+    """Library thumbnails of meshes: drawn by the browser, kept as pictures (ADR-011)."""
+    studio = Studio(StudioConfig(data_dir=tmp_path))
+    app = create_studio_app(studio, web_dir=WEB / "dist")
+    library = studio.library
+    with live_server(app) as url:
+        green = library.import_bytes(
+            media.encode_glb(*media.tetrahedron(), color=(0.1, 0.6, 0.1, 1.0)),
+            title="tetrahedron",
+        )
+        quad = library.import_bytes(textured_quad(), title="textured quad")
+        # A valid header around a broken scene: it cannot be drawn.
+        scene = b'{"asset": '
+        library.import_bytes(
+            struct.pack("<4sII", b"glTF", 2, 20 + len(scene))
+            + struct.pack("<I4s", len(scene), b"JSON")
+            + scene,
+            title="broken",
+        )
+        assert library.set_preview(green, png(), 0) is not None  # by an older renderer
+        completed = subprocess.run(
+            ["node", "e2e/mesh-previews.mjs", url],
+            cwd=WEB,
+            env={**os.environ, "CHROME": str(CHROME)},
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+
+    pictures: dict[str, Image.Image] = {}
+    for asset in (green, quad):
+        kept = library.asset(asset.id)
+        assert kept is not None
+        assert kept.preview_version == 1
+        path = library.preview_file(kept)
+        assert path is not None
+        pictures[asset.id] = Image.open(path).convert("RGBA")
+    for picture in pictures.values():
+        # Cut to the model's outline: transparent around it, filling the picture.
+        assert max(picture.size) == 512
+        alpha = picture.getchannel("A")
+        assert alpha.getpixel((0, 0)) == 0
+        assert alpha.getpixel((picture.width - 1, picture.height - 1)) == 0
+        left, top, right, bottom = alpha.getbbox() or (0, 0, 0, 0)
+        assert max(right - left, bottom - top) > 0.85 * max(picture.size)
+    # Lit in its own colour: the flat green material, the textured red over blue.
+    red, green_channel, blue = mean_colour(pictures[green.id])
+    assert green_channel > 1.5 * max(red, blue)
+    square = pictures[quad.id]
+    upper = mean_colour(square.crop((0, 0, square.width, square.height // 3)))
+    lower = mean_colour(square.crop((0, 2 * square.height // 3, square.width, square.height)))
+    assert upper[0] > 2 * upper[2], upper
+    assert lower[2] > 2 * lower[0], lower

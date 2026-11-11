@@ -180,11 +180,14 @@ def test_upgrade_keeps_assets_tags_and_references(tmp_path: Path) -> None:
 
     database = Database(path)
     connection = database.connection
-    assert database.schema_version == 9
+    assert database.schema_version == 10
     assert connection.execute("SELECT tag FROM asset_tags").fetchall()[0][0] == "мох"
     # 0009: what existed before projects belongs to the default one.
     assert connection.execute("SELECT project FROM assets").fetchall()[0][0] == "default"
     assert connection.execute("SELECT project FROM jobs").fetchall()[0][0] == "default"
+    # 0010: no picture is drawn yet.
+    preview = connection.execute("SELECT preview_sha256, preview_version FROM assets").fetchone()
+    assert tuple(preview) == (None, None)
     assert connection.execute("SELECT asset_id FROM job_inputs").fetchall()[0][0] == "a1"
     assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
     assert connection.execute("PRAGMA foreign_keys").fetchone()[0] == 1

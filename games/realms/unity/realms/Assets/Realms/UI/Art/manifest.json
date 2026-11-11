@@ -1,0 +1,1145 @@
+{
+  "schema_version": 1,
+  "images": [
+    {
+      "id": "window",
+      "ready": "window.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE square main window card, native canvas exactly 1024x1024. OPAQUE everywhere and fills entire canvas edge to edge, no margin. Dark warm charcoal #1E1C1A centre. Darker outer rim 12px wide. Thin muted gilded bronze moulding inset 20px from canvas edge. Small square bronze corner plates with one tiny rivet, wholly within 80x80 pixel corner squares. Plain continuous narrow straight moulding between the corner plates. Metal should be aged, warm and restrained; most canvas is plain dark charcoal for future text. Deliver only the isolated square card, not a UI scene.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "opaque",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": null,
+      "status": "saved",
+      "raw_sha256": "7b37114b4d6f594e1a5b2bf5269677f117388683480503d4f049742a5ed7cc06",
+      "nine_slice_border": {
+        "left": 20,
+        "top": 20,
+        "right": 20,
+        "bottom": 20
+      }
+    },
+    {
+      "id": "inset",
+      "ready": "inset.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE square recessed UI inset. Requested native resolution 1024x1024. Fill canvas edge to edge, fully opaque. A perfectly square dark #141210 interior covering most of canvas with one very thin dull bronze line and a narrow dark bevel 24px wide; soft shallow inner shadow confined to narrow top and left bevel strips. NO corner ornaments, no rivets, no background scene. Perfectly uniform black-brown centre with no light spot or vignette. Square geometry.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "opaque",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 128,
+        "height": 128
+      },
+      "crop_xywh": null,
+      "status": "saved",
+      "raw_sha256": "ee2d2794c28c32017de12038b9d335ec78dacc957ec5e74e27b2cfecd3b2863f",
+      "nine_slice_border": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      }
+    },
+    {
+      "id": "row",
+      "ready": "row.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE rectangular list-row / secondary-button plate on a perfectly flat neutral #C8C8C8 background. Requested native canvas 1536x1024 landscape. The plate occupies x=64..1472, y=336..688, exactly 4:1 aspect, straight square corners. Warm brown #3A332B plain even centre, thin bevelled bronze edge, opaque plate. Border only 12px wide. No ornaments, no rivets, no outer shadow. No gradients in centre. Crop-ready isolated wide plate, not a scene.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "opaque",
+      "native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "requested_native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 64
+      },
+      "crop_xywh": [
+        63,
+        366,
+        1410,
+        292
+      ],
+      "status": "saved",
+      "raw_sha256": "01aef1e7d1974b9ec1d15bfd3b0d4ca5cf8dd615bc2353f7e7ebfbd3ab844e22",
+      "nine_slice_border": {
+        "left": 5,
+        "top": 5,
+        "right": 5,
+        "bottom": 5
+      }
+    },
+    {
+      "id": "button_main",
+      "ready": "button_main.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE main action button plate. Native canvas 1536x1024 LANDSCAPE. Isolated 4:1 wide rectangle at x=64..1472, y=336..688 against perfectly flat #C8C8C8 background for cropping. Muted golden ochre #C9A24E plate, plain evenly coloured centre for future dark text, narrow dark aged-bronze bevel only 14px wide. Four precisely square corners. Fully opaque plate, no ornaments, no rivets, no shadow. No bright centre or gradient across centre.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "opaque",
+      "native_pixel_size": {
+        "width": 2172,
+        "height": 724
+      },
+      "requested_native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 64
+      },
+      "crop_xywh": [
+        65,
+        198,
+        2043,
+        327
+      ],
+      "status": "saved",
+      "raw_sha256": "cc3e10ad8ee061ade3410f20e7074505bca431b4c632e9bc1f7641ad99373065",
+      "nine_slice_border": {
+        "left": 6,
+        "top": 6,
+        "right": 6,
+        "bottom": 6
+      }
+    },
+    {
+      "id": "selected",
+      "ready": "selected.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE selection overlay square frame, requested native 1024x1024. REAL TRANSPARENT alpha background both outside AND inside; no dark fill, no checkerboard drawn. Thin bright warm-gold frame, just a very narrow 6px line, small clean angular square brackets wholly contained in 80x80 corner areas. Outer frame square occupies x=24..1000 y=24..1000, no rounded corners, no shadows, no glow. Clear empty transparent centre. Edge cross-section identical between corners. Restrained simple bronze-gold highlight frame for chosen UI slot.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 128,
+        "height": 128
+      },
+      "crop_xywh": null,
+      "status": "saved",
+      "raw_sha256": "abb07a59595cf3f0dc9c5db0f53322139f12627120a1c377aff3ccf2e86eb62a",
+      "nine_slice_border": {
+        "left": 14,
+        "top": 14,
+        "right": 14,
+        "bottom": 14
+      }
+    },
+    {
+      "id": "slot",
+      "ready": "slot.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE square army or building slot, requested native 1024x1024, fills entire canvas with opaque square tile. Dark recessed even #141210 plain square centre. Narrow bevelled bronze frame 32px thick along four straight edges. Fine muted bronze highlight at inside edge, dark aged metal at outer edge. NO ornaments or rivets. No gradient across large centre, no vignette. Less elaborate than main window.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "opaque",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 128,
+        "height": 128
+      },
+      "crop_xywh": null,
+      "status": "saved",
+      "raw_sha256": "4768a7815c0a6908bc58e33333c3ba4120a7fff27a2ff0fa59c437873fb8cadf",
+      "nine_slice_border": {
+        "left": 7,
+        "top": 7,
+        "right": 7,
+        "bottom": 7
+      }
+    },
+    {
+      "id": "portrait",
+      "ready": "portrait.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE square hero portrait FRAME only. Requested native canvas 1024x1024 square. True transparent alpha centre, portrait will show through, and transparent outside frame. Frame occupies entire canvas, with straight perfectly square corners; substantial aged gilded bronze frame band about 64px wide. Restrained heavier moulding than window, four small square corner ornaments with a simple raised diamond and one rivet entirely inside 96x96 corner squares. Centre COMPLETELY TRANSPARENT. Nothing drawn inside. All four middle edge strips are straight and perfectly repetitive in cross-section. No shadow outside. Soft painted aged golden bronze, not shiny jewelry.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": null,
+      "status": "saved",
+      "raw_sha256": "b51fc04c3e6e418c9597909bf7ee66d5db06a96b0d1dc178706d17cff628a370",
+      "nine_slice_border": {
+        "left": 36,
+        "top": 36,
+        "right": 36,
+        "bottom": 36
+      }
+    },
+    {
+      "id": "title",
+      "ready": "title.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE isolated long thin horizontal dark bronze header plaque on TRUE transparent background. Requested native canvas 1536x1024 landscape; plaque 1400px wide by 175px tall, centred. Long plain straight charcoal bronze opaque middle band, short square decorative endcaps on left and right, exactly mirror symmetric. Endcaps each only 100px wide, shallow square stud, no pointy flourishes. No central emblem or decoration, blank text space. No corner rounding, no shadow. Constant straight thin gold top and bottom edging between endcaps. Rectangle silhouette.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "requested_native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 512,
+        "height": 64
+      },
+      "crop_xywh": [
+        31,
+        430,
+        1473,
+        162
+      ],
+      "status": "saved",
+      "raw_sha256": "eb316a758a45df5addd57cd116bf18531e357de19edee28b4ae00976bc6bff61",
+      "nine_slice_border": {
+        "left": 56,
+        "top": 0,
+        "right": 56,
+        "bottom": 0
+      }
+    },
+    {
+      "id": "divider",
+      "ready": "divider.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE fine horizontal gold ornamental separator on REAL transparent background. Requested native canvas 1536x1024 landscape. Line spans x=64..1472 at y=512, approximately 10px thick with tiny tapering ends. One small painted aged-gold diamond in middle only about 40px wide and 40px tall. Restrained original fantasy UI separator, fine brushed bronze-gold, clean sparse geometry. No scrolls, no other objects, no shadow or glow. Outside line completely transparent. Design fills a narrow band about 1408x70px, ready to crop.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "requested_native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 512,
+        "height": 32
+      },
+      "crop_xywh": [
+        68,
+        479,
+        1401,
+        66
+      ],
+      "status": "saved",
+      "raw_sha256": "f46984a025e64809f6a43f38fbe06a368e4a0106804a83846bac7011a8ff8570",
+      "nine_slice_border": {
+        "left": 28,
+        "top": 0,
+        "right": 28,
+        "bottom": 0
+      }
+    },
+    {
+      "id": "bar",
+      "ready": "bar.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE narrow progress-bar trough on true transparent alpha background, requested native canvas 1536x1024 landscape. A straight square-ended dark recessed horizontal groove 1408px wide by 176px tall centred at canvas centre. Opaque flat #141210 interior, thin aged dull bronze moulding top and bottom, small plain square bronze endcaps each 64px long. Cross-section constant across entire middle. No ornaments, no rivets, no rounded ends. No outside glow, halo, shadow, aura or backing rectangle; surrounding pixels alpha zero. Transparent outside, opaque inside.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "requested_native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 32
+      },
+      "crop_xywh": [
+        19,
+        445,
+        1497,
+        133
+      ],
+      "status": "saved",
+      "raw_sha256": "5298abb69c56efd86f99574f01c6997ecdc92273ace7a1c2e6b74ad384467ed1",
+      "nine_slice_border": {
+        "left": 18,
+        "top": 0,
+        "right": 18,
+        "bottom": 0
+      }
+    },
+    {
+      "id": "tab",
+      "ready": "tab.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE inactive rectangular UI tab plate on flat #C8C8C8 background. Native canvas 1536x1024 landscape. Wide 4:1 plate occupies about 1408x352px at centre. Dark brown #2B261F opaque plain uniform leather centre. Very thin dull bronze bevel along TOP, LEFT and RIGHT ONLY. BOTTOM EDGE OPEN: absolutely NO bronze line or bevel along bottom, fill runs straight to bottom edge. Bottom must join a window. Square corners, no ornament, no shadow. Thin restrained border. No central gradient or lighting.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "opaque",
+      "native_pixel_size": {
+        "width": 2172,
+        "height": 724
+      },
+      "requested_native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 64
+      },
+      "crop_xywh": [
+        57,
+        173,
+        2058,
+        378
+      ],
+      "status": "saved",
+      "raw_sha256": "52000528a2352d815b649ee05be3400925025e16d43b1f127be1076fc0ccec9a",
+      "nine_slice_border": {
+        "left": 4,
+        "top": 4,
+        "right": 4,
+        "bottom": 0
+      }
+    },
+    {
+      "id": "tab_active",
+      "ready": "tab_active.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE active rectangular UI tab plate on flat #C8C8C8 background. Native canvas 1536x1024 landscape. Wide 4:1 plate occupies about 1408x352px at centre. Warm charcoal #1E1C1A opaque plain even centre. Narrow warm muted GOLD bronze moulding along TOP, LEFT and RIGHT ONLY. BOTTOM EDGE OPEN: absolutely no bronze line or bevel along bottom; charcoal fill runs to bottom edge to join a window. Square corners, no ornaments, no shadow. No gradient across centre. Same silhouette as inactive tab, brighter border.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "opaque",
+      "native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "requested_native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 64
+      },
+      "crop_xywh": [
+        41,
+        347,
+        1454,
+        325
+      ],
+      "status": "saved",
+      "raw_sha256": "3b15e89bab8c166b1ea5b1e1b6971c73c13361d5862323c6779c1a73a2ee8bca",
+      "nine_slice_border": {
+        "left": 5,
+        "top": 5,
+        "right": 5,
+        "bottom": 0
+      }
+    },
+    {
+      "id": "icon_attack",
+      "ready": "icon_attack.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE production fantasy strategy game UI icon for Realms. Requested native canvas exactly 1024x1024 square. Reference images supplied by user: icon_coins, icon_swords and icon_crown are STYLE references only, not edit targets. Match their softly hand-painted chunky game-object look, visible broad painted facets, warm highlights, rich but slightly muted natural colours. Soft light from above and upper left. Aged metal, worn leather, readable simple silhouette, calm friendly fantasy world. One centred object/group in three-quarter view fills about 80 percent of square canvas, ample clean transparent margin. TRUE TRANSPARENT alpha background; no ground plane, no cast shadow outside object, no halo, no background colour, no vignette. No letters, text, numbers, runes, watermark or commercial-game references. Silhouette and broad contrasting colour shapes must be instantly readable at 32x32. A single upright sword, tip pointing straight up, slightly three-quarter view. Broad simple steel blade, small aged bronze crossguard, short worn brown leather grip and bronze pommel. Entire sword visible, no scabbard, no other weapons. Broad painted facets matching the supplied crossed-swords reference. Sword almost 82 percent canvas tall.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": [
+        364,
+        26,
+        513,
+        1207
+      ],
+      "status": "saved",
+      "raw_sha256": "78531d8baa8980347d516d1683219e74d7871924cce503e1fdd50237ceaa8c38"
+    },
+    {
+      "id": "icon_defence",
+      "ready": "icon_defence.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE production fantasy strategy game UI icon for Realms. Requested native canvas exactly 1024x1024 square. Reference images supplied by user: icon_coins, icon_swords and icon_crown are STYLE references only, not edit targets. Match their softly hand-painted chunky game-object look, visible broad painted facets, warm highlights, rich but slightly muted natural colours. Soft light from above and upper left. Aged metal, worn leather, readable simple silhouette, calm friendly fantasy world. One centred object/group in three-quarter view fills about 80 percent of square canvas, ample clean transparent margin. TRUE TRANSPARENT alpha background; no ground plane, no cast shadow outside object, no halo, no background colour, no vignette. No letters, text, numbers, runes, watermark or commercial-game references. Silhouette and broad contrasting colour shapes must be instantly readable at 32x32. One steel kite shield with a plain aged bronze rim, no crest, no emblem, no decoration on face. Upright, slightly turned three-quarter view. Broad silver-grey face, simple strong tapering kite silhouette, rim thick enough to read at 32px. Whole shield fills about 80 percent canvas.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": [
+        173,
+        30,
+        901,
+        1196
+      ],
+      "status": "saved",
+      "raw_sha256": "83c1c909fc34ed322d554375b1304bbd0ae9ae44169c0a0c6f307c5f987a909f"
+    },
+    {
+      "id": "icon_moves",
+      "ready": "icon_moves.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE production fantasy strategy game UI icon for Realms. Requested native canvas exactly 1024x1024 square. Reference images supplied by user: icon_coins, icon_swords and icon_crown are STYLE references only, not edit targets. Match their softly hand-painted chunky game-object look, visible broad painted facets, warm highlights, rich but slightly muted natural colours. Soft light from above and upper left. Aged metal, worn leather, readable simple silhouette, calm friendly fantasy world. One centred object/group in three-quarter view fills about 80 percent of square canvas, ample clean transparent margin. TRUE TRANSPARENT alpha background; no ground plane, no cast shadow outside object, no halo, no background colour, no vignette. No letters, text, numbers, runes, watermark or commercial-game references. Silhouette and broad contrasting colour shapes must be instantly readable at 32x32. One sturdy worn brown leather riding boot with a small bronze spur on the heel. Three-quarter side view, toe pointing left, tall shaft, warm brown leather upper, darker sole, a simple bronze buckle. Boot and spur are one centred object, clear readable silhouette. Entire boot visible, no leg, no foot sticking out, no background.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": [
+        66,
+        12,
+        1109,
+        1234
+      ],
+      "status": "saved",
+      "raw_sha256": "68edf3ea46b4f807011f77a192a9f905115df7dc76b638ac07b4f5ebae66af00"
+    },
+    {
+      "id": "icon_experience",
+      "ready": "icon_experience.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE production fantasy strategy game UI icon for Realms. Requested native canvas exactly 1024x1024 square. Reference images supplied by user: icon_coins, icon_swords and icon_crown are STYLE references only, not edit targets. Match their softly hand-painted chunky game-object look, visible broad painted facets, warm highlights, rich but slightly muted natural colours. Soft light from above and upper left. Aged metal, worn leather, readable simple silhouette, calm friendly fantasy world. One centred object/group in three-quarter view fills about 80 percent of square canvas, ample clean transparent margin. TRUE TRANSPARENT alpha background; no ground plane, no cast shadow outside object, no halo, no background colour, no vignette. No letters, text, numbers, runes, watermark or commercial-game references. Silhouette and broad contrasting colour shapes must be instantly readable at 32x32. One small aged gold five-point star nestled INSIDE a small open laurel wreath of muted olive-green leaves with warm bronze stems. A single compact experience/level badge. Star large and simple, wreath sparse with broad leaf shapes, no ribbons, no extra medallion, no writing. Slight three-quarter relief view; gold star and green wreath remain distinct at tiny size.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": [
+        33,
+        128,
+        1177,
+        1046
+      ],
+      "status": "saved",
+      "raw_sha256": "7060be51c553b08cd2f90e88d5ea1ac4077e520db4b6ca7e8795250dc98165b8"
+    },
+    {
+      "id": "icon_hero",
+      "ready": "icon_hero.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE production fantasy strategy game UI icon for Realms. Requested native canvas exactly 1024x1024 square. Reference images supplied by user: icon_coins, icon_swords and icon_crown are STYLE references only, not edit targets. Match their softly hand-painted chunky game-object look, visible broad painted facets, warm highlights, rich but slightly muted natural colours. Soft light from above and upper left. Aged metal, worn leather, readable simple silhouette, calm friendly fantasy world. One centred object/group in three-quarter view fills about 80 percent of square canvas, ample clean transparent margin. TRUE TRANSPARENT alpha background; no ground plane, no cast shadow outside object, no halo, no background colour, no vignette. No letters, text, numbers, runes, watermark or commercial-game references. Silhouette and broad contrasting colour shapes must be instantly readable at 32x32. One knight's steel helmet with a small muted burgundy red plume. Three-quarter view facing left, simple closed visor, broad painted silver planes, aged bronze trim, small dark eye slit. Helmet only, no face, no body, no weapons, no pedestal. Compact iconic silhouette, plume not too tall.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": [
+        148,
+        33,
+        1047,
+        1195
+      ],
+      "status": "saved",
+      "raw_sha256": "4d0a0cd34cee77c7d3643e328c3766d9d628cdf5ef4aae9dcc1938d0a99a6d1b"
+    },
+    {
+      "id": "icon_town",
+      "ready": "icon_town.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE production fantasy strategy game UI icon for Realms. Requested native canvas exactly 1024x1024 square. Reference images supplied by user: icon_coins, icon_swords and icon_crown are STYLE references only, not edit targets. Match their softly hand-painted chunky game-object look, visible broad painted facets, warm highlights, rich but slightly muted natural colours. Soft light from above and upper left. Aged metal, worn leather, readable simple silhouette, calm friendly fantasy world. One centred object/group in three-quarter view fills about 80 percent of square canvas, ample clean transparent margin. TRUE TRANSPARENT alpha background; no ground plane, no cast shadow outside object, no halo, no background colour, no vignette. No letters, text, numbers, runes, watermark or commercial-game references. Silhouette and broad contrasting colour shapes must be instantly readable at 32x32. One small stone town gate with TWO squat square towers, warm grey stone walls, warm red tiled roofs, a broad dark wooden arched gateway between the towers. Three-quarter view, toy-like compact architectural icon with broad painted shapes. One gate building, no town scene, no landscape or base platform. Two towers readily distinct at 32px.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": [
+        47,
+        66,
+        1156,
+        1146
+      ],
+      "status": "saved",
+      "raw_sha256": "f9fb828adfe11c37e4789228d5155f18fffd8248879a676553b595bfd7de8810"
+    },
+    {
+      "id": "icon_recruit",
+      "ready": "icon_recruit.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE production fantasy strategy game UI icon for Realms. Requested native canvas exactly 1024x1024 square. Reference images supplied by user: icon_coins, icon_swords and icon_crown are STYLE references only, not edit targets. Match their softly hand-painted chunky game-object look, visible broad painted facets, warm highlights, rich but slightly muted natural colours. Soft light from above and upper left. Aged metal, worn leather, readable simple silhouette, calm friendly fantasy world. One centred object/group in three-quarter view fills about 80 percent of square canvas, ample clean transparent margin. TRUE TRANSPARENT alpha background; no ground plane, no cast shadow outside object, no halo, no background colour, no vignette. No letters, text, numbers, runes, watermark or commercial-game references. Silhouette and broad contrasting colour shapes must be instantly readable at 32x32. One hiring emblem: a single wooden spear with steel spearhead and a LITTLE muted red triangular pennant leaning diagonally against a ROUND wooden shield. Shield has broad brown wood planks, simple bronze rim and central round steel boss, no heraldry. Spear head visible above shield. Compact single group, no person, no ground, no extra weapons. Strong silhouettes at 32px.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": [
+        128,
+        9,
+        970,
+        1226
+      ],
+      "status": "saved",
+      "raw_sha256": "ecf53ca2b4059eb5af4758f19bdcc71f528dfe1de6d63d5fe49484674473a01b"
+    },
+    {
+      "id": "icon_growth",
+      "ready": "icon_growth.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE production fantasy strategy game UI icon for Realms. Requested native canvas exactly 1024x1024 square. Reference images supplied by user: icon_coins, icon_swords and icon_crown are STYLE references only, not edit targets. Match their softly hand-painted chunky game-object look, visible broad painted facets, warm highlights, rich but slightly muted natural colours. Soft light from above and upper left. Aged metal, worn leather, readable simple silhouette, calm friendly fantasy world. One centred object/group in three-quarter view fills about 80 percent of square canvas, ample clean transparent margin. TRUE TRANSPARENT alpha background; no ground plane, no cast shadow outside object, no halo, no background colour, no vignette. No letters, text, numbers, runes, watermark or commercial-game references. Silhouette and broad contrasting colour shapes must be instantly readable at 32x32. One small timber cottage with warm brown wooden beams, cream plaster walls and a simple muted terracotta red roof. Beside it ONE sprouting green plant with two large bright leaves. Three-quarter view. Cottage plus plant one compact isolated icon, no scene or ground platform. Broad simple forms, tiny dark doorway, no many windows or decorative clutter. Plant leaves prominent and readable at 32px.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": [
+        50,
+        72,
+        1159,
+        1128
+      ],
+      "status": "saved",
+      "raw_sha256": "9720164b514e7d45ed934b873ef73417985b5cdc5bde15fc0d11291c36622cd6"
+    },
+    {
+      "id": "icon_close",
+      "ready": "icon_close.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE production fantasy strategy game UI icon for Realms. Requested native canvas exactly 1024x1024 square. Reference images supplied by user: icon_coins, icon_swords and icon_crown are STYLE references only, not edit targets. Match their softly hand-painted chunky game-object look, visible broad painted facets, warm highlights, rich but slightly muted natural colours. Soft light from above and upper left. Aged metal, worn leather, readable simple silhouette, calm friendly fantasy world. One centred object/group in three-quarter view fills about 80 percent of square canvas, ample clean transparent margin. TRUE TRANSPARENT alpha background; no ground plane, no cast shadow outside object, no halo, no background colour, no vignette. No letters, text, numbers, runes, watermark or commercial-game references. Silhouette and broad contrasting colour shapes must be instantly readable at 32x32. One small square aged bronze plaque with a DIAGONAL CROSS deeply CUT into its surface: a simple X-shaped dark recess, two diagonal grooves crossing. Small shallow bevel, square sharp corners, no rounded outline, no screws or extra decoration. Slight three-quarter view, icon of a close control. Single centred square bronze tile, worn softly painted highlights. X is a geometric cut, no written text.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": [
+        151,
+        160,
+        944,
+        961
+      ],
+      "status": "saved",
+      "raw_sha256": "a207f93a0be75774a3dc5baf7c7b8838932522becca45537af1602c1a650ef8c"
+    },
+    {
+      "id": "icon_rotate",
+      "ready": "icon_rotate.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE production fantasy strategy game UI icon for Realms. Requested native canvas exactly 1024x1024 square. Reference images supplied by user: icon_coins, icon_swords and icon_crown are STYLE references only, not edit targets. Match their softly hand-painted chunky game-object look, visible broad painted facets, warm highlights, rich but slightly muted natural colours. Soft light from above and upper left. Aged metal, worn leather, readable simple silhouette, calm friendly fantasy world. One centred object/group in three-quarter view fills about 80 percent of square canvas, ample clean transparent margin. TRUE TRANSPARENT alpha background; no ground plane, no cast shadow outside object, no halo, no background colour, no vignette. No letters, text, numbers, runes, watermark or commercial-game references. Silhouette and broad contrasting colour shapes must be instantly readable at 32x32. One bronze compass rose: compact eight-pointed star with four long cardinal spikes and four shorter diagonal spikes, around a small central circular bronze boss, very slight three-quarter relief view. Aged bronze and soft warm-gold highlights, broad angular painted faces. No compass letters, no numbers, no labels, no dial writing. One simple unmistakable compass rose, no other objects, no background ring clutter.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "crop_xywh": [
+        39,
+        23,
+        1170,
+        1203
+      ],
+      "status": "saved",
+      "raw_sha256": "8e722dcfa971e0da36456148a3c2af66b5232b2b33ca0049b9780eb7c42d7c62"
+    },
+    {
+      "id": "divider_line",
+      "ready": "divider_line.png",
+      "final_prompt": "Use case: stylized-concept. Production UI raster art asset for Realms, an original calm father-and-son fantasy map strategy game. Hand-crafted aged gilded bronze, dark stained wood or leather, softly painted surfaces matching warm painted gold coins and silver swords with leather handles. Restrained elegant simple design. Palette dark warm charcoal #1E1C1A, inset #141210, muted bronze #B8955A, warm brown #3A332B, gold #C9A24E. No text, letters, numbers, runes, logo, watermark or symbols resembling writing. Square outer corners, never rounded. Perfect flat orthographic front view, bilateral symmetry, no perspective, no tilt, no external drop shadow. For slicing: every straight edge between corner squares must have exactly constant cross-section along its entire length; no ornaments except inside corner squares. Centre is exactly uniform even solid fill, no vignette, no lighting gradient or emblem, very faint uniform grain only. Soft top illumination only on bevel surfaces. Create ONE fine horizontal gold ornamental separator on REAL transparent background. Requested native canvas 1536x1024 landscape. Line spans x=64..1472 at y=512, approximately 10px thick with tiny tapering ends. One small painted aged-gold diamond in middle only about 40px wide and 40px tall. Restrained original fantasy UI separator, fine brushed bronze-gold, clean sparse geometry. No scrolls, no other objects, no shadow or glow. Outside line completely transparent. Design fills a narrow band about 1408x70px, ready to crop.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "requested_native_pixel_size": {
+        "width": 1536,
+        "height": 1024
+      },
+      "ready_pixel_size": {
+        "width": 512,
+        "height": 8
+      },
+      "crop_xywh": [
+        280,
+        501,
+        360,
+        22
+      ],
+      "status": "saved",
+      "raw_sha256": "f46984a025e64809f6a43f38fbe06a368e4a0106804a83846bac7011a8ff8570",
+      "derived_from": "divider",
+      "processing": "Cropped plain segment excluding diamond; Lanczos resized to 512x8.",
+      "nine_slice_border": {
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    {
+      "id": "icon_castle",
+      "ready": "icon_castle.png",
+      "final_prompt": "Create ONE new icon named icon_castle for Realms, a calm family fantasy map-strategy game. Use case: stylized-concept. Output a native 1024 x 1024 square PNG with TRUE alpha transparency.\nThe attached town, helmet, and shield/spear icons are STYLE REFERENCES ONLY, never edit targets. Match their softly hand-painted chunky style: broad visible painted facets, warm honey highlights on edges, rich but slightly muted earthy colours, soft light from above and upper left, gentle shaded depth, three-quarter view. The reference stone is warm grey-beige, roof shingles terracotta vermilion, outlines are shaded material edges rather than black comic outlines. Painterly game icon, not photorealism, not smooth glossy 3D, not flat vector art. No imitation of a commercial game.\nSubject: one small stone castle keep, dominated by ONE tall square keep with crenellations around the upper parapet and a red pointed pyramidal roof rising from inside that parapet. A small red pennant tops the roof. ONE squat ROUND side tower attached low on one side, with a simple crenellated top. Warm grey stone masonry in chunky blocks, a small simple dark wooden door at the base and only a few deep window slits. A single coherent compact building. The tall red-roofed central square keep must be unmistakable. Asymmetric tall keep plus one short round tower silhouette, clearly different from a gate flanked by two towers: no twin-tower gate, no wide gateway arch. Keep roof, tower, stone masses clean and bold so readable at 32 x 32.\nCenter the entire object, filling about 80 percent of the frame, with all edges and pennant inside frame and an even transparent margin. Object only, no ground plane, no scenery, no separate base, no cast shadow outside the building, no glow or halo, no text, no letters, no numbers, no runes, no watermark. Use real transparent alpha around the object; do not draw a checkerboard.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved"
+    },
+    {
+      "id": "icon_cart",
+      "ready": "icon_cart.png",
+      "final_prompt": "Create ONE new icon named icon_cart for Realms, a calm family fantasy map-strategy game. Use case: stylized-concept. Output a native 1024 x 1024 square PNG with TRUE alpha transparency.\nThe user's attached town, helmet, and shield/spear icons are STYLE REFERENCES ONLY, never edit targets. Match their softly hand-painted chunky style: broad painted facets, warm honey highlights, rich but slightly muted earthy colours, soft light from above and upper left, gentle shaded depth, three-quarter view. Painterly fantasy interface icon with convincing chunky wooden and canvas volumes. Broad clean material planes and simple visible brushwork; not photorealism, not glossy smooth 3D, not flat vector, no imitation of any commercial game. Match the warm grey stone and terracotta/wood colours of the references with natural warm wood and cream canvas here.\nSubject: ONE covered settlers' wagon, no horse. Side-dominant three-quarter view that clearly displays TWO BIG SPOKED WOODEN WHEELS spaced apart along the visible side of the wagon. Thick warm brown wheel rims, sturdy simple spokes, chunky hubs. A short wooden cart bed with a rounded CREAM CANVAS COVER stretched over hoops, arched like a half cylinder, simple broad folds and quiet warm grey shading. A single small wooden barrel attached at the back. Compact coherent wagon, not separate items, no cargo clutter. Canvas arch silhouette and the two wheels must read instantly at 32 x 32; the barrel is subordinate. Keep side visibility sufficient to show both wheels clearly. A modest short wooden drawbar may project forward but must not dominate. No person, no horse.\nCenter the whole wagon, filling about 80 percent of the square frame with an even transparent margin and all parts inside frame. Single isolated object only, no ground plane, no scenery, no cast shadow outside the object, no halo, no glow, no text, no letters, no numbers, no runes, no watermark. Real transparent alpha outside the object; never paint a checkerboard.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved"
+    },
+    {
+      "id": "icon_hall",
+      "ready": "icon_hall.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE new game interface icon for the calm fantasy map-strategy game Realms. Native output exactly 1024 x 1024 pixels. The five attached original icons (town gate, castle tower, covered cart, helmet, shield with spear) are STYLE REFERENCES ONLY, not edit targets. Match their softly hand-painted chunky style: broad visible painted facets, warm honey edge highlights, rich slightly muted earthy colors, gentle shaded depth, shaded material edges instead of black outlines; soft light from above and upper left. Warm grey-beige stone, cream plaster, warm brown timber, terracotta roof tiles and golden thatch as applicable. Three-quarter view, small child-friendly recognizable silhouette with simplified large forms that stay clear at 32 x 32. Painterly illustration, not photorealism, not glossy 3D, not flat vector. One centered isolated object or compact group filling about 80 percent of square frame, whole object fully visible, generous clean transparent margin. TRUE TRANSPARENT background, real alpha. No ground plane, scenery, ground patch, exterior cast shadow, halo or glow. No people, animals, faces, text, letters, numbers, runes, watermark.\nSubject: A small civic town hall: two-storey building, stone ground floor with a wide arched wooden door; timber-framed cream upper floor; steep terracotta tiled roof; a small OPEN wooden bell turret on the ridge holding ONE plainly visible bronze bell. Clear prominent bell-turret silhouette. Civic building, no crenellations, no towers.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "raw_sha256": "0d7c55805e6e0e1997a12b4d044d6bf5a67cc83babe7a99bef167fe5532074cd",
+      "made": "2026-11-10, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "icon_houses",
+      "ready": "icon_houses.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE new game interface icon for the calm fantasy map-strategy game Realms. Native output exactly 1024 x 1024 pixels. The five attached original icons (town gate, castle tower, covered cart, helmet, shield with spear) are STYLE REFERENCES ONLY, not edit targets. Match their softly hand-painted chunky style: broad visible painted facets, warm honey edge highlights, rich slightly muted earthy colors, gentle shaded depth, shaded material edges instead of black outlines; soft light from above and upper left. Warm grey-beige stone, cream plaster, warm brown timber, terracotta roof tiles and golden thatch as applicable. Three-quarter view, small child-friendly recognizable silhouette with simplified large forms that stay clear at 32 x 32. Painterly illustration, not photorealism, not glossy 3D, not flat vector. One centered isolated object or compact group filling about 80 percent of square frame, whole object fully visible, generous clean transparent margin. TRUE TRANSPARENT background, real alpha. No ground plane, scenery, ground patch, exterior cast shadow, halo or glow. No people, animals, faces, text, letters, numbers, runes, watermark.\nSubject: Two small cottages side by side, one slightly in front of the other. Cream plaster walls with timber framing; one cottage has a terracotta tiled roof, the other a golden thatched roof. Small stone chimneys. Make the two differently colored roof shapes clearly distinguishable and both cottages readable as one compact pair.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "raw_sha256": "b1376823eb492e2a98812ed6a8ed326c12590240b54921d9016a88854e974294",
+      "made": "2026-11-10, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "icon_market",
+      "ready": "icon_market.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE new game interface icon for the calm fantasy map-strategy game Realms. Native output exactly 1024 x 1024 pixels. The five attached original icons (town gate, castle tower, covered cart, helmet, shield with spear) are STYLE REFERENCES ONLY, not edit targets. Match their softly hand-painted chunky style: broad visible painted facets, warm honey edge highlights, rich slightly muted earthy colors, gentle shaded depth, shaded material edges instead of black outlines; soft light from above and upper left. Warm grey-beige stone, cream plaster, warm brown timber, terracotta roof tiles and golden thatch as applicable. Three-quarter view, small child-friendly recognizable silhouette with simplified large forms that stay clear at 32 x 32. Painterly illustration, not photorealism, not glossy 3D, not flat vector. One centered isolated object or compact group filling about 80 percent of square frame, whole object fully visible, generous clean transparent margin. TRUE TRANSPARENT background, real alpha. No ground plane, scenery, ground patch, exterior cast shadow, halo or glow. No people, animals, faces, text, letters, numbers, runes, watermark.\nSubject: A market stall: wooden counter under a muted red-and-cream striped cloth awning on TWO wooden poles. On the counter a crate of red apples and a basket of bread loaves. One small barrel in front. The broad striped canopy is the dominant silhouette. Compact, simple chunky forms.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "raw_sha256": "a733c11f0b03b8caef2dc1418f0889e48e3ec5fc546fe33b11f3ba4a4aaf3787",
+      "made": "2026-11-10, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "icon_granary",
+      "ready": "icon_granary.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE new game interface icon for the calm fantasy map-strategy game Realms. Native output exactly 1024 x 1024 pixels. The five attached original icons (town gate, castle tower, covered cart, helmet, shield with spear) are STYLE REFERENCES ONLY, not edit targets. Match their softly hand-painted chunky style: broad visible painted facets, warm honey edge highlights, rich slightly muted earthy colors, gentle shaded depth, shaded material edges instead of black outlines; soft light from above and upper left. Warm grey-beige stone, cream plaster, warm brown timber, terracotta roof tiles and golden thatch as applicable. Three-quarter view, small child-friendly recognizable silhouette with simplified large forms that stay clear at 32 x 32. Painterly illustration, not photorealism, not glossy 3D, not flat vector. One centered isolated object or compact group filling about 80 percent of square frame, whole object fully visible, generous clean transparent margin. TRUE TRANSPARENT background, real alpha. No ground plane, scenery, ground patch, exterior cast shadow, halo or glow. No people, animals, faces, text, letters, numbers, runes, watermark.\nSubject: A small SQUARE wooden granary RAISED on clearly visible mushroom-shaped staddle stones with broad flat rounded stone caps and short narrow stone stems. Plank walls, golden thatched roof. TWO plump burlap grain sacks leaning at its foot. Visible gap under raised storehouse. Roof and raised floor are distinctive; keep enough supports visible.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "raw_sha256": "f47648d88c8f5e33d69cef50961fb54e60e8783790dea82d82304a1e88c935ba",
+      "made": "2026-11-10, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "icon_tavern",
+      "ready": "icon_tavern.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE new game interface icon for the calm fantasy map-strategy game Realms. Native output exactly 1024 x 1024 pixels. The five attached original icons (town gate, castle tower, covered cart, helmet, shield with spear) are STYLE REFERENCES ONLY, not edit targets. Match their softly hand-painted chunky style: broad visible painted facets, warm honey edge highlights, rich slightly muted earthy colors, gentle shaded depth, shaded material edges instead of black outlines; soft light from above and upper left. Warm grey-beige stone, cream plaster, warm brown timber, terracotta roof tiles and golden thatch as applicable. Three-quarter view, small child-friendly recognizable silhouette with simplified large forms that stay clear at 32 x 32. Painterly illustration, not photorealism, not glossy 3D, not flat vector. One centered isolated object or compact group filling about 80 percent of square frame, whole object fully visible, generous clean transparent margin. TRUE TRANSPARENT background, real alpha. No ground plane, scenery, ground patch, exterior cast shadow, halo or glow. No people, animals, faces, text, letters, numbers, runes, watermark.\nSubject: A cosy compact timber-framed inn with a warm lit window, a barrel by the door and a wooden sign hanging from an iron bracket. The large visible sign shows a simple PAINTED FOAMING TANKARD as a picture, absolutely NO letters. Warm cream plaster, dark warm brown timbers, terracotta roof. Make the tankard sign and warm window prominent readable identifying shapes. No bell turret.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "raw_sha256": "a484df103ae2fcf4095e06d36a4af665a0ecee7219a4e931ded2b90b553a2e7c",
+      "made": "2026-11-10, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "icon_barracks",
+      "ready": "icon_barracks.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE new game interface icon for the calm fantasy map-strategy game Realms. Native output exactly 1024 x 1024 pixels. The five attached original icons (town gate, castle tower, covered cart, helmet, shield with spear) are STYLE REFERENCES ONLY, not edit targets. Match their softly hand-painted chunky style: broad visible painted facets, warm honey edge highlights, rich slightly muted earthy colors, gentle shaded depth, shaded material edges instead of black outlines; soft light from above and upper left. Warm grey-beige stone, cream plaster, warm brown timber, terracotta roof tiles and golden thatch as applicable. Three-quarter view, small child-friendly recognizable silhouette with simplified large forms that stay clear at 32 x 32. Painterly illustration, not photorealism, not glossy 3D, not flat vector. One centered isolated object or compact group filling about 80 percent of square frame, whole object fully visible, generous clean transparent margin. TRUE TRANSPARENT background, real alpha. No ground plane, scenery, ground patch, exterior cast shadow, halo or glow. No people, animals, faces, text, letters, numbers, runes, watermark.\nSubject: A sturdy LONG low timber hall on a warm grey-beige stone base, with a dark warm brown SHINGLED roof. By the door a wooden rack of exactly THREE upright spears and a round wooden shield with an iron rim leaning against the hall. Emphasize a broad horizontal low roof and large obvious spear rack silhouette; shield is a secondary accent. No flags or crenellations.\nReadability correction: simplify the broad long low hall and use a compact composition with its separate spear rack beside the hall on the right. The three upright spears must have large pale iron spearheads standing in clear transparent air beyond the roof edge, clearly separated from each other, never blending into the roof or wall. The iron-rimmed round wooden shield leans beside the doorway. Retain chunky painterly forms and three-quarter depth matching the original five style reference icons. The entire building and spear rack must fit within the canvas with a clearly empty transparent margin of at least 8 percent on ALL four sides; no clipped roof eaves. Output exactly 1024 by 1024 pixels.",
+      "attempts": 2,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "raw_sha256": "929c74cb3c657535a02d04217de0002dc3cff4ae8c5e174dc245553b2a14172e",
+      "made": "2026-11-10, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "icon_range",
+      "ready": "icon_range.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE new game interface icon for the calm fantasy map-strategy game Realms. Native output exactly 1024 x 1024 pixels. The five attached original icons (town gate, castle tower, covered cart, helmet, shield with spear) are STYLE REFERENCES ONLY, not edit targets. Match their softly hand-painted chunky style: broad visible painted facets, warm honey edge highlights, rich slightly muted earthy colors, gentle shaded depth, shaded material edges instead of black outlines; soft light from above and upper left. Warm grey-beige stone, cream plaster, warm brown timber, terracotta roof tiles and golden thatch as applicable. Three-quarter view, small child-friendly recognizable silhouette with simplified large forms that stay clear at 32 x 32. Painterly illustration, not photorealism, not glossy 3D, not flat vector. One centered isolated object or compact group filling about 80 percent of square frame, whole object fully visible, generous clean transparent margin. TRUE TRANSPARENT background, real alpha. No ground plane, scenery, ground patch, exterior cast shadow, halo or glow. No people, animals, faces, text, letters, numbers, runes, watermark.\nSubject: An archery target: ONE round woven-straw target with simple bold painted concentric rings, mounted on a wooden A-frame stand. TWO arrows stuck in the target, and a longbow leaning against the stand. Large circular straw target face visible in three-quarter view, wide muted red outer painted ring, cream inner ring, small muted red center. Chunky warm brown wood, golden straw with broad painted facets. Keep arrows and bow distinct.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "raw_sha256": "065480929fb600a303282620d22c019d94dde81bd314803c9cbaf8115f16e3aa",
+      "made": "2026-11-10, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "icon_stables",
+      "ready": "icon_stables.png",
+      "final_prompt": "Use case: stylized-concept. Create ONE new game interface icon for the calm fantasy map-strategy game Realms. Native output exactly 1024 x 1024 pixels. The five attached original icons (town gate, castle tower, covered cart, helmet, shield with spear) are STYLE REFERENCES ONLY, not edit targets. Match their softly hand-painted chunky style: broad visible painted facets, warm honey edge highlights, rich slightly muted earthy colors, gentle shaded depth, shaded material edges instead of black outlines; soft light from above and upper left. Warm grey-beige stone, cream plaster, warm brown timber, terracotta roof tiles and golden thatch as applicable. Three-quarter view, small child-friendly recognizable silhouette with simplified large forms that stay clear at 32 x 32. Painterly illustration, not photorealism, not glossy 3D, not flat vector. One centered isolated object or compact group filling about 80 percent of square frame, whole object fully visible, generous clean transparent margin. TRUE TRANSPARENT background, real alpha. No ground plane, scenery, ground patch, exterior cast shadow, halo or glow. No people, animals, faces, text, letters, numbers, runes, watermark.\nSubject: A small wooden stable with a split door, TOP HALF OPEN revealing an empty softly dark interior, bottom half shut. ONE large clearly visible iron horseshoe nailed above the door. A compact golden hay bale and a pitchfork beside the doorway. Warm brown planks, modest warm brown wooden shingle roof. Distinctive wide open half-door, large horseshoe and golden hay; no horse or other animal.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "requested_native_pixel_size": {
+        "width": 1024,
+        "height": 1024
+      },
+      "raw_sha256": "5cd6b21c9e6cbee380f9de486809bddb20e0df35a2e51578bd2a159cf8d498c7",
+      "made": "2026-11-10, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "gem_capital",
+      "ready": "gem_capital.png",
+      "final_prompt": "Use case: stylized-concept. Asset type: fantasy strategy game UI icon for Realms, readable at 28 pixels. Generate ONE isolated centered object in a square 1024x1024 image, filling about 80 percent of the frame. True transparent background with clean antialiased alpha edges. Use the attached crown, coins, castle and knight helmet ONLY as STYLE REFERENCES, not edit targets. Match their softly hand-painted chunky look: a few broad painted facets, warm honey highlights on gold edges, rich slightly muted colors, gentle shaded depth, soft upper-left lighting. Painterly game illustration, not photorealistic, not glossy plastic, not flat vector. Seen from the front and only very slightly above, upright and symmetric, no rotation. A small simple warm-gold bezel follows the stone outline: thin rim, four tiny subtle gold prongs, restrained mount occupying much less area than the stone, no ornamental metalwork. One soft highlight on the jewel. Bold uncluttered silhouette and large jewel face, important for a young child to distinguish by both shape and color at 28 pixels. No ground, no shadow outside the object, no glow, halo, sparkles, stars, text, letters, numbers, runes, watermark, face, or animal. No extra objects. The stone is a SQUARE CUSHION-CUT gem of warm amber gold-yellow: nearly equal width and height, upright square with visibly rounded corners, four clear sides, a large broad amber-gold central table and a few broad darker amber edge facets. Ensure the yellow stone is distinct from its narrow honey-gold bezel through deeper amber edge facets. This is a cushion square, not a diamond or circle.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "raw_sha256": "9ec0890fb9b173c831c9acfdb03a1f8ad5dbede02ef6f18689d07c8ea7962455",
+      "made": "2026-11-11, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "gem_towns",
+      "ready": "gem_towns.png",
+      "final_prompt": "Use case: stylized-concept. Asset type: fantasy strategy game UI icon for Realms, readable at 28 pixels. Generate ONE isolated centered object in a square 1024x1024 image, filling about 80 percent of the frame. True transparent background with clean antialiased alpha edges. Use the attached crown, coins, castle and knight helmet ONLY as STYLE REFERENCES, not edit targets. Match their softly hand-painted chunky look: a few broad painted facets, warm honey highlights on gold edges, rich slightly muted colors, gentle shaded depth, soft upper-left lighting. Painterly game illustration, not photorealistic, not glossy plastic, not flat vector. Seen from the front and only very slightly above, upright and symmetric, no rotation. A small simple warm-gold bezel follows the stone outline: thin rim, four tiny subtle gold prongs, restrained mount occupying much less area than the stone, no ornamental metalwork. One soft highlight on the jewel. Bold uncluttered silhouette and large jewel face, important for a young child to distinguish by both shape and color at 28 pixels. No ground, no shadow outside the object, no glow, halo, sparkles, stars, text, letters, numbers, runes, watermark, face, or animal. No extra objects. The stone is a deep EMERALD GREEN RECTANGULAR STEP-CUT gem, upright and distinctly TALLER THAN WIDE (height about 1.5 times width), with broad straight vertical sides, flat horizontal top and bottom, only very slightly clipped corners. A few broad nested rectangular step facets surround a rich green central table. The gold bezel follows this tall rectangular shape.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "raw_sha256": "48036ee5eb110ca13bd86d9ea8da660b3c2e5a53eded9ef0fc7b9d76a074cf6f",
+      "made": "2026-11-11, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "gem_hunter",
+      "ready": "gem_hunter.png",
+      "final_prompt": "Use case: stylized-concept. Asset type: fantasy strategy game UI icon for Realms, readable at 28 pixels. Generate ONE isolated centered object in a square 1024x1024 image, filling about 80 percent of the frame. True transparent background with clean antialiased alpha edges. Use the attached crown, coins, castle and knight helmet ONLY as STYLE REFERENCES, not edit targets. Match their softly hand-painted chunky look: a few broad painted facets, warm honey highlights on gold edges, rich slightly muted colors, gentle shaded depth, soft upper-left lighting. Painterly game illustration, not photorealistic, not glossy plastic, not flat vector. Seen from the front and only very slightly above, upright and symmetric, no rotation. A small simple warm-gold bezel follows the stone outline: thin rim, four tiny subtle gold prongs, restrained mount occupying much less area than the stone, no ornamental metalwork. One soft highlight on the jewel. Bold uncluttered silhouette and large jewel face, important for a young child to distinguish by both shape and color at 28 pixels. No ground, no shadow outside the object, no glow, halo, sparkles, stars, text, letters, numbers, runes, watermark, face, or animal. No extra objects. The stone is a deep GARNET RED PEAR-CUT teardrop, a strong silhouette with one sharply tapered point UP at the very top and a generous rounded bulb at the bottom. Height about 1.35 times width. Broad burgundy-red edge facets and rich red central facets; one soft upper-left highlight. Gold bezel follows the teardrop outline; tiny prongs do not blunt the top point.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "raw_sha256": "20cdfc7c141a779839342e75a13a5df99681db50642032266d0d78f5453ae441",
+      "made": "2026-11-11, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "gem_hero",
+      "ready": "gem_hero.png",
+      "final_prompt": "Use case: stylized-concept. Asset type: fantasy strategy game UI icon for Realms, readable at 28 pixels. Generate ONE isolated centered object in a square 1024x1024 image, filling about 80 percent of the frame. True transparent background with clean antialiased alpha edges. Use the attached crown, coins, castle and knight helmet ONLY as STYLE REFERENCES, not edit targets. Match their softly hand-painted chunky look: a few broad painted facets, warm honey highlights on gold edges, rich slightly muted colors, gentle shaded depth, soft upper-left lighting. Painterly game illustration, not photorealistic, not glossy plastic, not flat vector. Seen from the front and only very slightly above, upright and symmetric, no rotation. A small simple warm-gold bezel follows the stone outline: thin rim, four tiny subtle gold prongs, restrained mount occupying much less area than the stone, no ornamental metalwork. One soft highlight on the jewel. Bold uncluttered silhouette and large jewel face, important for a young child to distinguish by both shape and color at 28 pixels. No ground, no shadow outside the object, no glow, halo, sparkles, stars, text, letters, numbers, runes, watermark, face, or animal. No extra objects. The stone is a ROUND BRILLIANT-CUT deep SAPPHIRE BLUE gem, a clearly circular silhouette, equal width and height. A few broad blue radial facets surround a wide deep-blue central table; one soft upper-left highlight, no white star shapes. Thin warm-gold bezel follows the circle, with four tiny prongs.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "raw_sha256": "585d943a4bd3ee728b060a2108c0f7b49166b7fdf511f0070a2f32caa723e78c",
+      "made": "2026-11-11, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "gem_lands",
+      "ready": "gem_lands.png",
+      "final_prompt": "Use case: stylized-concept. Asset type: fantasy strategy game UI icon for Realms, readable at 28 pixels. Generate ONE isolated centered object in a square 1024x1024 image, filling about 80 percent of the frame. True transparent background with clean antialiased alpha edges. Use the attached crown, coins, castle and knight helmet ONLY as STYLE REFERENCES, not edit targets. Match their softly hand-painted chunky look: a few broad painted facets, warm honey highlights on gold edges, rich slightly muted colors, gentle shaded depth, soft upper-left lighting. Painterly game illustration, not photorealistic, not glossy plastic, not flat vector. Seen from the front and only very slightly above, upright and symmetric, no rotation. A small simple warm-gold bezel follows the stone outline: thin rim, four tiny subtle gold prongs, restrained mount occupying much less area than the stone, no ornamental metalwork. One soft highlight on the jewel. Bold uncluttered silhouette and large jewel face, important for a young child to distinguish by both shape and color at 28 pixels. No ground, no shadow outside the object, no glow, halo, sparkles, stars, text, letters, numbers, runes, watermark, face, or animal. No extra objects. The stone is a SOFT AMETHYST VIOLET HEXAGON, regular six equal sides with FLAT HORIZONTAL TOP AND BOTTOM, leftmost and rightmost vertices at the midline. Width about 1.155 times height, six crisp corners, no extra bevel corners in the outer silhouette. Rich slightly muted purple, broad purple facets and wide violet central table, one soft upper-left highlight. Thin gold bezel follows the exact six-sided outline, four tiny prongs. Must read as a hexagon, not a circle, octagon or pointed-top gem.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "raw_sha256": "bbdcf6c4f57403c43734243831d379f0dba119450d76173f525566d0f23ea665",
+      "made": "2026-11-11, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "gem_socket",
+      "ready": "gem_socket.png",
+      "final_prompt": "Use case: stylized-concept. Asset type: fantasy strategy game UI icon for Realms, readable at 28 pixels. Generate ONE isolated centered object in a square 1024x1024 image, filling about 80 percent of the frame. True transparent background with clean antialiased alpha edges. Use the attached crown, coins, castle and knight helmet ONLY as STYLE REFERENCES, not edit targets. Match their softly hand-painted chunky look: a few broad painted facets, warm honey highlights on gold edges, rich slightly muted colors, gentle shaded depth, soft upper-left lighting. Painterly game illustration, not photorealistic, not glossy plastic, not flat vector. Seen from the front and only very slightly above, upright and symmetric, no rotation. A small simple warm-gold bezel follows the stone outline: thin rim, four tiny subtle gold prongs, restrained mount occupying much less area than the stone, no ornamental metalwork. One soft highlight on the jewel. Bold uncluttered silhouette and large jewel face, important for a young child to distinguish by both shape and color at 28 pixels. No ground, no shadow outside the object, no glow, halo, sparkles, stars, text, letters, numbers, runes, watermark, face, or animal. No extra objects. This is the EMPTY ROUND SOCKET from this icon family: a small simple warm honey-gold circular bezel with a thin rim and exactly four tiny gold prongs, seen front-on and slightly above. There is NO GEMSTONE: the inside is a dark warm-brown hollow, matte and softly shaded with the darkest inner shadow under the upper rim, a subtle warmer brown lower inner wall. Hollow interior must read unmistakably as an empty recessed place waiting for a jewel, not a black stone, filled medallion, coin, or transparent hole. Plain round outline, same restrained gold edge thickness and painted softness as the other gems.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "status": "saved",
+      "raw_sha256": "e2335733eb720c15f6f5771e7daaca60e1ea06410647cdfeb4978feaa9b6e5ea",
+      "made": "2026-11-11, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "title_art",
+      "ready": "title_art.png",
+      "final_prompt": "Create ONE finished original wide landscape illustration for the calm family hex-map fantasy strategy game Realms, menu picture variant 1. Output landscape 1536x1024 or the widest available landscape format, preferably 16:9. No text, no UI, no menu column drawn into the art.\nUse the supplied D-key landscape as the PRIMARY style reference: soft rounded clay-like forms, restrained soft green and blue-green palette, broad painted planes and gentle gradients, few large masses, simplified elegant picture-book landscape. The map reference is this same land viewed closer and lower. Use castle_a ONLY for the castle's recognizable four round towers, squat slate blue-grey conical roofs, thick cream-grey stone walls and wooden gate. Use boar-1 for the ONE whole boar's anatomy and muted russet-brown colour, small sturdy legs, closed mouth, little tusks and dorsal mane.\nComposition is essential: the leftmost 28 percent of the canvas contains ONLY empty soft green meadow, distant pale sky and subdued soft tree shade. No subject, no castle, no boar, no house, no rock cluster, no important tree silhouette in that zone. All story subjects lie at x=45 to 92 percent, within the central 75 percent of image height so a centred 16:9 crop preserves them. From a little above human eye level look a long way across rolling green meadow. A pale dirt road enters at bottom centre around x=50 percent, makes a broad S bend towards the RIGHT and leads to a compact castle at x=73 percent on a low grassy hill in the middle distance. Three tiny simple cottages nestle below it. Two small plain desaturated cloth banners, without marks. Broadleaf grove at far right, crowns formed from just three or four big rounded clumps each, a few tall simple conifers. One whole calm wild boar stands on four visible grounded legs at the edge of this right foreground grove around x=78 percent y=73 percent, including entire snout, ears, body, legs, tail, with breathing room all around. Small relative to the trees, friendly-interesting but natural, not frightening. Distant soft hills and a glimpse of calm blue sea, pale blue sky with two or three LARGE soft clouds. Sunny late morning approaching midday, calm even light from upper left, soft short shadows.\nExtreme simplification: smooth meadow as large painted colour areas, ZERO individual grass blades or flowers. Castle stonework suggested by only a handful of broad planes, ZERO individual bricks or roof tiles. No busy detail, noise, fine texture, outlines, lens flare, rays, glow, vignette. Muted red-brown trunks, warm cream-grey rocks and stone, slate grey-blue roofs. No saturated yellow orange purple. No people, no other animals, no monsters, no anthropomorphic faces. No letters, numbers, runes, heraldic emblems, signatures, watermarks or symbols. Do not imitate any existing commercial game's look.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "opaque",
+      "native_pixel_size": {
+        "width": 1672,
+        "height": 941
+      },
+      "ready_pixel_size": {
+        "width": 1920,
+        "height": 1080
+      },
+      "status": "saved",
+      "raw_sha256": "008c002cb296e7e662f9b2cb4c1dbe54547e388b0a8a5302338edda0f9c2686a",
+      "processing": "Visually checked: broad painted masses, quiet left 28%, right-half castle, plain banners, one whole calm four-legged boar, no text or extra animals. Centred 16:9 subpixel crop, full native width retained; Lanczos-3 resize. Midday variant.",
+      "made": "2026-11-11, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "title_crown",
+      "ready": "title_crown.png",
+      "final_prompt": "ONE isolated chunky hand-painted six-sided gold crown emblem, square canvas, real transparent alpha background. This is a precise regular HEXAGONAL PRISM with six equal FLAT faces and EXACTLY SIX points. Front view from moderately above, one FLAT FACE facing forward. Three flat external front panels visible: a broad front rectangle, symmetric angled left and right rectangles. Hollow hexagonal opening, six STRAIGHT edges, angular straight-edged base. NOT a circular crown.\nCRITICAL SIX-CORNER CONSTRUCTION: there are THREE symmetric PAIRS of corner points. The two REAR corner tips sit at x=34% and x=66%, y=20%, at the ends of a straight HORIZONTAL rear edge. The two SIDE corner tips sit at x=14% and x=86%, y=32%. The two FRONT corner tips sit at x=34% and x=66%, y=43%. These are all SIX tips, one at each hexagon corner. The rear edge between the two rear tips stays horizontal with a shallow valley. The front edge between the two front tips stays horizontal with a shallow valley. There is ABSOLUTELY NO middle tip at x=50% anywhere. No apex on the centreline. Exactly six obvious tips, arranged three left and three right in reflection symmetry. Six vertices of the open hexagon: rear-left, rear-right, side-right, front-right, front-left, side-left. A crown with six short triangular points, not six towers, not a fortress.\nThe band has modest vertical height, broad planar gold surfaces and pronounced corner folds. The centre front face contains ONE regular hexagonal soft amethyst-violet gemstone with six straight sides, in a simple thick hexagonal bezel; no other stones. The two angled front faces and all others are plain gold with a simple rectangular engraved border.\nUse attached crown icon for gold MATERIAL ONLY, NOT its circular shape. Use attached hexagonal violet gem for stone form and softly purple colour. Warm MUTED honey gold, broad softly hand-painted facets and soft gradients, soft light from upper left, gentle honey edge highlights, darker warm ochre inner walls. Subdued old gold rather than bright yellow. Not shiny plastic, not photorealistic, not vector, no fine grain or scratches, no elaborate ornament. One centred crown occupies about 80% of square frame, complete unclipped silhouette. Bold design legible at 64 pixels. Transparent background, no ground, no outside cast shadow, no glow, no sparkles, no checkerboard, no text, letters, numbers, symbols or watermark.",
+      "attempts": 2,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 512,
+        "height": 512
+      },
+      "status": "saved",
+      "raw_sha256": "03ad0808cd050b5b83ce5291df0f65fba2a87aecde75b2b1ef82e34823dfe5f3",
+      "processing": "True alpha supplied by generation; no background removal needed. Alpha>=8 bounding box ignores near-invisible stray pixels for framing only; alpha values preserved. Square crop/pad with 4% margin per side; premultiplied-alpha Lanczos-3 resize. Six corner tips, three visible flat front panels, inspected at 256 and 64 pixels. One hexagonal amethyst gem. Regenerated once: first attempt had five obvious tips and ambiguous polygon count; final has six.",
+      "made": "2026-11-11, codex exec (gpt-6.1-sol)"
+    },
+    {
+      "id": "title_logo",
+      "ready": "title_logo.png",
+      "final_prompt": "Create ONE polished original fantasy strategy game main-menu title logo, with the exact word \"Hexcrown\" spelled H e x c r o w n, capital H and all other letters lowercase. The word Hexcrown is the ONLY text anywhere. Use the attached images as this family's own design references: crown-now.png for the exact hexagonal crown construction, gem_lands.png for its violet hexagonal gemstone, D-key.png for warm hand-painted stylization, menu-picture.png only to understand contrast requirements. Do NOT include any scenery from the references.\nDeliver a landscape PNG, ideally 1536x1024, with TRUE TRANSPARENT ALPHA background. Save the untouched generated image within workspace/realms/logo35/codex/ as logo-hexcrown.png if file saving is supported. The subject is ONE combined title emblem, horizontally centered with even transparent breathing room. Crop composition should be wider than tall, about 1.8:1. A richly painted bright gold six-sided crown sits ON or immediately above the lettering, meeting the lettering visually as a single logo. Crown approximately 1.3 times the letters' height; name wide, large and easy for a child to read. The crown's width is about 62 percent of the word width.\nCRITICAL CROWN GEOMETRY: Like crown-now reference: an OPEN rigid HEXAGONAL PRISM band made of SIX EQUAL FLAT RECTANGULAR FACES, viewed frontally from slightly above. Three exterior faces visibly form a wide flat center panel and two equal foreshortened angled side panels, with straight edges and sharp vertical panel corners. The rear three faces and open hexagonal interior are visible above. EXACTLY SIX pointed triangular crown tips, one at each of the six hexagon vertices, with the rear center vertex lower in projection but still visible between the two rear tips. Never a round/oval band, never a usual rounded royal crown, never five tips or three broad curved lobes. Keep this polygonal geometry clearly readable. Chunky bright warm gold facets, honey shaded sides, soft ivory highlights, a restrained engraved inset border around EACH flat face. One large HEXAGONAL AMETHYST-VIOLET gemstone centered on the front flat panel in a gold bevel setting, with broad clean purple facets and only a small white reflected glint. No other gemstones needed. A small rounded stud at each tip is acceptable only if all SIX tips remain distinct.\nLETTERING: draw the title in the image itself, using custom chunky friendly fantasy letters, bold rounded wedge serifs with real weight, warm cream-gold upper faces to honey gold lower faces, broad painted bevel and modest depth, with thick deep blue-brown outline following each letter. The word reads exactly Hexcrown with clearly distinct x, c, r, o, w, n. Natural lively handcrafted spacing but clean letterforms. No thin serifs, no blackletter, no runes. Inner shadows are allowed within the logo, but no outer cast shadow or backdrop.\nWarm, luminous, detailed hand-painted game art with broad readable facets, richer and brighter than crown-now. Calm family-friendly storybook fantasy, clean craft, no photorealistic material, no plastic, no neon, no commercial imitation. Enough crisp details for 1200px wide, bold silhouette readable at 300px wide. Entire silhouette bounded by a solid deep blue-brown contour for visibility over pale sky or green meadow. No banner, ribbon, laurel, plaque, frame, pedestal, ground, scenery, halo, lens flare, particles, extra words, mottos, faces, animals, people or face-like ornament. All areas outside the crown and letters and all letter counters are completely transparent, no fake checkerboard. If alpha is impossible, use only perfectly uniform #C8C8C8 instead.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "transparent",
+      "native_pixel_size": {
+        "width": 1672,
+        "height": 941
+      },
+      "ready_pixel_size": {
+        "width": 1200,
+        "height": 669
+      },
+      "status": "saved",
+      "raw_sha256": "ce9098d336f6ff72458e2dace4b70071cd3ea510b8da67cfe68e8b3c762053c8",
+      "processing": "True alpha supplied by generation. Cropped to the non-transparent artwork with an even 2% margin and resized to 1200 px on the longer side (premultiplied-alpha Lanczos3); lettering and crown not edited. Title lettered in the picture: Hexcrown, the name the family chose on 2026-11-11.",
+      "made": "2026-11-11, codex exec (gpt-6.1-sol), with title_crown, gem_lands, title_art and a key style picture attached as references"
+    }
+  ],
+  "notes": [
+    "Made by Codex (codex exec, gpt-6.1-sol) with its built-in image generation in the ChatGPT session, 2026-11-09; the untouched outputs and the check sheets are kept outside the repository. Frames are nine-sliced by Hud.uss with the borders given here.",
+    "Untouched generator output retained in raw/. The built-in tool chose actual native sizes despite explicitly requested dimensions; actual and requested sizes are both recorded.",
+    "The decorative divider is kept at fixed size so its central diamond is preserved; divider_line supplies the stretchable plain line.",
+    "The eight building icons of the town screen (icon_hall … icon_stables) were made the same way on 2026-11-10 with the five icons icon_town, icon_castle, icon_cart, icon_hero and icon_recruit attached as style references.",
+    "The crown's five gems and its empty socket (gem_capital … gem_socket) were made the same way on 2026-11-11 with the crown, the coins, icon_castle and icon_hero attached as style references."
+  ]
+}

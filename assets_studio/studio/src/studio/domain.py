@@ -138,6 +138,9 @@ class Asset:
     rating: int | None = None  # 0-5, None: not rated (ADR-007)
     tags: tuple[str, ...] = ()  # sorted
     project: str = DEFAULT_PROJECT
+    # A mesh's thumbnail (WebP) drawn by the web UI's renderer of this version (ADR-011).
+    preview_sha256: str | None = None
+    preview_version: int | None = None
 
 
 @dataclass(frozen=True)

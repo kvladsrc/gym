@@ -14,6 +14,7 @@ from yaqs import DEFAULT_SEARCH_MODE, SEARCH_MODES, default_database
 from yaqs.context import DEFAULT_CONTEXT_TOKENS, DEFAULT_PAGE_TOKENS
 from yaqs.diagnostics import RUNTIME_HINT
 from yaqs.present import DETAILS, compact_books
+from yaqs.querylog import Caller, default_path
 
 DEVICES = ("cuda", "cpu")
 
@@ -179,16 +180,32 @@ def execute(args: argparse.Namespace) -> object:
     if args.command in {"search", "serve", "web", "passage", "page"}:
         from yaqs.service import KnowledgeService
 
-        service = KnowledgeService(args.db, device=getattr(args, "device", "cpu"))
+        service = KnowledgeService(
+            args.db, device=getattr(args, "device", "cpu"), query_log=default_path(args.db)
+        )
+        cli = Caller("cli")
         if args.command == "search":
             return service.search(
-                args.query, args.limit, args.book, args.mode, args.max_tokens, args.detail
+                args.query,
+                args.limit,
+                args.book,
+                args.mode,
+                args.max_tokens,
+                args.detail,
+                caller=cli,
             )
         if args.command == "passage":
-            return service.passage(args.chunk_id, args.neighbors, args.max_tokens, args.detail)
+            return service.passage(
+                args.chunk_id, args.neighbors, args.max_tokens, args.detail, caller=cli
+            )
         if args.command == "page":
             return service.page(
-                args.book_id, args.page_number, args.start_char, args.max_tokens, args.detail
+                args.book_id,
+                args.page_number,
+                args.start_char,
+                args.max_tokens,
+                args.detail,
+                caller=cli,
             )
         if args.command == "web":
             from yaqs.web import run

@@ -154,10 +154,22 @@ class AssetOut(BaseModel):
     tags: list[str]
     project: str
     file_url: str
+    # A mesh's thumbnail (WebP), drawn by the web UI when first shown; null until then.
+    # The URL changes with the picture (ADR-011).
+    preview_url: str | None
+    # The version of the renderer that drew it; the web UI redraws older ones.
+    preview_version: int | None
 
     @classmethod
     def of(cls, asset: Asset) -> "AssetOut":
-        return cls.model_validate({**vars(asset), "file_url": f"/api/assets/{asset.id}/file"})
+        preview = asset.preview_sha256
+        return cls.model_validate(
+            {
+                **vars(asset),
+                "file_url": f"/api/assets/{asset.id}/file",
+                "preview_url": preview and f"/api/assets/{asset.id}/preview?v={preview}",
+            }
+        )
 
 
 class ParentOut(BaseModel):

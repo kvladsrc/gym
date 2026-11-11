@@ -11,6 +11,13 @@ from launcher import BACKOFF_S, IDLE_S, SWITCH_S, Demand, Launcher, demand_of
 from model_server_sdk import EXIT_GPU_BROKEN
 
 
+@pytest.fixture(autouse=True)
+def logs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """The launcher's pid files go to a temporary directory, never the real one."""
+    monkeypatch.setattr(launcher, "LOGS", tmp_path)
+    return tmp_path
+
+
 def job(id: str, server: str, status: str = "queued", after: str | None = None) -> dict[str, Any]:
     deps = {"image": {"job_id": after, "output_index": 0}} if after else {}
     return {"id": id, "server": server, "status": status, "created_at": id, "dependencies": deps}
@@ -151,10 +158,7 @@ def test_the_launcher_knows_every_server_of_the_example_config() -> None:
     assert {server.id for server in example.servers} == launcher.RECIPES.keys()
 
 
-def test_a_busy_server_is_left_running_for_the_next_launcher(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(launcher, "LOGS", tmp_path)
+def test_a_busy_server_is_left_running_for_the_next_launcher(tmp_path: Path) -> None:
     run, started = make()
     run.step(0, Demand(frozenset(), ("hunyuan3d21",)), {})
     run.step(1, Demand(frozenset({"hunyuan3d21"}), ()), {"hunyuan3d21": "busy"})
@@ -163,8 +167,7 @@ def test_a_busy_server_is_left_running_for_the_next_launcher(
     assert (tmp_path / "hunyuan3d21.pid").read_text() == "4242"
 
 
-def test_an_idle_server_is_stopped_on_exit(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(launcher, "LOGS", tmp_path)
+def test_an_idle_server_is_stopped_on_exit(tmp_path: Path) -> None:
     run, started = make()
     run.step(0, Demand(frozenset(), ("hunyuan3d21",)), {})
     run.step(1, Demand(frozenset(), ()), {"hunyuan3d21": "ready"})
@@ -173,19 +176,51 @@ def test_an_idle_server_is_stopped_on_exit(tmp_path: Path, monkeypatch: pytest.M
     assert not list(tmp_path.glob("*.pid"))
 
 
-def test_a_live_server_left_behind_is_taken_over(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_a_server_outlives_a_launcher_that_dies_without_exiting(tmp_path: Path) -> None:
+    # A closed desktop session took the launcher down before its shutdown ran;
+    # the server, in a session of its own, kept running and held the GPU.
     import os
 
-    monkeypatch.setattr(launcher, "LOGS", tmp_path)
+    def start(recipe: str) -> Fake:
+        server = Fake(recipe)
+        server.pid = os.getpgrp()  # a live process group
+        return server
+
+    run = Launcher(start=start)
+    run.step(0, Demand(frozenset(), ("hi3d",)), {})
+    assert (tmp_path / "hi3d.pid").read_text() == str(os.getpgrp())
+    nobody = Launcher(start=lambda recipe: pytest.fail("started a second server"))
+    nobody.adopt()
+    assert nobody.current is not None
+    assert nobody.current.server == "hi3d"
+    assert (tmp_path / "hi3d.pid").exists()
+
+
+def test_the_pid_file_goes_with_the_server(tmp_path: Path) -> None:
+    run, started = make()
+    run.step(0, Demand(frozenset(), ("hi3d",)), {})
+    run.step(1, Demand(frozenset(), ()), {"hi3d": "ready"})
+    run.step(1 + IDLE_S, Demand(frozenset(), ()), {"hi3d": "ready"})
+    assert started[0].stopped
+    assert not (tmp_path / "hi3d.pid").exists()
+    # A server that exits on its own leaves no pid file behind either.
+    run.step(2 + IDLE_S + BACKOFF_S, Demand(frozenset(), ("sam2",)), {})
+    started[1].code = 1
+    run.step(3 + IDLE_S + BACKOFF_S, Demand(frozenset(), ("sam2",)), {"sam2": "loading"})
+    assert not list(tmp_path.glob("*.pid"))
+
+
+def test_a_live_server_left_behind_is_taken_over(tmp_path: Path) -> None:
+    import os
+
     (tmp_path / "hunyuan3d21.pid").write_text(str(os.getpgrp()))  # a live process group
     (tmp_path / "sound.pid").write_text("999999999")  # gone
     run, started = make()
     run.adopt()
     assert run.current is not None
     assert run.current.server == "hunyuan3d21"
-    assert not list(tmp_path.glob("*.pid"))
+    # Its pid stays for the launcher after this one; the gone server's goes.
+    assert [path.name for path in tmp_path.glob("*.pid")] == ["hunyuan3d21.pid"]
     # It is managed as usual: kept while it has jobs, not started again.
     run.step(0, Demand(frozenset({"hunyuan3d21"}), ()), {"hunyuan3d21": "busy"})
     assert started == []

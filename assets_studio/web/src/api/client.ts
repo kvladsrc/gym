@@ -155,6 +155,15 @@ export const api = {
       "application/json",
     ),
   deleteAsset: (id: string) => request<Asset>("DELETE", `/api/assets/${id}`),
+  /** Keeps a mesh's thumbnail picture (PNG or WebP), drawn by the web UI's
+   * renderer of this version (ADR-011). */
+  putPreview: (id: string, picture: Blob, version: number) =>
+    request<Asset>(
+      "PUT",
+      `/api/assets/${id}/preview?version=${version}`,
+      picture,
+      "application/octet-stream",
+    ),
   lineage: (id: string) =>
     request<Parent[]>("GET", `/api/assets/${id}/lineage`),
   /** The job that made the asset; null for an imported file. */

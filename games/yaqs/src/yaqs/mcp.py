@@ -2,13 +2,26 @@
 
 from typing import Any, Literal
 
-from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver import Context, MCPServer
 
 from yaqs import DEFAULT_SEARCH_MODE
 from yaqs.context import DEFAULT_CONTEXT_TOKENS, DEFAULT_PAGE_TOKENS
+from yaqs.querylog import Caller
 from yaqs.service import KnowledgeService
 
 Detail = Literal["compact", "full"]
+
+
+def caller(ctx: Context) -> Caller:
+    """The client named in initialize and the HTTP session id, for the query log."""
+    try:
+        params = ctx.session.client_params
+        headers = ctx.headers or {}
+    except ValueError:  # called directly, outside an MCP request
+        return Caller("mcp")
+    info = params.client_info if params else None
+    client = f"{info.name} {info.version or ''}".strip() if info else ""
+    return Caller("mcp", client, headers.get("mcp-session-id", ""))
 
 
 def build_server(service: KnowledgeService) -> MCPServer:
@@ -32,6 +45,7 @@ def build_server(service: KnowledgeService) -> MCPServer:
 
     @server.tool()
     def search_knowledge(
+        ctx: Context,
         query: str,
         limit: int = 5,
         book_id: int | None = None,
@@ -40,25 +54,27 @@ def build_server(service: KnowledgeService) -> MCPServer:
         detail: Detail = "compact",
     ) -> dict[str, Any]:
         """Search for up to limit source blocks without overlap; max_tokens limits text."""
-        return service.search(query, limit, book_id, mode, max_tokens, detail)
+        return service.search(query, limit, book_id, mode, max_tokens, detail, caller=caller(ctx))
 
     @server.tool()
-    def list_books(detail: Detail = "compact") -> list[dict[str, Any]]:
+    def list_books(ctx: Context, detail: Detail = "compact") -> list[dict[str, Any]]:
         """Books with page and chunk counts; detail=full adds files, hashes and import data."""
-        return service.books(detail)
+        return service.books(detail, caller=caller(ctx))
 
     @server.tool()
     def get_passage(
+        ctx: Context,
         chunk_id: int,
         neighbors: int = 0,
         max_tokens: int = DEFAULT_CONTEXT_TOKENS,
         detail: Detail = "compact",
     ) -> dict[str, Any]:
         """Read a cited chunk and neighbors in reading order, merging source overlaps."""
-        return service.passage(chunk_id, neighbors, max_tokens, detail)
+        return service.passage(chunk_id, neighbors, max_tokens, detail, caller=caller(ctx))
 
     @server.tool()
     def get_page(
+        ctx: Context,
         book_id: int,
         page_number: int,
         start_char: int = 0,
@@ -69,11 +85,13 @@ def build_server(service: KnowledgeService) -> MCPServer:
 
         complete is true for a whole page; otherwise repeat with next_start_char.
         """
-        return service.page(book_id, page_number, start_char, max_tokens, detail)
+        return service.page(
+            book_id, page_number, start_char, max_tokens, detail, caller=caller(ctx)
+        )
 
     @server.tool()
-    def knowledge_stats() -> dict[str, Any]:
+    def knowledge_stats(ctx: Context) -> dict[str, Any]:
         """Index size, incomplete chunks and the exact embedding model profile."""
-        return service.store.stats()
+        return service.stats(caller=caller(ctx))
 
     return server

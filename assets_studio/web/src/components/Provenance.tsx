@@ -8,7 +8,7 @@ import { api, type Asset, type Job } from "../api/client";
 import { duration, taskLabel, time } from "../format";
 import { localized, t } from "../i18n";
 import { attempt, servers } from "../state/store";
-import { properties } from "./ParamsForm";
+import { defaults, properties } from "./ParamsForm";
 
 type Copied = "no" | "yes" | "failed";
 
@@ -29,7 +29,7 @@ function useCopy(): [Copied, (value: string) => void] {
   return [copied, copy];
 }
 
-function CopyButton({ value, label }: { value: string; label: string }) {
+export function CopyButton({ value, label }: { value: string; label: string }) {
   const [copied, copy] = useCopy();
   return (
     <button class="button small" onClick={() => copy(value)}>
@@ -46,14 +46,20 @@ const show = (value: unknown) =>
   typeof value === "string" ? value : JSON.stringify(value);
 
 /** The parameters the model ran with: what the job asked for, completed with
- * the server's defaults (effective_params); the ones set by hand are marked. */
-function Params({ job }: { job: Job }) {
-  const values = job.effective_params ?? job.params;
-  const names = Object.keys(values);
-  if (!names.length) return null;
+ * the server's defaults (effective_params); the ones set by hand are marked.
+ * A job that has not run yet shows the defaults of the task's current schema. */
+export function Params({ job }: { job: Job }) {
   const schema = servers.value
     .find((server) => server.id === job.server)
     ?.tasks.find((task) => task.task === job.task)?.params_schema;
+  const values = job.effective_params ?? {
+    ...(schema ? defaults(schema) : {}),
+    ...job.params,
+  };
+  const names = Object.keys(values).filter(
+    (name) => values[name] !== undefined,
+  );
+  if (!names.length) return null;
   const labels = new Map(
     schema
       ? properties(schema).map(([name, prop]) => [
@@ -81,7 +87,7 @@ function Params({ job }: { job: Job }) {
 }
 
 /** What is needed to make the asset again: the request of its job. */
-function request(job: Job) {
+export function request(job: Job) {
   return {
     server: job.server,
     task: job.task,

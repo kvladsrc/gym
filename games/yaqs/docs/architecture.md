@@ -21,6 +21,8 @@ TXT / JSONL → Document / Page → cleaning → 512/128 chunks → Qwen → SQL
 - `maintenance.py` makes consistent backups and full rebuilds.
 - `diagnostics.py` checks readiness without downloads or inference.
 - `service.py` is the shared read layer for `cli.py`, `mcp.py` and `web.py`.
+- `querylog.py` appends one JSON line per read request beside the database: caller,
+  arguments, answer ids and pages, never the text.
 - `web.py` and `static/` are a read-only browser UI: search, context, pages and
   the book list.
 - `present.py` builds the compact answer view for agents; it never changes

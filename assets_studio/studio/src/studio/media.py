@@ -104,6 +104,28 @@ def to_canonical(data: bytes, mime: str) -> tuple[bytes, str]:
     raise UnsupportedMedia(f"no conversion from {mime} to {canonical}")
 
 
+PREVIEW_MAX_SIDE = 1024
+
+
+def preview_webp(data: bytes) -> bytes:
+    """A mesh's thumbnail as stored (ADR-011): a PNG or WebP picture of at most
+    ``PREVIEW_MAX_SIDE`` pixels a side, encoded as WebP with its transparency."""
+    try:
+        image = Image.open(io.BytesIO(data), formats=("PNG", "WEBP"))
+        if max(image.size) > PREVIEW_MAX_SIDE:
+            raise UnsupportedMedia(
+                f"the preview is {image.width}×{image.height}; at most {PREVIEW_MAX_SIDE} a side"
+            )
+        image.load()
+    except UnidentifiedImageError as error:
+        raise UnsupportedMedia("a preview must be a PNG or WebP picture") from error
+    except (OSError, Image.DecompressionBombError) as error:
+        raise UnsupportedMedia(f"cannot decode the preview: {error}") from error
+    buffer = io.BytesIO()
+    image.convert("RGBA").save(buffer, format="WEBP", quality=88)
+    return buffer.getvalue()
+
+
 def normalize_text(data: bytes) -> bytes:
     """Canonical text: UTF-8 without a BOM, lines ending in ``\\n``."""
     text = data.decode("utf-8-sig")

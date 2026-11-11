@@ -10,7 +10,7 @@ from model_server_sdk.media import MOTION_FORMATS
 from model_server_sdk import media as signatures
 from studio.config import StudioConfig
 from studio.domain import DEFAULT_PROJECT, MIME_KINDS, Asset, AssetKind, Origin, new_id
-from studio.media import UnsupportedMedia, detect_mime, for_storage, video_frame
+from studio.media import UnsupportedMedia, detect_mime, for_storage, preview_webp, video_frame
 from studio.services.projects import ProjectError
 from studio.services.skeleton import NotAMotion, skeleton
 from studio.storage import repository
@@ -18,13 +18,19 @@ from studio.storage.blobs import BlobStore
 from studio.storage.repository import Repository, Unset, now
 
 _URL_TIMEOUT_S = 30.0
+PREVIEW_MIME = "image/webp"
+_MAX_PREVIEW_BYTES = 8 * 1024 * 1024
 
 
-__all__ = ["AssetImportError", "AssetInUse", "BadTag", "Library", "Unset"]
+__all__ = ["AssetImportError", "AssetInUse", "BadTag", "Library", "PreviewError", "Unset"]
 
 
 class AssetImportError(ValueError):
     """A file cannot become an asset: unsupported format, too large or unreachable."""
+
+
+class PreviewError(ValueError):
+    """A preview that cannot be stored: the asset is not a mesh, or the picture is unusable."""
 
 
 class BadTag(ValueError):
@@ -44,10 +50,13 @@ class AssetInUse(ValueError):
 
 
 class Library:
-    def __init__(self, config: StudioConfig, repository: Repository, blobs: BlobStore) -> None:
+    def __init__(
+        self, config: StudioConfig, repository: Repository, blobs: BlobStore, previews: BlobStore
+    ) -> None:
         self._config = config
         self._repository = repository
         self._blobs = blobs
+        self._previews = previews  # mesh thumbnails, by content as well (ADR-011)
 
     def import_bytes(
         self,
@@ -168,20 +177,47 @@ class Library:
         """Remove an asset from the library (ADR-004); None if there is none.
 
         Its jobs and lineage keep referring to it; its file goes when no other
-        asset has the same content. ``AssetInUse`` while an unfinished job
-        needs it as an input.
+        asset has the same content, its preview likewise. ``AssetInUse`` while
+        an unfinished job needs it as an input.
         """
-        with self._blobs.lock:
+        with self._blobs.lock, self._previews.lock:  # always in this order
             try:
                 result = self._repository.delete_asset(asset_id)
             except repository.AssetInUse as error:
                 raise AssetInUse(str(error)) from error
             if result is None:
                 return None
-            asset, unused = result
+            asset, unused, preview = result
             if unused:
                 self._blobs.remove(asset.blob_sha256, asset.mime)
+            if preview is not None:
+                self._previews.remove(preview, PREVIEW_MIME)
         return asset
+
+    def set_preview(self, asset: Asset, data: bytes, version: int) -> Asset | None:
+        """Keep a picture of a mesh for thumbnails, drawn by a client's renderer of
+        ``version`` (ADR-011), in place of the one before. None if the asset has left
+        the library."""
+        if asset.kind != AssetKind.MESH:
+            raise PreviewError("only a mesh has a preview")
+        if len(data) > _MAX_PREVIEW_BYTES:
+            raise PreviewError(f"the preview is larger than {_MAX_PREVIEW_BYTES} bytes")
+        try:
+            webp = preview_webp(data)
+        except UnsupportedMedia as error:
+            raise PreviewError(str(error)) from error
+        with self._previews.lock:  # the file and its record, together
+            sha256 = self._previews.put(webp, PREVIEW_MIME)
+            result = self._repository.set_preview(asset.id, sha256, version)
+            replaced = sha256 if result is None else result[1]
+            if replaced is not None and not self._repository.preview_in_use(replaced):
+                self._previews.remove(replaced, PREVIEW_MIME)
+        return None if result is None else result[0]
+
+    def preview_file(self, asset: Asset) -> Path | None:
+        if asset.preview_sha256 is None:
+            return None
+        return self._previews.path(asset.preview_sha256, PREVIEW_MIME)
 
     def retype_motions(self) -> int:
         """Once, after migration 0008: plain-text assets that are native motions (SMPL-X or

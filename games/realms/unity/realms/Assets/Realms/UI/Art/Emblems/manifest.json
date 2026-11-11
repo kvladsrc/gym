@@ -1,0 +1,312 @@
+{
+  "schema_version": 1,
+  "about": "Flag emblems for the flag editor: black silhouettes made with Codex's built-in image generation in the ChatGPT session (no API key), white background turned to alpha and scaled to 256 px. The game uses only the alpha.",
+  "images": [
+    {
+      "id": "emblem_lion",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a lion rampant in left profile, standing on its two strong hind legs, both thick forepaws raised to the left, rounded shaggy mane, curled-up tail with rounded tuft, simple broad white eye and at most two mane cuts. Cheerful noble expression. Exactly one connected black animal.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_lion.png"
+    },
+    {
+      "id": "emblem_eagle",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: an eagle displayed: symmetrical frontal body, head turned LEFT, both broad wings spread upward, thick feather lobes with only three broad separations per wing, two sturdy legs with blunt talons, short broad fanned tail. One large white eye cut-out. All parts connected to body.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_eagle.png"
+    },
+    {
+      "id": "emblem_horse",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a rearing horse in LEFT profile, standing on sturdy hind legs, both forelegs raised and bent, broad neck, chunky flowing mane, thick curling tail joined to rump, blunt broad hooves, one bold white eye cut-out. No tack or rider. All parts connected.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_horse.png"
+    },
+    {
+      "id": "emblem_stag",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a leaping stag in LEFT profile, large branching antlers with three chunky blunt branches on each antler, thick continuous legs in a clear leap, strong chest, short tail, one bold white eye cut-out. Antlers and legs must stay robust at 24px. One connected silhouette.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_stag.png"
+    },
+    {
+      "id": "emblem_bear",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a friendly heraldic bear standing upright on its hind legs in LEFT profile, two thick forepaws raised, round ears, broad muzzle, massive rounded body, short sturdy hind legs, one broad white eye cut-out, no fur strokes, no fine claws. One connected silhouette.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_bear.png"
+    },
+    {
+      "id": "emblem_dragon",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a friendly dragon rampant facing LEFT, two strong hind legs, two raised thick forearms, broad smiling blunt snout, one bold white eye, one pair of chunky bat wings rising from its back with thick solid membranes and broad scalloped edges, thick curled tail curling up, no spines or tiny claws. One connected silhouette.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_dragon.png"
+    },
+    {
+      "id": "emblem_fish",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a SINGLE thick-bodied fish curved like a bow, upright arched body, head at TOP and turned LEFT, curved body sweeping to the right then tail below, broad simple fins all joined to body, bold white eye and at most one gill cut-out. Avoid thin tail connections, broad two-lobed tail.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_fish.png"
+    },
+    {
+      "id": "emblem_tree",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a broad oak tree, large rounded crown composed of five or seven broad joined scalloped lobes, short thick trunk flaring into three short sturdy roots. One connected solid silhouette. At most two broad simple white branch notches, no fine veins, no separate leaves.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_tree.png"
+    },
+    {
+      "id": "emblem_tower",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a single squat medieval castle tower, straight frontal view, exactly THREE broad square crenellations at top, thick rectangular tower body, one bold white arched door opening at bottom and exactly ONE broad white arched window centered above it. No masonry lines, side turrets, roof or flags.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_tower.png"
+    },
+    {
+      "id": "emblem_crown",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a single broad medieval crown, symmetrical frontal view, exactly FIVE thick upward points, each ending in a large round ball joined firmly to its point. A thick broad solid base band, white broad valleys between points. No jewels, no separate floating balls, no interior decorative lines.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_crown.png"
+    },
+    {
+      "id": "emblem_star",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a geometrically regular five-pointed star with five crisp outward tips, straight edges, broad solid center, point upright. Pure solid black with absolutely NO cut-outs.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_star.png"
+    },
+    {
+      "id": "emblem_sun",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a sun with a large solid circular black central disc and exactly SIXTEEN thick rays joined to disc, alternating EIGHT straight triangular rays and EIGHT gently wavy rays. Calm friendly face cut out in white: two bold relaxed eye shapes and one broad small smile. No thin face strokes. One connected silhouette.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_sun.png"
+    },
+    {
+      "id": "emblem_moon",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: a simple broad crescent moon with BOTH HORNS POINTING UP, like an upright bowl. Symmetrical left and right, deep broad concave white inner curve open to top, thick rounded bottom, stout horns tapering only at their very ends. No face, stars or ornament, one connected shape.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_moon.png"
+    },
+    {
+      "id": "emblem_sword",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: one UPRIGHT sword, point UP, straight broad double-edged blade, very simple thick horizontal cross guard, sturdy short grip, round chunky pommel at bottom. All joined in one pure black silhouette, no blade highlights or cut-outs, no scabbard.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_sword.png"
+    },
+    {
+      "id": "emblem_key",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: one UPRIGHT medieval key, bow at TOP, thick circular outer bow enclosing a single large white QUATREFOIL hole (four rounded lobes), thick straight shaft down from bow, broad simple two-toothed bit at BOTTOM extending to right. Robust connections, no tiny teeth or decorations.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_key.png"
+    },
+    {
+      "id": "emblem_wheat",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: one broad symmetrical SHEAF OF WHEAT tied in the middle, five thick sturdy wheat heads at top with chunky broad grains joined to their stems, thick stems bundled and fanning out below, broad simple binding at waist. White broad notches separate grains, no thin hair-like awns, one connected silhouette.\nRegeneration correction: The entire sheaf MUST be ONE physically CONNECTED black silhouette. Use THREE thick wheat stalks only, fanning outward from a single thick central tied bundle. Every grain is fused broadly to its stalk; no floating tip grains, no separated chevrons. Tie is part of the silhouette, NOT a floating bar: black stems connect visibly through the binding to the lower cut ends. Broad shallow notches may suggest paired wheat grains without cutting stalks apart. Thick connections at least 5% of image width. All black regions connected. Simplify for 24px, no white lines running across stems or binding.",
+      "attempts": 2,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_wheat.png"
+    },
+    {
+      "id": "emblem_lily",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: one classic heraldic FLEUR-DE-LIS, symmetrical, tall broad central spear-shaped petal, two stout outward-curving side petals with rounded upper lobes and curled-down ends, thick horizontal binding band at middle and three short sturdy lower lobes. One continuous chunky pure black shape with broad negative spaces, no filigree.\nRegeneration correction: ONE continuous physically CONNECTED black fleur-de-lis. The lower three lobes MUST join the upper petals through the thick horizontal binding. NO horizontal white stripe across the stem. The binding, stem, top spear petal, curved side petals and bottom lobes are all fused broadly in a single black silhouette. No detached base, no gaps across its center.",
+      "attempts": 2,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_lily.png"
+    },
+    {
+      "id": "emblem_anchor",
+      "final_prompt": "Use case: logo-brand. Asset: one heraldic emblem for the child-friendly fantasy flag editor Realms. Create ONE isolated bold, flat, SOLID PURE BLACK (#000000) silhouette on PURE WHITE (#FFFFFF), square image, centered, upright, full shape within frame, filling about 80% of square. Classic medieval heraldic charge, original generic design, friendly chunky sturdy proportions. Strong simple contour, thick connected limbs and structural parts, readable at just 24 pixels high. Few large bold white cut-outs only where specified, never fine strokes or tiny holes. Smooth crisp antialiased boundary only. No shading, grey fills, gradients, highlights, texture, outline, ground, cast shadow, frame, shield, text, letters, numerals, runes, watermark, other objects, real-world coat of arms or commercial game imitation. Where there is a face, face LEFT. Consistent family style: broad mass, blunt sturdy appendages, very sparse interior cuts. Subject: one UPRIGHT classic anchor, large thick closed ring at TOP with broad white hole, thick vertical shank, thick simple horizontal stock below ring, wide symmetrical curved arms at bottom ending in two broad triangular flukes pointing up. All connected, no rope, no thin lines.",
+      "attempts": 1,
+      "tool": "OpenAI image_gen",
+      "authentication": "built-in image generation in the ChatGPT session; no API key",
+      "background": "white, converted to alpha",
+      "native_pixel_size": {
+        "width": 1254,
+        "height": 1254
+      },
+      "ready_pixel_size": {
+        "width": 256,
+        "height": 256
+      },
+      "file": "emblem_anchor.png"
+    }
+  ]
+}

@@ -39,7 +39,14 @@ from studio.core import Studio
 from studio.domain import DEFAULT_PROJECT, FILE_EXTENSIONS, Asset, AssetKind, Dependency, JobStatus
 from studio.mcp.server import build_mcp
 from studio.services.generation import JobRequestError, JobStateError
-from studio.services.library import AssetImportError, AssetInUse, BadTag, Unset
+from studio.services.library import (
+    PREVIEW_MIME,
+    AssetImportError,
+    AssetInUse,
+    BadTag,
+    PreviewError,
+    Unset,
+)
 from studio.services.projects import ProjectConflict, ProjectError
 from studio.services.skeleton import NotAMotion
 
@@ -318,6 +325,46 @@ def create_app(
             # Served as stored: a text asset must never be sniffed into HTML.
             headers={"X-Content-Type-Options": "nosniff"},
         )
+
+    @app.get("/api/assets/{asset_id}/preview")
+    def asset_preview(asset_id: str, v: str | None = None) -> FileResponse:
+        """A mesh's thumbnail (WebP, ADR-011). Fetched by its ``preview_url``, whose ``v``
+        changes with the picture, it may be cached for good."""
+        asset = asset_or_404(asset_id)
+        if asset.deleted_at is not None:
+            raise HTTPException(410, f"asset {asset_id} was deleted")
+        path = studio.library.preview_file(asset)
+        if path is None or not path.is_file():
+            raise HTTPException(404, f"asset {asset_id} has no preview")
+        current = v == asset.preview_sha256
+        return FileResponse(
+            path,
+            media_type=PREVIEW_MIME,
+            headers={
+                "Cache-Control": "private, max-age=31536000, immutable" if current else "no-cache",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+
+    @app.put("/api/assets/{asset_id}/preview")
+    def put_asset_preview(
+        asset_id: str,
+        data: Annotated[bytes, Body(media_type="application/octet-stream")],
+        version: Annotated[int, Query(ge=0)],
+    ) -> AssetOut:
+        """Keep a picture of a mesh as its thumbnail: PNG or WebP as the raw request body,
+        at most 1024 pixels a side, stored as WebP. ``version``: of the renderer that drew
+        it; the web UI draws missing previews and redraws those older than its own."""
+        asset = asset_or_404(asset_id)
+        if asset.deleted_at is not None:
+            raise HTTPException(410, f"asset {asset_id} was deleted")
+        try:
+            updated = studio.library.set_preview(asset, data, version)
+        except PreviewError as error:
+            raise HTTPException(422, str(error)) from error
+        if updated is None:
+            raise HTTPException(410, f"asset {asset_id} was deleted")
+        return AssetOut.of(updated)
 
     @app.post("/api/assets/{asset_id}/frames", status_code=201)
     def save_video_frame(asset_id: str, time_s: Annotated[float, Query(ge=0)]) -> AssetOut:

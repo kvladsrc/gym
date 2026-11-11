@@ -39,8 +39,24 @@ DIRS=(
 # Games published from games/ (with games/README.md); the others stay private
 GAMES=(
     "cothic"
+    "realms"
     "yaqs"
     "zooreader"
+)
+
+# Files of the published games that rsync's reading of their .gitignore leaves
+# out but the public copy carries (game:pattern, as in that .gitignore): Realms'
+# Studio art, ignored here because tools/fetch_art.py fetches it from a local
+# Assets Studio (Realms/Setup makes the rest of Art/ again), and a negation in
+# that .gitignore, which rsync does not follow. The copy's .gitignore lets its
+# Git take them.
+GAME_EXTRAS=(
+    "realms:/unity/realms/Assets/Realms/Art.meta"
+    "realms:/unity/realms/Assets/Realms/Art/Icons*"
+    "realms:/unity/realms/Assets/Realms/Art/Models*"
+    "realms:/unity/realms/Assets/Realms/Art/Textures*"
+    "realms:/unity/realms/Assets/Realms/Art/manifest.json*"
+    "realms:/unity/realms/UserSettings/Search.settings"
 )
 
 # Individual files to copy (relative to repo root)
@@ -71,6 +87,7 @@ FILES=(
 
 # String replacements applied to every file (old|new)
 REPLACEMENTS=(
+    "/home/myuser\/Dropbox/src/|"
     "https\://search.your.domain/raw/src/static|static"
     "myuser|myuser"
     "MYUSER|MYUSER"
@@ -107,7 +124,13 @@ done
 
 # Sync the listed games: only their tracked files. Anything else under games/
 # in the destination, such as a game published before, is removed.
-games_args=(-a --delete --delete-excluded --filter=':- .gitignore' --include='/README.md')
+games_args=(-a --delete --delete-excluded)
+# Before the .gitignore rules, so that they win.
+for entry in "${GAME_EXTRAS[@]}"; do
+    pattern="/${entry%%:*}${entry#*:}"
+    games_args+=(--include="$pattern" --include="$pattern/***")
+done
+games_args+=(--filter=':- .gitignore' --include='/README.md')
 for game in "${GAMES[@]}"; do
     games_args+=(--include="/$game/***")
 done
@@ -115,6 +138,21 @@ games_args+=(--exclude='*')
 mkdir -p "$DEST/games"
 echo "  dir  games: ${GAMES[*]}"
 rsync "${games_args[@]}" "$SRC/games/" "$DEST/games/"
+for game in "${GAMES[@]}"; do
+    negations=()
+    for entry in "${GAME_EXTRAS[@]}"; do
+        if [[ ${entry%%:*} == "$game" ]]; then
+            negations+=("!${entry#*:}")
+        fi
+    done
+    if ((${#negations[@]})); then
+        {
+            cat "$SRC/games/$game/.gitignore"
+            printf '\n# The public copy carries these (scripts/sync_gym.sh).\n'
+            printf '%s\n' "${negations[@]}"
+        } >"$DEST/games/$game/.gitignore"
+    fi
+done
 
 # Sync files
 for f in "${FILES[@]}"; do

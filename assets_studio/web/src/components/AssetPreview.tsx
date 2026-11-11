@@ -15,6 +15,7 @@ import {
 } from "../format";
 import { attempt, putAsset, say } from "../state/store";
 import { cssColor, dark } from "../state/theme";
+import { CLAY, isShapeOnly } from "./clay";
 import { ImageViewer } from "./ImageViewer";
 import { t } from "../i18n";
 import { DataIcon, MotionIcon } from "./Icons";
@@ -31,18 +32,15 @@ type Material = {
   };
 };
 
-/** A shape without colour (Hunyuan3D: meta.color "none") comes with glTF's
- * default material, white and fully metallic: it renders as a flat white
- * silhouette. It is shown as grey matte clay instead, so the shape reads in
- * light and shade. */
-export function clayIfShapeOnly(asset: Asset) {
-  if (asset.meta.color !== "none") return undefined;
+/** A shape without colour is shown as clay (see CLAY). */
+function clayIfShapeOnly(asset: Asset) {
+  if (!isShapeOnly(asset)) return undefined;
   return (event: Event) => {
     const model = (event.target as { model?: { materials: Material[] } }).model;
     for (const material of model?.materials ?? []) {
-      material.pbrMetallicRoughness.setBaseColorFactor([0.62, 0.6, 0.57, 1]);
-      material.pbrMetallicRoughness.setMetallicFactor(0);
-      material.pbrMetallicRoughness.setRoughnessFactor(0.85);
+      material.pbrMetallicRoughness.setBaseColorFactor([...CLAY.color, 1]);
+      material.pbrMetallicRoughness.setMetallicFactor(CLAY.metallic);
+      material.pbrMetallicRoughness.setRoughnessFactor(CLAY.roughness);
     }
   };
 }

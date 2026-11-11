@@ -242,6 +242,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/assets/{asset_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Asset Preview
+         * @description A mesh's thumbnail (WebP, ADR-011). Fetched by its ``preview_url``, whose ``v``
+         *     changes with the picture, it may be cached for good.
+         */
+        get: operations["asset_preview_api_assets__asset_id__preview_get"];
+        /**
+         * Put Asset Preview
+         * @description Keep a picture of a mesh as its thumbnail: PNG or WebP as the raw request body,
+         *     at most 1024 pixels a side, stored as WebP. ``version``: of the renderer that drew
+         *     it; the web UI draws missing previews and redraws those older than its own.
+         */
+        put: operations["put_asset_preview_api_assets__asset_id__preview_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/assets/{asset_id}/frames": {
         parameters: {
             query?: never;
@@ -387,6 +414,10 @@ export interface components {
             project: string;
             /** File Url */
             file_url: string;
+            /** Preview Url */
+            preview_url: string | null;
+            /** Preview Version */
+            preview_version: number | null;
         };
         /** AssetUpdate */
         AssetUpdate: {
@@ -1259,6 +1290,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    asset_preview_api_assets__asset_id__preview_get: {
+        parameters: {
+            query?: {
+                v?: string | null;
+            };
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_asset_preview_api_assets__asset_id__preview_put: {
+        parameters: {
+            query: {
+                version: number;
+            };
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/octet-stream": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetOut"];
                 };
             };
             /** @description Validation Error */

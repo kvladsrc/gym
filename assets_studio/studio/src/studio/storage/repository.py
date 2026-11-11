@@ -250,8 +250,9 @@ class Repository:
                 )
         return self.asset(asset_id)
 
-    def delete_asset(self, asset_id: str) -> tuple[Asset, bool] | None:
-        """Mark an asset deleted; return it and whether its blob is now unused.
+    def delete_asset(self, asset_id: str) -> tuple[Asset, bool, str | None] | None:
+        """Mark an asset deleted and drop its preview; return it, whether its blob is now
+        unused and the preview file now unused (None if none).
 
         Refused (``AssetInUse``) while a job that has not finished needs it as
         an input. Already deleted assets are returned as they are.
@@ -264,7 +265,7 @@ class Repository:
                 return None
             asset = _asset(row)
             if asset.deleted_at is not None:
-                return asset, False
+                return asset, False, None
             # An input of an unfinished job, directly or as the output of the
             # upstream job it depends on.
             waiting = connection.execute(
@@ -283,14 +284,45 @@ class Repository:
                 raise AssetInUse(f"job {waiting['id']} still needs this asset as an input")
             deleted_at = now()
             connection.execute(
-                "UPDATE assets SET deleted_at = ? WHERE id = ?", (deleted_at, asset_id)
+                """UPDATE assets SET deleted_at = ?, preview_sha256 = NULL, preview_version = NULL
+                   WHERE id = ?""",
+                (deleted_at, asset_id),
             )
             shared = connection.execute(
                 """SELECT 1 FROM assets WHERE blob_sha256 = ? AND mime = ?
                    AND deleted_at IS NULL LIMIT 1""",
                 (asset.blob_sha256, asset.mime),
             ).fetchone()
-        return replace(asset, deleted_at=deleted_at), shared is None
+            preview = asset.preview_sha256
+            if preview is not None and _preview_in_use(connection, preview):
+                preview = None
+        deleted = replace(asset, deleted_at=deleted_at, preview_sha256=None, preview_version=None)
+        return deleted, shared is None, preview
+
+    def set_preview(
+        self, asset_id: str, sha256: str, version: int
+    ) -> tuple[Asset, str | None] | None:
+        """Record the preview of an asset in the library; return the asset and the preview
+        it replaced. None if the asset is unknown or deleted."""
+        with self.db.transaction() as connection:
+            row = connection.execute(
+                "SELECT preview_sha256 FROM assets WHERE id = ? AND deleted_at IS NULL",
+                (asset_id,),
+            ).fetchone()
+            if row is None:
+                return None
+            connection.execute(
+                "UPDATE assets SET preview_sha256 = ?, preview_version = ? WHERE id = ?",
+                (sha256, version, asset_id),
+            )
+            updated = connection.execute(
+                f"SELECT {_ASSET_COLUMNS} FROM assets WHERE id = ?", (asset_id,)
+            ).fetchone()
+        return _asset(updated), row["preview_sha256"]
+
+    def preview_in_use(self, sha256: str) -> bool:
+        """Whether an asset (only those in the library have one) shows this preview."""
+        return _preview_in_use(self.db.connection, sha256)
 
     def text_assets(self) -> list[Asset]:
         """Every plain-text asset, deleted ones included."""
@@ -679,6 +711,13 @@ def _check_project(connection: sqlite3.Connection, project_id: str) -> None:
         raise ProjectNotFound(f"project {project_id} was deleted")
 
 
+def _preview_in_use(connection: sqlite3.Connection, sha256: str) -> bool:
+    row = connection.execute(
+        "SELECT 1 FROM assets WHERE preview_sha256 = ? LIMIT 1", (sha256,)
+    ).fetchone()
+    return row is not None
+
+
 def _fail_dependents(connection: sqlite3.Connection, job_id: str) -> list[str]:
     """Fail pending jobs that (transitively) depend on ``job_id``; return their ids."""
     rows = connection.execute(
@@ -747,6 +786,8 @@ def _asset(row: sqlite3.Row) -> Asset:
         rating=row["rating"],
         tags=tuple(row["tag_list"].split("\x1f")) if row["tag_list"] else (),
         project=row["project"],
+        preview_sha256=row["preview_sha256"],
+        preview_version=row["preview_version"],
     )
 
 

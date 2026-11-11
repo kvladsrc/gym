@@ -164,10 +164,13 @@ repos:
     rev: v1.5.0
     hooks:
       - id: detect-secrets
-        # Unity asset identifiers and the generated model hash are public references.
+        # Unity asset identifiers, Assets Studio asset ids and the generated model
+        # hash are public references.
         exclude: |
           (?x)
           (^games/cothic/assets/)|
+          (^games/realms/art\.json$)|
+          (^games/realms/unity/realms/Assets/Realms/UI/Art/manifest\.json$)|
           (^production/kubernetes/helm-charts/.+/(secrets\.yaml|secrets\.mock\.yaml))|
           (^production/kubernetes/flux/secrets/.+\.yaml)|
           (^production/terraform/.+/secrets\.yaml)

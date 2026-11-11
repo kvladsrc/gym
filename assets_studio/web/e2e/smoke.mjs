@@ -420,6 +420,34 @@ await step("the jobs page: every model's queue and history", async () => {
   await page.screenshot({ path: join(screens, "6a-jobs.png") });
 });
 
+await step("the jobs page: a job's details beside the lists", async () => {
+  const history = page.locator(".jobs-page .jobs").nth(1);
+  await history.getByRole("button", { name: "Все", exact: true }).click();
+  const row = history.locator(".job-row.succeeded").first();
+  // Each row names its model in a chip of the model's colour.
+  await row.locator(".model-chip").waitFor();
+  const task = (await row.locator(".job-task").textContent()) ?? "";
+  await row.locator(".job-task").click();
+  const details = page.locator(".job-details");
+  await details.locator(".job-details-title", { hasText: task }).waitFor();
+  await details.locator(".model-chip").waitFor();
+  await details.locator(".candidates .thumb").first().waitFor();
+  await details.getByText("Параметры (жирные").waitFor();
+  await details
+    .locator("summary", { hasText: "Задание целиком (JSON)" })
+    .waitFor();
+  if (
+    !(await row.evaluate((element) => element.classList.contains("selected")))
+  )
+    throw new Error("the open job is not marked in the list");
+  if (!(await page.evaluate(() => window.location.hash.startsWith("#/jobs/"))))
+    throw new Error("the details have no address of their own");
+  await noHorizontalScroll();
+  await page.screenshot({ path: join(screens, "6b-job-details.png") });
+  await page.keyboard.press("Escape");
+  await details.waitFor({ state: "detached" });
+});
+
 await step("a server that never started", async () => {
   await page.getByRole("link", { name: "Не запускались: 1" }).click();
   await page.locator(".unseen", { hasText: "Офлайн" }).waitFor();

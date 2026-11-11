@@ -1,5 +1,8 @@
 """Declarations and image preparation; no GPU, weights or source."""
 
+import tempfile
+from pathlib import Path
+
 import trimesh
 from hunyuan3d_model_server.server import (
     TASK,
@@ -7,6 +10,7 @@ from hunyuan3d_model_server.server import (
     clear_faint,
     describe,
     is_cut_out,
+    scratch_directory,
 )
 from PIL import Image
 
@@ -30,6 +34,19 @@ def test_faint_alpha_is_cleared() -> None:
     image.putpixel((0, 0), (1, 2, 3, 20))
     image.putpixel((1, 0), (1, 2, 3, 200))
     assert [clear_faint(image).getchannel("A").getpixel((x, 0)) for x in range(2)] == [0, 200]
+
+
+def test_files_left_by_the_post_processors_are_removed() -> None:
+    usual = tempfile.gettempdir()
+    with scratch_directory():
+        # As hy3dgen does: delete=False, and nobody deletes the file.
+        with tempfile.NamedTemporaryFile(suffix=".ply", delete=False) as file:
+            file.write(b"ply")
+        left = Path(file.name)
+        assert left.exists()
+        assert left.parent != Path(usual)
+    assert not left.exists()
+    assert tempfile.gettempdir() == usual
 
 
 def test_metadata_describes_the_mesh() -> None:

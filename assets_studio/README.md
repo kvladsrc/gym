@@ -34,7 +34,7 @@ model at a time, and stops it when it has nothing left to do.
 | `model_servers/` | One server per model, each with its own environment |
 | `asset_processing/` | Shared Blender steps: conversion, rig preparation, motion transfer, retopology, normal baking |
 | `agent_tools/` | `describe_media.py`: an agent asks the studio's vision model about an image or video and reads text |
-| `docs/adr/` | Design decisions: the contract, storage, sections, ratings, flow, projects |
+| `docs/adr/` | Design decisions: the contract, storage, sections, ratings, flow, projects, mesh thumbnails |
 | `docs/models/` | Why the models were chosen, with measurements |
 | `docs/guides/` | How to make game assets: 3D, characters, quadrupeds, engine, audio |
 
@@ -123,6 +123,7 @@ for: `nvidia-smi --query-gpu=compute_cap --format=csv`.
 | | `hi3d` | Hi3D v1.0 | Coarse mesh + its image → detailed surface; [setup](model_servers/hi3d/README.md) |
 | | `trellis2_paint` | TRELLIS.2 Paint | PBR paint of an existing mesh, its surface kept; [setup](model_servers/trellis2_paint/README.md) |
 | | `paint21` | Hunyuan3D-Paint 2.1 | PBR paint from the source image |
+| | `hairdeck` | HairDeck | Character image → hair cards (game-style strips, coloured); [setup](model_servers/hairdeck/README.md) |
 | | `rig`, `skintokens`, `unirig` | Make-It-Animatable, SkinTokens, UniRig | Mesh → skeleton and skin weights (Mixamo or any shape) |
 | | `animation_tools` | Blender | Rig preparation, motion transfer, retopology, normal baking; [use](model_servers/animation_tools/README.md) |
 | Animation | `motion` | Kimodo | Text or key frames → humanoid motion |
@@ -130,17 +131,20 @@ for: `nvidia-smi --query-gpu=compute_cap --format=csv`.
 | | `gvhmr`, `gemx` | GVHMR, GEM-X | Human motion from video; [GVHMR setup](model_servers/gvhmr/README.md) |
 | | `mocapanything` | MoCapAnything V2 | A quadruped rig moving as in a video |
 | | `htd_refine`, `prompthmr` | HTD-Refine, PromptHMR | Refining native motion from video (research) |
-| Video | `video` | Wan2.2 TI2V-5B | Image → 5 s video |
-| | `sam2` | SAM 2.1 | One subject of a video on white; [use](model_servers/sam2/README.md) |
+| | `vitpose` | ViTPose++ | The 2D joints of a character in a video, drawn ones too; [use](model_servers/vitpose/README.md) |
+| Video | `sam2` | SAM 2.1 | One subject of a video on white; [use](model_servers/sam2/README.md) |
 | Sound | `voice` | XTTS-v2 | Speech in 14 languages, voice cloning |
 | | `sound` | Stable Audio Open | Sound effects and music up to 47 s |
 | | `song` | YuE2 | Songs with vocals from lyrics |
 | Text | `gemma`, `qwen` | Gemma 4 12B, Qwen3.8 27B | Text; Qwen also describes images and videos |
 | | `unlimited_ocr` | Unlimited-OCR 2 | Document page image → text; [setup](model_servers/unlimited_ocr/README.md) |
 
-`model_servers/` also keeps four retired servers: `flux` (FLUX.1-schnell),
-`hunyuan3d` (Hunyuan3D-2mini), `hunyuan_paint` (Hunyuan3D-Paint 2.0) and
-`triposg` (TripoSG). The servers above replaced them; their code stays as a
+`model_servers/` also keeps five retired servers: `flux` (FLUX.1-schnell),
+`hunyuan3d` (Hunyuan3D-2mini), `hunyuan_paint` (Hunyuan3D-Paint 2.0),
+`triposg` (TripoSG) and `wan` (Wan2.2 TI2V-5B). The servers above replaced
+the first four. `wan` made video from a first frame, but a five-second 720p
+clip took about an hour on an 8 GB GPU, so the studio no longer generates
+video; video still comes in by import. The retired servers' code stays as a
 starting point and is not maintained. Bringing one back follows steps 2–4 of
 [Adding a model](#adding-a-model).
 
@@ -184,6 +188,10 @@ Open a GLB in the library and switch the preview between **Material**,
 **Wireframe**; the wireframe can keep the material with **Texture**. The
 camera stays where it was. Counts show triangles and vertices, including
 vertices split at UV seams; quads exported to GLB appear as triangles.
+
+In the library list a mesh is a still picture, drawn by the browser the first
+time its thumbnail is shown and kept by the studio; FBX shows a cube
+([ADR 0011](docs/adr/0011-mesh-previews.md)).
 
 ## Security
 

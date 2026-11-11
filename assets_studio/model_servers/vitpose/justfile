@@ -1,0 +1,31 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+import "../common.just"
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/vitpose"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Create the environment
+setup:
+    {{ gpu_shell }} uv sync --extra test
+
+# Download the weights (~3.6 GB, network only, no GPU)
+download:
+    {{ gpu_shell }} uv run --no-sync python -c "from vitpose_model_server.pose import download; download()"
+
+# Report PyTorch, the CUDA device and whether the weights are downloaded
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m vitpose_model_server.doctor
+
+# Serve on 127.0.0.1:9134 (override with --port)
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync vitpose-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests
