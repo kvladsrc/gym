@@ -98,8 +98,9 @@ namespace Realms
             Select(cell);
             if (path != null)
                 KeepAboveDock(cell);
-            if (path == null && !state.World.Cells[cell].IsWater)
-                hud.Toast(state.Seen[cell] ? T("Сюда герою не пройти", "The hero can't get there") : T("Земля в тумане: подойди ближе, и герой её разведает", "The land is in the fog: come closer, and the hero will scout it"));
+            // A cell in the fog takes a way unless no land leads there at all (2026-11-12).
+            if (path == null && (!state.Seen[cell] || !state.World.Cells[cell].IsWater))
+                hud.Toast(T("Сюда герою не пройти", "The hero can't get there"));
         }
 
         /// <summary>
@@ -144,7 +145,10 @@ namespace Realms
             return true;
         }
 
-        /// <summary>The chosen hero walks its way as far as its moves go, stopping for a fight or a chest.</summary>
+        /// <summary>
+        /// The chosen hero walks its way as far as its moves go, stopping for a fight or a chest.
+        /// A way into the fog is laid again after every step, as the fog lifts round the hero.
+        /// </summary>
         IEnumerator Walk()
         {
             if (busy || hero == null || path == null)
@@ -194,7 +198,7 @@ namespace Realms
                     changed = true;
                     string found = Words.Visit(step);
                     if (found != null)
-                        hud.Toast(found, 4f);
+                        hud.News(found, 4f);
                     if (!step.Gained.IsEmpty)
                         hud.Refresh();
                 }
@@ -202,6 +206,21 @@ namespace Realms
                 {
                     yield return OpenChest();
                     break;
+                }
+                // The fog lifted round the hero: the way turns round water, groups and towns seen
+                // now, and keeps to the seen land once its end is seen.
+                if (way.Fog && walker.Cell != target)
+                {
+                    HeroPath again = state.Path(walker, target);
+                    if (again == null)
+                    {
+                        hud.Toast(T("Туман рассеялся: туда герою не пройти", "The fog has lifted: the hero can't get there"));
+                        break;
+                    }
+                    way = again;
+                    k = -1;
+                    heroes.ShowPath(walker, way);
+                    hud.ShowHero(walker, way);
                 }
             }
             if (fightAt >= 0)
@@ -257,7 +276,7 @@ namespace Realms
             if (finished.Count > 0)
             {
                 hud.Refresh();
-                hud.Toast(Words.QuestDone(finished[0]), 5f);
+                QuestToasts(finished);
             }
             CrownAfterDeed();
             if (hero != null)
@@ -284,9 +303,11 @@ namespace Realms
                 yield break;
             Hero finder = state.Heroes[chest.Hero];
             bool gold = true;
+            Sounds.Play(Sfx.ChestOpen);
             yield return AskAndWait(T("Сундук!", "A chest!"), "coins", T("Внутри золото, а под ним старая книга. Что взять?", "Gold inside, and an old book beneath it. What will you take?"),
                 new[] { T($"Золото: {chest.Gold}", $"Gold: {chest.Gold}"), T($"Опыт: {chest.Experience}", $"Experience: {chest.Experience}") }, c => gold = c == 0);
             state.TakeChest(gold);
+            Sounds.Play(gold ? Sfx.CoinsBig : Sfx.Reward);
             Learn(Learned.Chest);
             hud.Refresh();
             hud.Toast(gold ? T($"В казну: {chest.Gold} золота", $"To the treasury: {chest.Gold} gold") : T($"{finder.Label} получает {chest.Experience} опыта", $"{finder.Label} gains {chest.Experience} experience"), 3.5f);
@@ -301,6 +322,7 @@ namespace Realms
             {
                 bool attack = true;
                 int level = leveled.Level - leveled.LevelUps + 1;
+                Sounds.Play(Sfx.LevelUp);
                 yield return AskAndWait(T($"{leveled.Label}: уровень {level}!", $"{leveled.Label}: level {level}!"), "crown", T("Что усилить?", "What shall we strengthen?"),
                     new[] { T("Атака +1", "Attack +1"), T("Защита +1", "Defence +1") }, c => attack = c == 0, body =>
                     {
@@ -327,6 +349,12 @@ namespace Realms
                 new[] { T("В бой!", "Fight!"), T("Быстрый бой", "Quick battle"), T("Назад", "Back") }, k => choice = k, body =>
                 {
                     hud.BodyLine(body, T("Бой", "Battle"), Words.Odds(odds), oddsClass);
+                    // What happens on the field, told before the decision; the odds count it.
+                    FieldEvent fieldEvent = state.FieldEventOf(cell);
+                    if (fieldEvent == FieldEvent.Ambush)
+                        hud.BodyLine(body, Words.AmbushKey, Words.AmbushValue, "warn");
+                    else if (fieldEvent == FieldEvent.Loot)
+                        hud.BodyLine(body, Words.LootKey, Words.LootValue(state.ChestGoldOf(cell)), "good");
                     hud.BodyLine(body, Words.FightReward, Words.RewardFactor(Odds.RewardFactor(odds.Win)));
                     hud.RewardChips(body, state.RewardOf(cell, odds));
                     hud.BodyLine(body, T("Потери, скорее всего", "Likely losses"), "");
@@ -347,7 +375,7 @@ namespace Realms
             fighting = true;
             Battle battle = state.StartBattle(fighter, cell, odds);
             if (choice == 0)
-                yield return battleView.Play(battle, title);
+                yield return battleView.Play(battle, title, cell, fighter.Country);
             else
             {
                 // The quick battle asks too when the monsters offer to give up.
@@ -391,7 +419,7 @@ namespace Realms
             {
                 string found = Words.Visit(report.Visit);
                 if (found != null)
-                    hud.Toast(found, 4f);
+                    hud.News(found, 4f);
             }
             if (state.Chest != null)
                 yield return OpenChest();
@@ -404,6 +432,11 @@ namespace Realms
         IEnumerator Result(Hero fighter, FightReport report, List<Core.Stack> start, int[] lost)
         {
             bool won = report.Outcome == Outcome.Won;
+            // The battle's music leaves for the result's sign; a cleared lair pays with coins after it.
+            Music.BattleEnd();
+            Sounds.Play(won ? Sfx.Victory : Sfx.Defeat);
+            if (won && report.Lair)
+                Sounds.Later(Sfx.CoinsBig, 2.5f);
             string text;
             if (won && report.Surrendered)
                 text = Words.LetGo(report.Monster, report.Lair);
@@ -418,15 +451,22 @@ namespace Realms
             yield return AskAndWait(won ? T("Победа!", "Victory!") : Words.LostTitle(report.Retreated), won ? "crown" : "swords", text, new[] { T("Дальше", "Continue") }, _ => { }, body =>
             {
                 hud.BodyLine(body, T("Побеждено врагов", "Enemies defeated"), report.Killed.ToString());
-                hud.BodyLine(body, T("Опыт героя", "Hero's experience"), $"+{report.Experience}", "good");
+                UnityEngine.UIElements.Label experience = hud.BodyLine(body, T("Опыт героя", "Hero's experience"), $"+{report.Experience}", "good");
+                UnityEngine.UIElements.VisualElement rewards = null;
                 if (won)
                 {
                     if (report.RewardFactor > 1)
                         hud.BodyLine(body, Words.FightReward, Words.RewardFactor(report.RewardFactor));
-                    hud.RewardChips(body, report.Reward);
+                    rewards = hud.RewardChips(body, report.Reward);
                 }
+                // The chest taken on the field is the players' whatever the end (the combat plan's 3.5).
+                if (report.ChestGold > 0)
+                    hud.BodyLine(body, Words.ChestFromField, Words.ChestTaken(report.ChestGold), "good");
                 hud.BodyLine(body, T("Твоё войско", "Your army"), "");
                 hud.BodyArmy(body, start, null, lost);
+                // The spoils fly in from where the monsters stood, while the field is still shown.
+                if (won)
+                    hud.Spoils(battleView.Active ? battleView.FoePoints() : null, experience, report.Experience, rewards, report.Reward);
             });
         }
 
@@ -435,9 +475,12 @@ namespace Realms
             Refusal refusal = state.Recruit(state.World.Player, city, unit, count);
             if (refusal != Refusal.None)
             {
+                Sounds.Play(Sfx.ClickOff);
                 hud.Toast(Words.Refusal(refusal));
                 return;
             }
+            Sounds.Play(Sfx.Recruit);
+            Sounds.Later(Sfx.Coins, 0.2f, 0.7f);
             Hero inTown = state.HeroAt(state.World.Cities[city].Cell);
             hud.Toast(inTown != null ? T($"{Words.Count(unit, count)} — в войске героя {inTown.Label}", $"{Words.Count(unit, count)} — in {inTown.Label}'s army")
                 : T($"Наняты {Words.Count(unit, count)}: ждут героя в городе", $"Hired {Words.Count(unit, count)}: waiting for a hero in town"), 4f);
@@ -451,9 +494,12 @@ namespace Realms
             Refusal refusal = state.HireHero(state.World.Player, city);
             if (refusal != Refusal.None)
             {
+                Sounds.Play(Sfx.ClickOff);
                 hud.Toast(Words.Refusal(refusal));
                 return;
             }
+            Sounds.Play(Sfx.HeroHired);
+            Sounds.Later(Sfx.Coins, 0.3f, 0.7f);
             heroes.Refresh();
             view.UpdateFog();
             hud.WorldChanged();

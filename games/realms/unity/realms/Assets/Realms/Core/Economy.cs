@@ -89,6 +89,8 @@ namespace Realms.Core
         NotACity,
         HasRoom,
         NotBesideTown,
+        NotTheCapital,
+        NoCastle,
     }
 
     public static class Economy
@@ -215,7 +217,7 @@ namespace Realms.Core
             var yield = city.Capital ? new Stock(2 + level, 2, 1, 0) : new Stock(1 + level, 1, 0, 0);
             if (city.Buildings.Contains(TownBuilding.Market))
                 yield.Gold += 2;
-            return yield;
+            return yield + GreatBuild.Yield(city);
         }
 
         /// <summary>A kingdom's income a turn: its towns and the field buildings on its land and waters.</summary>
@@ -318,23 +320,28 @@ namespace Realms.Core
         /// <summary>A place with a house in <see cref="Layout"/>.</summary>
         public const int HouseLot = -2;
 
+        /// <summary>The place of the capital's Great Build in <see cref="Layout"/>.</summary>
+        public const int BuildLot = -3;
+
         /// <summary>
         /// The town's places: five on its centre, then six on each quarter in the order the
-        /// quarters were added. Every house and every building but the fortifications takes one.
+        /// quarters were added. Every house and every building but the fortifications takes one,
+        /// and so does the capital's Great Build from its first stage: it rises on the map, so it
+        /// stands somewhere (2026-11-12).
         /// </summary>
         public static int Places(City city) => CentrePlaces + DistrictPlaces * city.Districts.Count;
 
-        /// <summary>The town's places taken by its houses and buildings.</summary>
-        public static int Taken(City city) => city.Houses + Used(city);
+        /// <summary>The town's places taken by its houses, its buildings and its Great Build.</summary>
+        public static int Taken(City city) => city.Houses + Used(city) + (city.BuildStage > 0 ? 1 : 0);
 
         /// <summary>The town's free places.</summary>
         public static int Free(City city) => Math.Max(0, Places(city) - Taken(city));
 
         /// <summary>
         /// What stands on each of the town's places: a building (its <see cref="TownBuilding"/>
-        /// value), <see cref="HouseLot"/> or <see cref="FreeLot"/>. A building keeps the place it was
-        /// built on and the houses fill the others in order, so a new house or building never moves
-        /// the old ones.
+        /// value), the Great Build (<see cref="BuildLot"/>), <see cref="HouseLot"/> or
+        /// <see cref="FreeLot"/>. A building and the build keep the place they were raised on and the
+        /// houses fill the others in order, so a new house or building never moves the old ones.
         /// </summary>
         public static int[] Layout(City city)
         {
@@ -351,6 +358,15 @@ namespace Realms.Core
                 else
                     unplaced.Add(building);
             }
+            bool buildUnplaced = false;
+            if (city.BuildStage > 0)
+            {
+                int b = city.BuildPlace;
+                if (b >= 0 && b < lots.Length && lots[b] == FreeLot)
+                    lots[b] = BuildLot;
+                else
+                    buildUnplaced = true;
+            }
             int houses = city.Houses;
             for (int p = 0; p < lots.Length && houses > 0; p++)
             {
@@ -365,6 +381,13 @@ namespace Realms.Core
                 if (p < 0)
                     break;
                 lots[p] = (int)building;
+            }
+            // A build raised in a save that kept no place for it.
+            if (buildUnplaced)
+            {
+                int p = Array.IndexOf(lots, FreeLot);
+                if (p >= 0)
+                    lots[p] = BuildLot;
             }
             return lots;
         }

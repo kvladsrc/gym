@@ -1,6 +1,6 @@
 // The sea: one transparent plane at y = 0 coloured by the depth of the ground below (read from
-// the camera depth texture), clear grey-green over sand, deep muted blue far out; a line of foam
-// on the waterline, soft ripples and passing glints in the open water; the kingdoms' waters
+// the camera depth texture), clear grey-green over sand, deep muted blue far out; soft breathing
+// foam on the waterline, soft ripples and passing glints in the open water; the kingdoms' waters
 // carry their tint and borders.
 Shader "Realms/Water"
 {
@@ -112,11 +112,17 @@ Shader "Realms/Water"
                 glint *= smoothstep(0.3, 0.9, depth) * smoothstep(0.2, 0.6, 0.02 / px);
                 color = lerp(color, float3(1, 1, 1), glint * 0.5);
 
-                // A crisp line of foam on the waterline.
-                float wobble = (RealmsNoise(p * 4 + t * 0.2) - 0.5) * 0.04;
-                float foam = 1 - smoothstep(0.02, 0.06, depth + wobble);
+                // Foam on the waterline: soft, see-through and broken up, half as wide as the crisp
+                // white line before, which ran wide along the gentle beaches and lay round the
+                // fishery's stilts in angular bits, and read as ice (the visual plan's problem 6,
+                // 2026-11-12). It breathes: the line swells and thins over about three and a half
+                // seconds, a little out of step along the shore (the visual plan's water, 9).
+                float breath = 0.5 + 0.5 * sin(t * 1.8 + RealmsPerlin(p * 0.6) * 5);
+                float wobble = (RealmsNoise(p * 4 + t * 0.2) - 0.5) * 0.02;
+                float foam = 1 - smoothstep(0.008, 0.022 + 0.012 * breath, depth + wobble);
+                foam *= lerp(0.35, 0.8, smoothstep(-0.25, 0.25, RealmsPerlin(p * 7 + float2(t * 0.25, -t * 0.1))));
                 color = lerp(color, _Foam.rgb, foam);
-                alpha = max(alpha, foam * 0.95);
+                alpha = max(alpha, foam * 0.85);
 
                 // The sun: shadows of the coast and the props darken the water a little.
                 float shadow = lerp(1, RealmsShadow(input.positionWS), 0.45);
@@ -126,8 +132,10 @@ Shader "Realms/Water"
                 color = RealmsTint(color, p, _Tint);
                 float3 emission = 0;
                 float coverage = 0;
-                // The grid fades over the deep water, where nothing else breaks up the plain blue.
-                color = RealmsLines(color, p, 1, lerp(1, 0.3, smoothstep(0.35, 1.3, depth)), RealmsHudShow(input.positionCS), emission, coverage);
+                // The grid is fainter on the water than on land, and fades further over the deep
+                // water, where nothing else breaks up the plain blue: at full strength on the clear
+                // shallows its lines read as seams in the sea (the visual plan's problem 6).
+                color = RealmsLines(color, p, 1, lerp(0.6, 0.3, smoothstep(0.35, 1.3, depth)), RealmsHudShow(input.positionCS), emission, coverage);
                 // Borders and rings stay opaque so they read over the clear shallows.
                 alpha = max(alpha, coverage);
                 return half4(color + emission, alpha);

@@ -98,7 +98,7 @@ namespace Realms.Core
     public static class Save
     {
         /// <summary>The format this game writes.</summary>
-        public const int Format = 1;
+        public const int Format = 4;
 
         /// <summary>The oldest format this game still reads.</summary>
         public const int OldestFormat = 1;
@@ -116,7 +116,7 @@ namespace Realms.Core
             [typeof(Cell)] = "Index Hex Biome Elevation Lake Owner City District Resource Monster Count FirstCount Lair Band Place Building Roads Rivers",
             [typeof(Country)] = "Index Name Flag Capital Cities Stake",
             [typeof(Flag)] = "Pattern Field Second EmblemColour Emblem",
-            [typeof(City)] = "Index Name Country Cell Capital Houses Growth Stop Buildings Districts Places Recruits Garrison Settlers Influence LandFull",
+            [typeof(City)] = "Index Name Country Cell Capital Houses Growth Stop Buildings Districts Places Recruits Garrison Settlers Influence LandFull BuildStage BuildPlace",
             [typeof(Stack)] = "Unit Count",
             [typeof(River)] = "Points Mouth Joins",
             [typeof(RiverPoint)] = "X Z Flow",
@@ -213,10 +213,10 @@ namespace Realms.Core
                     using (var memory = new MemoryStream(body, false))
                     using (var b = new BinaryReader(memory, Encoding.UTF8))
                     {
-                        World world = ReadWorld(b);
+                        World world = ReadWorld(b, header.Format);
                         var save = new SaveGame { Header = header, State = ReadState(b, world) };
                         save.View = ReadView(b);
-                        save.Report = ReadReport(b);
+                        save.Report = ReadReport(b, header.Format);
                         if (memory.Position != memory.Length)
                             throw Damaged("bytes are left over after the game");
                         return save;
@@ -277,7 +277,7 @@ namespace Realms.Core
                 Written = new DateTime(r.ReadInt64(), DateTimeKind.Utc),
                 Played = r.ReadInt32(),
                 Turn = r.ReadInt32(),
-                Kingdom = r.ReadString(),
+                Kingdom = Names.Current(r.ReadString()),
                 Flag = r.ReadString(),
                 Seed = r.ReadInt32(),
             };
@@ -363,6 +363,8 @@ namespace Realms.Core
                 w.Write(city.Settlers);
                 w.Write(city.Influence);
                 w.Write(city.LandFull);
+                w.Write(city.BuildStage);
+                w.Write(city.BuildPlace);
             }
             w.Write(world.Rivers.Count);
             foreach (River river in world.Rivers)
@@ -382,7 +384,7 @@ namespace Realms.Core
         /// <summary>The largest map side and list a save may hold: more is a damaged file, not a world.</summary>
         const int MostSide = 1024, MostItems = 1 << 20;
 
-        static World ReadWorld(BinaryReader r)
+        static World ReadWorld(BinaryReader r, int format)
         {
             int width = r.ReadInt32(), height = r.ReadInt32(), seed = r.ReadInt32();
             if (width <= 0 || height <= 0 || width > MostSide || height > MostSide)
@@ -410,7 +412,7 @@ namespace Realms.Core
             int countries = Count(r);
             for (int k = 0; k < countries; k++)
             {
-                var country = new Country { Index = k, Name = r.ReadString() };
+                var country = new Country { Index = k, Name = Names.Current(r.ReadString()) };
                 country.Flag = new Flag
                 {
                     Pattern = (FlagPattern)r.ReadByte(), Field = r.ReadByte(), Second = r.ReadByte(),
@@ -428,7 +430,7 @@ namespace Realms.Core
             {
                 var city = new City
                 {
-                    Index = i, Name = r.ReadString(), Country = r.ReadInt32(), Cell = r.ReadInt32(), Capital = r.ReadBoolean(),
+                    Index = i, Name = Names.Current(r.ReadString()), Country = r.ReadInt32(), Cell = r.ReadInt32(), Capital = r.ReadBoolean(),
                     Houses = r.ReadInt32(), Growth = r.ReadInt32(), Stop = (GrowthStop)r.ReadByte(),
                 };
                 int buildings = Count(r);
@@ -446,6 +448,21 @@ namespace Realms.Core
                 city.Settlers = r.ReadBoolean();
                 city.Influence = r.ReadInt32();
                 city.LandFull = r.ReadBoolean();
+                // Format 2 added the Great Build; the older saves have none raised.
+                if (format >= 2)
+                {
+                    city.BuildStage = r.ReadInt32();
+                    if (city.BuildStage < 0 || city.BuildStage > GreatBuild.Stages)
+                        throw Damaged($"the Great Build's stage {city.BuildStage}");
+                }
+                // Format 4 gave the build its place in the town (2026-11-12); in the older saves
+                // the layout gives a raised build the first place left free.
+                if (format >= 4)
+                {
+                    city.BuildPlace = r.ReadInt32();
+                    if (city.BuildPlace < -1 || city.BuildPlace >= Towns.Places(city))
+                        throw Damaged($"the Great Build's place {city.BuildPlace}");
+                }
                 world.Cities.Add(city);
             }
             int rivers = Count(r);
@@ -592,7 +609,7 @@ namespace Realms.Core
             {
                 var hero = new Hero
                 {
-                    Index = i, Name = r.ReadString(), Country = r.ReadInt32(), Cell = r.ReadInt32(),
+                    Index = i, Name = Names.Current(r.ReadString()), Country = r.ReadInt32(), Cell = r.ReadInt32(),
                     Attack = r.ReadInt32(), Defence = r.ReadInt32(), Level = r.ReadInt32(), Experience = r.ReadInt32(),
                     Moves = r.ReadInt32(), LevelUps = r.ReadInt32(),
                 };
@@ -690,6 +707,7 @@ namespace Realms.Core
                 return;
             WriteStock(w, report.Income);
             w.Write(report.GrowthFood);
+            w.Write(report.ArmyFood);
             w.Write(report.Events.Count);
             foreach (TurnEvent e in report.Events)
             {
@@ -705,11 +723,14 @@ namespace Realms.Core
             }
         }
 
-        static TurnReport ReadReport(BinaryReader r)
+        static TurnReport ReadReport(BinaryReader r, int format)
         {
             if (!r.ReadBoolean())
                 return null;
             var report = new TurnReport { Income = ReadStock(r), GrowthFood = r.ReadInt32() };
+            // Format 3 added the army's food (the upkeep, 2026-11-12); the older saves' armies ate nothing.
+            if (format >= 3)
+                report.ArmyFood = r.ReadInt32();
             int events = Count(r);
             for (int i = 0; i < events; i++)
             {

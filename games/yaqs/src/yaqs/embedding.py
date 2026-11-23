@@ -5,13 +5,17 @@ its revision, the instruction or the document template therefore needs a new dat
 ``yaqs rebuild --output NEW_DB`` re-embeds the stored text with the current profile.
 """
 
+import json
+import os
 import threading
 from pathlib import Path
 from typing import Any
 
-REPO = "Qwen/Qwen3-Embedding-0.6B"
-REVISION = "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3"  # pragma: allowlist secret
-DIMENSIONS = 1024
+from yaqs import PROJECT
+
+REPO = "Qwen/Qwen3-Embedding-4B"
+REVISION = "5cf2132abc99cad020ac570b19d031efec650f2b"  # pragma: allowlist secret
+DIMENSIONS = 2560
 INSTRUCTION = (
     "Given a game development question, retrieve relevant passages that answer the question"
 )
@@ -27,8 +31,27 @@ PROFILE = {
     "quantized": False,
 }
 MAX_INPUT_TOKENS = 1024  # longer inputs are rejected, never silently truncated
+MAX_CUDA_TOKENS = 4096  # cap padded microbatches for the unquantized 4B model
 TOKENIZER_FILES = ("config.json", "tokenizer_config.json", "tokenizer.json")
-MODEL_FILES = (*TOKENIZER_FILES, "model.safetensors")
+MODEL_FILES = (
+    *TOKENIZER_FILES,
+    "model.safetensors.index.json",
+    "model-00001-of-00002.safetensors",
+    "model-00002-of-00002.safetensors",
+)
+MODEL_CONFIG = PROJECT / "data/embedding-model.json"
+
+
+def _model_directory() -> Path | None:
+    """Optional existing shared checkpoint, without downloading another copy."""
+    if location := os.environ.get("YAQS_MODEL_PATH"):
+        return Path(location).expanduser().resolve()
+    if MODEL_CONFIG.is_file():
+        config = json.loads(MODEL_CONFIG.read_text(encoding="utf-8"))
+        if config.get("model") != REPO or config.get("revision") != REVISION:
+            raise ValueError("Shared embedding checkpoint differs from the pinned YAQS model")
+        return Path(config["path"]).expanduser().resolve()
+    return None
 
 
 def document_text(title: str, chapter: str, text: str) -> str:
@@ -44,7 +67,13 @@ def cache_status() -> dict[str, Any]:
     """Inspect the pinned local checkpoint without downloading or loading weights."""
     from huggingface_hub import try_to_load_from_cache
 
-    files = {name: try_to_load_from_cache(REPO, name, revision=REVISION) for name in MODEL_FILES}
+    directory = _model_directory()
+    files = {
+        name: str(directory / name)
+        if directory is not None
+        else try_to_load_from_cache(REPO, name, revision=REVISION)
+        for name in MODEL_FILES
+    }
     present = {
         name: value
         for name, value in files.items()
@@ -54,6 +83,7 @@ def cache_status() -> dict[str, Any]:
     return {
         "model": REPO,
         "revision": REVISION,
+        "shared_checkpoint": str(directory) if directory is not None else None,
         "ready": not missing,
         "missing": missing,
         "files": present,
@@ -117,7 +147,10 @@ class QwenEncoder:
 
                 require_cache()
                 self._tokenizer = AutoTokenizer.from_pretrained(
-                    REPO, revision=REVISION, local_files_only=True, padding_side="left"
+                    _model_directory() or REPO,
+                    revision=REVISION,
+                    local_files_only=True,
+                    padding_side="left",
                 )
             return self._tokenizer
 
@@ -131,17 +164,19 @@ class QwenEncoder:
         torch.set_num_threads(self.threads)
         if self.device == "cuda" and not torch.cuda.is_available():
             raise RuntimeError("CUDA is unavailable; use --device cpu")
-        self._model = (
-            AutoModel.from_pretrained(
-                REPO,
-                revision=REVISION,
-                local_files_only=True,
-                torch_dtype=torch.bfloat16 if self.device == "cuda" else torch.float32,
-                attn_implementation="sdpa",
-            )
-            .eval()
-            .to(self.device)
-        )
+        self._model = AutoModel.from_pretrained(
+            _model_directory() or REPO,
+            revision=REVISION,
+            local_files_only=True,
+            torch_dtype=torch.bfloat16 if self.device == "cuda" else torch.float32,
+            attn_implementation="sdpa",
+        ).eval()
+        if self.device == "cuda":
+            # Keep the vocabulary lookup on CPU so the unquantized 4B model
+            # and an indexing batch fit on an 8 GiB GPU.
+            self._model.layers.to("cuda")
+            self._model.norm.to("cuda")
+            self._model.rotary_emb.to("cuda")
         self._model.config.use_cache = False
 
     def encode(self, texts: list[str], *, query: bool = False) -> Any:
@@ -161,10 +196,24 @@ class QwenEncoder:
                     f"Embedding input exceeds {MAX_INPUT_TOKENS} tokens; "
                     "no text was silently truncated"
                 )
+            microbatch = len(texts)
+            if self.device == "cuda":
+                microbatch = max(1, MAX_CUDA_TOKENS // max(1, batch["input_ids"].shape[1]))
+            parts = []
             with torch.inference_mode():
-                batch = batch.to(self.device)
-                last = self._model(**batch, use_cache=False).last_hidden_state[:, -1].float()
-                vectors = functional.normalize(last, p=2, dim=1).cpu().numpy()
+                for start in range(0, len(texts), microbatch):
+                    part = {key: value[start : start + microbatch] for key, value in batch.items()}
+                    if self.device == "cuda":
+                        inputs = self._model.get_input_embeddings()(part.pop("input_ids")).to(
+                            "cuda"
+                        )
+                        part = {key: value.to("cuda") for key, value in part.items()}
+                        hidden = self._model(inputs_embeds=inputs, **part, use_cache=False)
+                    else:
+                        hidden = self._model(**part, use_cache=False)
+                    last = hidden.last_hidden_state[:, -1].float()
+                    parts.append(functional.normalize(last, p=2, dim=1).cpu().numpy())
+            vectors = np.concatenate(parts, axis=0)
             if not np.isfinite(vectors).all():
                 raise RuntimeError("Model returned non-finite embeddings")
             return vectors.astype(np.float32, copy=False)

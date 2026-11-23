@@ -18,9 +18,12 @@ a favorite flag alone is insufficient.
   Tags are lowercase, trimmed, up to 64 characters, conventionally
   `axis:value` (`style:cartoon`, `model:hunyuan3d`).
 - `GET /api/assets?tag=…&tag=…&min_rating=n&unrated=true`: all tags must match.
+- `GET /api/tags?project=…`: every tag of the library's assets with the number
+  of assets that carry it, by name.
 - MCP: `list_assets(tags, min_rating, unrated)`, `rate_asset`.
 - UI: buttons 0–5 beside favorites, tags in asset details, library filters
-  for tags and ratings.
+  for tags and ratings. The tag filter's field lists the project's tags, most
+  used first, narrowed by what is typed.
 
 ## Consequences
 

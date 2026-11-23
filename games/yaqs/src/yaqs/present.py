@@ -51,6 +51,7 @@ def _context(context: dict[str, Any]) -> dict[str, Any]:
 def compact_search(result: dict[str, Any]) -> dict[str, Any]:
     return {
         "mode": result["mode"],
+        "corpus": result["corpus"],
         "hits": [_block(hit) for hit in result["hits"]],
         "context": _context(result["context"]),
     }
@@ -75,7 +76,9 @@ def compact_page(page: dict[str, Any]) -> dict[str, Any]:
 def compact_books(books: list[dict[str, Any]]) -> list[dict[str, Any]]:
     views = []
     for book in books:
-        view = {key: book[key] for key in ("id", "title", "author", "page_count", "chunks")}
+        view = {
+            key: book[key] for key in ("id", "title", "author", "page_count", "chunks", "corpus")
+        }
         if book["status"] != "ready":
             view.update(status=book["status"], indexed_chunks=book["indexed_chunks"])
         views.append(view)

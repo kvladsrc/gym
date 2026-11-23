@@ -1,0 +1,58 @@
+[project]
+name = "lato2-model-server"
+version = "0.1.0"
+description = "Low-poly mesh generation server for the asset studio, based on LATO.2."
+# Upstream's stack is Python 3.10 with torch 2.6.0+cu124. The server runs on
+# Python 3.11 (the SDK's) and on TRELLIS.2 Paint's torch 2.8.0+cu129, so that
+# both servers use the same native o-voxel, CuMesh, FlexGEMM and nvdiffrast
+# wheels (see setup_native.py).
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  # A prebuilt wheel: building flash-attn takes an hour of every CPU core.
+  "flash-attn==2.8.3",
+  "spconv-cu124==2.3.8",
+  "torch-scatter==2.1.2",
+  # Renders the view of the input that conditions the vertices.
+  "open3d==0.19.0",
+  "huggingface-hub>=0.34,<1",
+  "numpy==1.26.4",
+  "scipy>=1.13",
+  "Pillow>=10.4",
+  "trimesh>=4.4",
+  "tqdm",
+  # Imported by o-voxel.
+  "opencv-python-headless>=4.10,<4.12",
+  "plyfile",
+  "easydict",
+  "zstandard",
+  # For building the native wheels when they are not cached.
+  "setuptools>=69",
+  "wheel",
+  "ninja",
+  "pybind11>=2.12",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+lato2-model-server = "lato2_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+flash-attn = { url = "https://github.com/Dao-AILab/flash-attention/releases/download/v2.8.3/flash_attn-2.8.3+cu12torch2.8cxx11abiTRUE-cp311-cp311-linux_x86_64.whl" }
+torch-scatter = { url = "https://data.pyg.org/whl/torch-2.8.0%2Bcu129/torch_scatter-2.1.2%2Bpt28cu129-cp311-cp311-linux_x86_64.whl" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

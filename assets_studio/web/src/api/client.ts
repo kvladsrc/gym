@@ -23,6 +23,8 @@ export interface Skeleton {
 }
 export type Asset = Schemas["AssetOut"];
 export type Project = Schemas["ProjectOut"];
+/** A tag with the number of assets that carry it. */
+export type TagCount = Schemas["TagOut"];
 export type Parent = Schemas["ParentOut"];
 
 export class ApiError extends Error {}
@@ -112,6 +114,12 @@ export const api = {
     params.set("limit", String(query.limit ?? 300));
     return request<Asset[]>("GET", `/api/assets?${params.toString()}`);
   },
+  /** Every tag of the project's assets, by name. */
+  tags: (project: string) =>
+    request<TagCount[]>(
+      "GET",
+      `/api/tags?project=${encodeURIComponent(project)}`,
+    ),
   asset: (id: string) => request<Asset>("GET", `/api/assets/${id}`),
   skeleton: (id: string) =>
     request<Skeleton>("GET", `/api/assets/${id}/skeleton`),

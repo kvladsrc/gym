@@ -1,0 +1,45 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+import "../common.just"
+
+source := cache / "deepmesh-source"
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/deepmesh_model_server/server.py`
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/deepmesh"
+export DEEPMESH_SOURCE := source
+export DEEPMESH_WEIGHTS := cache / "deepmesh"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+export PYTORCH_CUDA_ALLOC_CONF := "expandable_segments:True"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned DeepMesh source, create the environment, build the two CUDA kernels
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then \
+        git clone --no-checkout https://github.com/zhaorw02/DeepMesh.git "{{ source }}"; \
+    fi
+    git -C "{{ source }}" cat-file -e "{{ revision }}^{commit}" 2>/dev/null \
+        || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ gpu_shell }} uv sync --extra test
+    # One nvcc thread per compiler: the layer-norm kernel's units take GBs of RAM each.
+    {{ cuda_shell }} env TORCH_CUDA_ARCH_LIST={{ quote(cuda_arch) }} MAX_JOBS={{ quote(build_jobs) }} NVCC_THREADS=1 uv run --no-sync python -m deepmesh_model_server.setup_native
+
+# Download the 0.5B checkpoint (~3.4 GB; network only, no GPU)
+download:
+    {{ gpu_shell }} uv run --no-sync python -c "from deepmesh_model_server.server import download; download()"
+
+# Report PyTorch, the CUDA device, the kernels and whether the weights are downloaded
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m deepmesh_model_server.doctor
+
+# Serve on 127.0.0.1:9136 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync deepmesh-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

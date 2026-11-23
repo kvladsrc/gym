@@ -13,7 +13,9 @@ namespace Realms
     /// --bevel-face and --bevel-face-low, the plate's colour at its top and its bottom (one
     /// colour without the second); --bevel-rim and --bevel-rim-low, the same for the rim;
     /// --bevel-side, the underlay; --bevel-cut, the corners, which --bevel-cut-left and
-    /// --bevel-cut-right change for one end; --bevel-depth, how much of the underlay shows under
+    /// --bevel-cut-right change for one end, but the bottom right corner stays square, as on the
+    /// players' reference picture (they asked for it on 2026-11-12), unless --bevel-cut-low-right
+    /// cuts it; --bevel-depth, how much of the underlay shows under
     /// the face; --bevel-rim-width; --bevel-light, a thin line of light along the plate's top;
     /// --bevel-shade and --bevel-shade-size, the dark that gathers along its bottom, and how far up;
     /// --bevel-shadow, --bevel-shadow-drop and --bevel-shadow-blur, the shadow's colour, how far
@@ -39,6 +41,7 @@ namespace Realms
         static readonly CustomStyleProperty<float> CutProperty = new CustomStyleProperty<float>("--bevel-cut");
         static readonly CustomStyleProperty<float> CutLeftProperty = new CustomStyleProperty<float>("--bevel-cut-left");
         static readonly CustomStyleProperty<float> CutRightProperty = new CustomStyleProperty<float>("--bevel-cut-right");
+        static readonly CustomStyleProperty<float> CutLowRightProperty = new CustomStyleProperty<float>("--bevel-cut-low-right");
         static readonly CustomStyleProperty<float> DepthProperty = new CustomStyleProperty<float>("--bevel-depth");
         static readonly CustomStyleProperty<float> RimWidthProperty = new CustomStyleProperty<float>("--bevel-rim-width");
         static readonly CustomStyleProperty<Color> LightProperty = new CustomStyleProperty<Color>("--bevel-light");
@@ -123,11 +126,12 @@ namespace Realms
         struct Look
         {
             public Color Face, FaceLow, Side, Light, Shade;
-            public float CutLeft, CutRight, Depth, RimWidth, ShadeSize;
+            public float CutLeft, CutRight, CutLowRight, Depth, RimWidth, ShadeSize;
 
             public bool Same(in Look other) =>
                 Face == other.Face && FaceLow == other.FaceLow && Side == other.Side && Light == other.Light && Shade == other.Shade
-                && CutLeft == other.CutLeft && CutRight == other.CutRight && Depth == other.Depth && RimWidth == other.RimWidth
+                && CutLeft == other.CutLeft && CutRight == other.CutRight && CutLowRight == other.CutLowRight
+                && Depth == other.Depth && RimWidth == other.RimWidth
                 && ShadeSize == other.ShadeSize;
         }
 
@@ -192,6 +196,7 @@ namespace Realms
             style.TryGetValue(CutProperty, out float cut);
             look.CutLeft = style.TryGetValue(CutLeftProperty, out float cutLeft) ? cutLeft : cut;
             look.CutRight = style.TryGetValue(CutRightProperty, out float cutRight) ? cutRight : cut;
+            style.TryGetValue(CutLowRightProperty, out look.CutLowRight);
 
             var to = new Touch();
             if (style.TryGetValue(GrowProperty, out float grow)) to.Grow = Mathf.Max(0f, grow);
@@ -343,6 +348,7 @@ namespace Realms
                 return;
             float most = Mathf.Min(face * 0.45f, w * 0.25f);
             float left = Mathf.Min(look.CutLeft, most), right = Mathf.Min(look.CutRight, most);
+            float lowRight = Mathf.Min(look.CutLowRight, most);
             bool rimmed = look.RimWidth > 0f && touch.RimTop.a > 0f;
             if (!rimmed && look.Face.a <= 0f)
                 return;
@@ -359,7 +365,8 @@ namespace Realms
                     // A layer that does not reach past the plate is not seen.
                     if (far <= 0f && touch.Drop + far <= 0f)
                         continue;
-                    Path(painter, -far, touch.Drop - far, w + far, h + touch.Drop + far, left + far * CutInset, right + far * CutInset);
+                    Path(painter, -far, touch.Drop - far, w + far, h + touch.Drop + far, left + far * CutInset, right + far * CutInset,
+                        Further(lowRight, far));
                     painter.Fill();
                 }
             }
@@ -367,7 +374,7 @@ namespace Realms
             if (look.Side.a > 0f && look.Depth > 0f)
             {
                 painter.fillColor = look.Side;
-                Path(painter, 0f, 0f, w, h, left, right);
+                Path(painter, 0f, 0f, w, h, left, right, lowRight);
                 painter.Fill();
             }
 
@@ -381,13 +388,13 @@ namespace Realms
                 painter.fillColor = Color.white;
             if (rimmed)
             {
-                Path(painter, 0f, top, w, bottom, left, right);
+                Path(painter, 0f, top, w, bottom, left, right, lowRight);
                 Fill(painter, touch.RimTop, touch.RimLow, top, bottom, graded);
             }
             if (look.Face.a > 0f)
             {
                 float y0 = top + rim, y1 = bottom - rim;
-                Path(painter, rim, y0, w - rim, y1, left - rim * CutInset, right - rim * CutInset);
+                Path(painter, rim, y0, w - rim, y1, left - rim * CutInset, right - rim * CutInset, Further(lowRight, -rim));
                 if (shaded)
                 {
                     if (plate.Shading == null || plate.ShadedHeight != y1 - y0)
@@ -454,19 +461,27 @@ namespace Realms
             return new Color(Mathf.Lerp(under.r, over.r, k), Mathf.Lerp(under.g, over.g, k), Mathf.Lerp(under.b, over.b, k), under.a);
         }
 
-        /// <summary>The outline with cut corners; a cut of zero or less leaves the corner square.</summary>
-        static void Path(Painter2D painter, float x0, float y0, float x1, float y1, float left, float right)
+        /// <summary>A corner's cut on an outline <paramref name="out"/> pixels further out (in, when less than zero); a square corner stays square.</summary>
+        static float Further(float cut, float @out) => cut > 0f ? cut + @out * CutInset : 0f;
+
+        /// <summary>
+        /// The outline with cut corners: <paramref name="left"/> both left ones, <paramref name="right"/>
+        /// the top right one and <paramref name="lowRight"/> the bottom right one; a cut of zero or less
+        /// leaves the corner square.
+        /// </summary>
+        static void Path(Painter2D painter, float x0, float y0, float x1, float y1, float left, float right, float lowRight)
         {
             left = Mathf.Max(0f, left);
             right = Mathf.Max(0f, right);
+            lowRight = Mathf.Max(0f, lowRight);
             painter.BeginPath();
             painter.MoveTo(new Vector2(x0 + left, y0));
             painter.LineTo(new Vector2(x1 - right, y0));
             if (right > 0f)
                 painter.LineTo(new Vector2(x1, y0 + right));
-            painter.LineTo(new Vector2(x1, y1 - right));
-            if (right > 0f)
-                painter.LineTo(new Vector2(x1 - right, y1));
+            painter.LineTo(new Vector2(x1, y1 - lowRight));
+            if (lowRight > 0f)
+                painter.LineTo(new Vector2(x1 - lowRight, y1));
             painter.LineTo(new Vector2(x0 + left, y1));
             if (left > 0f)
             {

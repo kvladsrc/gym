@@ -27,6 +27,7 @@ From the monorepo root, through the Nix environment:
 
 ```sh
 nix develop -c just realms fetch-art  # Studio art -> Assets/Realms/Art
+nix develop -c just realms fetch-sounds  # Studio sounds -> Assets/Realms/Art/Audio
 nix develop -c just realms build      # Realms/Setup, then the Linux player
 nix develop -c just realms build windows  # Windows player (Mono), on Linux
 nix develop -c just realms package    # players and sources packed into Builds/dist
@@ -35,8 +36,11 @@ nix develop -c just realms test       # generator and economy, no Unity
 ```
 
 `fetch-art` copies the models, icons and ground textures from a local Assets
-Studio. The monorepo keeps them out of Git; its public copy (`gym`) carries
-them, so a checkout of that builds without the Studio.
+Studio, and makes its videos (the main menu's moving picture, kept there as
+H.264 MP4) VP8 WebM with ffmpeg into `Art/Resources`, which the player plays on
+Linux and Windows alike. The monorepo keeps them out of Git; its public copy
+(`gym`) carries the models, icons and textures, so a checkout of that builds
+without the Studio; without the video the main menu shows its still picture.
 `play` uses native Wayland when it is available.
 
 Or directly: `games/realms/play.sh` (the player accepts `-seed N` for a given
@@ -51,7 +55,28 @@ repository's licence. `tools/package.sh source` packs only the sources.
 
 Other arguments of the player: `-realmsCapture DIR` takes the screenshots of
 `RealmsCapture` into DIR and quits, `-realmsPromo DIR` records the promo's
-clips (`RealmsPromo`) into DIR as frames and quits.
+clips (`RealmsPromo`) into DIR as frames and quits. Batchmode runs and both of
+these are silent unless `-realmsSound` is given; a capture writes every sound
+it plays into `DIR/sounds.log`. A silent capture also records the mix it keeps
+from the speakers into `DIR/mix.wav` (32-bit float, at the sliders' defaults):
+the listener's last filter copies each block and then clears it, and the
+listener is turned up only while that filter runs.
+
+## Sound
+
+`sounds.json` names every sound the game plays (the `Sfx` names in
+`Scripts/Sounds.cs`, the ambience layers `Amb*` and the music `Music*`), how
+it is played (volume slider group, level, random pitch and level, how many at
+once, the least time between two) and its takes as Assets Studio assets.
+`tools/fetch_sounds.py` (`just realms fetch-sounds`, needs ffmpeg) downloads
+the takes and cuts them: an effect into its separate sounds, mono, at a
+-3 dBFS peak; a short tune whole, in stereo; an ambience loop untouched in time
+at -20 LUFS; music at its entry's loudness, both as Ogg Vorbis. An entry with
+`from` is made from another entry's clips (moved in pitch, dulled, or two of
+them in a row). It writes `Art/Audio/library.json`, from which Setup builds
+`Art/Resources/RealmsSounds.asset` and sets each clip's import (music
+streamed, loops compressed, effects decompressed on load). Neither is in Git,
+and the game without them plays the same, silent.
 
 ## Saves
 
@@ -127,6 +152,30 @@ built-in stand-ins (for a missing tree or stone, another of its kind first;
 boxes and plain towers for the walls); the castle is drawn in code until its
 Studio model is fetched. Monster group badges use the `lair` and `swords` icons;
 the monsters themselves appear only as 3D models.
+
+A model whose GLB carries clips is a skinned creature with its own moves (the
+wolves and the boar, captured with AnyMove from video clips of the model;
+Studio project `anymove`). Setup gives its prefab `Moves` with the clips by
+name (`Stand`, `Sit`, `Run`, its root-motion twin `Run_Root`, `Bite`: the
+one-shot attack, a wolf's bite or the boar's tusk charge; `Hurt`, the flinch
+from a blow; `Die`, the collapse onto its belly when it is killed, as AnyMove
+reads only creatures on their feet; `Sit`, `Hurt` and `Die` may be missing,
+`Stand` may not, as the battle goes back to it after every move, attack and
+flinch), samples them for the
+run's ground speed and the bite's windup (the crouch: the head furthest back
+before the strike), strike and reach (logged as
+"Realms: wolf moves …"), and gives the skinned mesh a fixed box round its root
+bone, roomy for every move, so the Animator stops off screen. `Moves` plays the
+clips through a Playables mixer with short blends; nothing plays until a loop
+is asked for, so `Portraits` shows the rest pose. The map's `PropBuilder` and
+the battle's `BattleView` play the loops, the run (`RunCell`, `RunPlayback`)
+and the bite at the pace it was packed with (the pack can take a video's slow
+motion out: the model films a single leap in the air several times too slowly,
+though a clip of several leaps in a row comes at real speed). A creature
+that is hit plays `Hurt` instead of the other figures' shake; one that is
+killed plays `Die`, lies still for half a second and sinks into the ground
+instead of toppling over, and the battle's end waits for the last such fall.
+Creatures without clips keep the drawn `Idle`.
 
 The eight ground textures (grass, dry grass, forest floor, sand, scree, rock,
 snow, dirt) are also in `art.json`, with two more: the cobbles of the towns'

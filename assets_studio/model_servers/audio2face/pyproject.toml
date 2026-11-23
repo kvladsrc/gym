@@ -1,0 +1,44 @@
+[project]
+name = "audio2face-model-server"
+version = "0.1.0"
+description = "Facial animation from speech for the asset studio, based on NVIDIA Audio2Face-3D."
+# The SDK is C++ (CUDA 12.8+, TensorRT 10.13+); the server builds it with a
+# small runner of its own (native/) and runs that per job. Python builds the
+# TensorRT engines from the published ONNX networks and writes the glTF.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  # The engines are built with TensorRT's Python API, and the SDK links against
+  # the same TensorRT and CUDA libraries, so the runner finds all of them in this
+  # environment. The versions are the SDK's: TensorRT 10.13, CUDA 12.9.
+  "tensorrt-cu12-bindings==10.13.3.9",
+  "tensorrt-cu12-libs==10.13.3.9",
+  "nvidia-cuda-runtime-cu12==12.9.*",
+  "nvidia-cublas-cu12==12.9.*",
+  "nvidia-curand-cu12==10.3.10.*",
+  "numpy>=1.26,<3",
+  "huggingface-hub>=0.28,<1",
+  "soundfile>=0.12",
+  "soxr>=0.5",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+audio2face-model-server = "audio2face_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+tensorrt-cu12-libs = { index = "nvidia" }
+
+# PyPI carries only a source stub of the libraries, which downloads the wheel
+# from here at install time.
+[[tool.uv.index]]
+name = "nvidia"
+url = "https://pypi.nvidia.com"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

@@ -1,0 +1,46 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+import "../common.just"
+
+source := cache / "audio2face-source"
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/audio2face_model_server/server.py`
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/audio2face"
+export AUDIO2FACE_SOURCE := source
+export AUDIO2FACE_BUILD := cache / "audio2face-build"
+export AUDIO2FACE_WEIGHTS := cache / "audio2face"
+# The SDK's dependency fetcher (packman) keeps its downloads here.
+export PM_PACKAGES_ROOT := cache / "packman"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned SDK source, create the environment, build the SDK and the runner
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then \
+        git clone --no-checkout https://github.com/NVIDIA/Audio2Face-3D-SDK.git "{{ source }}"; \
+    fi
+    git -C "{{ source }}" cat-file -e "{{ revision }}^{commit}" 2>/dev/null \
+        || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ gpu_shell }} uv sync --extra test
+    {{ cuda_shell }} env CUDA_ARCH={{ quote(cuda_arch) }} MAX_JOBS={{ quote(build_jobs) }} uv run --no-sync python -m audio2face_model_server.setup_native
+
+# Download the networks and the heads (~1.8 GB; network only, no GPU)
+download:
+    {{ gpu_shell }} uv run --no-sync python -c "from audio2face_model_server.server import download; download()"
+
+# Report TensorRT, the CUDA device, the runner and whether the models are downloaded
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m audio2face_model_server.doctor
+
+# Serve on 127.0.0.1:9138 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync audio2face-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

@@ -258,6 +258,8 @@ namespace Realms.Tests
             Battle battle = Field(Core.Monster.Goblins, 2, new Stack(Unit.Spearmen, 5), new Stack(Unit.Archers, 5));
             Fighter spearmen = battle.Fighters[0], archers = battle.Fighters[1];
             Fighter first = Monster(battle), second = Monster(battle, 1);
+            // Big enough that the spears' cover neither kills them nor costs them enough to mind it.
+            first.Count = second.Count = 20;
             spearmen.Cell = Cell(3, 3);
             archers.Cell = Cell(7, 1);
             first.Cell = Cell(5, 3);
@@ -277,6 +279,7 @@ namespace Realms.Tests
         {
             Battle battle = Field(Core.Monster.Boar, 1, new Stack(Unit.Spearmen, 5), new Stack(Unit.Archers, 5));
             Fighter spearmen = battle.Fighters[0], archers = battle.Fighters[1], boars = Monster(battle);
+            boars.Count = 10; // to live through the spears' cover
             boars.Cell = Cell(10, 3);
             spearmen.Cell = Cell(4, 3);
             archers.Cell = Cell(7, 1);
@@ -291,6 +294,7 @@ namespace Realms.Tests
         {
             Battle battle = Field(Core.Monster.Wolves, 1, new Stack(Unit.Spearmen, 3), new Stack(Unit.Archers, 10));
             Fighter spearmen = battle.Fighters[0], wolves = Monster(battle);
+            wolves.Count = 20; // a pack the spears' cover costs too little to mind
             wolves.Cell = Cell(6, 3);
             Assert.AreSame(wolves, battle.Current);
             battle.Auto();
@@ -312,11 +316,62 @@ namespace Realms.Tests
             Assert.AreSame(spearmen, LastTarget(battle));
         }
 
+        /// <summary>The players' stacks and the monsters defend until it is this stack's turn.</summary>
+        static void TurnOf(Battle battle, Fighter f)
+        {
+            for (int i = 0; i < 10 && battle.Current != f; i++)
+                battle.Defend();
+            Assert.AreSame(f, battle.Current);
+        }
+
+        [Test]
+        public void ArchersStepUpToFullRangeBehindTheSpears()
+        {
+            Battle battle = Field(Core.Monster.Bandits, 1, new Stack(Unit.Spearmen, 5), new Stack(Unit.Archers, 5));
+            Fighter spearmen = battle.Fighters[0], archers = battle.Fighters[1], bandits = Monster(battle);
+            bandits.Cell = Cell(10, 3);
+            spearmen.Cell = Cell(7, 3);
+            archers.Cell = Cell(0, 3);
+            TurnOf(battle, archers);
+            battle.Auto();
+            Assert.AreEqual(0, Count(battle, BattleEventKind.Shoot), "no shot at half strength from ten cells");
+            int near = Battle.Distance(archers.Cell, bandits.Cell);
+            Assert.LessOrEqual(near, Battle.ShortRange);
+            Assert.Greater(near, Battle.Distance(spearmen.Cell, bandits.Cell), "still behind the spears");
+        }
+
+        [Test]
+        public void ArchersDoNotStepIntoAMeleeReach()
+        {
+            Battle battle = Field(Core.Monster.Wolves, 1, new Stack(Unit.Spearmen, 5), new Stack(Unit.Archers, 5));
+            Fighter spearmen = battle.Fighters[0], archers = battle.Fighters[1], wolves = Monster(battle);
+            wolves.Cell = Cell(10, 3);
+            spearmen.Cell = Cell(1, 3);
+            archers.Cell = Cell(0, 3);
+            TurnOf(battle, archers);
+            battle.Auto();
+            Assert.AreEqual(1, Count(battle, BattleEventKind.Shoot), "every cell in full range is in the wolves' reach");
+            Assert.AreEqual(Cell(0, 3), archers.Cell);
+        }
+
+        [Test]
+        public void ArchersLeftAloneStepUpToTheBandits()
+        {
+            Battle battle = Field(Core.Monster.Bandits, 1, new Stack(Unit.Archers, 5));
+            Fighter archers = battle.Fighters[0], bandits = Monster(battle);
+            bandits.Cell = Cell(10, 3);
+            archers.Cell = Cell(0, 3);
+            TurnOf(battle, archers);
+            battle.Auto();
+            Assert.AreEqual(Battle.ShortRange, Battle.Distance(archers.Cell, bandits.Cell), "as far as full range allows");
+        }
+
         [Test]
         public void SkeletonsLeaveTheArchersForLast()
         {
             Battle battle = Field(Core.Monster.Skeletons, 1, new Stack(Unit.Spearmen, 5), new Stack(Unit.Archers, 5));
             Fighter spearmen = battle.Fighters[0], archers = battle.Fighters[1], skeletons = Monster(battle);
+            skeletons.Count = 10; // to live through the spears' cover
             skeletons.Cell = Cell(10, 3);
             archers.Cell = Cell(8, 3);
             spearmen.Cell = Cell(7, 5);

@@ -135,14 +135,14 @@ namespace Realms.Core
         /// <summary>
         /// The hero's settlers found a village on his cell under the players' name (the suggestion
         /// when they give none); it takes its cell and the wild cells around it, the open sea and
-        /// monster groups' cells aside.
+        /// monster groups' cells aside, and a road to the kingdom's nearest town.
         /// </summary>
         public Refusal Found(Hero hero, string name)
         {
             Refusal refusal = CanFound(hero);
             if (refusal != Refusal.None)
                 return refusal;
-            World.AddCity(hero.Country, hero.Cell, false, Settling.Houses, Settling.CleanName(name, Settling.NewName(World)));
+            City town = World.AddCity(hero.Country, hero.Cell, false, Settling.Houses, Settling.CleanName(name, Settling.NewName(World)));
             hero.Settlers = false;
             World.Cells[hero.Cell].Owner = hero.Country;
             for (int d = 0; d < 6; d++)
@@ -154,6 +154,7 @@ namespace Realms.Core
                 if (c.Owner < 0 && c.Biome != Biome.Ocean && c.Monster == Monster.None)
                     c.Owner = hero.Country;
             }
+            WorldGen.RoadToNearest(World, town);
             if (hero.Country == World.Player)
             {
                 TownsFounded++;

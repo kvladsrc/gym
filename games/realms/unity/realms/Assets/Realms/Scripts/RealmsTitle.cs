@@ -1,38 +1,52 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Realms.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using static Realms.Lang;
 
 namespace Realms
 {
     /// <summary>
-    /// The main menu and the new game's screen (the interface plan's 3.2, 2026-11-11). The game
+    /// The main menu and the new game's window (the interface plan's 3.2, 2026-11-11). The game
     /// opens on the main menu at once, with nothing drawn behind it: «Продолжить» names the last
     /// save from its header alone, and the game is loaded only when the players go into it, under
     /// a loading screen with a bar (the players found the start hanging while the last game loaded
-    /// behind the menu, 2026-11-11). «Новая игра» draws the map a new game would start on beside
-    /// the column, under the same loading screen: a preview, never saved; «Начать» starts it
-    /// there, «Назад» brings back the game it replaced. A map asked by its number (-seed) and
-    /// the captures start without the main menu, as before.
+    /// behind the menu, 2026-11-11). «Новая игра» opens a window of choices over the menu's
+    /// picture: the kingdom's flag, the map (its picture and number), its size and the
+    /// neighbours' pace. The map is made there, not drawn; «Играть» draws it under the loading
+    /// screen, and the flag is raised before, so nothing is drawn twice (the players found the
+    /// game hanging after «Поднять флаг» on a map already drawn, and asked for the choices first,
+    /// 2026-11-12). «Назад» goes back where the window was opened, the game behind untouched. A
+    /// map asked by its number (-seed) and the captures start without the main menu, as before.
     /// </summary>
     public sealed partial class RealmsGame
     {
-        /// <summary>The game is behind the main menu or the new game's screen: not played, counted or guided.</summary>
+        /// <summary>The game is behind the main menu or the new game's window: not played, counted or guided.</summary>
         bool behindTitle;
-
-        /// <summary>The state is a new game's preview, not a game: it is never saved.</summary>
-        bool previewing;
 
         /// <summary>A loaded game's return (its report, the hints after a break, a chest) waits until the players go in.</summary>
         bool returnPending;
 
         DateTime returnWritten;
 
-        /// <summary>The game comes back as it was from the new game's screen: nothing to tell.</summary>
-        bool restoring;
+        /// <summary>The players' last map size, kept between games like the pace.</summary>
+        const string SizeKey = "Realms.MapSize";
+
+        /// <summary>
+        /// The game the new game's window would start: its world made and the flag raised on it,
+        /// nothing drawn; null while it is being made or with the window closed.
+        /// </summary>
+        GameState setup;
+
+        /// <summary>Counts the maps asked for in the window, so that one made after another was asked is dropped.</summary>
+        int setupAsked;
+
+        /// <summary>The number of the map asked for last, made or still being made.</summary>
+        int setupSeed;
 
         /// <summary>The loading screen is up: a map is being drawn under it, and nothing takes input.</summary>
         bool loading;
@@ -40,31 +54,36 @@ namespace Realms
         /// <summary>The main menu has a game to continue: the one behind it, or the newest save.</summary>
         bool canContinue;
 
-        /// <summary>Where the new game's screen goes back to, and the game it replaced while open.</summary>
+        /// <summary>Where the new game's window goes back to: the menu over the game, or the main menu.</summary>
         MenuMode newGameFrom;
 
-        SaveGame keptGame;
-
-        /// <summary>A game of the players' is behind the menu, not a preview and not nothing.</summary>
-        bool GameBehind => state != null && !previewing;
+        /// <summary>A game of the players' is behind the menu.</summary>
+        bool GameBehind => state != null;
 
         void BindTitle()
         {
             hud.NewGamePicked += () => OpenNewGame(MenuMode.Pause);
             hud.TitleNewPicked += () => OpenNewGame(MenuMode.Title);
             hud.ContinuePicked += Continue;
-            hud.OtherMapPicked += () => ShowMap(Environment.TickCount & 0xFFFFF);
-            hud.MapNumberPicked += ShowMap;
+            hud.OtherMapPicked += () => MakeSetup(NewSeed(), hud.ChosenSize);
+            hud.MapNumberPicked += seed => MakeSetup(seed, hud.ChosenSize);
+            // Another size keeps the map's number: the number and the size together name a map.
+            hud.MapSizePicked += size => MakeSetup(setupSeed, size);
+            hud.NewFlagPicked += () => StartCoroutine(EditSetupFlag());
             hud.StartPicked += StartGame;
             hud.NewGameBackPicked += LeaveNewGame;
             hud.ToTitlePicked += ToTitle;
         }
+
+        static int NewSeed() => Environment.TickCount & 0xFFFFF;
 
         /// <summary>The main menu at once; no game is drawn until the players choose one.</summary>
         void Launch()
         {
             behindTitle = true;
             hud.Prepare(art);
+            // The new game's window paints flags before any game binds the art.
+            FlagArt.UseArt(art);
             ShowTitle();
         }
 
@@ -152,106 +171,156 @@ namespace Realms
             // Half a map is no game: back to the main menu with nothing behind it.
             busy = false;
             state = null;
-            previewing = restoring = false;
-            keptGame = null;
+            setup = null;
             hud.Toast(Words.ProblemOf(SaveProblem.Damaged), 5f);
             ShowTitle();
         }
 
-        /// <summary>A new game's map behind the menu's column, not played and not saved until «Начать».</summary>
-        IEnumerable<float> PreviewSteps(int seed)
-        {
-            previewing = behindTitle = true;
-            World world = WorldGen.Generate(seed);
-            yield return 0.08f;
-            LoadFlag(world);
-            foreach (float part in BeginSteps(new GameState(world) { Difficulty = difficulty }, null))
-                yield return 0.08f + 0.92f * part;
-        }
-
         /// <summary>
-        /// The new game's screen, its map drawn under the loading screen. From a game, the game
-        /// keeps itself first and is held to come back with «Назад»; from the main menu the game
-        /// behind it is in its autosave already, and «Продолжить» loads it again; a preview
-        /// already drawn is reused.
+        /// The new game's window, from the menu over a game or from the main menu, at the size and
+        /// the pace chosen last. From a game, the game keeps itself first; it stays behind the
+        /// window untouched until «Играть».
         /// </summary>
         void OpenNewGame(MenuMode from)
         {
             if (busy || loading || battleView.Active)
                 return;
             newGameFrom = from;
-            if (previewing && state != null)
-            {
-                hud.ShowNewGame(state.World.Seed, difficulty);
-                return;
-            }
-            keptGame = null;
-            if (from == MenuMode.Pause)
-            {
+            if (from == MenuMode.Pause && GameBehind)
                 AutoSave(false);
-                keptGame = CanSave ? Snapshot(SaveKind.Auto) : null;
-            }
-            int seed = Environment.TickCount & 0xFFFFF;
-            StartCoroutine(Loading(Words.NewGameMap(seed), PreviewSteps(seed), () => hud.ShowNewGame(seed, difficulty)));
+            behindTitle = true;
+            setup = null;
+            MakeSetup(NewSeed(), SavedSize());
         }
 
-        /// <summary>Another map for the new game, or the one with the number typed.</summary>
-        void ShowMap(int seed)
+        /// <summary>The size the players chose last; the captures' and a first game's is the medium one.</summary>
+        MapSize SavedSize()
         {
-            if (!previewing || busy || loading || seed == state.World.Seed)
-                return;
-            Difficulty pace = hud.ChosenPace;
-            StartCoroutine(Loading(Words.NewGameMap(seed), PreviewSteps(seed), () => hud.ShowNewGame(seed, pace)));
+            int kept = captureDir == null ? PlayerPrefs.GetInt(SizeKey, (int)MapSize.Medium) : (int)MapSize.Medium;
+            return kept >= (int)MapSize.Small && kept <= (int)MapSize.Large ? (MapSize)kept : MapSize.Medium;
         }
 
-        /// <summary>«Начать»: the preview becomes the game, at the pace chosen, and the flag editor opens.</summary>
+        /// <summary>
+        /// The window waits while the map numbered <paramref name="seed"/> of <paramref name="size"/>
+        /// is made, then shows it; the same map again is shown at once.
+        /// </summary>
+        void MakeSetup(int seed, MapSize size)
+        {
+            if (busy || loading)
+                return;
+            Difficulty pace = hud.MenuOpen && hud.Mode == MenuMode.NewGame ? hud.ChosenPace : difficulty;
+            if (setup != null && setup.World.Seed == seed && WorldSettings.SizeOf(setup.World) == size)
+            {
+                hud.ShowNewGame(setup, size, pace);
+                return;
+            }
+            setup = null;
+            setupSeed = seed;
+            hud.ShowNewGame(null, size, pace);
+            StartCoroutine(MakeSetupSteps(seed, size, ++setupAsked));
+        }
+
+        /// <summary>
+        /// Makes the world aside from the frames, so the window stays alive while it is made, then
+        /// raises the players' flag on it; nothing of it is drawn.
+        /// </summary>
+        IEnumerator MakeSetupSteps(int seed, MapSize size, int asked)
+        {
+            // «Карта рисуется…» is on the display before the work.
+            yield return null;
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            WorldSettings settings = WorldSettings.Of(size);
+            Task<World> made = Task.Run(() => WorldGen.Generate(seed, settings));
+            while (!made.IsCompleted)
+                yield return null;
+            if (asked != setupAsked || !hud.MenuOpen || hud.Mode != MenuMode.NewGame)
+                yield break;
+            if (made.IsFaulted || made.IsCanceled)
+            {
+                Debug.LogException(made.Exception);
+                hud.Toast(Words.ProblemOf(SaveProblem.Damaged), 5f);
+                yield break;
+            }
+            World world = made.Result;
+            LoadFlag(world);
+            setup = new GameState(world) { Difficulty = hud.ChosenPace };
+            Debug.Log($"New game's map {seed} ({size}, {world.Width}×{world.Height}) made in {watch.ElapsedMilliseconds} ms");
+            hud.ShowNewGame(setup, size, hud.ChosenPace);
+        }
+
+        /// <summary>
+        /// «Изменить флаг» in the new game's window: the flag editor over it, the neighbours'
+        /// colours those of the map made. A new field renames and recolours only that map, which is
+        /// not drawn yet, so nothing hangs; the flag is kept for the next games.
+        /// </summary>
+        IEnumerator EditSetupFlag()
+        {
+            if (busy || loading || setup == null)
+                yield break;
+            GameState editing = setup;
+            World world = editing.World;
+            Country country = world.Countries[world.Player];
+            busy = true;
+            Hud.FlagDraft draft = null;
+            int choice = 1;
+            yield return AskAndWait(T("Флаг королевства", "Kingdom flag"), null,
+                T("Собери флаг своего королевства: узор, цвета и знак. Цвет поля станет цветом королевства на карте и даст ему имя.", "Make your kingdom's flag: a pattern, colours and an emblem. The field's colour becomes the kingdom's colour on the map and gives it its name."),
+                new[] { T("Поднять флаг", "Raise the flag"), T("Отмена", "Cancel") }, k => choice = k,
+                body => flagDraft = draft = hud.FlagEditor(body, country.Flag, world));
+            busy = false;
+            if (choice != 0 || draft == null || draft.Flag.Equals(country.Flag))
+                yield break;
+            Flags.Claim(world, world.Player, draft.Flag);
+            if (captureDir == null)
+            {
+                PlayerPrefs.SetString(FlagKey, draft.Flag.Code);
+                PlayerPrefs.Save();
+            }
+            if (setup == editing)
+                hud.ShowNewGame(setup, WorldSettings.SizeOf(world), hud.ChosenPace);
+        }
+
+        /// <summary>
+        /// «Играть»: the map made becomes the game, drawn under the loading screen at the pace
+        /// and size chosen, which are kept for the next game.
+        /// </summary>
         void StartGame()
         {
-            if (!previewing || busy || loading || state == null)
+            if (busy || loading || setup == null || !hud.MenuOpen || hud.Mode != MenuMode.NewGame)
                 return;
-            previewing = behindTitle = returnPending = false;
-            keptGame = null;
+            GameState started = setup;
+            setup = null;
+            setupAsked++;
             difficulty = hud.ChosenPace;
+            started.Difficulty = difficulty;
+            MapSize size = WorldSettings.SizeOf(started.World);
             if (captureDir == null)
             {
                 PlayerPrefs.SetInt(DifficultyKey, (int)difficulty);
+                PlayerPrefs.SetInt(SizeKey, (int)size);
                 PlayerPrefs.Save();
             }
-            state.Difficulty = difficulty;
-            gameId = NewGameId();
-            played = 0;
-            hud.ShowMenu(false);
-            if (captureDir == null)
-                StartCoroutine(EditFlag(true));
+            behindTitle = true;
+            returnPending = false;
+            World world = started.World;
+            string line = Words.NewGameLoading(world.Countries[world.Player].Label, world.Seed);
+            StartCoroutine(Loading(line, BeginSteps(started, null), GoIn));
         }
 
-        /// <summary>«Назад» (Esc): the game the screen replaced comes back to play; from the main menu, the main menu.</summary>
+        /// <summary>«Назад» (Esc): the menu over the game the window was opened from, or the main menu.</summary>
         void LeaveNewGame()
         {
             if (busy || loading)
                 return;
-            if (keptGame == null)
+            setup = null;
+            setupAsked++;
+            if (newGameFrom == MenuMode.Pause && GameBehind)
             {
-                if (newGameFrom == MenuMode.Title || previewing)
-                    ShowTitle();
-                else
-                {
-                    behindTitle = false;
-                    hud.ShowMenu(false);
-                }
-                return;
-            }
-            SaveGame kept = keptGame;
-            keptGame = null;
-            previewing = false;
-            restoring = true;
-            string line = Words.TitleContinueLine(Names.Shown(kept.Header.Kingdom), kept.Header.Turn);
-            StartCoroutine(Loading(line, BeginSteps(kept.State, kept), () =>
-            {
-                restoring = false;
                 behindTitle = false;
-                hud.ShowMenu(false);
-            }));
+                hud.ShowMenu(true);
+            }
+            else
+                ShowTitle();
         }
 
         /// <summary>«В главное меню»: the game keeps itself and waits behind the main menu.</summary>
@@ -292,8 +361,7 @@ namespace Realms
         /// <summary>A save read whole becomes the game under the loading screen, and the players go into it.</summary>
         void Open(SaveGame game)
         {
-            previewing = false;
-            keptGame = null;
+            setup = null;
             // Its return waits for the end of the loading (Resume behind the main menu).
             behindTitle = true;
             returnPending = false;
@@ -310,7 +378,7 @@ namespace Realms
                 ShowReturn();
         }
 
-        /// <summary>The main menu's gold button for Enter: «Начать», «Продолжить», or «Новая игра» with nothing to continue.</summary>
+        /// <summary>The main menu's gold button for Enter: «Играть», «Продолжить», or «Новая игра» with nothing to continue.</summary>
         void TitleEnter()
         {
             if (hud.Mode == MenuMode.NewGame)
@@ -323,7 +391,8 @@ namespace Realms
 
         /// <summary>
         /// The main menu's keys while no map is drawn behind it: the help (F1, H), Esc back from
-        /// a list of saves or out of the help, Enter on the gold button.
+        /// a list of saves, out of the help or out of the new game's window, Enter on the gold
+        /// button; a map's number being typed keeps its keys.
         /// </summary>
         void KeysWithoutGame()
         {
@@ -332,17 +401,17 @@ namespace Realms
             var keyboard = Keyboard.current;
             if (keyboard == null || hud.Modal)
                 return;
-            bool help = hud.HelpVisible;
-            if (keyboard.f1Key.wasPressedThisFrame || keyboard.hKey.wasPressedThisFrame)
+            bool help = hud.HelpVisible, typing = hud.Typing;
+            if (keyboard.f1Key.wasPressedThisFrame || (keyboard.hKey.wasPressedThisFrame && !typing))
                 hud.ToggleHelp(!help);
             else if (keyboard.escapeKey.wasPressedThisFrame)
             {
                 if (help)
                     hud.ToggleHelp(false);
-                else
-                    hud.CloseSaves();
+                else if (!hud.CloseMenuList() && hud.MenuOpen && hud.Mode == MenuMode.NewGame)
+                    LeaveNewGame();
             }
-            else if (!help && hud.MenuOpen && !hud.SavesOpen
+            else if (!help && !typing && hud.MenuOpen && !hud.MenuListOpen
                 && (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame))
                 TitleEnter();
         }

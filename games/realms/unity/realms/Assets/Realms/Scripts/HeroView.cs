@@ -22,6 +22,14 @@ namespace Realms
         /// <summary>Seconds for one step.</summary>
         public float stepTime = 0.24f;
 
+        /// <summary>
+        /// How far the dust under the hooves rolls out, a cell's radius being 1, how far behind the
+        /// figure's middle it rises (a ring round the middle stayed under the horse: nothing showed
+        /// in the capture of 2026-11-12), and the splash's colour.
+        /// </summary>
+        const float HoofDust = 0.24f, HoofBehind = 0.22f;
+        static readonly Color Splash = new Color(0.86f, 0.93f, 0.97f, 1f);
+
         static readonly Color Now = Palette.Hex("#F4EBD3"), Later = Palette.Hex("#E3AE56"), Fight = Palette.Hex("#C84D4A"),
             Edge = Palette.Hex("#2B2620");
 
@@ -194,6 +202,22 @@ namespace Realms
         /// </summary>
         public static float BannerSide(Vector2 stand) => stand.y < -0.3f ? 1f : stand.x > 0f ? -1f : 1f;
 
+        /// <summary>
+        /// Whether the chosen hero's ring stays off while a town's or hero's screen shows: on the
+        /// hero's screen it cut through the stones round him (the visual plan's problem 2, 2026-11-12).
+        /// </summary>
+        public bool RingHidden
+        {
+            get => ringHidden;
+            set
+            {
+                ringHidden = value;
+                if (ring != null)
+                    ring.SetActive(!value);
+            }
+        }
+        bool ringHidden;
+
         /// <summary>Lays the gold ring on the land under the hero, or takes it away.</summary>
         public void Choose(Hero hero)
         {
@@ -209,6 +233,7 @@ namespace Realms
             ring = Figures.Built(Ring(at), "Figure ring", Overlay(), root);
             ring.transform.localPosition = at;
             ring.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+            ring.SetActive(!ringHidden);
         }
 
         /// <summary>The prop material drawing over everything, after the land's objects (see <see cref="OverlayQueue"/>).</summary>
@@ -331,8 +356,12 @@ namespace Realms
             // Head first along the way.
             if (way.sqrMagnitude > 1e-4f)
                 figure.localRotation = Quaternion.Euler(0f, Mathf.Atan2(-way.x, -way.z) * Mathf.Rad2Deg + Figures.HeroFacing(art), 0f);
+            Flutter flutter = figure.GetComponent<Flutter>();
+            if (flutter == null)
+                flutter = figure.gameObject.AddComponent<Flutter>();
             for (float t = 0f; t < 1f; t += Time.deltaTime / stepTime)
             {
+                flutter.Kick();
                 Vector3 p = Vector3.Lerp(from, to, t);
                 p.y = Mathf.Max(view.Field.Height(p.x, p.z), 0f) + 0.07f * Mathf.Sin(Mathf.PI * t);
                 figure.localPosition = p;
@@ -342,6 +371,21 @@ namespace Realms
             }
             figure.localPosition = to;
             Choose(chosen);
+            // A step where the hero lands: grass and woods, stone on hills and roads, sand by the water.
+            Cell c = state.World.Cells[cell];
+            Sfx step = c.Roads != 0 || c.Biome is Biome.Hills or Biome.Mountains ? Sfx.StepStone
+                : c.Biome is Biome.Beach or Biome.Shallows ? Sfx.StepSand : Sfx.StepGrass;
+            if (!Sounds.Has(step))
+                step = Sfx.StepGrass;
+            Sounds.PlayAt(step, to);
+            // A little dust at the hind hooves, a splash in the shallows (the visual plan's proposal 3).
+            Vector3 back = figure.parent != null ? figure.parent.TransformDirection(way) : way;
+            back.y = 0f;
+            Vector3 hooves = figure.position - (back.sqrMagnitude > 1e-6f ? back.normalized * HoofBehind : Vector3.zero);
+            if (c.Biome == Biome.Shallows)
+                Puffs.Ring(hooves, HoofDust * 1.2f, 7, Splash);
+            else
+                Puffs.Ring(hooves, HoofDust, 6);
         }
 
         /// <summary>
@@ -359,7 +403,8 @@ namespace Realms
             var kit = new MeshKit();
             var rng = new Rng(5);
             int last = way.Cells.Count - 1;
-            bool fight = world.Cells[way.Target].Monster != Monster.None;
+            // What waits at a goal in the fog is not known.
+            bool fight = state.Seen[way.Target] && world.Cells[way.Target].Monster != Monster.None;
             // Where this turn's move ends, when the way goes on after it.
             int stop = -1;
             if (way.Turns[last] > 0)

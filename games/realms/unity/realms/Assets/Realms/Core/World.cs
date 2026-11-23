@@ -152,6 +152,16 @@ namespace Realms.Core
 
         /// <summary>Whether the town found no wild cell to take at the end of the last turn.</summary>
         public bool LandFull;
+
+        /// <summary>The stages of the Great Build the town raised, 0 to <see cref="GreatBuild.Stages"/> (a capital's only).</summary>
+        public int BuildStage;
+
+        /// <summary>
+        /// The town place the Great Build stands on from its first stage (see <see cref="Towns.Layout"/>),
+        /// or -1: before the first stage, or raised in a save older than the place, where the
+        /// layout gives it the first place left free.
+        /// </summary>
+        public int BuildPlace = -1;
     }
 
     public sealed class Country

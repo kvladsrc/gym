@@ -123,10 +123,11 @@ namespace Realms
             bool any = false;
             foreach (Renderer r in figure.GetComponentsInChildren<Renderer>())
             {
+                // A skinned creature's own box is roomy for its moves: the mesh itself is framed.
                 if (!any)
-                    bounds = r.bounds;
+                    bounds = Figures.BoundsOf(r);
                 else
-                    bounds.Encapsulate(r.bounds);
+                    bounds.Encapsulate(Figures.BoundsOf(r));
                 any = true;
             }
             Vector3 min = bounds.min, max = bounds.max;

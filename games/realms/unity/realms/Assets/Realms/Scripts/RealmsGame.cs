@@ -64,6 +64,30 @@ namespace Realms
                 if (args[i] == "-realmsPromo")
                     captureDir = promoDir = args[i + 1];
             }
+            // Sound (the sound plan of 2026-11-11 with its fal.ai changes of 2026-11-12): silent
+            // in batchmode, the captures and the promo unless -realmsSound asks for it, and the
+            // captures write every sound played to sounds.log beside their frames; a silent
+            // capture also records its mix, unheard, to mix.wav.
+            Sounds.Create(gameObject);
+            Music.Create(gameObject);
+            Ambience.Create(gameObject);
+            bool silent = (Application.isBatchMode || captureDir != null) && Array.IndexOf(args, "-realmsSound") < 0;
+            if (silent)
+                AudioListener.volume = 0f;
+            // The captures and the promo show the game as it comes: the settings' defaults for this
+            // run, the players' own kept as they are.
+            if (captureDir != null)
+                GameSettings.UseDefaultsForThisRun();
+            if (captureDir != null)
+            {
+                Sounds.LogPath = System.IO.Path.Combine(captureDir, "sounds.log");
+                if (silent && !Application.isBatchMode)
+                {
+                    // The plan's mix numbers are for the sliders' defaults.
+                    SoundSettings.UseDefaultsForThisRun();
+                    MixRecorder.Attach(System.IO.Path.Combine(captureDir, "mix.wav"));
+                }
+            }
             if (captureDir == null)
             {
                 int kept = PlayerPrefs.GetInt(DifficultyKey, (int)Difficulty.Normal);
@@ -95,20 +119,26 @@ namespace Realms
             hud.QuitPicked += Quit;
             hud.SavePicked += ShowSaveList;
             hud.LoadPicked += ShowLoadList;
+            hud.SettingsPicked += hud.ShowSettings;
+            hud.AboutPicked += ShowAbout;
+            hud.HintsAgainPicked += GuideAgain;
             hud.Help += () => hud.ToggleHelp(!hud.HelpVisible);
             hud.MinimapPoint += p => mapCamera.FocusKeepZoom(p);
             hud.KingdomPicked += FocusKingdom;
             hud.CityPicked += FocusCity;
             hud.BuildField += cell =>
             {
-                if (Done(state.Build(state.World.Player, cell), cell))
+                Stock income = Economy.Income(state.World, state.World.Player);
+                if (Done(state.Build(state.World.Player, cell), cell, null, income))
                     LearnBuild();
             };
             hud.BuildTown += (city, building) =>
             {
-                if (Done(state.Build(state.World.Player, city, building), state.World.Cities[city].Cell, building))
+                Stock income = Economy.Income(state.World, state.World.Player);
+                if (Done(state.Build(state.World.Player, city, building), state.World.Cities[city].Cell, building, income))
                     Learn(Learned.TownBuild);
             };
+            hud.RaiseBuild += city => RaiseStage(city);
             hud.ExpandTown += ExpandTown;
             hud.PlaceStake += PlaceStake;
             hud.HeroPicked += index => ChooseHero(state.Heroes[index], true);
@@ -167,11 +197,11 @@ namespace Realms
         /// </summary>
         void Quit() => Application.Quit();
 
-        /// <summary>A new game on the map with the number; the game left keeps itself first.</summary>
-        void NewWorld(int seed)
+        /// <summary>A new game on the map with the number (-seed, the captures); the game left keeps itself first.</summary>
+        void NewWorld(int seed, MapSize size = MapSize.Medium)
         {
             AutoSave(false);
-            World world = WorldGen.Generate(seed);
+            World world = WorldGen.Generate(seed, WorldSettings.Of(size));
             LoadFlag(world);
             Begin(new GameState(world) { Difficulty = difficulty }, null);
         }
@@ -195,7 +225,7 @@ namespace Realms
         {
             if (battleView.Active)
                 battleView.Close();
-            // Behind the main menu or the new game's screen the column stays.
+            // Behind the main menu or the new game's window the menu stays, under the loading screen.
             if (!behindTitle)
                 hud.ShowMenu(false);
             LeaveScreen();
@@ -207,6 +237,8 @@ namespace Realms
             foreach (float part in view.ShowSteps(world, art))
                 yield return 0.95f * part;
             view.SetSeen(state.Seen, true);
+            // The ambience weighs the land in view, and counts the unseen as fog.
+            Ambience.Bind(view, mapCamera, cell => state != null && cell >= 0 && cell < state.Seen.Length && state.Seen[cell]);
             RenderPortraits();
             heroes.Show(state, view, art, view.propMaterial);
             mapCamera.SetBounds(new Rect(world.MinX + 2f, world.MinZ + 1f, world.MaxX - world.MinX - 4f, world.MaxZ - world.MinZ - 2f));
@@ -231,10 +263,8 @@ namespace Realms
             ChooseHero(mine.Count > 0 ? mine[0] : null, false);
             FocusCapital(26f, true);
             // The map's number is in the menu now, and the guiding lines show the way (the
-            // interface plan's 3.3): no greeting toast. A new game's preview asks for the flag
-            // once it is started (RealmsTitle.StartGame).
-            if (captureDir == null && !behindTitle)
-                StartCoroutine(EditFlag(true));
+            // interface plan's 3.3): no greeting toast. The flag was chosen in the new game's
+            // window before the map was drawn (RealmsTitle.EditSetupFlag).
             yield return 1f;
         }
 
@@ -265,12 +295,45 @@ namespace Realms
             mapCamera.Focus(mapCamera.Nearer(new Vector2(state.World.CenterX(city.Cell), state.World.CenterZ(city.Cell)), 0.6f), Mathf.Min(mapCamera.Distance, 18f));
         }
 
+        /// <summary>
+        /// Where the players are, for the ambience and the music (the sound plan's П5 and П6):
+        /// the main menu, the map, a town or the hero screen, a battle; how far the camera is,
+        /// and whether anyone is at the game (the music rests after six minutes without input).
+        /// </summary>
+        void SoundPlace()
+        {
+            Ambience.Place place = loading ? Ambience.Place.Off
+                : behindTitle ? Ambience.Place.Menu
+                : state == null ? Ambience.Place.Off
+                : battleView.Active ? Ambience.Place.Battle
+                : mode == Mode.Town ? Ambience.Place.Town
+                : mode == Mode.Hero ? Ambience.Place.Hero
+                : Ambience.Place.Map;
+            Ambience.Now = place;
+            if (place == Ambience.Place.Menu)
+                Music.Menu();
+            else if (place is Ambience.Place.Map or Ambience.Place.Town or Ambience.Place.Hero)
+                Music.Map();
+            else if (place == Ambience.Place.Off)
+                Music.Stop();
+            Sounds.Far = Mathf.InverseLerp(mapCamera.minDistance, mapCamera.maxDistance, mapCamera.Distance);
+            var keyboard = Keyboard.current;
+            var mouse = Mouse.current;
+            if ((keyboard != null && keyboard.anyKey.wasPressedThisFrame)
+                || (mouse != null && (mouse.rightButton.wasPressedThisFrame || mouse.scroll.ReadValue().y != 0f)))
+                Sounds.Touch();
+        }
+
         void EndTurn()
         {
             if (busy)
                 return;
             // «Следующий ход» stays in the top bar beside the menu: a click on it closes the menu.
             hud.ShowMenu(false);
+            // The last turn's show ends before the next one's begins.
+            hud.FinishTurnShow();
+            Rise.FinishAll();
+            Stock before = state.Treasury[state.World.Player];
             var watch = System.Diagnostics.Stopwatch.StartNew();
             TurnReport report = state.EndTurn();
             long played = watch.ElapsedMilliseconds;
@@ -279,7 +342,24 @@ namespace Realms
             // again, as the players' own towns do.
             var changed = new List<int>(report.Changed);
             changed.AddRange(report.Reshaped);
-            bool laid = view.Refresh(changed);
+            // The towns' new houses wait flat and rise one after another, in the turn's show.
+            List<(int City, bool Level)> grown = Grown(report);
+            PropBuilder props = view.Props;
+            props.RisingHouses = new Dictionary<int, (int From, float Delay)>();
+            for (int i = 0; i < grown.Count; i++)
+            {
+                City city = state.World.Cities[grown[i].City];
+                props.RisingHouses[city.Index] = (city.Houses - 1, Hud.FirstHouse + i * Hud.HouseGap);
+            }
+            bool laid;
+            try
+            {
+                laid = view.Refresh(changed);
+            }
+            finally
+            {
+                props.RisingHouses = null;
+            }
             if (laid)
                 heroes.Refresh();
             var taken = new List<int>();
@@ -299,6 +379,16 @@ namespace Realms
             hud.WorldChanged();
             hud.RefreshInfo();
             hud.ShowReport(report);
+            hud.ShowTurn(before, report.Income, grown);
+            // The gems the turn set fly into the crown with the day's events (the visual plan's 12).
+            var gems = new List<Gem>();
+            foreach (TurnEvent e in report.Events)
+            {
+                if (e.Kind == TurnEventKind.GemSet && e.Country == state.World.Player)
+                    gems.Add(e.Gem);
+            }
+            hud.GemsThisTurn(gems);
+            TurnSounds(report);
             lastReport = report;
             AutoSave();
             ShowCrownEnd();
@@ -308,37 +398,128 @@ namespace Realms
         }
 
         /// <summary>
-        /// After a build: show the cell again, the new building rising out of the ground (a town's
-        /// <paramref name="building"/>, or else the field building on the cell), pay the tasks it
-        /// finished, or say why it failed; true when built.
+        /// The players' towns that got a house this turn, with whether each reached a new level:
+        /// those in view first, the nearest to the middle of the screen first, so that the houses
+        /// the players look at rise first.
         /// </summary>
-        bool Done(Refusal refusal, int cell, TownBuilding? building = null)
+        List<(int City, bool Level)> Grown(TurnReport report)
+        {
+            var grown = new List<(int City, bool Level, float Away)>();
+            Camera eye = Camera.main;
+            foreach (TurnEvent e in report.Events)
+            {
+                if (e.Kind != TurnEventKind.Grew && e.Kind != TurnEventKind.LevelUp)
+                    continue;
+                int cell = state.World.Cities[e.City].Cell;
+                float x = state.World.CenterX(cell), z = state.World.CenterZ(cell);
+                float away = 100f;
+                if (eye != null)
+                {
+                    Vector3 v = eye.WorldToViewportPoint(new Vector3(x, view.Field.Height(x, z), z));
+                    bool seen = v.z > 0f && v.x > 0f && v.x < 1f && v.y > 0f && v.y < 1f;
+                    away = (new Vector2(v.x, v.y) - new Vector2(0.5f, 0.5f)).sqrMagnitude + (seen ? 0f : 10f);
+                }
+                grown.Add((e.City, e.Kind == TurnEventKind.LevelUp, away));
+            }
+            grown.Sort((a, b) => a.Away.CompareTo(b.Away));
+            return grown.ConvertAll(g => (g.City, g.Level));
+        }
+
+        /// <summary>
+        /// Any key or click ends the turn's show and every rising building at once: the show never
+        /// keeps the players waiting (the visual plan of 2026-11-11). The frame the show began on
+        /// does not end it.
+        /// </summary>
+        void CutShows(Keyboard keyboard, Mouse mouse)
+        {
+            if (!hud.TurnShowing && !Rise.Any)
+                return;
+            bool pressed = (keyboard != null && keyboard.anyKey.wasPressedThisFrame)
+                || (mouse != null && (mouse.leftButton.wasPressedThisFrame || mouse.rightButton.wasPressedThisFrame
+                    || mouse.middleButton.wasPressedThisFrame));
+            if (!pressed || Time.frameCount == hud.TurnShowFrame)
+                return;
+            hud.FinishTurnShow();
+            Rise.FinishAll();
+        }
+
+        /// <summary>
+        /// After a build: show the cell again, the new building rising out of the ground (a town's
+        /// <paramref name="building"/>, or else the field building on the cell), what it adds to the
+        /// income over it when <paramref name="incomeBefore"/> is given, pay the tasks it finished,
+        /// or say why it failed; true when built.
+        /// </summary>
+        bool Done(Refusal refusal, int cell, TownBuilding? building = null, Stock? incomeBefore = null)
+        {
+            return Done(refusal, cell, building, incomeBefore, -1);
+        }
+
+        /// <summary>
+        /// The players raise the next stage of the capital's Great Build: it grows on the map out
+        /// of the stage below (PropBuilder.RisingStage), and its gold floats up as a building's does.
+        /// </summary>
+        bool RaiseStage(int city)
+        {
+            Stock income = Economy.Income(state.World, state.World.Player);
+            return Done(state.RaiseBuild(state.World.Player, city), state.World.Cities[city].Cell, null, income, city);
+        }
+
+        /// <summary>As the other Done; <paramref name="stageTown"/> is the capital whose Great Build just rose a stage, or -1.</summary>
+        bool Done(Refusal refusal, int cell, TownBuilding? building, Stock? incomeBefore, int stageTown)
         {
             if (refusal != Refusal.None)
             {
+                Sounds.Play(Sfx.ClickOff);
                 hud.Toast(Words.Refusal(refusal));
                 return false;
             }
+            Sounds.Play(BuildSound(state.World, cell, building));
             // A town's new building may stand on any of its cells.
             int town = state.World.Cells[cell].City;
             var changed = new List<int> { cell };
             if (town >= 0)
                 changed.AddRange(state.World.Cities[town].Districts);
             PropBuilder props = view.Props;
-            props.RisingCell = building == null ? cell : -1;
+            props.RisingCell = building == null && stageTown < 0 ? cell : -1;
             props.RisingTown = building != null ? town : -1;
             props.RisingBuilding = building ?? default;
+            props.RisingStage = stageTown;
             bool laid = view.Refresh(changed);
-            props.RisingCell = props.RisingTown = -1;
+            props.RisingCell = props.RisingTown = props.RisingStage = -1;
             if (laid)
                 heroes.Refresh();
+            if (incomeBefore.HasValue)
+                FloatIncome(incomeBefore.Value, cell);
             List<Quest> finished = state.CheckQuests();
             hud.Refresh();
             hud.RefreshInfo();
             if (finished.Count > 0)
-                hud.Toast(Words.QuestDone(finished[0]), 5f);
+                QuestToasts(finished);
             CrownAfterDeed();
             return true;
+        }
+
+        /// <summary>
+        /// «+2 еды за ход» rising over a new building: what it adds to the kingdom's income (the
+        /// interface plan's 3.4 of 2026-11-11), so the players see what the build was for.
+        /// </summary>
+        void FloatIncome(Stock before, int cell)
+        {
+            Stock gain = Economy.Income(state.World, state.World.Player) - before;
+            Stock[] goods = { new Stock(gain.Gold, 0, 0, 0), new Stock(0, gain.Food, 0, 0), new Stock(0, 0, gain.Wood, 0), new Stock(0, 0, 0, gain.Stone) };
+            var parts = new List<string>();
+            foreach (Stock one in goods)
+            {
+                string words = Words.Goods(one);
+                if (words.Length > 0)
+                    parts.Add("+" + words);
+            }
+            if (parts.Count == 0)
+                return;
+            string all = string.Join(", ", parts);
+            float x = state.World.CenterX(cell), z = state.World.CenterZ(cell);
+            var point = new Vector3(x, view.Field.Height(x, z) + 0.45f, z);
+            hud.Float(T($"{all} за ход", $"{all} a turn"), "float-income", point, 1.8f, hud.AboveName(point, cell));
         }
 
         /// <summary>
@@ -353,9 +534,11 @@ namespace Realms
             int player = world.Player;
             if (!state.SetStake(player, cell))
             {
+                Sounds.Play(Sfx.ClickOff);
                 hud.Toast(Words.StakeRefused);
                 return;
             }
+            Sounds.Play(cell >= 0 ? Sfx.Stake : Sfx.Back);
             view.UpdateMarks();
             if (cell >= 0)
                 Learn(Learned.Stake);
@@ -363,7 +546,7 @@ namespace Realms
             hud.Refresh();
             hud.RefreshInfo();
             if (finished.Count > 0)
-                hud.Toast(Words.QuestDone(finished[0]), 5f);
+                QuestToasts(finished);
             else if (cell < 0)
                 hud.Toast(Words.StakeToast(null, 0));
             else
@@ -394,6 +577,7 @@ namespace Realms
 
         void Update()
         {
+            SoundPlace();
             // Under the loading screen a map is being drawn: nothing takes input.
             if (loading)
                 return;
@@ -415,6 +599,7 @@ namespace Realms
 
             var keyboard = Keyboard.current;
             var mouse = Mouse.current;
+            CutShows(keyboard, mouse);
             bool help = hud.HelpVisible, modal = hud.Modal, menu = hud.MenuOpen;
             mapCamera.KeyboardBlocked = help || modal || menu;
             if (OnScreen)
@@ -440,8 +625,8 @@ namespace Realms
                     else if (menu)
                     {
                         // A list of saves goes back to the menu's buttons first; the new game's
-                        // screen goes back; the main menu has nothing to go back to.
-                        if (!hud.CloseSaves())
+                        // window goes back; the main menu has nothing to go back to.
+                        if (!hud.CloseMenuList())
                         {
                             if (hud.Mode == MenuMode.NewGame)
                                 LeaveNewGame();
@@ -452,7 +637,7 @@ namespace Realms
                     else if (!hud.CloseLists() && !Back() && !busy)
                         hud.ShowMenu(true);
                 }
-                else if (title && enter && !help && !typing && !hud.SavesOpen)
+                else if (title && enter && !help && !typing && !hud.MenuListOpen)
                     TitleEnter();
                 else if (!help && !menu && !busy)
                 {
@@ -466,6 +651,8 @@ namespace Realms
                         mapCamera.FaceDefault();
                     if (keyboard.kKey.wasPressedThisFrame)
                         hud.ToggleKingdoms();
+                    if (keyboard.cKey.wasPressedThisFrame)
+                        hud.ShowEvents();
                     if (keyboard.fKey.wasPressedThisFrame)
                         NextHero();
                     if (keyboard.tKey.wasPressedThisFrame)

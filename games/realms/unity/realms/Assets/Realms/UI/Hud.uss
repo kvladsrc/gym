@@ -48,10 +48,18 @@
     border-bottom-color: #6B5A3E;
 }
 
-/* The kingdom's name gives way last: the task beside it shortens first. */
+/* The kingdom's name gives way first when the bar is short (a narrower screen, a larger
+   interface): the treasury, the season and the buttons keep their size. */
+.top-bar > * {
+    flex-shrink: 0;
+}
+
+.top-bar > .kingdom {
+    flex-shrink: 1;
+}
+
 .kingdom {
     flex-direction: row;
-    flex-shrink: 0.3;
     min-width: 60px;
     align-items: center;
     margin-right: 18px;
@@ -843,7 +851,8 @@
     flex-shrink: 1;
 }
 
-.quests .halo-under {
+.quests .halo-under,
+.events .halo-under {
     position: absolute;
     left: 0;
     top: 0;
@@ -855,7 +864,8 @@
     text-shadow: 0 1px 6px rgba(21, 19, 15, 0.68);
 }
 
-.quests .halo-over {
+.quests .halo-over,
+.events .halo-over {
     -unity-text-outline-width: 0;
     text-shadow: 0 0 0 rgba(0, 0, 0, 0);
 }
@@ -904,44 +914,138 @@
     display: flex;
 }
 
-/* ----- Turn report ----- */
+/* ----- The day's events ----- */
 
-.report {
+/* Along the right edge, as the tasks are along the left: lines over the map without a window,
+   under the button that opens the last turns' events. The players asked for them so (2026-11-12)
+   instead of the report window in the middle, which covered the map and faded. A line ends in its
+   icon at the edge, so the icons stand in one column as the tasks' do. */
+.events {
     position: absolute;
-    top: 66px;
-    left: 50%;
-    translate: -50% 0;
-    width: 560px;
-    padding: 12px 18px 14px 18px;
-    background-color: #1E1C1A;
-    border-radius: 0;
-    border-left-width: 3px;
-    border-right-width: 3px;
-    border-bottom-width: 3px;
-    border-left-color: #6B5A3E;
-    border-right-color: #6B5A3E;
-    border-bottom-color: #6B5A3E;
+    top: 76px;
+    right: 18px;
+    max-width: 540px;
+    align-items: flex-end;
 }
 
-.report-title {
-    font-size: 22px;
-    color: #E9E1CF;
+.events-button {
+    height: 40px;
+    margin: 0 0 8px 0;
+    padding: 0 12px 0 16px;
+}
+
+.events-button .button-caption {
+    font-size: 17px;
+}
+
+.events-button .key-hint-dark {
+    margin-left: 8px;
+}
+
+.events-rows {
+    align-items: flex-end;
+}
+
+.event {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
     margin-bottom: 4px;
+    padding: 1px 4px;
 }
 
-.report-row {
+.event-link:hover {
+    background-color: rgba(21, 19, 15, 0.38);
+}
+
+.event-body {
+    flex-direction: row;
+    flex-shrink: 1;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.event-icon {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    margin-left: 8px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.event-text,
+.event-title,
+.event-more {
+    flex-shrink: 1;
+    font-size: 17px;
+    color: #FFFAF0;
+    white-space: normal;
+    -unity-text-align: upper-right;
+}
+
+.event-title {
+    font-size: 19px;
+}
+
+.event-more {
+    font-size: 15px;
+    color: #F6E2AA;
+}
+
+.events .event-warn {
+    color: #F4BE8E;
+}
+
+.event .reward,
+.event .cost {
+    margin-left: 8px;
+    padding: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.event .reward-text,
+.event .cost-text {
+    font-size: 16px;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: #15130F;
+    text-shadow: 1px 2px 4px rgba(21, 19, 15, 0.8);
+}
+
+/* Pale gold, not green: green figures vanish over the grass. */
+.event .reward-text {
+    color: #F6E2AA;
+}
+
+.event .cost-text {
+    color: #F4BE8E;
+}
+
+/* The dialog: the last turns, the newest first, as the report window showed one. */
+.events-log {
+    max-height: 600px;
+    min-width: 600px;
+}
+
+.events-day {
+    font-size: 20px;
+    color: #E9E1CF;
+    margin-top: 14px;
+    margin-bottom: 2px;
+}
+
+.log-row {
     flex-direction: row;
     align-items: center;
     margin-top: 4px;
     padding: 2px 6px;
-    border-radius: 3px;
+    border-radius: 0;
 }
 
-.report-link:hover {
+.log-link:hover {
     background-color: rgba(201, 154, 69, 0.22);
 }
 
-.report-icon {
+.log-icon {
     flex-shrink: 0;
     width: 28px;
     height: 28px;
@@ -949,14 +1053,14 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
-.report-text {
+.log-text {
     flex-shrink: 1;
-    font-size: 15px;
+    font-size: 16px;
     color: #E9E1CF;
     white-space: normal;
 }
 
-.report-warn {
+.log-warn {
     color: #DB8A4E;
 }
 
@@ -1024,9 +1128,8 @@
 
 /* ----- Messages and help ----- */
 
-/* Bottom centre above the dock: the report has the top. */
-/* Messages drop from under the top bar (Hud moves them below the turn report while it shows),
-   clear of the map's middle and the bottom panel. */
+/* Messages drop from under the top bar between the tasks and the day's events, clear of the
+   map's middle and the bottom panel. */
 .toast {
     position: absolute;
     top: 72px;
@@ -1133,7 +1236,7 @@
 
 /* The help's page tabs keep to the left, not across the whole card. */
 .help-tabs {
-    width: 620px;
+    width: 820px;
     margin-top: 10px;
 }
 
@@ -1884,44 +1987,6 @@
     min-width: 150px;
 }
 
-/* The neighbours' pace in the new game's question: the chosen one gold, like a toggle that is on. */
-.difficulty-title {
-    font-size: 17px;
-    color: #E9E1CF;
-    margin-top: 4px;
-}
-
-.difficulty-row {
-    flex-direction: row;
-    margin-top: 6px;
-}
-
-.difficulty-row > .button {
-    flex-grow: 1;
-    flex-basis: 0;
-    margin: 0 4px;
-}
-
-.difficulty-row > .button.button-on {
-    background-color: #C99A45;
-    border-bottom-color: #8E6A2B;
-}
-
-.difficulty-row > .button.button-on:hover {
-    background-color: #D6A853;
-}
-
-.difficulty-row > .button.button-on .button-caption {
-    color: #241A0C;
-}
-
-.difficulty-note {
-    font-size: 15px;
-    color: #CFC5B2;
-    margin-top: 8px;
-    white-space: normal;
-}
-
 /* ----- The flag editor (a wide dialog) ----- */
 
 .modal-wide {
@@ -2106,6 +2171,16 @@
     border-color: #CDBF9F;
 }
 
+/* A lost fight: the plates left go grey, quietly (the visual plan's proposal 7); BattleView greys
+   the rims, which the players' plates have inline. */
+.battle-count-lost {
+    color: #ABA59A;
+    background-color: #34312E;
+    border-color: #6E685F;
+    transition-property: color, background-color;
+    transition-duration: 0.5s;
+}
+
 .float {
     position: absolute;
     translate: -50% -100%;
@@ -2137,10 +2212,81 @@
     font-size: 22px;
 }
 
+/* A strike with a run-up (the combat plan's 3.3): the same number, bigger. */
+.float-runup {
+    font-size: 56px;
+}
+
+/* The spears' cover struck first (the combat plan's 3.3): the shout in pale steel. */
+.float-cover {
+    color: #E6EDF2;
+    font-size: 26px;
+}
+
+/* The hero's order over the hero at the field's edge (the combat plan's 3.4): warm gold, bigger. */
+.float-order {
+    color: #F2DFA6;
+    font-size: 34px;
+}
+
+/* The gold of the chest a stack took on the field («Добыча»): warm gold, as the reward chips. */
+.float-chest {
+    color: #F2D27A;
+    font-size: 30px;
+}
+
+/* The order button once the order is given, or while it cannot be: dark. */
+.battle-order:disabled {
+    opacity: 0.4;
+}
+
+/* A stack under its spearmen's cover: a small shield to the left of its plate. */
+.battle-count-shield {
+    position: absolute;
+    left: -24px;
+    top: 1px;
+    width: 20px;
+    height: 20px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
 /* The monsters offer to give up: a pale parchment colour, as a white flag. */
 .float-yield {
     color: #F4ECD6;
     font-size: 24px;
+}
+
+/* What a new building adds to the income, in the task rewards' pale gold. */
+.float-income {
+    color: #F3DC8C;
+    font-size: 24px;
+}
+
+/* «+1 дом» over a town as its new house rises at the turn's end. */
+.float-house {
+    color: #F6EBD0;
+    font-size: 24px;
+}
+
+/* ----- The turn's show (HudTurn.cs) ----- */
+
+/* Over the top bar, which the income's chips fly into; it takes no clicks. */
+.turn-chips {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* A chip of the income on its way from a town to the treasury, centred on its anchor. */
+.turn-chip {
+    position: absolute;
+    left: -18px;
+    top: -18px;
+    width: 36px;
+    height: 36px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 /* ----- The battle ----- */
@@ -2148,7 +2294,7 @@
 /* The map's panels step aside during a battle (their display is set in code, so visibility). */
 .in-battle .top-bar,
 .in-battle .quests,
-.in-battle .report,
+.in-battle .events,
 .in-battle .kingdoms,
 .in-battle .dock,
 .in-battle .labels {
@@ -2351,7 +2497,7 @@
 
 /* The map's panels step aside while a screen is open; the top bar stays for the treasury. */
 .on-screen .quests,
-.on-screen .report,
+.on-screen .events,
 .on-screen .kingdoms,
 .on-screen .dock,
 .on-screen .labels,
@@ -2875,8 +3021,7 @@
 }
 
 .button-primary,
-.button-round.button-on,
-.difficulty-row > .button.button-on {
+.button-round.button-on {
     border-radius: 0;
     border-bottom-width: 0;
     background-image: url("Art/button_main.png");
@@ -2888,8 +3033,7 @@
 }
 
 .button-primary:hover,
-.button-round.button-on:hover,
-.difficulty-row > .button.button-on:hover {
+.button-round.button-on:hover {
     -unity-background-image-tint-color: rgb(255, 255, 255);
 }
 
@@ -3090,9 +3234,25 @@
     top: 0;
 }
 
+/* The players' crown is celebrated over their towns (RealmsCrown.Parade): the map's panels
+   step aside for it, the top bar with the crown stays. */
+.on-parade .quests,
+.on-parade .events,
+.on-parade .kingdoms,
+.on-parade .dock {
+    visibility: hidden;
+}
+
+/* A gem flying from the capital into its socket in the bar's crown (Hud.FlyGem); placed and
+   sized each frame. */
+.gem-flight {
+    position: absolute;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
 /* The map's and the battle's panels step aside while the menu is open. */
 .on-menu .quests,
-.on-menu .report,
+.on-menu .events,
 .on-menu .kingdoms,
 .on-menu .dock,
 .on-menu .battle-top,
@@ -3310,6 +3470,7 @@
 .gem-plain-2,
 .gem-plain-3,
 .gem-plain-4,
+.gem-plain-5,
 .gem-plain-socket {
     rotate: 45deg;
     scale: 0.66 0.66;
@@ -3336,6 +3497,10 @@
 
 .gem-plain-4 {
     background-color: #7D5A9E;
+}
+
+.gem-plain-5 {
+    background-color: #E6E8EC;
 }
 
 .gem-plain-socket {
@@ -3484,7 +3649,7 @@
     left: 0;
     right: 0;
     width: auto;
-    padding: 96px 0 0 0;
+    padding: 96px 0 24px 0;
     align-items: center;
     background-color: rgba(0, 0, 0, 0);
     border-right-width: 0;
@@ -3502,7 +3667,11 @@
     -unity-background-scale-mode: scale-to-fit;
 }
 
+/* With a larger interface (the settings' 115 and 130 %) the logo gives way, so that the buttons
+   stay on the screen. */
 .title-logo {
+    flex-shrink: 1;
+    min-height: 160px;
     align-items: center;
     justify-content: center;
     margin-bottom: 22px;
@@ -3622,43 +3791,170 @@
     padding: 0;
 }
 
-.new-game-map {
-    font-size: 22px;
-    color: #E9E1CF;
-    margin: 0 0 12px 2px;
+/* The new game's window (2026-11-12): a dark panel over the main menu's picture, in its middle,
+   like the settings there. The kingdom with its shield and «Изменить флаг»; the map's picture
+   beside its number, «Другая карта» and a number to type; the size's and the pace's strips with
+   a line each; «Играть» and «Назад». */
+.on-main .new-game {
+    width: 780px;
+    flex-grow: 0;
+    flex-shrink: 1;
+    max-height: 2000px;
+    padding: 18px 24px 14px 24px;
+}
+
+.on-main.on-new-game .menu {
+    justify-content: center;
+    padding: 30px 0 30px 0;
+}
+
+.new-game-kingdom {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    margin: 4px 0 2px 0;
+}
+
+.new-game-shield {
+    flex-shrink: 0;
+    width: 74px;
+    height: 84px;
+    margin-right: 16px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.new-game-kingdom-words {
+    flex-grow: 1;
+    flex-shrink: 1;
+    align-items: flex-start;
+}
+
+.new-game-kingdom-name {
+    font-size: 24px;
+    color: #F2E6C8;
+    margin: 0;
     padding: 0;
 }
 
+.new-game-note {
+    font-size: 14px;
+    color: #A89F8E;
+    margin: 2px 0 6px 0;
+    padding: 0;
+    white-space: normal;
+}
+
+.menu .new-game-flag {
+    margin: 0;
+}
+
+.new-game-map-row {
+    flex-direction: row;
+    flex-shrink: 0;
+    align-items: flex-start;
+}
+
+/* The map's picture: its own size, so the panel does not jump while a map is made. */
+.new-game-picture {
+    flex-shrink: 0;
+    width: 400px;
+    height: 208px;
+    margin-right: 18px;
+    align-items: center;
+    justify-content: center;
+    background-color: #12100E;
+    border-width: 2px;
+    border-color: #4A3A28;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.new-game-picture-note {
+    font-size: 16px;
+    color: #C9BBA0;
+    margin: 0;
+    padding: 0;
+}
+
+.new-game-map-side {
+    flex-grow: 1;
+    flex-shrink: 1;
+    align-items: stretch;
+}
+
+.new-game-map {
+    font-size: 22px;
+    color: #E9E1CF;
+    margin: 0 0 8px 0;
+    padding: 0;
+}
+
+.menu .new-game-other {
+    margin: 0 0 12px 0;
+}
+
 .new-game-label {
-    font-size: 15px;
+    font-size: 14px;
     color: #B9AF9C;
-    margin: 2px 0 0 2px;
+    margin: 0;
     padding: 0;
 }
 
 .new-game-number {
     flex-direction: row;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 
 .new-game-number > .number-field {
     flex-grow: 1;
-    margin: 6px 10px 0 0;
+    margin: 6px 0 0 0;
 }
 
-.new-game-number > .button {
-    height: 50px;
+.new-game-number > .settings-button {
     margin-top: 6px;
 }
 
-.new-game .difficulty-row > .button {
-    margin: 0 8px 0 0;
+/* The size's and the pace's strips run the panel's width, with no caption beside them. */
+.new-game-choice > .settings-caption {
+    display: none;
+}
+
+.menu .new-game-choice > .settings-choice {
+    flex-grow: 1;
+}
+
+.menu .new-game-choice .menu-lang {
+    flex-grow: 1;
+    flex-basis: 0;
+}
+
+.new-game-choice-note {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: #A89F8E;
+    margin: 0 0 2px 2px;
+    padding: 0;
+    white-space: normal;
 }
 
 .new-game-gap {
     flex-shrink: 0;
-    height: 18px;
+    height: 14px;
+}
+
+.new-game-buttons {
+    flex-direction: row;
+    flex-shrink: 0;
+}
+
+.new-game-buttons > .menu-button {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin: 0 0 4px 0;
+}
+
+.new-game-buttons > .menu-button:first-child {
+    margin-right: 16px;
 }
 
 /* ----- The menu's buttons as the players' reference page draws them (2026-11-11) ----- */
@@ -3765,6 +4061,25 @@
 .menu .menu-button.menu-danger:hover:enabled,
 .menu .menu-button.menu-danger:active:enabled {
     --bevel-rim: #A83E47;
+}
+
+/* The new game's «Назад» and «Играть» share one row: a widening button took room from its
+   neighbour, and both moved under the pointer (2026-11-13). The players asked for no movement
+   there at all: no widening, no lit rim, no deeper shadow, no press. */
+.menu .new-game-buttons > .menu-button:hover:enabled,
+.menu .new-game-buttons > .menu-button:active:enabled {
+    --bevel-grow: 0;
+    --bevel-sink: 0;
+    --bevel-rim: #594630;
+    --bevel-shadow: rgba(0, 0, 0, 0.48);
+    --bevel-shadow-drop: 6;
+    --bevel-shadow-blur: 4.5;
+}
+
+.menu .new-game-buttons > .menu-button.button-primary:hover:enabled,
+.menu .new-game-buttons > .menu-button.button-primary:active:enabled {
+    --bevel-rim: #FFD666;
+    --bevel-rim-low: #E8A325;
 }
 
 /* On the main menu there is room for the reference's whole widening. */
@@ -3893,6 +4208,183 @@
     width: 13px;
     height: 12px;
     margin-right: 7px;
+}
+
+/* ----- The settings (HudSettings.cs), in the column in place of its buttons like the saves ----- */
+
+/* A part: «Звук», «Экран и интерфейс», «Камера». */
+.settings-part {
+    flex-shrink: 0;
+    font-size: 15px;
+    color: #C99A45;
+    margin: 10px 0 4px 2px;
+    padding: 0;
+}
+
+/* A row: its caption at the left, its control at the right. */
+.settings-row {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    height: 34px;
+    margin: 0 0 5px 0;
+}
+
+.settings-caption {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 0;
+    margin: 0 8px 0 2px;
+    padding: 0;
+    font-size: 15px;
+    color: #C9BBA0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* The choices' strip and the level's bar: dark strips in a rim like the languages' one, the
+   chosen choice gold. */
+.menu .settings-choice,
+.menu .settings-bar {
+    flex-direction: row;
+    flex-shrink: 0;
+    align-items: center;
+    padding: 2px;
+    --bevel-face: #18130E;
+    --bevel-rim: #594630;
+    --bevel-cut: 7.6;
+    --bevel-rim-width: 2.3;
+    --bevel-shadow: rgba(0, 0, 0, 0.5);
+    --bevel-shadow-drop: 4.5;
+    --bevel-shadow-blur: 4.5;
+}
+
+.menu .settings-choice .menu-lang {
+    height: 30px;
+    padding: 0 11px;
+}
+
+.menu .settings-choice .button-caption,
+.menu .settings-button .button-caption {
+    font-size: 15px;
+}
+
+.menu .settings-choice .settings-arrow {
+    width: 30px;
+    padding: 0;
+}
+
+.menu .settings-arrow .button-caption {
+    font-size: 18px;
+}
+
+/* The window's size between ‹ and ›. */
+.settings-window {
+    width: 92px;
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+    color: #EFE6D5;
+    -unity-text-align: middle-center;
+}
+
+/* A level: ten steps lit gold up to it; a click or a drag along the bar sets it. */
+.menu .settings-bar {
+    height: 34px;
+    padding: 2px 8px;
+}
+
+.menu .settings-bar:hover,
+.menu .settings-button:hover {
+    --bevel-rim: #8A6E48;
+}
+
+.settings-step {
+    width: 12px;
+    height: 14px;
+    margin-right: 3px;
+    background-color: #3A2F22;
+}
+
+.settings-step-on {
+    background-color: #E0A63A;
+}
+
+.settings-level {
+    flex-shrink: 0;
+    width: 26px;
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    color: #EFE6D5;
+    -unity-text-align: middle-right;
+}
+
+/* «Показать снова» and «Вернуть как было»: small plates of their own. */
+.menu .settings-button {
+    flex-shrink: 0;
+    height: 34px;
+    margin: 0 0 0 8px;
+    padding: 0 12px;
+    --bevel-face: #18130E;
+    --bevel-rim: #594630;
+    --bevel-cut: 7.6;
+    --bevel-rim-width: 2.3;
+    --bevel-shadow: rgba(0, 0, 0, 0.5);
+    --bevel-shadow-drop: 4.5;
+    --bevel-shadow-blur: 4.5;
+}
+
+.settings-last {
+    margin-top: 8px;
+}
+
+.menu .settings-reset {
+    margin-left: 0;
+}
+
+/* Over the main menu's picture the settings keep a dark panel of their own, in the middle where
+   the logo and the buttons were, no higher than the screen. */
+.on-main .menu-settings {
+    width: 440px;
+    flex-grow: 0;
+    flex-shrink: 1;
+    max-height: 2000px;
+}
+
+.on-main.on-settings .menu {
+    justify-content: center;
+    padding: 40px 0 40px 0;
+}
+
+/* «Об игре» (HudAbout.cs): the settings' panel, wider, with paragraphs in place of most rows. */
+.on-main .menu-about {
+    width: 560px;
+}
+
+.about-name {
+    flex-shrink: 0;
+    margin: 8px 0 6px 2px;
+    padding: 0;
+    font-size: 17px;
+    color: #EFE6D5;
+}
+
+.about-text {
+    flex-shrink: 0;
+    margin: 0 0 6px 2px;
+    padding: 0;
+    font-size: 14px;
+    color: #C9BBA0;
+    white-space: normal;
+}
+
+/* The saves' folder and the log under their rows: smaller, dimmer, any length. */
+.about-path {
+    margin: 0 0 8px 2px;
+    font-size: 13px;
+    color: #A3957C;
 }
 
 /* The version on the main menu: a plate like the languages' strip, at the other corner. In the

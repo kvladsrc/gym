@@ -80,6 +80,34 @@ namespace Realms.Tests
             }
         }
 
+        /// <summary>The Slavic names gave way to neutral ones (2026-11-12): a save written before opens with the new ones.</summary>
+        [Test]
+        public void AFormerNameOpensAsItsNewOne()
+        {
+            var given = new HashSet<string>(Names.Kingdoms);
+            given.UnionWith(Names.Cities);
+            given.UnionWith(HeroRules.Names);
+            Assert.IsNotEmpty(Names.Renamed);
+            foreach (KeyValuePair<string, string> pair in Names.Renamed)
+            {
+                Assert.IsFalse(given.Contains(pair.Key), $"{pair.Key} is still given");
+                Assert.IsTrue(given.Contains(pair.Value), $"{pair.Value} is not given");
+                Assert.AreEqual(pair.Value, Names.Current(pair.Key));
+            }
+            Assert.AreEqual("Ёлкино", Names.Current("Ёлкино"), "a name the players typed stays as typed");
+            Assert.IsNull(Names.Current(null));
+
+            var world = WorldGen.Generate(4242);
+            var state = new GameState(world);
+            world.Cities[0].Name = "Овсянка";
+            world.Countries[world.Player].Name = "Лазурное царство";
+            SaveGame game = Save.FromBytes(Save.ToBytes(new SaveGame { State = state }));
+            World read = game.State.World;
+            Assert.AreEqual("Овсяное Поле", read.Cities[0].Name);
+            Assert.AreEqual("Лазурная гавань", read.Countries[read.Player].Name);
+            Assert.AreEqual("Лазурная гавань", game.Header.Kingdom);
+        }
+
         [Test]
         public void ANameIsShownThroughTheLanguageAndKeptAsItsKey()
         {

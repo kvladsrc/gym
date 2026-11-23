@@ -18,8 +18,8 @@ wanted=("$@")
 for platform in "${wanted[@]}"; do
     [[ $platform == source ]] && continue
     case $platform in
-        linux) from="$project/Builds/Linux" player=Realms.x86_64 ;;
-        windows) from="$project/Builds/Windows" player=Realms.exe ;;
+    linux) from="$project/Builds/Linux" player=Realms.x86_64 ;;
+    windows) from="$project/Builds/Windows" player=Realms.exe ;;
     esac
     if [[ ! -f $from/$player ]]; then
         echo "no $platform player in $from: build it first" >&2
@@ -30,8 +30,8 @@ for platform in "${wanted[@]}"; do
     # The folder inside the archive carries the game's name; the files keep theirs.
     rsync -a "${skip[@]}" "$from/" "$stage/$name/"
     case $platform in
-        linux) tar -C "$stage" -czf "$dist/$name.tar.gz" "$name" ;;
-        windows) (cd "$stage" && rm -f "$dist/$name.zip" && zip -qr -9 "$dist/$name.zip" "$name") ;;
+    linux) tar -C "$stage" -czf "$dist/$name.tar.gz" "$name" ;;
+    windows) (cd "$stage" && rm -f "$dist/$name.zip" && zip -qr -9 "$dist/$name.zip" "$name") ;;
     esac
     rm -rf "$stage"
     ls -lh "$dist/$name".* | awk '{print $5, $9}'

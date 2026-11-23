@@ -967,6 +967,19 @@ details .fields {
 .mesh-stats {
   font-variant-numeric: tabular-nums;
 }
+.mesh-tools {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+.mesh-tools .button {
+  padding: 3px;
+}
+.mesh-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 12px;
+}
 .preview video {
   position: absolute;
   inset: 0;
@@ -1544,6 +1557,47 @@ a.button {
 .tag-input {
   width: 14rem;
   font-size: 12px;
+}
+/* The tags that exist, listed under the field */
+.tag-entry {
+  position: relative;
+}
+.tag-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 5;
+  box-sizing: border-box;
+  min-width: 100%;
+  width: max-content;
+  max-width: min(28rem, 80vw);
+  max-height: 20rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: 0 4px 14px var(--overlay);
+  font-size: 12px;
+}
+.tag-options li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.tag-options li:hover,
+.tag-options li.active {
+  background: var(--accent-soft);
+}
+.tag-count {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 .segmented.rating button {
   min-width: 26px;

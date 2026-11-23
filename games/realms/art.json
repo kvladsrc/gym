@@ -1,5 +1,5 @@
 {
-  "comment": "Assets Studio -> Assets/Realms/Art (not in Git): tools/fetch_art.py. Models are copied as Studio made them (at the game's budget; 'triangles' records what it made); a model with 'texture_size' has its embedded maps resized to that size, because the map carries hundreds of it. The first models (troll, wolf, boar, sheep): Hunyuan3D shape, Hi3D refine with max_faces, colour baked at 1024. The iteration-2 buildings (farm, fishery, lumber_camp, quarry, granary) and the iteration-3 models (hero ... watchtower): the baked-detail chain of the Studio 3D guide, colour and normal maps at 2048. The scatter models linden, peak, peak_snow, crag: the same chain with maps at 1024 at the map's budget (trees 600, peaks 1500, crags 1200). The town walls (wall, tower): the same chain at 2048. The trees broadleaf_1 ... young_round_3 come from the Studio project 'procedural' (its style-D trees at LOD1000, rated 4-5 there), as do the castles castle_a, castle_d, castle_b (40000 triangles, high-poly because they are few and large). The town hall, the tavern, the market, the cottages cottage_a, cottage_b and the workshops spinnery ... smelter (which also stand as town houses) were redrawn by Codex in the castles' style and made in the project 'realms' by the same chain with match_colours at 6000 triangles (the hall and the market 8000), maps at 2048; hunters_lodge and smelter were drawn a second time with roof courses of uneven width, as the first ones' shingles came out as a stacked grid. The conifers spruce_2, spruce_3, conifer_4, the bushes bush_round, bush_wide and the props boulder, boulder_mossy, pebbles, log, mushrooms, outcrop, standing_stone (from style-D reference pictures of the project 'procedural') and goldore, stoneblocks, haystack, logpile, the mine gold_mine and the windmill (from Codex pictures of the project 'realms') were made in the project 'realms' by the same chain with match_colours at the map's budget (trees and bushes 1000, props 400-1000, the mine 2500, the windmill 2000), the scattered ones' maps at 2048 resized to 1024. The town and road things fountain, lamp, signpost, fence, cart, barrels, stall and the heap of gold were drawn by Codex in the same style without small details and made the same way (600-2500 triangles); all but the fountain are scattered, with maps resized to 1024. The boat was drawn without a sail (the game hangs a cloth sail in the owner's colours on its mast) and made the same way at 2000 triangles, scattered. The gatehouse gate, the barracks, archery_range, stables and granary, the fishery, quarry, shrine_attack and the well were drawn again by Codex in that style (the old ones were too bright, or primitives) and made the same way (the gatehouse and the town buildings at 6000 triangles, the fishery 5000, the quarry and the well 3000, the shrine 2000). Hi3D's low-poly meshes once kept folded triangle pairs that the colour bake turned into holes: those five, lamp, fountain, gold and the conifers were made again without them, the conifers' colour baked with a longer ray (0.04), so that none of their surface stays black. All of them are rated 4-5 in the Studio; of the older models, the unrated rider stays until its replacement is rated. Icons are resized to 256. Textures: the tileable ground layers in GroundLayer order, then cobble and the road strip; all are resized to 1024 wide (the road strip is 1024x512). grass ... dirt and cobble are the style-D textures of the project 'procedural'; snow and road are the Codex textures of the project 'realms'.",
+  "comment": "Assets Studio -> Assets/Realms/Art (not in Git): tools/fetch_art.py. Models are copied as Studio made them (at the game's budget; 'triangles' records what it made); a model with 'texture_size' has its embedded maps resized to that size, because the map carries hundreds of it. The first models (troll, sheep): Hunyuan3D shape, Hi3D refine with max_faces, colour baked at 1024. The iteration-2 buildings (farm, fishery, lumber_camp, quarry, granary) and the iteration-3 models (hero ... watchtower): the baked-detail chain of the Studio 3D guide, colour and normal maps at 2048. The scatter models linden, peak, peak_snow, crag: the same chain with maps at 1024 at the map's budget (trees 600, peaks 1500, crags 1200). The town walls (wall, tower): the same chain at 2048. The trees broadleaf_1 ... young_round_3 come from the Studio project 'procedural' (its style-D trees at LOD1000, rated 4-5 there), as do the castles castle_a, castle_d, castle_b (40000 triangles, high-poly because they are few and large). The town hall, the tavern, the market, the cottages cottage_a, cottage_b and the workshops spinnery ... smelter (which also stand as town houses) were redrawn by Codex in the castles' style and made in the project 'realms' by the same chain with match_colours at 6000 triangles (the hall and the market 8000), maps at 2048; hunters_lodge and smelter were drawn a second time with roof courses of uneven width, as the first ones' shingles came out as a stacked grid. The conifers spruce_2, spruce_3, conifer_4, the bushes bush_round, bush_wide and the props boulder, boulder_mossy, pebbles, log, mushrooms, outcrop, standing_stone (from style-D reference pictures of the project 'procedural') and goldore, stoneblocks, haystack, logpile, the mine gold_mine and the windmill (from Codex pictures of the project 'realms') were made in the project 'realms' by the same chain with match_colours at the map's budget (trees and bushes 1000, props 400-1000, the mine 2500, the windmill 2000), the scattered ones' maps at 2048 resized to 1024. The town and road things fountain, lamp, signpost, fence, cart, barrels, stall and the heap of gold were drawn by Codex in the same style without small details and made the same way (600-2500 triangles); all but the fountain are scattered, with maps resized to 1024. The boat was drawn without a sail (the game hangs a cloth sail in the owner's colours on its mast) and made the same way at 2000 triangles, scattered. The gatehouse gate, the barracks, archery_range, stables and granary, the fishery, quarry, shrine_attack and the well were drawn again by Codex in that style (the old ones were too bright, or primitives) and made the same way (the gatehouse and the town buildings at 6000 triangles, the fishery 5000, the quarry and the well 3000, the shrine 2000). Hi3D's low-poly meshes once kept folded triangle pairs that the colour bake turned into holes: those five, lamp, fountain, gold and the conifers were made again without them, the conifers' colour baked with a longer ray (0.04), so that none of their surface stays black. The bell tower bell_tower, the capital's Great Build, was drawn by Codex in the same style (a round stone tower with an open belfry and a bare flagpole, on which the game hangs the kingdom's flag) and made the same way at 6000 triangles, maps at 2048; the game cuts it at two heights for the build's first two stages. The boar, the spider and the wolf were drawn again by Codex (a lighter boar whole on its four legs; the spider from above, so that the root of each of its eight legs shows; a calm wolf in the boar's style) and made the same way at 3000 triangles, maps at 2048. The wolf and the spider have two looks each (wolf and wolf_2, warm grey and tawny; spider and spider_2, brown and grey-olive): the family took both of each, and every group on the map keeps one look, in its battle too. All of them are rated 4-5 in the Studio; of the older models, the unrated rider stays until its replacement is rated. Icons are resized to 256. Textures: the tileable ground layers in GroundLayer order, then cobble and the road strip; all are resized to 1024 wide (the road strip is 1024x512). grass ... dirt and cobble are the style-D textures of the project 'procedural'; snow and road are the Codex textures of the project 'realms'. Videos go into Art/Resources as VP8 WebM (fetch_art.py converts the Studio's H.264 copy, as the player plays only VP8 on Linux): title_loop is the main menu's picture with its flags, trees and boar moving (2026-11-12, provisional until the family rates it; without it the still picture shows). Since 2026-11-19 both wolves are the same meshes rigged with AnyMove's wolf template and carry their moves (Stand and Sit loops, the Run loop with its root-motion twin Run_Root, the one-shot Bite), captured from fal.ai MiniMax H3 Max clips of the grey wolf and packed in the Studio project 'anymove'; the tawny wolf_2 plays the grey one's moves.",
   "models": {
     "town_hall": {
       "id": "01a1c3c05229f9be43d155",
@@ -38,11 +38,15 @@
       "triangles": 3994
     },
     "wolf": {
-      "id": "01a1bb70706e2329a8c5ba",
-      "triangles": 2469
+      "id": "01a1f7ed542c7c2a23e2bb",
+      "triangles": 2996
+    },
+    "wolf_2": {
+      "id": "01a1f7ed5498ef7777f057",
+      "triangles": 2989
     },
     "boar": {
-      "id": "01a1c7b0527dc433852b5f",
+      "id": "01a1f7ed54f24ba9d0884b",
       "triangles": 2991
     },
     "sheep": {
@@ -114,8 +118,12 @@
       "triangles": 2662
     },
     "spider": {
-      "id": "01a1bda4e4dc4717d2b6b1",
-      "triangles": 2488
+      "id": "01a1ca43563b923fc7c0e9",
+      "triangles": 2999
+    },
+    "spider_2": {
+      "id": "01a1ca4312206d5004ce28",
+      "triangles": 2996
     },
     "barracks": {
       "id": "01a1c711f2546d401b46bc",
@@ -386,6 +394,10 @@
     "well": {
       "id": "01a1c7331b804073cdc3ec",
       "triangles": 3000
+    },
+    "bell_tower": {
+      "id": "01a1d0bf6c71172b3280be",
+      "triangles": 5980
     }
   },
   "icons": {
@@ -418,5 +430,8 @@
     "dirt": "01a1c0a4479fdcf13b7fd2",
     "cobble": "01a1c083365a403a3da9ce",
     "road": "01a1c1261e22d6275154cf"
+  },
+  "videos": {
+    "title_loop": "01a1cd9e7917f4deef8afa"
   }
 }

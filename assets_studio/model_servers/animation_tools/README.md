@@ -50,11 +50,44 @@ painters, use the same high-resolution source and bake settings.
 same shape, such as a coarser LOD: Hi3D at a lower `max_faces` gives the
 shape, the painted LOD0 its colours. Separate paints per LOD differ, and the
 painter left a 1,800-triangle tree almost one colour. A mesh without UVs is
-unwrapped with Smart UV Project. Only the base colour carries over; the result
-is matte and non-metal. The colour is baked as emission: Cycles' diffuse
-colour is the base colour times (1 - metallic), and TRELLIS.2 marks whole tree
-crowns as metal, which baked black. A 1,800-triangle tree bakes in about 5 s
-on the CPU.
+unwrapped with Smart UV Project. The base colour, metallic and roughness carry
+over: metallic and roughness go into a texture packed as glTF keeps them
+(roughness in green, metallic in blue). Until 2026-11-13 only the colour did,
+and a glossy painted suit came out matte. A paint without metallic or
+roughness textures, and no metal, gives a matte, non-metal result. Everything
+is baked as emission: Cycles' diffuse colour is the base colour times
+(1 - metallic), and TRELLIS.2 marks whole tree crowns as metal, which baked
+black. Those metal marks now carry over as well; a game that does not want
+them reads only the roughness. A 1,800-triangle tree bakes in about 5 s on the
+CPU.
+
+`3d-fit-hair` puts HairDeck's hair on a SOMA person: `body` is fromsoma's or
+frommhr's result, `hair` HairDeck's. The result is the body's GLB as it came,
+with one more mesh, `hair`, on its skin: weighted to the Head joint, with
+HairDeck's UVs, colours and material and computed normals. HairDeck makes hair
+for its own head proxy, an ellipsoid about 1.5 times smaller than a real head,
+and its roots float 2–15 % outside it. The hairstyle therefore moves as one
+piece. The proxy goes onto an ellipsoid fitted to SOMA's haircap segment, and
+one smooth field over directions from its centre lays the hairstyle's own
+scalp (the lowest 5 % of its hair per direction) onto the skin. Every point
+moves along its direction, so the layers of cards keep their order. The face
+below the brows is left out, and the ears are pressed onto the ellipsoid.
+Rings still nearer the skin than `clearance_mm` are then lifted, the lift
+fading along the card.
+
+`thickness` below 1 lays the hairstyle closer to the head: it scales the
+height above the scalp, up to 5 cm. `braid` is for a braid or ponytail.
+HairDeck has no body, so a braid hangs straight down through the back. With
+`braid`, hair behind and below the nape swings back about it until the back is
+clear and follows the Chest joint going down. The job reports the scalp fit,
+the inside counts before and after the lift, the root gaps and how much the
+cards bent. Only SOMA bodies are accepted (19,631 vertices in the st layout,
+closed once the seams are welded); the haircap comes from SOMA-X (Apache-2.0)
+as `asset_processing/soma_haircap.json`. A body with HairDeck hair takes 15–20 s
+on the CPU. This is the procedure of the Stine family's hair (until 2026-11-18
+a workspace script); on Lizzy and Amanda the task matched it within 0.02 mm
+(median), and its inside test agreed with winding numbers on every one of 4,000
+points near the skin.
 
 Three animation tasks cover rig preparation, motion transfer using Mixamo
 bone names (Kimodo-SOMA, Mixamo), and native SMPL-X motion transfer. Trimming,

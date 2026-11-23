@@ -1,0 +1,3 @@
+# Private data, never in git: crawl, screenshots, labels, LoRA runs.
+data/
+__pycache__/

@@ -32,6 +32,7 @@ DIRS=(
     "production/kubernetes/helm-charts:production/kubernetes/helm-charts"
     "production/playbooks:production/playbooks"
     "production/terraform:production/terraform"
+    "qwen_review:qwen_review"
     "static:static"
     "zuul.d:zuul.d"
 )
@@ -95,6 +96,12 @@ REPLACEMENTS=(
     "search.your.domain|search.your.domain"
     "your.domain|your.domain"
 )
+
+# Public names the replacements leave as they are: the published qwen_review
+# adapter on Hugging Face, so that its links and downloads work.
+KEEP=(
+    "zjgkkn/qwen3.5-2b-steam-reviews-lora"
+)
 if [[ ! -d $DEST ]]; then
     echo "Destination $DEST does not exist" >&2
     exit 1
@@ -111,8 +118,9 @@ for entry in "${DIRS[@]}"; do
         echo "  dir  $src_rel -> $dest_rel"
         rsync_args=(-a --delete)
         case "$src_rel" in
-        assets_studio)
-            # Only tracked files: no environments, models, builds or node_modules.
+        assets_studio | qwen_review)
+            # Only tracked files: no environments, models, builds, node_modules,
+            # or qwen_review's crawled data and LoRA runs.
             rsync_args+=(--filter=':- .gitignore')
             ;;
         esac
@@ -168,10 +176,17 @@ done
 # Apply replacements
 echo "Applying replacements..."
 sed_expr=""
+# Each kept name becomes a placeholder first and comes back last.
+for i in "${!KEEP[@]}"; do
+    sed_expr+="s@${KEEP[i]//./\\.}@SYNC_GYM_KEEP_${i}_@g; "
+done
 for r in "${REPLACEMENTS[@]}"; do
     old="${r%%|*}"
     new="${r##*|}"
     sed_expr+="s@${old}@${new}@g; "
+done
+for i in "${!KEEP[@]}"; do
+    sed_expr+="s@SYNC_GYM_KEEP_${i}_@${KEEP[i]}@g; "
 done
 find "$DEST" -type f \
     -not -path '*/.git/*' \

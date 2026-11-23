@@ -10,7 +10,7 @@ not tied to a genre or project.
 | | |
 | --- | --- |
 | [3d.md](3d.md) | Image → 3D: the job graph, its settings and reference prompts |
-| [characters.md](characters.md) | Rig-ready concepts, rigging, Mixamo animation and attacks |
+| [characters.md](characters.md) | Rig-ready concepts, faces from two pictures (frommhr), hair cards (HairDeck), rigging, Mixamo animation and attacks |
 | [quadrupeds.md](quadrupeds.md) | A rigged animal animated from AI video (AnyMove), hand-painted weights |
 | [engine.md](engine.md) | Engine import, collisions, Blender levels and performance |
 | [audio.md](audio.md) | Voices (XTTS) and songs (YuE) |

@@ -172,6 +172,14 @@ class AssetOut(BaseModel):
         )
 
 
+class TagOut(BaseModel):
+    """A tag in the library (ADR-007)."""
+
+    tag: str
+    # Assets in the library that carry it.
+    count: int
+
+
 class ParentOut(BaseModel):
     asset_id: str
     relation: str

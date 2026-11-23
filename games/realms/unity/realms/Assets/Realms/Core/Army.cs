@@ -37,6 +37,21 @@ namespace Realms.Core
 
         /// <summary>Its top unit heals a third of its health at the start of every round.</summary>
         Regenerates = 16,
+
+        /// <summary>
+        /// Covers itself and its neighbours (the combat plan of 2026-11-11, 3.3): once a round,
+        /// an enemy that strikes it or a stack beside it, from a cell beside it, is struck by it
+        /// first, and strikes with those it has left. Shots go through.
+        /// </summary>
+        Cover = 32,
+
+        /// <summary>
+        /// Strikes harder with a run-up (the combat plan of 2026-11-11, 3.3, «Разбег»): a strike
+        /// from a cell <see cref="Battle.RunUpCells"/> or more cells from where it began its turn
+        /// is <see cref="Battle.RunUpFactor"/> times as strong. The spears' cover meeting the
+        /// strike (<see cref="Cover"/>) takes the run-up away.
+        /// </summary>
+        RunUp = 64,
     }
 
     public readonly struct UnitStats
@@ -115,11 +130,11 @@ namespace Realms.Core
 
         static readonly UnitStats[] Table =
         {
-            new UnitStats(10, 4, 5, 1, 3, 4), // spearmen
+            new UnitStats(10, 4, 5, 1, 3, 4, Ability.Cover), // spearmen
             new UnitStats(8, 5, 3, 2, 3, 4, Ability.Shoots), // archers
-            new UnitStats(22, 7, 6, 3, 6, 7), // riders
+            new UnitStats(22, 7, 6, 3, 6, 7, Ability.RunUp), // riders
             new UnitStats(5, 3, 1, 1, 2, 5), // goblins
-            new UnitStats(8, 4, 2, 1, 3, 6), // boars
+            new UnitStats(8, 4, 2, 1, 3, 6, Ability.RunUp), // boars
             new UnitStats(12, 5, 3, 2, 4, 8, Ability.NoStrikeBack), // wolves
             new UnitStats(10, 5, 4, 2, 3, 4, Ability.Shoots), // bandits
             new UnitStats(9, 5, 5, 1, 3, 4, Ability.ArrowProof), // skeletons
@@ -142,6 +157,31 @@ namespace Realms.Core
                 case Unit.Spiders: return Temper.Fastest;
                 case Unit.Troll: return Temper.Biggest;
                 default: return Temper.None;
+            }
+        }
+
+        /// <summary>
+        /// How much a monster minds the spears' cover (<see cref="Ability.Cover"/>) when it picks
+        /// whom to strike and from where, as a weight on the share of its health the cover would
+        /// take (the combat plan's 3.3). Boars and the troll not at all: they run onto the spears,
+        /// that is their weakness. Goblins and skeletons a little, spiders as much as it costs,
+        /// wolves twice that: they look for a stack nobody covers. Bandits mostly shoot; when they
+        /// must strike they mind the spears as spiders do (the plan leaves them out).
+        /// </summary>
+        public static float CoverCare(Unit unit)
+        {
+            switch (unit)
+            {
+                case Unit.Goblins:
+                case Unit.Skeletons:
+                    return 0.5f;
+                case Unit.Spiders:
+                case Unit.Bandits:
+                    return 1f;
+                case Unit.Wolves:
+                    return 2f;
+                default:
+                    return 0f;
             }
         }
 
@@ -212,6 +252,28 @@ namespace Realms.Core
         public static int PoolLimit(Unit unit) => 3 * PerTurn(unit);
 
         /// <summary>
+        /// How much less a monster that strikes in melee is worth against an army: the spears'
+        /// cover (<see cref="Ability.Cover"/>) meets it, so its groups are this much bigger.
+        /// Measured over the auto battles on 2026-11-12: with the cover and without it, the first
+        /// hero's army won 31% of the measured fights before and 42% after; with groups this much
+        /// bigger, 36% (the middle army 70%, 80%, 71%). Raising the spearmen's own worth instead
+        /// grew the bandits too, whom the cover hardly meets as they shoot: at six steps the first
+        /// army's wins against them fell from 74% to none.
+        /// </summary>
+        public const float SpearsWorth = 1.2f;
+
+        /// <summary>
+        /// How much more a wolf is worth for its circling (the combat plan of 2026-11-11, 3.1): a
+        /// pack waits out of the foot stacks' reach and strikes first, so its groups are this much
+        /// smaller. Measured over the auto battles on 2026-11-12: the circling took the first
+        /// army's wins against a pack at six steps from 73% to 44%, and with groups this much
+        /// smaller they are 73% again (the middle army's against a lair at twelve steps 39%, 9%,
+        /// 48%). The troll's told target made it easier instead (the middle army at twelve steps
+        /// 31% to 84%, like the other kinds there), and its groups of three or four stay.
+        /// </summary>
+        public const float CircleWorth = 1.1f;
+
+        /// <summary>
         /// A rough worth of one unit for sizing monster groups: the square root of health times the
         /// mean damage, with a little for attack and defence. Armies fight stack against stack,
         /// so their strength grows with the square of the count (Lanchester) and the worth of n
@@ -223,8 +285,12 @@ namespace Realms.Core
             float worth = MathF.Sqrt(s.Health * 0.5f * (s.MinDamage + s.MaxDamage) * (1f + 0.05f * (s.Attack + s.Defence)));
             if (s.Has(Ability.Shoots))
                 worth *= 1.25f;
+            if (Array.IndexOf(Hired, unit) < 0 && !s.Has(Ability.Shoots))
+                worth /= SpearsWorth;
             if (s.Has(Ability.Regenerates))
                 worth *= 1.5f;
+            if (unit == Unit.Wolves)
+                worth *= CircleWorth;
             return worth;
         }
     }

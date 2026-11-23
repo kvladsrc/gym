@@ -4,9 +4,10 @@ A calm, turn-based fantasy strategy game on a hex map, made to be played
 together with a child; a game fits into one evening. Single player, mouse and
 keyboard, English and Russian, Windows and Linux.
 
-Six kingdoms share a generated land of meadows, forests, hills and coasts under
-the fog of war. Your towns grow on their own: the bigger a town, the farther its
-borders reach. Put a stake on the map to show a town where to grow next.
+Six kingdoms (four on a small map) share a generated land of meadows, forests,
+hills and coasts under the fog of war. Your towns grow on their own: the bigger
+a town, the farther its borders reach. Put a stake on the map to show a town
+where to grow next.
 
 **Build.** Farms, fisheries, pastures, lumber camps, quarries and gold mines on
 the land; a market, granary, tavern, barracks, archery range, stables, walls and
@@ -20,8 +21,9 @@ let the troops fight on their own; retreat when it goes badly. Beaten enemies
 may give up: let them go or finish them. Lairs send raiding bands against
 nearby towns, and walls beat them off.
 
-**Win the crown.** Every kingdom has a crown with five gems: Capital, Towns,
-Hunter, Hero and Lands. The first to set three wins, usually in 35–45 turns.
+**Win the crown.** Every kingdom has a crown with six gems: Capital, Great
+Build (a bell tower your capital raises in three stages), Towns, Hunter, Hero
+and Lands. The first to set three wins, usually in 35–45 turns.
 The neighbouring kingdoms never attack you, but they race for their own crown
 at the pace you choose: Calm, Normal or Race.
 
@@ -31,10 +33,13 @@ flies over your towns and on your heroes' banners.
 ## Playing
 
 The game opens on the main menu. **Continue** goes back into the last game,
-**New game** shows the map a new game would start on: take another map, or one
-by its number, choose the neighbours' pace and press **Start**. Every new game
-first opens the flag editor; a click on the kingdom's shield in the top bar
-opens it again.
+**New game** opens a window of choices: your kingdom's flag, the map (a small
+picture of what your kingdom knows at the start, another map, or one by its
+number), the map's size and the neighbours' pace. **Play** draws the map under
+the loading screen. A click on the kingdom's shield in the top bar opens the
+flag editor again during a game. **About** on the main menu shows the version,
+how the art and sound were made, the licences, and where the saves and the log
+are kept, to attach to a report of a fault.
 
 The game saves itself after each turn, before each battle, before a new game
 and when you quit (**Saved** shows beside the turn counter). **Menu** in the

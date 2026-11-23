@@ -43,7 +43,7 @@ namespace Realms
             scroll.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
             menuList.Add(scroll);
             menuListRows = scroll.contentContainer;
-            MenuButton(menuList, Words.SavesBack, "button", "Esc", () => CloseSaves());
+            MenuButton(menuList, Words.SavesBack, "button", "Esc", () => CloseMenuList());
             menuList.style.display = DisplayStyle.None;
         }
 
@@ -66,18 +66,27 @@ namespace Realms
 
         public bool SavesOpen => menuList != null && menuList.style.display == DisplayStyle.Flex;
 
-        /// <summary>Closes the list of saves, back to the menu's buttons; false when none was open.</summary>
-        public bool CloseSaves()
+        /// <summary>A list of saves, the settings or «Об игре» stands in place of the menu's buttons.</summary>
+        public bool MenuListOpen => SavesOpen || SettingsOpen || AboutOpen;
+
+        /// <summary>Closes the list of saves, the settings or «Об игре», back to the menu's buttons; false when none was open.</summary>
+        public bool CloseMenuList()
         {
-            if (!SavesOpen)
+            if (SettingsOpen)
+                CloseSettings();
+            else if (AboutOpen)
+                CloseAbout();
+            else if (SavesOpen)
+                menuList.style.display = DisplayStyle.None;
+            else
                 return false;
-            menuList.style.display = DisplayStyle.None;
             MenuGroup.style.display = DisplayStyle.Flex;
             return true;
         }
 
         void OpenSaves(string title)
         {
+            CloseMenuList();
             menuListTitle.text = title;
             menuListRows.Clear();
             MenuGroup.style.display = DisplayStyle.None;

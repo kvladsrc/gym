@@ -4,10 +4,12 @@ import pytest
 from animation_tools_model_server.server import (
     BAKE,
     BAKE_COLOUR,
+    FIT_HAIR,
     RETOPO,
     AnimationToolsServer,
     BakeColourParams,
     BakeParams,
+    FitHairParams,
     RetargetParams,
     RetopoParams,
     mesh_report,
@@ -70,6 +72,18 @@ def test_mesh_tasks_take_glbs_and_bounded_params():
         BakeParams(texture_size=3000)
     with pytest.raises(ValidationError):
         BakeColourParams(ray_distance=0.5)
+
+
+def test_hair_fitting_takes_a_body_and_hair():
+    assert FIT_HAIR.task == "3d-fit-hair"
+    assert [spec.role for spec in FIT_HAIR.inputs] == ["body", "hair"]
+    assert FIT_HAIR.output_mime == ("model/gltf-binary",)
+    params = FitHairParams()
+    assert (params.thickness, params.braid, params.clearance_mm) == (1.0, False, 1.5)
+    with pytest.raises(ValidationError):
+        FitHairParams(thickness=0.1)
+    with pytest.raises(ValidationError):
+        FitHairParams(clearance_mm=20)
 
 
 def test_mesh_report_is_required_and_parsed():

@@ -2,6 +2,7 @@
 // video (native player, frame by frame, frames saved as images), text (with copying) or a
 // motion skeleton.
 // The 3D and audio libraries are loaded on first use to keep the page light.
+import { signal } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { api, type Asset } from "../api/client";
@@ -18,9 +19,15 @@ import { cssColor, dark } from "../state/theme";
 import { CLAY, isShapeOnly } from "./clay";
 import { ImageViewer } from "./ImageViewer";
 import { t } from "../i18n";
-import { DataIcon, MotionIcon } from "./Icons";
+import {
+  CollapseIcon,
+  DataIcon,
+  ExpandIcon,
+  GridIcon,
+  MotionIcon,
+} from "./Icons";
 import { MotionViewer } from "./MotionViewer";
-import type { inspectMesh, MeshView } from "./meshInspection";
+import type { addFloorGrid, inspectMesh, MeshView } from "./meshInspection";
 
 let modelViewer: Promise<unknown> | null = null;
 
@@ -56,11 +63,64 @@ export function useModelViewer(enabled = true) {
   return ready;
 }
 
+// The floor grid is on unless turned off; the choice is remembered in this
+// browser for every model.
+const GRID_KEY = "assets-studio.floorGrid";
+const floorGrid = signal(rememberedGrid());
+
+function rememberedGrid() {
+  try {
+    return localStorage.getItem(GRID_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+
+function setFloorGrid(on: boolean) {
+  floorGrid.value = on;
+  try {
+    localStorage.setItem(GRID_KEY, on ? "on" : "off");
+  } catch {
+    // Storage blocked: the choice lasts until the page is reloaded.
+  }
+}
+
+/** 10^exponent metres in the unit that keeps it whole: 10 cm, 1 m, 100 m. */
+export function powerOfTenMetres(exponent: number) {
+  if (exponent >= 0)
+    return t("unit.m", { n: (10 ** exponent).toLocaleString() });
+  if (exponent >= -2) return t("unit.cm", { n: 10 ** (exponent + 2) });
+  return t("unit.mm", { n: (10 ** (exponent + 3)).toLocaleString() });
+}
+
+/** Whether `element` fills the screen, following the browser: Esc, F11 and
+ * leaving the page end full screen without asking the page. */
+function useFullscreen(element: { current: HTMLElement | null }) {
+  const [full, setFull] = useState(false);
+  useEffect(() => {
+    const sync = () =>
+      setFull(
+        !!element.current && document.fullscreenElement === element.current,
+      );
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+  function toggle() {
+    if (full) void document.exitFullscreen().catch(() => undefined);
+    else void element.current?.requestFullscreen().catch(() => undefined);
+  }
+  return [full, toggle] as const;
+}
+
 function MeshPreview({ asset }: { asset: Asset }) {
   const glb = asset.mime === "model/gltf-binary";
   const ready = useModelViewer(glb);
+  const frame = useRef<HTMLDivElement>(null);
+  const [full, toggleFull] = useFullscreen(frame);
   const viewer = useRef<HTMLElement>(null);
   const inspection = useRef<ReturnType<typeof inspectMesh> | null>(null);
+  const grid = useRef<ReturnType<typeof addFloorGrid> | null>(null);
+  const [cells, setCells] = useState<number | null>(null);
   const [mode, setMode] = useState<MeshView>("material");
   const [texture, setTexture] = useState(false);
   const [stats, setStats] = useState<{
@@ -78,11 +138,20 @@ function MeshPreview({ asset }: { asset: Asset }) {
       const pending = ++generation;
       inspection.current?.dispose();
       inspection.current = null;
+      grid.current?.dispose();
+      grid.current = null;
       setStats(null);
+      setCells(null);
       setFailed(false);
       void import("./meshInspection").then(
-        ({ inspectMesh }) => {
+        ({ addFloorGrid, inspectMesh }) => {
           if (!current || pending !== generation) return;
+          try {
+            grid.current = addFloorGrid(element);
+            setCells(grid.current.cells.exponent);
+          } catch {
+            // The model is still shown, only without the floor.
+          }
           try {
             inspection.current = inspectMesh(element);
             setStats(inspection.current.stats);
@@ -101,16 +170,21 @@ function MeshPreview({ asset }: { asset: Asset }) {
       element.removeEventListener("load", load);
       inspection.current?.dispose();
       inspection.current = null;
+      grid.current?.dispose();
+      grid.current = null;
     };
   }, [ready, asset.file_url]);
   useEffect(() => {
     inspection.current?.setView(mode, texture);
   }, [mode, texture, stats]);
+  useEffect(() => {
+    grid.current?.set(floorGrid.value, cssColor("--text"));
+  }, [floorGrid.value, dark.value, cells]);
   // model-viewer shows glTF only; FBX (rigs, ADR-006) is for download.
   if (!glb) return <p class="hint">{t("preview.fbx")}</p>;
   if (!ready) return <span class="spinner" />;
   return (
-    <div class="mesh-preview">
+    <div class="mesh-preview" ref={frame}>
       <model-viewer
         ref={viewer}
         src={asset.file_url}
@@ -143,15 +217,47 @@ function MeshPreview({ asset }: { asset: Asset }) {
               {t("mesh.texture")}
             </label>
           )}
-        </div>
-        {stats && (
-          <span class="hint mesh-stats" title={t("mesh.verticesHint")}>
-            {t("mesh.stats", {
-              triangles: stats.triangles.toLocaleString(),
-              vertices: stats.vertices.toLocaleString(),
-            })}
+          <span class="mesh-tools">
+            <button
+              class="button small"
+              aria-pressed={floorGrid.value}
+              aria-label={t("mesh.floorGrid")}
+              title={t("mesh.floorGrid")}
+              disabled={cells === null}
+              onClick={() => setFloorGrid(!floorGrid.value)}
+            >
+              <GridIcon />
+            </button>
+            {document.fullscreenEnabled && (
+              <button
+                class="button small"
+                aria-label={t(full ? "mesh.exitFullscreen" : "mesh.fullscreen")}
+                title={t(full ? "mesh.exitFullscreenTitle" : "mesh.fullscreen")}
+                onClick={toggleFull}
+              >
+                {full ? <CollapseIcon /> : <ExpandIcon />}
+              </button>
+            )}
           </span>
-        )}
+        </div>
+        <div class="mesh-info">
+          {stats && (
+            <span class="hint mesh-stats" title={t("mesh.verticesHint")}>
+              {t("mesh.stats", {
+                triangles: stats.triangles.toLocaleString(),
+                vertices: stats.vertices.toLocaleString(),
+              })}
+            </span>
+          )}
+          {floorGrid.value && cells !== null && (
+            <span class="hint mesh-cells" title={t("mesh.gridCellsHint")}>
+              {t("mesh.gridCells", {
+                major: powerOfTenMetres(cells),
+                minor: powerOfTenMetres(cells - 1),
+              })}
+            </span>
+          )}
+        </div>
         {failed && <span class="hint error">{t("mesh.failed")}</span>}
       </div>
     </div>

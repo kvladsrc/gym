@@ -105,6 +105,23 @@ const page = await browser.newPage({
 const errors = [];
 const preview = page.locator(".mesh-preview");
 page.on("pageerror", (error) => errors.push(error.message));
+/** Waits until the floor grid in the scene is shown (true) or hidden (false). */
+async function gridShown(visible) {
+  await page.waitForFunction((visible) => {
+    const element = document.querySelector(".mesh-preview model-viewer");
+    const scene =
+      element?.[
+        Object.getOwnPropertySymbols(element).find(
+          (key) => key.description === "scene",
+        )
+      ];
+    const grids = [];
+    scene?.target.traverse(
+      (node) => node.name === "floor-grid" && grids.push(node),
+    );
+    return grids.length === 1 && grids[0].visible === visible;
+  }, visible);
+}
 async function state(save = false) {
   return page
     .locator(".mesh-preview model-viewer")
@@ -193,6 +210,60 @@ try {
   await page.locator(".mesh-stats").waitFor();
   assert.equal((await state()).wires, 0);
   assert.deepEqual((await state()).maps, original.maps);
+  // The floor grid: on by default, sized to the 2 m model, remembered when off.
+  const gridButton = preview.getByRole("button", {
+    name: "Сетка пола",
+    exact: true,
+  });
+  await page.locator(".mesh-cells").waitFor();
+  assert.equal(
+    await page.locator(".mesh-cells").innerText(),
+    "Клетка 1 м, мелкая 10 см",
+  );
+  await gridShown(true);
+  assert.equal(await gridButton.getAttribute("aria-pressed"), "true");
+  const withGrid = await page
+    .locator(".mesh-preview model-viewer")
+    .screenshot();
+  await gridButton.click();
+  await page.waitForTimeout(100);
+  await gridShown(false);
+  assert.equal(await page.locator(".mesh-cells").count(), 0);
+  const withoutGrid = await page
+    .locator(".mesh-preview model-viewer")
+    .screenshot();
+  assert.notDeepEqual(withGrid, withoutGrid, "grid must change pixels");
+  await page.reload();
+  await page.locator(".mesh-stats").waitFor();
+  await page.waitForFunction(
+    () =>
+      document
+        .querySelector(".mesh-tools button:not([disabled])")
+        ?.getAttribute("aria-pressed") === "false",
+  );
+  await gridShown(false);
+  await gridButton.click();
+  await page.locator(".mesh-cells").waitFor();
+  await gridShown(true);
+  // Full screen takes the whole viewer, controls included, and gives it back.
+  await preview
+    .getByRole("button", { name: "На весь экран", exact: true })
+    .click();
+  await page.waitForFunction(() =>
+    document.fullscreenElement?.classList.contains("mesh-preview"),
+  );
+  await page.waitForTimeout(100);
+  const full = await page.locator(".mesh-preview model-viewer").boundingBox();
+  const screen = page.viewportSize();
+  assert.equal(Math.round(full.width), screen.width);
+  assert.ok(full.height > screen.height * 0.8, "model must fill the screen");
+  await preview
+    .getByRole("button", { name: "Выйти из полного экрана", exact: true })
+    .click();
+  await page.waitForFunction(() => document.fullscreenElement === null);
+  await preview
+    .getByRole("button", { name: "На весь экран", exact: true })
+    .waitFor();
   await page.setViewportSize({ width: 760, height: 650 });
   await page.waitForTimeout(100);
   assert.equal(
@@ -207,7 +278,7 @@ try {
   assert.ok(viewport.height > 100, "viewport must leave room for the model");
   assert.deepEqual(errors, []);
   console.log(
-    "PASS indexed + non-indexed counts, wire pixels, texture/normal restoration, camera, cached reload, resizing",
+    "PASS indexed + non-indexed counts, wire pixels, texture/normal restoration, camera, cached reload, floor grid, full screen, resizing",
   );
 } finally {
   await browser.close();

@@ -19,9 +19,11 @@ namespace Realms
             Refusal refusal = state.GatherSettlers(state.World.Player, city);
             if (refusal != Refusal.None)
             {
+                Sounds.Play(Sfx.ClickOff);
                 hud.Toast(Words.Refusal(refusal));
                 return;
             }
+            Sounds.Play(Sfx.Settlers);
             Hero inTown = state.HeroAt(state.World.Cities[city].Cell);
             hud.Toast(inTown != null && inTown.Settlers && !state.World.Cities[city].Settlers
                 ? T($"Обоз поселенцев пойдёт с героем {inTown.Label}", $"The settlers' wagon will go with {inTown.Label}") : T("Обоз поселенцев ждёт героя в городе", "The settlers' wagon waits for a hero in town"), 4f);
@@ -43,6 +45,7 @@ namespace Realms
             Refusal can = state.CanFound(founder);
             if (can != Refusal.None)
             {
+                Sounds.Play(Sfx.ClickOff);
                 hud.Toast(Words.Refusal(can), 4f);
                 yield break;
             }
@@ -65,6 +68,7 @@ namespace Realms
             City town = state.World.Cities[state.World.Cities.Count - 1];
             var watch = System.Diagnostics.Stopwatch.StartNew();
             RedrawMap(ChangedSince(before));
+            Sounds.Play(Sfx.NewTown);
             hud.Toast(T($"Основан город {town.Label}!", $"{town.Label} is founded!"), 5f);
             AfterMove(true);
             busy = false;
@@ -85,9 +89,12 @@ namespace Realms
             Refusal refusal = state.Expand(world.Player, cell);
             if (refusal != Refusal.None)
             {
+                Sounds.Play(Sfx.ClickOff);
                 hud.Toast(Words.Refusal(refusal, state.Treasury[world.Player].Missing(Towns.DistrictCost)));
                 return;
             }
+            Sounds.Play(Sfx.Build);
+            Sounds.Later(Sfx.Grew, 0.4f);
             City town = world.Cities[world.Cells[cell].District];
             var watch = System.Diagnostics.Stopwatch.StartNew();
             RedrawMap(ChangedSince(before));

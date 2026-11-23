@@ -36,12 +36,12 @@ a new source or text in the same database. Rebuilding one book keeps its identit
 but creates new chunk IDs.
 
 Foreign keys cascade deletes to pages and chunks. Triggers keep FTS5 in sync and
-remove stale vectors. Vectors have 1024 dimensions and unit L2 norm. Page text and
+remove stale vectors. Vectors have 2560 dimensions and unit L2 norm. Page text and
 chunk ranges are the basis for citations; reading never needs the source PDF. The
 model profile is checked when the database is opened.
 
-Qwen3-Embedding-0.6B is pinned to revision
-`97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3`, without quantization. Document input:
+Qwen3-Embedding-4B is pinned to revision
+`5cf2132abc99cad020ac570b19d031efec650f2b`, without quantization. Document input:
 `{title}\n{chapter}\n\n{text}`. A query gets a retrieval instruction. CPU uses FP32,
 CUDA uses BF16, and the stored normalized vector is float32. A change of the model
 profile requires a full rebuild; vectors of different profiles are never mixed.
@@ -72,10 +72,10 @@ shares the GPU decides when to import on CUDA and when on the CPU.
 - FTS5 matches tokens without translation; the hybrid mode needs its own quality
   evaluation.
 - YAQS does not extract chapters or printed page numbers: the tool that prepares
-  the JSONL passes them in `chapter` and `page_label`. Header and footer removal is
-  heuristic. A line must repeat at the page edge, so a header whose characters
-  differ on neighbouring pages (OCR errors) can survive. Removed lines are listed
-  in `removed_lines`.
+  the JSONL passes them in `chapter` and `page_label`. Header and footer removal
+  is heuristic. A line must repeat at the page edge, so a header whose
+  characters differ on neighbouring pages (OCR errors) can survive. Removed
+  lines are listed in `removed_lines`.
 - On a short page (a figure caption, notes) the chapter in the embedding input
   noticeably affects the score: such pages rank higher for queries about the
   chapter's topic.

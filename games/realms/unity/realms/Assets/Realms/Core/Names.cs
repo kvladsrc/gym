@@ -1,8 +1,14 @@
 using System;
+using System.Collections.Generic;
 
 namespace Realms.Core
 {
-    /// <summary>Names shown in the game (Russian: the players are a father and his son).</summary>
+    /// <summary>
+    /// Names shown in the game (Russian: the players are a father and his son). They are neutral,
+    /// of no one people: kingdoms by their colour, towns by what is around them, heroes by short
+    /// names that read the same in both languages. The players asked for these instead of the
+    /// Slavic ones on 2026-11-12.
+    /// </summary>
     public static class Names
     {
         /// <summary>
@@ -24,13 +30,13 @@ namespace Realms.Core
         /// </summary>
         public static readonly string[] Kingdoms =
         {
-            "Серебряное княжество",
-            "Солнечная держава",
+            "Серебряное герцогство",
+            "Солнечная долина",
             "Янтарный берег",
             "Алое королевство",
             "Фиалковые земли",
-            "Лазурное царство",
-            "Небесный удел",
+            "Лазурная гавань",
+            "Небесное нагорье",
             "Изумрудный край",
             "Каштановое графство",
             "Ночное королевство",
@@ -38,49 +44,82 @@ namespace Realms.Core
 
         public static readonly string[] Cities =
         {
-            "Златоград", "Белогорье", "Ясноград", "Светлояр", "Медовар", "Дубравинск",
-            "Тихоречье", "Лисья Горка", "Камнеград", "Солнцедар", "Звездополь", "Ветроград",
-            "Синеводск", "Хлебодар", "Ручейки", "Сосновка", "Луговое", "Высокий Холм",
-            "Каменный Брод", "Яблоневка", "Озёрск", "Ромашково", "Мельничный", "Пряничный Двор",
-            "Орлиное Гнездо", "Жемчужный", "Берёзовка", "Рыбачий", "Гусиный Луг", "Вишнёвый Сад",
-            "Серебряный Ключ", "Кленовый Двор", "Медвежий Угол", "Ласточкино", "Бережок",
-            "Тёплый Ручей", "Малиновка", "Лунный Причал", "Дальний Мыс", "Зелёный Дол",
-            "Белые Камни", "Совиный Бор", "Пчелиный Двор", "Овсянка", "Радужный", "Новоград",
+            "Золотой Колодец", "Белые Утёсы", "Ясная Вершина", "Светлое Озеро", "Медовый Луг", "Дубовая Роща",
+            "Тихая Река", "Лисья Горка", "Каменные Ворота", "Солнечная Поляна", "Звёздный Мост", "Ветреный Холм",
+            "Синий Залив", "Пшеничные Холмы", "Три Ручья", "Сосновый Склон", "Широкий Луг", "Высокий Холм",
+            "Каменный Брод", "Яблоневый Сад", "Озёрная Пристань", "Ромашковое Поле", "Старая Мельница", "Пряничный Двор",
+            "Орлиное Гнездо", "Жемчужная Бухта", "Берёзовая Роща", "Рыбачий Мыс", "Гусиный Луг", "Вишнёвый Сад",
+            "Серебряный Ключ", "Кленовый Двор", "Медвежий Угол", "Ласточкин Утёс", "Песчаный Берег",
+            "Тёплый Ручей", "Малиновая Поляна", "Лунный Причал", "Дальний Мыс", "Зелёный Дол",
+            "Белые Камни", "Совиный Бор", "Пчелиный Двор", "Овсяное Поле", "Радужный Водопад", "Новая Башня",
         };
 
         /// <summary>The kingdoms' names in English, one for each of <see cref="Kingdoms"/>.</summary>
         public static readonly string[] KingdomsEnglish =
         {
-            "Silver Principality",
-            "Sun Dominion",
+            "Silver Duchy",
+            "Sun Vale",
             "Amber Coast",
             "Scarlet Kingdom",
             "Violet Lands",
-            "Azure Realm",
-            "Sky Domain",
+            "Azure Haven",
+            "Sky Highlands",
             "Emerald March",
             "Chestnut County",
             "Night Kingdom",
         };
 
-        /// <summary>The towns' names in English, one for each of <see cref="Cities"/>: of the same spirit, not spelled out.</summary>
+        /// <summary>The towns' names in English, one for each of <see cref="Cities"/>: what they say, not spelled out.</summary>
         public static readonly string[] CitiesEnglish =
         {
-            "Goldburg", "Whitehills", "Brightburg", "Lightmere", "Meadbrew", "Oakwood",
-            "Stillriver", "Fox Hill", "Stoneburg", "Sungift", "Starfield", "Windburg",
-            "Bluewater", "Breadgift", "Brooklets", "Pinewood", "Meadowby", "High Hill",
-            "Stoneford", "Appleton", "Lakeby", "Daisyfield", "Millbrook", "Gingerbread Court",
-            "Eagle's Nest", "Pearlhaven", "Birchwood", "Fisher's Rest", "Goose Meadow", "Cherry Orchard",
-            "Silverspring", "Maple Court", "Bear's Corner", "Swallowby", "Bankside",
-            "Warm Brook", "Raspberry Dell", "Moon Quay", "Far Cape", "Green Dale",
-            "White Stones", "Owlwood", "Beeyard", "Oatfield", "Rainbow Vale", "Newburg",
+            "Goldwell", "White Cliffs", "Bright Peak", "Clear Lake", "Honey Meadow", "Oak Grove",
+            "Quiet River", "Fox Hill", "Stone Gate", "Sunny Glade", "Star Bridge", "Windy Hill",
+            "Blue Bay", "Wheat Hills", "Three Brooks", "Pine Slope", "Broad Meadow", "High Hill",
+            "Stoneford", "Apple Orchard", "Lake Landing", "Daisy Field", "Old Mill", "Gingerbread Court",
+            "Eagle's Nest", "Pearl Cove", "Birch Grove", "Fisher's Point", "Goose Meadow", "Cherry Orchard",
+            "Silverspring", "Maple Court", "Bear's Corner", "Swallow Cliff", "Sandy Shore",
+            "Warm Brook", "Raspberry Glade", "Moon Quay", "Far Cape", "Green Dale",
+            "White Stones", "Owlwood", "Beeyard", "Oat Field", "Rainbow Falls", "New Tower",
         };
 
-        /// <summary>The heroes' names in English, one for each of <see cref="HeroRules.Names"/>: their own, in Latin letters.</summary>
+        /// <summary>The heroes' names in English, one for each of <see cref="HeroRules.Names"/>: the same names in Latin letters.</summary>
         public static readonly string[] HeroesEnglish =
         {
-            "Ratibor", "Vseslava", "Dobrynya", "Milana", "Svetozar", "Yaroslava", "Miroslav", "Zabava",
-            "Velimir", "Lyubava", "Bronislav", "Ognyana",
+            "Aren", "Lina", "Theo", "Mira", "Kai", "Nora", "Felix", "Ida", "Leo", "Ella", "Finn", "Iris",
         };
+
+        /// <summary>
+        /// The Slavic names the game gave before 2026-11-12 and the names that took their place, so a
+        /// save written before then opens with the new ones (a name the players typed stays as typed).
+        /// </summary>
+        static readonly Dictionary<string, string> Former = new Dictionary<string, string>
+        {
+            ["Серебряное княжество"] = "Серебряное герцогство",
+            ["Солнечная держава"] = "Солнечная долина",
+            ["Лазурное царство"] = "Лазурная гавань",
+            ["Небесный удел"] = "Небесное нагорье",
+
+            ["Златоград"] = "Золотой Колодец", ["Белогорье"] = "Белые Утёсы", ["Ясноград"] = "Ясная Вершина",
+            ["Светлояр"] = "Светлое Озеро", ["Медовар"] = "Медовый Луг", ["Дубравинск"] = "Дубовая Роща",
+            ["Тихоречье"] = "Тихая Река", ["Камнеград"] = "Каменные Ворота", ["Солнцедар"] = "Солнечная Поляна",
+            ["Звездополь"] = "Звёздный Мост", ["Ветроград"] = "Ветреный Холм", ["Синеводск"] = "Синий Залив",
+            ["Хлебодар"] = "Пшеничные Холмы", ["Ручейки"] = "Три Ручья", ["Сосновка"] = "Сосновый Склон",
+            ["Луговое"] = "Широкий Луг", ["Яблоневка"] = "Яблоневый Сад", ["Озёрск"] = "Озёрная Пристань",
+            ["Ромашково"] = "Ромашковое Поле", ["Мельничный"] = "Старая Мельница", ["Жемчужный"] = "Жемчужная Бухта",
+            ["Берёзовка"] = "Берёзовая Роща", ["Рыбачий"] = "Рыбачий Мыс", ["Ласточкино"] = "Ласточкин Утёс",
+            ["Бережок"] = "Песчаный Берег", ["Малиновка"] = "Малиновая Поляна", ["Овсянка"] = "Овсяное Поле",
+            ["Радужный"] = "Радужный Водопад", ["Новоград"] = "Новая Башня",
+
+            ["Ратибор"] = "Арен", ["Всеслава"] = "Лина", ["Добрыня"] = "Тео", ["Милана"] = "Мира",
+            ["Светозар"] = "Кай", ["Ярослава"] = "Нора", ["Мирослав"] = "Феликс", ["Забава"] = "Ида",
+            ["Велимир"] = "Лео", ["Любава"] = "Элла", ["Бронислав"] = "Финн", ["Огняна"] = "Ирис",
+        };
+
+        /// <summary>The name a save's <paramref name="name"/> has now: the new one for a former name, else itself.</summary>
+        public static string Current(string name) =>
+            name != null && Former.TryGetValue(name, out string now) ? now : name;
+
+        /// <summary>The former names and the ones that took their place, for the tests.</summary>
+        public static IReadOnlyDictionary<string, string> Renamed => Former;
     }
 }

@@ -29,6 +29,7 @@ float _RealmsCloudCover;        // the share of the clouds' grid squares holding
 float _RealmsCloudShow;         // how much the clouds themselves show: 0 close to the land
 float4 _RealmsWind;             // where the wind blows to (x, z), its strength; MapView sets it
 float4 _RealmsHudMask;          // the task lines' rectangle on screen (normalized, from the bottom left), Hud sets it
+float4 _RealmsHudMask2;         // the day's events' rectangle along the right edge, the same way
 float4 _RealmsCut;              // a screen's subject x, z, how far from it the cut band starts, its half-width (MapCamera)
 float4 _RealmsCutEye;           // that screen camera's x, z, how far the cut is in (0 off the screens)
 
@@ -456,17 +457,26 @@ float3 RealmsTint(float3 albedo, float2 p, float amount)
     return lerp(albedo, albedo * 0.5 + c * 0.5, amount);
 }
 
+// How far inside a mask's rectangle a screen point is, 0 outside to 1 inside, soft over 14 pixels.
+float RealmsHudInside(float4 mask, float2 uv, float2 soft)
+{
+    if (mask.z <= mask.x)
+        return 0;
+    float2 inside = min(uv - mask.xy, mask.zw - uv) / soft;
+    return saturate(min(inside.x, inside.y) + 0.5);
+}
+
 // How much of the grid and the borders shows at a pixel (positionCS from SV_POSITION): a quarter
-// under the task lines, which are text over the map without a window, so a border running through
-// them crossed out their words (review of 2026-11-10); the change is soft over 14 pixels.
+// under the task lines and the day's events, which are text over the map without a window, so a
+// border running through them crossed out their words (review of 2026-11-10).
 float RealmsHudShow(float4 positionCS)
 {
-    if (_RealmsHudMask.z <= _RealmsHudMask.x)
+    if (_RealmsHudMask.z <= _RealmsHudMask.x && _RealmsHudMask2.z <= _RealmsHudMask2.x)
         return 1;
     float2 uv = GetNormalizedScreenSpaceUV(positionCS);
     float2 soft = 14 / _ScreenParams.xy;
-    float2 inside = min(uv - _RealmsHudMask.xy, _RealmsHudMask.zw - uv) / soft;
-    return lerp(1, 0.25, saturate(min(inside.x, inside.y) + 0.5));
+    float inside = max(RealmsHudInside(_RealmsHudMask, uv, soft), RealmsHudInside(_RealmsHudMask2, uv, soft));
+    return lerp(1, 0.25, inside);
 }
 
 // Grid, borders and rings over the lit colour, gridShare of the grid's strength (the plain open

@@ -186,6 +186,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Tags
+         * @description Every tag in the library with the number of assets that carry it, by name;
+         *     ``project``: of that project's assets (every project's when absent).
+         */
+        get: operations["list_tags_api_tags_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/assets/import-url": {
         parameters: {
             query?: never;
@@ -664,6 +685,16 @@ export interface components {
             /** Seen */
             seen: boolean;
         };
+        /**
+         * TagOut
+         * @description A tag in the library (ADR-007).
+         */
+        TagOut: {
+            /** Tag */
+            tag: string;
+            /** Count */
+            count: number;
+        };
         /** TaskInfo */
         TaskInfo: {
             /** Task */
@@ -1129,6 +1160,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_tags_api_tags_get: {
+        parameters: {
+            query?: {
+                project?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagOut"][];
                 };
             };
             /** @description Validation Error */

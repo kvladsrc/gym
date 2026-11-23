@@ -1,0 +1,30 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+import "../common.just"
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/qwen_review"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+export PYTORCH_CUDA_ALLOC_CONF := "expandable_segments:True"
+
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Install the isolated runtime and the pinned 2B base model (~4.6 GB); the adapter is copied by hand
+setup:
+    {{ gpu_shell }} uv sync --extra test
+    @just --justfile {{ justfile() }} download
+
+# The pinned base model: 2b (~4.6 GB) or 9b (~19 GB)
+download base="2b":
+    {{ gpu_shell }} uv run --no-sync python -c "from qwen_review_model_server.server import download; print(download('{{ base }}'))"
+
+doctor base="2b":
+    {{ gpu_shell }} uv run --no-sync python -m qwen_review_model_server.doctor --base {{ base }}
+
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync qwen-review-model-server "$@"
+
+# Contract, prompt, report and the offload hooks on tiny modules; no weights or GPU
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

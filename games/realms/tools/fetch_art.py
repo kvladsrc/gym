@@ -3,7 +3,9 @@
 
 Reads art.json: models are copied as Studio made them (at the game's triangle budget, so nothing
 is decimated here), except that a model with "texture_size" has its embedded maps resized to it;
-icons are resized to 256 px and the tileable ground textures to 1024 px wide with ImageMagick.
+icons are resized to 256 px and the tileable ground textures to 1024 px wide with ImageMagick;
+videos, which the Studio keeps as H.264 MP4, are made VP8 WebM with ffmpeg (what Unity's
+VideoPlayer plays on Linux and Windows) into Art/Resources, where the game loads them by name.
 Needs the Studio API (default http://127.0.0.1:9000, or $STUDIO_URL). Fetches what is missing or
 changed in art.json since the last fetch (Art/manifest.json); --force fetches everything.
 """
@@ -15,6 +17,7 @@ import pathlib
 import shutil
 import struct
 import subprocess
+import tempfile
 import urllib.request
 
 here = pathlib.Path(__file__).resolve().parent
@@ -89,6 +92,46 @@ def shrink_glb(data, size, magick):
     )
 
 
+def webm(data):
+    """The video as silent VP8 WebM at a high quality, keyframes every two seconds (a looping
+    video goes back to its first frame)."""
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise SystemExit("videos need ffmpeg on PATH")
+    with tempfile.TemporaryDirectory() as tmp:
+        source, made = pathlib.Path(tmp, "source"), pathlib.Path(tmp, "made.webm")
+        source.write_bytes(data)
+        subprocess.run(
+            [
+                ffmpeg,
+                "-v",
+                "error",
+                "-i",
+                source,
+                "-an",
+                "-c:v",
+                "libvpx",
+                "-b:v",
+                "8M",
+                "-crf",
+                "4",
+                "-qmin",
+                "0",
+                "-qmax",
+                "30",
+                "-auto-alt-ref",
+                "0",
+                "-g",
+                "48",
+                "-pix_fmt",
+                "yuv420p",
+                made,
+            ],
+            check=True,
+        )
+        return made.read_bytes()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -100,13 +143,13 @@ def main():
     magick = shutil.which("magick")
     if not magick:
         raise SystemExit("needs magick on PATH")
-    for folder in ("Models", "Icons", "Textures"):
+    for folder in ("Models", "Icons", "Textures", "Resources"):
         (art / folder).mkdir(parents=True, exist_ok=True)
     try:
         before = json.loads((art / "manifest.json").read_text())
     except (OSError, ValueError):
         before = {}
-    manifest = {"source": api, "models": {}, "icons": {}, "textures": {}}
+    manifest = {"source": api, "models": {}, "icons": {}, "textures": {}, "videos": {}}
 
     def wanted(kind, name, entry, out):
         """Whether to fetch: forced, missing, or changed in art.json since the last fetch."""
@@ -134,6 +177,12 @@ def main():
                 resized(magick, download(api, asset_id), f"{TEXTURE_WIDTH}x")
             )
             print(f"texture {name}")
+    for name, asset_id in spec.get("videos", {}).items():
+        out = art / "Resources" / f"{name}.webm"
+        if wanted("videos", name, asset_id, out):
+            data = webm(download(api, asset_id))
+            out.write_bytes(data)
+            print(f"video {name}: {len(data) // 1024} KB")
     (art / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
 

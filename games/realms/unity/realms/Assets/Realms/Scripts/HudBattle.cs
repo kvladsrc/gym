@@ -18,8 +18,15 @@ namespace Realms
 
         VisualElement battleTop, battleQueue, battleBar, battleInfo, battleInfoFace, battleInfoLines;
         Label battleTitle, battleRound, battleWho, battleHint, battleInfoName, battleInfoLine;
-        Button autoButton;
-        Action onDefend, onAuto, onRetreat;
+        Button autoButton, orderButton;
+        Action onDefend, onAuto, onRetreat, onOrders;
+        Action<HeroOrder> onOrder;
+
+        /// <summary>The bar's own buttons, and the hero's two orders with «Назад» that take their place while chosen.</summary>
+        readonly List<VisualElement> barButtons = new List<VisualElement>(), orderChoice = new List<VisualElement>();
+
+        /// <summary>The hero's orders are on the bar in place of its buttons (<see cref="ShowOrders"/>).</summary>
+        public bool OrdersOpen { get; private set; }
 
         public bool InBattle => root != null && root.ClassListContains("in-battle");
 
@@ -28,6 +35,24 @@ namespace Realms
         /// wear charcoal and bone, so red and blue keep meaning kingdoms.
         /// </summary>
         public Color Mine => state != null ? Palette.Countries[state.World.Player % Palette.Countries.Length] : Palette.Gold;
+
+        /// <summary>
+        /// Shows or hides the small shield beside a stack's plate on the battlefield: the stack
+        /// stands under its spearmen's cover (the combat plan's 3.3).
+        /// </summary>
+        public void CoverMark(Label plate, bool on)
+        {
+            VisualElement shield = plate.Q(className: "battle-count-shield");
+            if (shield == null)
+            {
+                if (!on)
+                    return;
+                shield = Child(plate, "battle-count-shield");
+                shield.pickingMode = PickingMode.Ignore;
+                SetIcon(shield, "icon_defence");
+            }
+            shield.style.display = on ? DisplayStyle.Flex : DisplayStyle.None;
+        }
 
         /// <summary>Gives the element a rim of the colour on all four sides.</summary>
         public static void Rim(VisualElement element, Color colour)
@@ -53,10 +78,27 @@ namespace Realms
             Button defend = Btn(battleBar, T("Защита", "Defend"), "button", () => onDefend?.Invoke());
             defend.tooltip = T("Отряд пропускает удар и получает меньше урона до своего хода", "The troop skips its strike and takes less damage until its next turn");
             Text(defend, "key-hint-dark", "D", bold).pickingMode = PickingMode.Ignore;
+            // The hero's order, once a battle (the combat plan of 2026-11-11, 3.4): the button
+            // opens the two orders in place of the bar's buttons and goes dark once one is given.
+            orderButton = Btn(battleBar, T("Приказ", "Order"), "button", () => onOrders?.Invoke());
+            orderButton.AddToClassList("battle-order");
+            orderButton.tooltip = T("Приказ героя, раз за бой", "The hero's order, once a battle");
+            Text(orderButton, "key-hint-dark", "O", bold).pickingMode = PickingMode.Ignore;
             autoButton = Btn(battleBar, T("Авто", "Auto"), "button", () => onAuto?.Invoke());
             autoButton.tooltip = T("Отряды бьются сами, до конца боя", "The troops fight on their own until the battle ends");
             Text(autoButton, "key-hint-dark", "A", bold).pickingMode = PickingMode.Ignore;
-            Btn(battleBar, T("Отступить", "Retreat"), "button", () => onRetreat?.Invoke());
+            Button retreat = Btn(battleBar, T("Отступить", "Retreat"), "button", () => onRetreat?.Invoke());
+            barButtons.AddRange(new VisualElement[] { defend, orderButton, autoButton, retreat });
+            Button attack = Btn(battleBar, T("В атаку!", "Attack!"), "button", () => onOrder?.Invoke(HeroOrder.Attack));
+            attack.tooltip = T("Отряд сразу ходит ещё раз, вполсилы", "The troop acts once more at once, at half strength");
+            Text(attack, "key-hint-dark", "1", bold).pickingMode = PickingMode.Ignore;
+            Button shields = Btn(battleBar, T("Щиты!", "Shields!"), "button", () => onOrder?.Invoke(HeroOrder.Shields));
+            shields.tooltip = T("Все отряды в защите до своего хода; ход не тратится", "All troops defend until their next turn; the turn goes on");
+            Text(shields, "key-hint-dark", "2", bold).pickingMode = PickingMode.Ignore;
+            Button back = Btn(battleBar, T("Назад", "Back"), "button", () => ShowOrders(false));
+            orderChoice.AddRange(new VisualElement[] { attack, shields, back });
+            foreach (VisualElement b in orderChoice)
+                b.style.display = DisplayStyle.None;
 
             battleInfo = Child(root, "battle-info");
             VisualElement infoHead = Child(battleInfo, "battle-info-head");
@@ -69,13 +111,18 @@ namespace Realms
         }
 
         /// <summary>Hides the map's panels and shows the battle's.</summary>
-        public void ShowBattle(string title, Portraits pictures, Action defend, Action auto, Action retreat)
+        public void ShowBattle(string title, Portraits pictures, Action defend, Action auto, Action retreat, Action orders = null,
+            Action<HeroOrder> order = null)
         {
             if (pictures != null)
                 portraits = pictures;
             onDefend = defend;
             onAuto = auto;
             onRetreat = retreat;
+            onOrders = orders;
+            onOrder = order;
+            ShowOrders(false);
+            BattleOrders(false, false);
             root.AddToClassList("in-battle");
             battleTitle.text = title;
             battleRound.text = "";
@@ -92,7 +139,9 @@ namespace Realms
                 return;
             root.RemoveFromClassList("in-battle");
             battleTop.style.display = battleBar.style.display = battleInfo.style.display = DisplayStyle.None;
-            onDefend = onAuto = onRetreat = null;
+            onDefend = onAuto = onRetreat = onOrders = null;
+            onOrder = null;
+            ShowOrders(false);
             ClearTags();
         }
 
@@ -165,6 +214,48 @@ namespace Realms
             bottom = 84f * k;
             plateHalf = 14f * k;
         }
+
+        /// <summary>
+        /// The order button: shown when the battle has orders at all (<see cref="Battle.OrdersPerBattle"/>),
+        /// lit while the hero may give one now; the choice closes when it may not.
+        /// </summary>
+        public void BattleOrders(bool shown, bool can)
+        {
+            ordersShown = shown;
+            orderButton.SetEnabled(can);
+            if (!can && OrdersOpen)
+                ShowOrders(false);
+            else
+                orderButton.style.display = shown && !OrdersOpen ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        /// <summary>Whether the battles have orders at all, so that the order button shows on the bar.</summary>
+        bool ordersShown;
+
+        /// <summary>The hero's two orders and «Назад» in place of the bar's buttons, with what each does under the turn's line.</summary>
+        public void ShowOrders(bool open)
+        {
+            if (battleBar == null)
+                return;
+            bool was = OrdersOpen;
+            OrdersOpen = open;
+            foreach (VisualElement b in barButtons)
+                b.style.display = open ? DisplayStyle.None : DisplayStyle.Flex;
+            orderButton.style.display = !open && ordersShown ? DisplayStyle.Flex : DisplayStyle.None;
+            foreach (VisualElement b in orderChoice)
+                b.style.display = open ? DisplayStyle.Flex : DisplayStyle.None;
+            if (open)
+            {
+                orderHint = battleHint.text;
+                battleHint.text = T("Раз за бой. «В атаку!»: отряд ходит ещё раз, вполсилы. «Щиты!»: все в защите до своего хода.",
+                    "Once a battle. Attack!: the troop acts again, at half strength. Shields!: all defend until their turn.");
+                battleHint.style.display = DisplayStyle.Flex;
+            }
+            else if (was && orderHint != null)
+                battleHint.text = orderHint;
+        }
+
+        string orderHint;
 
         /// <summary>Whose turn it is (null while the monsters act) and what the players can do.</summary>
         public void BattleTurn(string who, bool shoots)

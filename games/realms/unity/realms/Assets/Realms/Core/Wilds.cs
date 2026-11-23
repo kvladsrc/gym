@@ -27,7 +27,17 @@ namespace Realms.Core
         /// (<see cref="WorldGen.WildDepth"/>): under half at the edge, even at six steps, three
         /// times at twenty.
         /// </summary>
-        public static float Strength(int distance) => 0.3f + 0.12f * distance;
+        public static float Strength(int distance) => (0.3f + 0.12f * distance) * Retuned;
+
+        /// <summary>
+        /// How much bigger the groups are since the battle plan's rules (the combat plan of
+        /// 2026-11-11, step 4: «пересчёт Wilds.Strength»). The spears' cover, the run-up, the
+        /// monsters' habits and the hero's order made the players' side stronger than its worth:
+        /// measured over the auto battles on 2026-11-12, the first army won 74-97% of the fights
+        /// at six steps against each kind, easy rather than even. A tenth bigger, it wins 48-80%
+        /// (a fifth bigger 10-57%), and the middle army 62-100% at twelve steps.
+        /// </summary>
+        public const float Retuned = 1.1f;
 
         /// <summary>How many monsters a group of the kind has at the distance; <paramref name="luck"/> scales it.</summary>
         public static int Size(Monster monster, int distance, float luck)

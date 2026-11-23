@@ -27,6 +27,7 @@ from yaqs.embedding import DIMENSIONS, PROFILE
 MAX_QUERY_CHARS = 4000
 MAX_SEARCH_LIMIT = 20
 MAX_NEIGHBORS = 3
+CORPORA = ("all", "books", "kb")
 RRF_K = 60  # reciprocal rank fusion constant from the original RRF paper
 # What integrity() returns for a healthy, fully indexed database.
 INTEGRITY_OK = {
@@ -312,7 +313,7 @@ class KnowledgeBase:
     def books(self) -> list[dict[str, Any]]:
         with self.connect() as db:
             return [
-                dict(row)
+                {**dict(row), "corpus": source_corpus(row["import_profile"])}
                 for row in db.execute(
                     "SELECT b.*, (SELECT count(*) FROM chunks c WHERE c.book_id=b.id) AS chunks, "
                     "(SELECT count(*) FROM chunk_vectors v WHERE v.book_id=b.id) AS indexed_chunks "
@@ -448,12 +449,16 @@ class KnowledgeBase:
         limit: int = 5,
         book_id: int | None = None,
         mode: str = DEFAULT_SEARCH_MODE,
+        corpus: str = "all",
     ) -> list[dict[str, Any]]:
         """Ranked chunks as stored; context_search merges them into source blocks."""
         validate_search(query, limit, mode)
+        validate_corpus(corpus)
         with self.connect() as db:
             db.execute("BEGIN")
-            return self._search_candidates(db, query, vector, book_id, mode, _depth(limit))[:limit]
+            return self._search_candidates(db, query, vector, book_id, mode, _depth(limit), corpus)[
+                :limit
+            ]
 
     def context_search(
         self,
@@ -465,13 +470,17 @@ class KnowledgeBase:
         book_id: int | None = None,
         mode: str = DEFAULT_SEARCH_MODE,
         max_tokens: int = DEFAULT_CONTEXT_TOKENS,
+        corpus: str = "all",
     ) -> dict[str, Any]:
         """Search and assemble up to limit non-overlapping source blocks within max_tokens."""
         validate_search(query, limit, mode)
+        validate_corpus(corpus)
         validate_budget(max_tokens)
         with self.connect() as db:
             db.execute("BEGIN")
-            candidates = self._search_candidates(db, query, vector, book_id, mode, _depth(limit))
+            candidates = self._search_candidates(
+                db, query, vector, book_id, mode, _depth(limit), corpus
+            )
             return assemble_context(
                 candidates,
                 lambda book, page: self._page(db, book, page)["text"],
@@ -488,7 +497,18 @@ class KnowledgeBase:
         book_id: int | None,
         mode: str,
         depth: int,
+        corpus: str = "all",
     ) -> list[dict[str, Any]]:
+        book_ids = None
+        if corpus != "all":
+            book_ids = [
+                row["id"]
+                for row in db.execute("SELECT id,import_profile FROM books")
+                if source_corpus(row["import_profile"]) == corpus
+                and (book_id is None or row["id"] == book_id)
+            ]
+            if not book_ids:
+                return []
         dense: list[int] = []
         lexical: list[int] = []
         similarities: dict[int, float] = {}
@@ -499,7 +519,10 @@ class KnowledgeBase:
                 raise ValueError("Non-finite query embedding")
             sql = "SELECT chunk_id,distance FROM chunk_vectors WHERE embedding MATCH ? AND k=?"
             params: list[Any] = [sqlite_vec.serialize_float32(vector), depth]
-            if book_id is not None:
+            if book_ids is not None:
+                sql += " AND book_id IN (" + ",".join("?" for _ in book_ids) + ")"
+                params.extend(book_ids)
+            elif book_id is not None:
                 sql += " AND book_id=?"
                 params.append(book_id)
             for row in db.execute(sql + " ORDER BY distance", params):
@@ -512,7 +535,10 @@ class KnowledgeBase:
                 "WHERE chunks_fts MATCH ?"
             )
             params = [expression]
-            if book_id is not None:
+            if book_ids is not None:
+                sql += " AND c.book_id IN (" + ",".join("?" for _ in book_ids) + ")"
+                params.extend(book_ids)
+            elif book_id is not None:
                 sql += " AND c.book_id=?"
                 params.append(book_id)
             params.append(depth)
@@ -572,6 +598,20 @@ class KnowledgeBase:
             "fts": "ok",
             "pending_chunks": self.stats()["pending_chunks"],
         }
+
+
+def source_corpus(import_profile: str) -> str:
+    """Classify sources by import metadata, independently of their ID, title or path."""
+    try:
+        profile = json.loads(import_profile)
+    except (ValueError, TypeError):
+        return "books"
+    return "kb" if isinstance(profile, dict) and profile.get("input") == "atomkb-jsonl" else "books"
+
+
+def validate_corpus(corpus: str) -> None:
+    if corpus not in CORPORA:
+        raise ValueError(f"corpus must be one of {', '.join(CORPORA)}")
 
 
 def _depth(limit: int) -> int:

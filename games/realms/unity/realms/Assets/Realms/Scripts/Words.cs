@@ -185,6 +185,12 @@ namespace Realms
         /// <summary>What is special about a unit in a fight, for its card on the battlefield; null when nothing.</summary>
         public static string Abilities(UnitStats stats)
         {
+            if (stats.Has(Ability.Cover))
+                return T("Прикрытие: раз в раунд бьют первыми врага, который бьёт их или соседа рядом.",
+                    "Cover: once a round, they strike first at an enemy striking them or a troop beside them.");
+            if (stats.Has(Ability.RunUp))
+                return T("Разбег: удар с трёх клеток и дальше от начала хода в полтора раза сильнее. Копья гасят разбег.",
+                    "Charge: a strike from three or more tiles away from where its turn began is half as strong again. Spears stop a charge.");
             if (stats.Has(Ability.Shoots))
                 return T("Стреляет издалека, пока рядом нет врага.", "Shoots from afar while no enemy is near.");
             if (stats.Has(Ability.NoStrikeBack))
@@ -212,22 +218,23 @@ namespace Realms
                 case Core.Temper.Charge:
                     return one ? T("Несётся напролом на того, кто перед ним.", "Charges headlong at whoever is in front of it.") : T("Несутся напролом на того, кто перед ними.", "Charge headlong at whoever is in front of them.");
                 case Core.Temper.Weakest:
-                    return T("Стаей на самого слабого.", "Hunt the weakest as a pack.");
+                    return T("Кружат, потом стаей на самого слабого, в обход копий.", "Circle, then hunt the weakest as a pack, around the spears.");
                 case Core.Temper.Nearest:
                     return one ? T("Стреляет в того, кто ближе.", "Shoots whoever is closest.") : T("Стреляют в того, кто ближе.", "Shoot whoever is closest.");
                 case Core.Temper.Wall:
-                    return one ? T("Стрелков оставляет напоследок.", "Leaves the archers for last.") : T("Стрелков оставляют напоследок.", "Leave the archers for last.");
+                    return one ? T("Стрелков оставляет напоследок.", "Leaves the archers for last.") : T("Идут стеной, стрелков оставляют напоследок.", "March as a wall and leave the archers for last.");
                 case Core.Temper.Fastest:
                     return one ? T("Ловит в паутину самых быстрых.", "Catches the fastest in its web.") : T("Ловят в паутину самых быстрых.", "Catch the fastest in their webs.");
                 case Core.Temper.Biggest:
-                    return one ? T("Идёт на самый большой отряд.", "Goes for the biggest troop.") : T("Идут на самый большой отряд.", "Go for the biggest troop.");
+                    return one ? T("Идёт на самый большой отряд — стрелка показывает, на какой.", "Goes for the biggest troop — the arrow shows which.") : T("Идут на самый большой отряд — стрелки показывают, на какой.", "Go for the biggest troop — the arrows show which.");
                 default:
                     return null;
             }
         }
 
         /// <summary>Goblins, bandits and the troll give up; beasts back away.</summary>
-        static bool Beasts(Unit unit) => unit == Core.Unit.Wolves || unit == Core.Unit.Boars || unit == Core.Unit.Spiders;
+        /// <summary>Whether the monsters are beasts, which back off rather than give up.</summary>
+        public static bool Beasts(Unit unit) => unit == Core.Unit.Wolves || unit == Core.Unit.Boars || unit == Core.Unit.Spiders;
 
         /// <summary>The words over the monsters when they offer to give up: "Сдаются!".</summary>
         public static string Yields(Unit unit, int count) =>
@@ -257,6 +264,24 @@ namespace Realms
         /// <summary>Why the reward is bigger than the group's own, beside it: "×2 — бой равный"; empty for an easy fight.</summary>
         public static string RewardFactor(int factor) =>
             factor >= 3 ? T("×3 — бой опасный", "×3 — a dangerous fight") : factor == 2 ? T("×2 — бой равный", "×2 — an even fight") : "";
+
+        /// <summary>
+        /// What happens on the field, told in the window before the fight (the combat plan's 3.5):
+        /// a key and its value. The odds above already count it.
+        /// </summary>
+        public static string AmbushKey => T("Засада!", "Ambush!");
+
+        public static string AmbushValue => T("чудища совсем рядом", "the monsters are close");
+
+        public static string LootKey => T("На поле сундук", "A chest on the field");
+
+        public static string LootValue(int gold) => T($"+{gold} золота — встань на него", $"+{gold} gold — step on it");
+
+        /// <summary>Over the stack that took the chest on the field, and in the fight's result.</summary>
+        public static string ChestTaken(int gold) => T($"+{gold} золота", $"+{gold} gold");
+
+        /// <summary>The line of the fight's result for the chest taken on its field.</summary>
+        public static string ChestFromField => T("Сундук с поля", "Chest from the field");
 
         /// <summary>The question before a retreat and its answers: retreat, or fight on (Esc).</summary>
         public static string RetreatTitle => T("Отступить?", "Retreat?");
@@ -447,9 +472,51 @@ namespace Realms
                 case Core.Refusal.NotACity: return T("Сначала вырасти до города (8 домов)", "First grow into a town (8 houses)");
                 case Core.Refusal.HasRoom: return T("В городе ещё есть свободные места", "The town still has free places");
                 case Core.Refusal.NotBesideTown: return T("Город растёт только на клетки рядом со своим центром", "A town grows only onto tiles next to its centre");
+                case Core.Refusal.NotTheCapital: return T("Великую стройку поднимают только в столице", "The Great Build rises only in the capital");
+                case Core.Refusal.NoCastle: return T("Сначала построй в столице замок", "First build a castle in the capital");
                 default: return "";
             }
         }
+
+        /// <summary>The Great Build's name (the economy plan's 3.4).</summary>
+        public static string GreatBuildName => T("Великая стройка", "The Great Build");
+
+        /// <summary>What the button raising <paramref name="stage"/> of the Great Build says.</summary>
+        public static string BuildStageName(int stage)
+        {
+            switch (stage)
+            {
+                case 1: return T("Заложить основание", "Lay the foundation");
+                case 2: return T("Поднять стены", "Raise the walls");
+                default: return T("Завершить стройку", "Finish the build");
+            }
+        }
+
+        /// <summary>What <paramref name="stage"/> of the Great Build brings.</summary>
+        public static string BuildStageHint(int stage)
+        {
+            int gold = GreatBuild.GoldOf(stage);
+            return gold > 0
+                ? T($"Стадия {stage} из {GreatBuild.Stages}: паломники, +{gold} золота в ход", $"Stage {stage} of {GreatBuild.Stages}: pilgrims, +{gold} gold a turn")
+                : T($"Стадия {stage} из {GreatBuild.Stages}: стройка готова", $"Stage {stage} of {GreatBuild.Stages}: the build stands finished");
+        }
+
+        /// <summary>The stages of the town's Great Build raised so far and what they bring.</summary>
+        public static string BuildRaised(City city)
+        {
+            int gold = GreatBuild.Yield(city).Gold;
+            if (city.BuildStage >= GreatBuild.Stages)
+                return T($"Великая стройка завершена: самоцвет «{Gem(Core.Gem.Build)}» твой. Паломники приносят +{gold} золота в ход.", $"The Great Build stands finished: the “{Gem(Core.Gem.Build)}” gem is yours. Pilgrims bring +{gold} gold a turn.");
+            return T($"Поднято стадий: {city.BuildStage} из {GreatBuild.Stages}. Паломники приносят +{gold} золота в ход.",
+                $"Stages raised: {city.BuildStage} of {GreatBuild.Stages}. Pilgrims bring +{gold} gold a turn.");
+        }
+
+        /// <summary>The Great Build's place among the town's places on its screen: its stage.</summary>
+        public static string BuildSlot(City city) => T($"Стройка {city.BuildStage}/{GreatBuild.Stages}", $"Great Build {city.BuildStage}/{GreatBuild.Stages}");
+
+        /// <summary>Before the Great Build's first stage: where it will stand (it takes a place, 2026-11-12).</summary>
+        public static string BuildPlaceNote => T("Стройка займёт одно свободное место в городе: там в три приёма поднимется колокольня.",
+            "The build takes one free place in the town, where a bell tower rises in three stages.");
 
         /// <summary>Why a town does not grow.</summary>
         public static string Stop(GrowthStop stop)
@@ -531,6 +598,8 @@ namespace Realms
                     : T($"{world.Countries[e.Country].Label}: новый самоцвет в короне, «{Gem(e.Gem)}»", $"{world.Countries[e.Country].Label}: a new gem in the crown, “{Gem(e.Gem)}”");
             if (e.Kind == TurnEventKind.StakeLost)
                 return StakeLost(world.Countries[e.Country].Label);
+            if (e.Kind == TurnEventKind.ArmyHungry)
+                return ArmyHungry(e.Amount);
             // A neighbour's troop has no town of the players' to name.
             if (e.Kind == TurnEventKind.TroopSent)
                 return TroopRow(world.Countries[e.Country].Label, e.Amount);
@@ -681,6 +750,7 @@ namespace Realms
                 case Core.Gem.Towns: return T("Города", "Towns");
                 case Core.Gem.Hunter: return T("Охотник", "Hunter");
                 case Core.Gem.Hero: return T("Герой", "Hero");
+                case Core.Gem.Build: return T("Стройка", "Great Build");
                 default: return T("Земли", "Lands");
             }
         }
@@ -694,6 +764,7 @@ namespace Realms
                 case Core.Gem.Towns: return "gem_towns";
                 case Core.Gem.Hunter: return "gem_hunter";
                 case Core.Gem.Hero: return "gem_hero";
+                case Core.Gem.Build: return "gem_build";
                 default: return "gem_lands";
             }
         }
@@ -725,21 +796,26 @@ namespace Realms
 
         public static string DifficultyTitle => T("Соседи", "Neighbours");
 
-        /// <summary>What sets the gem, as a task: «Разори 3 логова чудовищ».</summary>
-        public static string GemFeat(Gem gem)
+        /// <summary>
+        /// What sets the gem, as a task: «Разори 3 логова чудовищ», <paramref name="need"/> its goal
+        /// (Crown.Progress; the Lands gem's follows the map's size).
+        /// </summary>
+        public static string GemFeat(Gem gem, int need)
         {
             switch (gem)
             {
                 case Core.Gem.Capital:
-                    return T($"Вырасти столицу до {HousesFor(Crown.CapitalLevel)} домов: она станет королевским городом", $"Grow the capital to {HousesFor(Crown.CapitalLevel)} houses: it becomes a royal town");
+                    return T($"Вырасти столицу до {HousesFor(need)} домов: она станет королевским городом", $"Grow the capital to {HousesFor(need)} houses: it becomes a royal town");
                 case Core.Gem.Towns:
-                    return T($"Вырасти {Crown.TownsGoal} {Plural(Crown.TownsGoal, "город", "города", "городов")} до {HousesFor(Crown.TownsLevel)} домов", $"Grow {Crown.TownsGoal} {En(Crown.TownsGoal, "town", "towns")} to {HousesFor(Crown.TownsLevel)} houses");
+                    return T($"Вырасти {need} {Plural(need, "город", "города", "городов")} до {HousesFor(Crown.TownsLevel)} домов", $"Grow {need} {En(need, "town", "towns")} to {HousesFor(Crown.TownsLevel)} houses");
                 case Core.Gem.Hunter:
-                    return T($"Разори {Crown.HunterGoal} {Plural(Crown.HunterGoal, "логово", "логова", "логов")} чудовищ", $"Clear {Crown.HunterGoal} monster {En(Crown.HunterGoal, "lair", "lairs")}");
+                    return T($"Разори {need} {Plural(need, "логово", "логова", "логов")} чудовищ", $"Clear {need} monster {En(need, "lair", "lairs")}");
                 case Core.Gem.Hero:
-                    return T($"Подними героя до {Crown.HeroGoal} уровня", $"Raise a hero to level {Crown.HeroGoal}");
+                    return T($"Подними героя до {need} уровня", $"Raise a hero to level {need}");
+                case Core.Gem.Build:
+                    return T($"Заверши Великую стройку в столице: {need} стадии после замка", $"Finish the Great Build in the capital: {need} stages after the castle");
                 default:
-                    return T($"Расширь королевство на {Crown.LandsGoal} {Plural(Crown.LandsGoal, "клетку", "клетки", "клеток")}", $"Expand the kingdom by {Crown.LandsGoal} {En(Crown.LandsGoal, "tile", "tiles")}");
+                    return T($"Расширь королевство на {need} {Plural(need, "клетку", "клетки", "клеток")}", $"Expand the kingdom by {need} {En(need, "tile", "tiles")}");
             }
         }
 
@@ -753,6 +829,7 @@ namespace Realms
                 case Core.Gem.Towns: return T($"городов: {have} из {need}", $"towns: {have} of {need}");
                 case Core.Gem.Hunter: return T($"логова: {have} из {need}", $"lairs: {have} of {need}");
                 case Core.Gem.Hero: return T($"уровень: {have} из {need}", $"level: {have} of {need}");
+                case Core.Gem.Build: return T($"стадии: {have} из {need}", $"stages: {have} of {need}");
                 default: return T($"клетки: {have} из {need}", $"tiles: {have} of {need}");
             }
         }
@@ -817,14 +894,58 @@ namespace Realms
         public static string MenuNewGame => T("Новая игра", "New game");
         public static string MenuHelp => T("Как играть", "How to play");
         public static string MenuQuit => T("Выйти из игры", "Quit the game");
+        public static string MenuSettings => T("Настройки", "Settings");
+
+        // The settings (the interface plan's 3.5): the five volumes, the screen and the interface,
+        // the camera.
+        public static string SettingsSound => T("Звук", "Sound");
+        public static string SettingsMaster => T("Общая", "Overall");
+        public static string SettingsMusic => T("Музыка", "Music");
+        public static string SettingsAmbience => T("Окружение", "Surroundings");
+        public static string SettingsInterface => T("Интерфейс", "Interface");
+        public static string SettingsWorld => T("Мир", "World");
+        public static string SettingsScreenGroup => T("Экран и интерфейс", "Screen and interface");
+        public static string SettingsScreen => T("Экран", "Screen");
+        public static string SettingsFullscreen => T("Весь экран", "Fullscreen");
+        public static string SettingsWindowed => T("Окно", "Window");
+        public static string SettingsWindow => T("Размер окна", "Window size");
+        public static string SettingsBadges => T("Значки", "Icons");
+        public static string SettingsBadgesHold => T("Держать Alt", "Hold Alt");
+        public static string SettingsBadgesToggle => T("Alt вкл/выкл", "Alt on/off");
+        public static string SettingsHints => T("Подсказки", "Hints");
+        public static string SettingsHintsAgain => T("Показать снова", "Show again");
+        public static string SettingsHintsAgainDone => T("Покажу снова", "Will show again");
+        public static string SettingsCamera => T("Камера", "Camera");
+        public static string SettingsMove => T("Движение", "Moving");
+        public static string SettingsTurn => T("Поворот", "Turning");
+        public static string SettingsEdge => T("Мышь у края", "Pointer at the edge");
+        public static string SettingsEdgeMoves => T("Двигает карту", "Moves the map");
+        public static string SettingsYes => T("Да", "Yes");
+        public static string SettingsNo => T("Нет", "No");
+        public static string SettingsReset => T("Вернуть как было", "Restore the defaults");
+
+        /// <summary>After the screen changed: it goes back by itself unless kept.</summary>
+        public static string SettingsKeepTitle => T("Оставить так?", "Keep it so?");
+        public static string SettingsKeepText(int seconds) => T($"Через {seconds} с вернётся как было.", $"It goes back in {seconds} s.");
+        public static string[] SettingsKeepAnswers => new[] { T("Оставить", "Keep"), T("Вернуть", "Go back") };
+
         public static string MenuSave => T("Сохранить", "Save");
         public static string MenuLoad => T("Загрузить", "Load");
 
         /// <summary>The menu's quit in a battle: the save before the battle brings it back.</summary>
         public static string MenuQuitBattle => T("Выйти (бой начнётся заново)", "Quit (the battle will start over)");
 
-        /// <summary>The menu's line under the kingdom's name: "Карта №48213 · ход 34".</summary>
-        public static string MenuMap(int seed, int turn) => T($"Карта №{seed} · ход {turn}", $"Map No. {seed} · turn {turn}");
+        /// <summary>The menu's line under the kingdom's name: "Карта №48213 · ход 34", "Карта №48213 · большая · ход 34".</summary>
+        public static string MenuMap(World world, int turn)
+        {
+            MapSize size = WorldSettings.SizeOf(world);
+            return size == Core.MapSize.Medium
+                ? T($"Карта №{world.Seed} · ход {turn}", $"Map No. {world.Seed} · turn {turn}")
+                : T($"Карта №{world.Seed} · {MapSizeWord(size)} · ход {turn}", $"Map No. {world.Seed} · {MapSizeWord(size)} · turn {turn}");
+        }
+
+        /// <summary>A map's size in the menu's line, small letters: «маленькая».</summary>
+        static string MapSizeWord(MapSize size) => size == Core.MapSize.Small ? T("маленькая", "small") : size == Core.MapSize.Large ? T("большая", "large") : T("средняя", "medium");
 
         /// <summary>The menu's last line, small: "Версия 0.1.0".</summary>
         public static string Version(string version) => T($"Версия {version}", $"Version {version}");
@@ -845,14 +966,74 @@ namespace Realms
         public static string TitleQuit => T("Выход", "Quit");
         public static string MenuToTitle => T("В главное меню", "To the main menu");
 
-        /// <summary>The new game's screen: the map beside it, another one or one by its number, start or back.</summary>
+        // «Об игре» on the main menu (the interface plan's 3.7): the version, what the game is, how
+        // its art and sound were made, the licences, and where the saves and the log lie for a
+        // report of a fault. The art's words are those of the game's page.
+        public static string MenuAbout => T("Об игре", "About");
+        public static string AboutWhat => T(
+            "Спокойная пошаговая стратегия на шестиугольной карте. Её задумали, чтобы играть вместе с ребёнком, но можно и одному: партия укладывается в вечер.",
+            "A calm turn-based strategy game on a hex map, made to be played together with a child, or alone over one evening.");
+        public static string AboutArtPart => T("Об оформлении", "About the art");
+        public static string AboutArt => T(
+            "3D-модели, текстуры, значки и картинки меню сделаны генеративными нейросетями (локальные модели «картинка в 3D» и генерация изображений) и отобраны вручную. Звуки и музыка тоже сделаны нейросетями.",
+            "The 3D models, textures, icons and menu pictures were made with generative AI tools (local image-to-3D models and image generation) and picked by hand. The sounds and music were made with generative AI tools too.");
+        public static string AboutLicencesPart => T("Лицензии", "Licences");
+        public static string AboutFont => T(
+            "Шрифт Nunito: © 2014 The Nunito Project Authors, SIL Open Font License 1.1.",
+            "The Nunito font: © 2014 The Nunito Project Authors, SIL Open Font License 1.1.");
+        public static string AboutCode => T("Исходный код игры открыт по лицензии GNU GPL 3.0.", "The game's source code is open under the GNU GPL 3.0.");
+        public static string AboutFaultsPart => T("Если что-то сломалось", "If something breaks");
+        public static string AboutFaults => T(
+            "Журнал игры и сохранение помогут найти причину: приложите их к сообщению об ошибке.",
+            "The game's log and the save help to find the cause: attach them to your report.");
+        public static string AboutSaves => T("Сохранения", "Saves");
+        public static string AboutLog => T("Журнал", "Log");
+        public static string AboutOpenFolder => T("Открыть папку", "Open the folder");
+        public static string AboutCopyPath => T("Скопировать путь", "Copy the path");
+        public static string AboutCopied => T("Скопировано", "Copied");
+
+        /// <summary>
+        /// The new game's window: the kingdom and its flag, the map's picture and number, another
+        /// map or one by its number, the size and the neighbours, play or back.
+        /// </summary>
         public static string NewGameMap(int seed) => T($"Карта №{seed}", $"Map No. {seed}");
 
         public static string NewGameOther => T("Другая карта", "Another map");
         public static string NewGameNumber => T("Или карта по номеру:", "Or a map by its number:");
         public static string NewGameShow => T("Показать", "Show");
-        public static string NewGameStart => T("Начать", "Start");
+        public static string NewGamePlay => T("Играть", "Play");
         public static string NewGameBack => T("Назад", "Back");
+        public static string NewGameFlag => T("Изменить флаг", "Change the flag");
+        public static string NewGameFlagNote => T("Цвет поля флага — цвет королевства на карте и его имя.", "The flag's field is the kingdom's colour on the map and gives it its name.");
+        public static string NewGameMapPart => T("Карта", "Map");
+        public static string NewGameSize => T("Размер", "Size");
+        public static string NewGameMaking => T("Карта рисуется…", "Drawing the map…");
+        public static string NewGamePictureNote => T("Видно то, что твоё королевство знает в начале; остальное скрыто туманом.", "What your kingdom knows at the start shows; the rest lies in the fog.");
+
+        /// <summary>The loading screen's line for a new game: "Лазурная гавань, карта №48213".</summary>
+        public static string NewGameLoading(string kingdom, int seed) => T($"{kingdom}, карта №{seed}", $"{kingdom}, map No. {seed}");
+
+        /// <summary>A map's size on its button.</summary>
+        public static string MapSize(MapSize size)
+        {
+            switch (size)
+            {
+                case Core.MapSize.Small: return T("Маленькая", "Small");
+                case Core.MapSize.Large: return T("Большая", "Large");
+                default: return T("Средняя", "Medium");
+            }
+        }
+
+        /// <summary>What a map's size means, under its buttons.</summary>
+        public static string MapSizeText(MapSize size)
+        {
+            switch (size)
+            {
+                case Core.MapSize.Small: return T("Четыре королевства на земле поменьше: соседи рядом.", "Four kingdoms on a smaller land: the neighbours are close.");
+                case Core.MapSize.Large: return T("Шесть королевств и много дикой земли между ними.", "Six kingdoms with much wild land between them.");
+                default: return T("Шесть королевств, как всегда.", "Six kingdoms, as always.");
+            }
+        }
 
         // ----- The saves (the menu's lists) -----
 
@@ -941,7 +1122,9 @@ namespace Realms
         public static string GuideEndTurn => T("Задания ждут следующего хода — жми «Следующий ход» (Enter)", "The tasks wait for the next turn — press “End turn” (Enter)");
 
         // The one-time hints, each shown once when it is needed.
-        public static string HintAlt => T("Держи Alt — увидишь, кто где стоит", "Hold Alt to see who stands where");
+        public static string HintAlt => GameSettings.AltToggles
+            ? T("Нажми Alt — увидишь, кто где стоит", "Press Alt to see who stands where")
+            : T("Держи Alt — увидишь, кто где стоит", "Hold Alt to see who stands where");
         public static string HintCamera => T("Карта двигается: WASD или тяни правой кнопкой; колесо — ближе и дальше", "The map moves: WASD or drag with the right button; the wheel — closer and farther");
         public static string HintArmy => T("Войска нет: зайди в город (T), вкладка «Наём»", "No army: enter a town (T), the “Recruit” tab");
         public static string HintTab => T("Tab — следующий город", "Tab — next town");
@@ -953,6 +1136,7 @@ namespace Realms
         public static string HelpTitle => T("Как играть", "How to play");
         public static string HelpMain => T("Главное", "Basics");
         public static string HelpKeys => T("Клавиши", "Keys");
+        public static string HelpBattle => T("Бой", "Battle");
         public static string HelpHints => T("Подсказки", "Hints");
 
         /// <summary>The first page: five things with pictures, as few as one screen of text teaches.</summary>
@@ -962,7 +1146,7 @@ namespace Realms
             ("icon_moves", T("Приказать", "Order"), T("Правой кнопкой — путь выбранному герою, правой ещё раз — идти. Путь на врага ведёт в бой.", "Right button — a path for the selected hero, right again — go. A path onto an enemy leads into battle.")),
             ("hammer", T("Строить", "Build"), T("На своей клетке с ресурсом — кнопка внизу; в городе (T) — вкладка «Постройки».", "On your tile with a resource — the button below; in a town (T) — the “Buildings” tab.")),
             ("icon_growth", T("Ход", "Turn"), T("«Следующий ход» (Enter): казна пополняется, города растут и сами берут землю вокруг.", "“End turn” (Enter): the treasury fills up, towns grow and take the land around them.")),
-            ("crown", T("Цель", "Goal"), T("Собери корону: три самоцвета из пяти раньше соседей. K — подвиги короны.", "Complete the crown: three gems of five before the neighbours. K — the crown's deeds.")),
+            ("crown", T("Цель", "Goal"), T("Собери корону: три самоцвета из шести раньше соседей. K — подвиги короны.", "Complete the crown: three gems of six before the neighbours. K — the crown's deeds.")),
         };
 
         public static string HelpNote => T("Цветные линии — границы королевств. Твоё королевство — то, чей герб наверху слева. ", "Coloured lines are the kingdoms' borders. Your kingdom is the one whose arms are at the top left. ") +
@@ -975,6 +1159,47 @@ namespace Realms
         public static string SeenTownBuild => T("Постройки города: войди в город (T), вкладка «Постройки»", "Town buildings: enter the town (T), the “Buildings” tab");
         public static string SeenEndTurn => T("Когда задания ждут следующего хода, кнопка «Следующий ход» зовёт золотой рамкой (Enter)", "When the tasks wait for the next turn, the “End turn” button calls with a gold frame (Enter)");
         public static string Returned(int turn) => T($"Ход {turn}. В прошлый ход:", $"Turn {turn}. Last turn:");
+
+        // The day's events along the right edge and their dialog (HudEvents).
+        public static string EventsButton => T("События", "Events");
+        public static string EventsTitle => T("События", "Events");
+        public static string EventsNone => T("Пока ничего не случилось: события придут со следующим ходом.", "Nothing has happened yet: the events come with the next turn.");
+        public static string EventsMore(int n) => T($"и ещё {n} — в «Событиях» (C)", $"and {n} more in “Events” (C)");
+        public static string EventsDay(int turn) => T($"Ход {turn} · {Season(turn)}, год {Year(turn)}", $"Turn {turn} · {Season(turn)}, year {Year(turn)}");
+        public static string Treasury => T("Казна пополнилась", "The treasury filled up");
+        public static string GrowthFood => T("На рост городов ушло", "Spent on growing towns");
+
+        // ----- The army's upkeep (the economy plan's 3.4, 2026-11-12) -----
+
+        /// <summary>The turn report's line for the food the army ate.</summary>
+        public static string ArmyFood => T("Армия съела", "The army ate");
+
+        /// <summary>The turn report's line when the army went hungry.</summary>
+        public static string ArmyHungry(int short_) =>
+            T($"Армии не хватило еды ({short_}): герои в этот ход идут вполовину", $"The army ran short of food ({short_}): the heroes walk half this turn");
+
+        /// <summary>What a hire adds to the army's upkeep, under its button: «содержание +1 еды в ход».</summary>
+        public static string UpkeepMore(int food) => T($"содержание +{food} еды в ход", $"upkeep +{food} food a turn");
+
+        /// <summary>The top bar's food: the harvest, what the army eats and what the towns take.</summary>
+        public static string FoodTip(int income, int army, int growth, int warriors)
+        {
+            string tip = T($"Еда: +{income} за ход", $"Food: +{income} a turn");
+            if (army > 0)
+                tip += T($", армия −{army} (воинов {warriors}, первые {Core.Upkeep.Free} едят даром)", $", army −{army} ({warriors} warriors, the first {Core.Upkeep.Free} eat free)");
+            if (growth > 0)
+                tip += T($", на рост городов уйдёт {growth}", $", {growth} goes to growing towns");
+            return tip;
+        }
+
+        /// <summary>The kingdom's army and its upkeep, on the town screen's hiring section.</summary>
+        public static string ArmyUpkeep(int warriors, int food) =>
+            food > 0
+                ? T($"В войске королевства {warriors} воинов: содержание {food} еды в ход. Первые {Core.Upkeep.Free} едят даром, каждые следующие {Core.Upkeep.PerFood} — одну еду; всадник за двоих. Не хватит еды — герои пойдут вполовину.",
+                    $"The kingdom's army has {warriors} warriors: upkeep {food} food a turn. The first {Core.Upkeep.Free} eat free, each next {Core.Upkeep.PerFood} eat one food; a rider counts as two. Short of food, the heroes walk half.")
+                : T($"В войске королевства {warriors} воинов: первые {Core.Upkeep.Free} едят даром, каждые следующие {Core.Upkeep.PerFood} — одну еду в ход; всадник за двоих.",
+                    $"The kingdom's army has {warriors} warriors: the first {Core.Upkeep.Free} eat free, each next {Core.Upkeep.PerFood} eat one food a turn; a rider counts as two.");
+        public static string Close => T("Закрыть", "Close");
 
         /// <summary>How dangerous a group is for a kingdom's first army, from 1 to 3.</summary>
         public static int Danger(Monster monster, int count)

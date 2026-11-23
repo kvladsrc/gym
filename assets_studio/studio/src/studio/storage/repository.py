@@ -212,6 +212,20 @@ class Repository:
         arguments.append(limit)
         return [_asset(row) for row in self.db.connection.execute(query, arguments)]
 
+    def tags(self, *, project: str | None = None) -> list[tuple[str, int]]:
+        """Every tag in the library with the number of assets that carry it, by name;
+        ``project``: of that project's assets (all when None)."""
+        query = (
+            "SELECT t.tag, count(*) FROM asset_tags t JOIN assets a ON a.id = t.asset_id"
+            " WHERE a.deleted_at IS NULL"
+        )
+        arguments: list[object] = []
+        if project is not None:
+            query += " AND a.project = ?"
+            arguments.append(project)
+        query += " GROUP BY t.tag ORDER BY t.tag"
+        return [(tag, count) for tag, count in self.db.connection.execute(query, arguments)]
+
     def update_asset(
         self,
         asset_id: str,

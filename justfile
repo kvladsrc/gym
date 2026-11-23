@@ -10,6 +10,7 @@ mod presentations
 mod? procedural "games/procedural"
 mod? realms "games/realms"
 mod? skateknight "games/skateknight"
+mod? snow_climb "games/snow_climb"
 mod? soulslike "games/soulslike"
 mod talos "production/kubernetes/talos"
 mod? tents "games/tents"

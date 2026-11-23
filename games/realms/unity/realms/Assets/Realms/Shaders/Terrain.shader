@@ -5,7 +5,7 @@
 // others. Drawn per pixel: broad warm and cool drifts, patches of lush and dry grass and bare
 // earth under the pattern; on top of it clumps and smaller things on the ground (flowers, tufts,
 // leaves, pebbles) gathered in clusters, ploughed fields on wheat cells (flag 1 in the cell
-// texture), the towns' trodden squares and lanes (paved squares from level 2) and the dirt roads
+// texture), the towns' trodden earth, tufts and lanes (paved squares from level 2) and the dirt roads
 // of the road mask (alpha). Each ground layer has its own tile size, so grass blades, stones and
 // snow crust come out at believable sizes next to each other. Grass stands on the green ground,
 // also drawn per pixel (Grass): fine blades close up, coarser ones further out, its mean colour
@@ -24,6 +24,8 @@ Shader "Realms/Terrain"
         _Road ("Road", Color) = (0.58, 0.52, 0.37, 1)
         _RoadEdge ("Road edge", Color) = (0.5, 0.44, 0.31, 1)
         _Paving ("Paving", Color) = (0.8, 0.77, 0.71, 1)
+        _TownEarth ("Town ground", Color) = (0.68, 0.63, 0.53, 1)
+        _TownGrass ("Tufts of grass in towns, where the ground grows none", Color) = (0.55, 0.6, 0.4, 1)
         _Details ("Small things on the ground", Range(0, 1)) = 1
         _Ground ("Ground layers", 2DArray) = "" {}
         _GroundDetail ("Ground texture", Range(0, 1)) = 0.75
@@ -50,7 +52,7 @@ Shader "Realms/Terrain"
 
         CBUFFER_START(UnityPerMaterial)
             float _Tint;
-            half4 _FieldA, _FieldB, _FieldGreen, _Road, _RoadEdge, _Paving;
+            half4 _FieldA, _FieldB, _FieldGreen, _Road, _RoadEdge, _Paving, _TownEarth, _TownGrass;
             float _Details, _GroundDetail, _GroundScale, _CobbleTile, _SandStrength;
             float4 _LayerTilesA, _LayerTilesB;
             float _Grass, _GrassHeight, _GrassBlades, _GrassCoarse, _ContactShade;
@@ -573,12 +575,18 @@ Shader "Realms/Terrain"
             return lerp(albedo, _Paving.rgb * stones, inside);
         }
 
-        // A town's ground (flag 2): trodden earth round the middle and lanes out to the town's
-        // places, the hexagon's corners (all six in a quarter, all but the front one in the centre,
-        // flag 16, where the square is), with trampled grass along them; the earth carries the dirt
-        // layer's pattern. From level 2 (the level less one is in bits 5-6) the centre's square is
-        // paved, and it grows with the town. dx and dy are p's screen gradients.
-        float3 TownGround(float3 albedo, float2 p, float px, float2 dx, float2 dy)
+        // A town's ground (flag 2): trodden earth of its own, a warm grey-brown about as light as
+        // the grass, with tufts of grass between the houses. The towns had kept the ground of their
+        // cells, with a star of lanes as all their own, and on the coast they stood on the beach's
+        // sand like stickers (the visual plan's problem 5, 2026-11-12). The earth fades out over the
+        // outer third of a cell towards each edge that faces no town, so a town's quarters join and
+        // its rim is no hexagon. Narrow lanes, each bent a little its own way, lead out to the
+        // town's places, the hexagon's corners (all six in a quarter, all but the front one in the
+        // centre, flag 16, where the square is). From level 2 (the level less one is in bits 5-6)
+        // the centre's square is paved, and it grows with the town. green is how much of the
+        // ground grows grass of its own, which the tufts keep; elsewhere they take _TownGrass.
+        // dx and dy are p's screen gradients.
+        float3 TownGround(float3 albedo, float2 p, float px, float2 dx, float2 dy, float green)
         {
             float2 q = p + (float2(RealmsNoise(p * 3.1), RealmsNoise(p * 3.1 + 7.7)) - 0.5) * 0.05;
             int2 h = RealmsHexAt(q);
@@ -589,6 +597,21 @@ Shader "Realms/Terrain"
             float level = ((flags >> 5) & 3) + 1;
             float2 local = q - RealmsCenter(h);
             float r = length(local);
+            // How far in from the nearest edge that faces a cell without a town.
+            float inside = 1;
+            [unroll]
+            for (int e = 0; e < 6; e++)
+            {
+                if ((RealmsCellAt(h + RealmsSteps[e]).z & 2) == 0)
+                    inside = min(inside, REALMS_INNER - dot(local, RealmsNormals[e]));
+            }
+            float town = smoothstep(0.04, 0.34, inside + RealmsPerlin(p * 2.3 + 5.1) * 0.12);
+            // About a fifth of the town in tufts, more of it towards the rim.
+            float tufts = smoothstep(0.1, 0.22, RealmsPerlin(p * 5.7 + 13.7) + 0.3 * (1 - town));
+            float3 soil = GroundFlat(p, dx, dy, GROUND_DIRT, _GroundScale * _LayerTilesB.w, RealmsNoise(p * 0.45 + 17.3)).rgb;
+            float3 earth = _TownEarth.rgb * lerp(1, soil, _GroundDetail * 0.7);
+            float3 color = lerp(albedo, lerp(earth, lerp(_TownGrass.rgb, albedo, saturate(green)), tufts), town);
+
             float square = centre ? 0.22 + 0.035 * level : 0.17;
             float d = r - square;
             [unroll]
@@ -599,14 +622,14 @@ Shader "Realms/Terrain"
                 float a = radians(30 + 60 * k);
                 float2 dir = float2(cos(a), sin(a));
                 float t = clamp(dot(local, dir), 0, 0.5);
-                d = min(d, length(local - dir * t) - lerp(0.03, 0.02, t * 2));
+                float bend = RealmsPerlin(float2(t * 5 + k * 7.3, k * 3.1) + float2(h) * 3.7) * 0.1 * t;
+                d = min(d, length(local - dir * t - float2(-dir.y, dir.x) * bend) - lerp(0.018, 0.012, t * 2));
             }
-            float earth = 1 - smoothstep(-px * 0.5, 0.01 + px * 0.5, d);
-            float trodden = 1 - smoothstep(0, 0.035 + px, d);
-            float3 soil = GroundFlat(p, dx, dy, GROUND_DIRT, _GroundScale * _LayerTilesB.w, RealmsNoise(p * 0.45 + 17.3)).rgb;
+            float lane = 1 - smoothstep(-px * 0.5, 0.008 + px * 0.5, d);
+            float trodden = 1 - smoothstep(0, 0.03 + px, d);
             float3 dirt = lerp(_RoadEdge.rgb, _Road.rgb, 0.55) * lerp(1, soil, _GroundDetail);
-            float3 color = lerp(albedo, lerp(albedo, _RoadEdge.rgb, 0.35), trodden * 0.6);
-            color = lerp(color, dirt, earth);
+            color = lerp(color, lerp(color, _RoadEdge.rgb, 0.35), trodden * 0.4);
+            color = lerp(color, dirt, lane);
             if (centre && level >= 2)
                 color = Paving(color, p, local, square - 0.045, px, dx, dy);
             return color;
@@ -833,7 +856,7 @@ Shader "Realms/Terrain"
             }
             albedo = Details(albedo, p, px, ground, 0, true, dry);
             albedo = Fields(albedo, p, px, wind.z);
-            albedo = TownGround(albedo, p, px, dpx, dpy);
+            albedo = TownGround(albedo, p, px, dpx, dpy, green);
             albedo = Roads(albedo, p, px, dpx, dpy);
             albedo = RealmsTint(albedo, p, _Tint * land);
             // Houses, walls and trunks stand in the ground rather than on it: a soft shade round

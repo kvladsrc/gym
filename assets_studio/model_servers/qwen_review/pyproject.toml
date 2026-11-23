@@ -1,0 +1,40 @@
+[project]
+name = "qwen-review-model-server"
+version = "0.1.0"
+description = "Qwen3.5-9B with a LoRA that predicts a game's Steam reviews from a screenshot, for the asset studio."
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk[images]",
+  # The versions the adapter was trained and evaluated with.
+  "torch==2.11.0",
+  "torchvision==0.26.0",
+  "transformers==5.23.0",
+  "accelerate==1.16.0",
+  "safetensors==0.8.0",
+  "huggingface-hub==2.4.0",
+  "tokenizers==0.23.3",
+  # Triton kernels of the linear-attention layers, as in training.
+  "flash-linear-attention==0.6.0",
+  "numpy==2.4.6",  # 2.5 needs Python 3.12; numpy only sums ten probabilities here
+  "pillow==13.0.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3", "httpx2>=2.13"]
+
+[project.scripts]
+qwen-review-model-server = "qwen_review_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

@@ -107,6 +107,55 @@ namespace Realms.Tests
             Assert.IsNull(state.Path(hero, At(state, 8, 4)), "through another kingdom's town");
         }
 
+        /// <summary>
+        /// The players may send a hero into the fog (2026-11-12): the way to an unseen cell runs
+        /// on through the fog as if it were meadow, and laid again as the fog lifts it turns round
+        /// what the hero has found there.
+        /// </summary>
+        [Test]
+        public void AWayIntoTheFogIsLaidAsOverMeadowAndAgainAsTheFogLifts()
+        {
+            GameState state = Meadow(out Hero hero);
+            World world = state.World;
+            // East of column 5 lies unseen forest, with water across column 8 but for its top row.
+            foreach (Cell c in world.Cells)
+            {
+                if (c.Hex.Col > 5)
+                {
+                    state.Seen[c.Index] = false;
+                    c.Biome = Biome.Forest;
+                }
+            }
+            for (int row = 1; row < world.Height; row++)
+                world.Cells[At(state, 8, row)].Biome = Biome.Shallows;
+            int goal = At(state, 11, 4);
+            HeroPath way = state.Path(hero, goal);
+            Assert.IsNotNull(way, "a way into the fog");
+            Assert.IsTrue(way.Fog);
+            Assert.AreEqual(goal, way.Target);
+            Assert.That(way.Cells, Does.Contain(At(state, 8, 4)), "straight over the unseen water");
+            Assert.AreEqual(8, way.Now, "the unseen forest is reckoned as meadow: eight steps this turn");
+            Assert.IsFalse(state.Path(hero, At(state, 5, 4)).Fog, "a way to a seen cell");
+
+            // Each step opens the fog round the hero; the way laid again turns round the water.
+            for (int k = 0; k < 3; k++)
+            {
+                Assert.AreEqual(StepKind.Moved, state.Step(hero, way.Cells[0]).Kind, $"step {k}");
+                way = state.Path(hero, goal);
+                Assert.IsNotNull(way, $"after step {k}");
+            }
+            Assert.IsTrue(state.Seen[At(state, 8, 4)], "the water is seen now");
+            CollectionAssert.DoesNotContain(way.Cells, At(state, 8, 4), "round the water seen");
+            foreach (int cell in way.Cells)
+                Assert.IsTrue(!state.Seen[cell] || world.Cells[cell].IsLand, $"through seen water at {world.Cells[cell].Hex}");
+
+            // Found to be water once seen, the goal takes no way.
+            int lake = At(state, 8, 6);
+            Assert.IsNotNull(state.Path(hero, At(state, 8, 8)) ?? state.Path(hero, lake), "a way to the unseen end of the water");
+            state.Seen[lake] = true;
+            Assert.IsNull(state.Path(hero, lake), "the water, once seen");
+        }
+
         [Test]
         public void ALongPathTakesSeveralTurns()
         {

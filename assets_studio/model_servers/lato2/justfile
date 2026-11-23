@@ -1,0 +1,54 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+import "../common.just"
+
+source := cache / "lato2-source"
+weights := cache / "lato2"
+# Where upstream's DINOv2 loader looks for a local copy of the repository.
+dinov2 := weights / "dinov2/facebookresearch_dinov2_main"
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/lato2_model_server/server.py`
+dinov2_revision := `sed -n 's/^DINOV2_REVISION = "\([0-9a-f]*\)".*/\1/p' src/lato2_model_server/server.py`
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/lato2"
+export LATO2_SOURCE := source
+export LATO2_WEIGHTS := weights
+export HF_HUB_DISABLE_TELEMETRY := "1"
+export PYTORCH_CUDA_ALLOC_CONF := "expandable_segments:True"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned LATO.2 and DINOv2 sources, create the environment, install the native wheels
+setup:
+    @just --justfile {{ justfile() }} _checkout https://github.com/LoHhhha/LATO.2.git "{{ source }}" "{{ revision }}"
+    @just --justfile {{ justfile() }} _checkout https://github.com/facebookresearch/dinov2.git "{{ dinov2 }}" "{{ dinov2_revision }}"
+    {{ gpu_shell }} uv sync --extra test
+    {{ cuda_shell }} env TORCH_CUDA_ARCH_LIST={{ quote(cuda_arch) }} MAX_JOBS={{ quote(build_jobs) }} uv run --no-sync python -m lato2_model_server.setup_native
+
+# Download the six checkpoints (~3.3 GB; network only, no GPU)
+download:
+    {{ gpu_shell }} uv run --no-sync python -c "from lato2_model_server.server import download; download()"
+
+# Report PyTorch, the CUDA device, the kernels and whether the weights are downloaded
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m lato2_model_server.doctor
+
+# Serve on 127.0.0.1:9135 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync lato2-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests
+
+[private]
+_checkout url directory commit:
+    if [[ ! -d "{{ directory }}/.git" ]]; then \
+        mkdir -p "$(dirname "{{ directory }}")"; \
+        git clone --no-checkout "{{ url }}" "{{ directory }}"; \
+    fi
+    git -C "{{ directory }}" cat-file -e "{{ commit }}^{commit}" 2>/dev/null \
+        || git -C "{{ directory }}" fetch --quiet origin "{{ commit }}"
+    git -C "{{ directory }}" checkout --quiet --detach "{{ commit }}"

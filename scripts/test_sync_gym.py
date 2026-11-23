@@ -41,6 +41,12 @@ class SyncGymTest(unittest.TestCase):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ignore, target)
             (source / "assets_studio/README.md").write_text("By myuser\n")
+            (source / "qwen_review").mkdir()
+            shutil.copy2(repository / "qwen_review/.gitignore", source / "qwen_review")
+            # The published adapter's Hugging Face name stays; the user name
+            # elsewhere does not.
+            hub = "https://huggingface.co/zjgkkn/qwen3.5-2b-steam-reviews-lora"
+            (source / "qwen_review/README.md").write_text(f"By myuser: {hub}\n")
             for project in private:
                 (source / project).mkdir(parents=True)
                 (source / project / "README.md").write_text("Private draft\n")
@@ -101,6 +107,10 @@ class SyncGymTest(unittest.TestCase):
                 "assets_studio/web/node_modules/preact/index.js",
                 "assets_studio/web/dist/index.html",
                 "assets_studio/model_servers/flux/.venv/lib/torch.so",
+                "qwen_review/__pycache__/train.cpython-312.pyc",
+                "qwen_review/data/full/labels.jsonl",
+                "qwen_review/data/full/data/shots/10_00.jpg",
+                "qwen_review/data/runs/full1/last/adapter_model.safetensors",
             ]
             for relative in excluded:
                 path = source / relative
@@ -174,6 +184,10 @@ class SyncGymTest(unittest.TestCase):
             self.assertFalse((destination / "animations").exists())
             self.assertEqual(
                 (destination / "assets_studio/README.md").read_text(), "By myuser\n"
+            )
+            self.assertEqual(
+                (destination / "qwen_review/README.md").read_text(),
+                f"By myuser: {hub}\n",
             )
             self.assertEqual(
                 (destination / "games/README.md").read_text(),

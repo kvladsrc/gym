@@ -16,8 +16,8 @@ namespace Realms
     public sealed partial class Hud
     {
         readonly VisualElement[] crownGems = new VisualElement[Crown.Order.Length];
-        readonly List<(Gem Gem, VisualElement Row, VisualElement Icon, Label Progress)> crownRows =
-            new List<(Gem, VisualElement, VisualElement, Label)>();
+        readonly List<(Gem Gem, VisualElement Row, VisualElement Icon, Label Progress, Label Feat)> crownRows =
+            new List<(Gem, VisualElement, VisualElement, Label, Label)>();
         readonly List<(int Country, Label Gems)> rowGems = new List<(int, Label)>();
         readonly List<(int Country, VisualElement Gem)> rowAims = new List<(int, VisualElement)>();
 
@@ -57,8 +57,9 @@ namespace Realms
                 VisualElement top = Child(body, "crown-row-top");
                 Text(top, "crown-row-name", Words.Gem(gem), black);
                 Label progress = Text(top, "crown-row-progress", "", bold);
-                Text(body, "crown-row-feat", Words.GemFeat(gem), regular);
-                crownRows.Add((gem, row, icon, progress));
+                // The feat's words wait for a game: the Lands gem's goal follows the map's size.
+                Label feat = Text(body, "crown-row-feat", "", regular);
+                crownRows.Add((gem, row, icon, progress, feat));
             }
             Child(parent, "crown-divider");
         }
@@ -80,22 +81,19 @@ namespace Realms
             if (state?.Gems == null)
                 return;
             int player = state.World.Player;
+            // A socket whose gem is on its way stays empty until the gem lands.
             for (int k = 0; k < crownGems.Length; k++)
-                SetGem(crownGems[k], Crown.Order[k], state.HasGem(player, Crown.Order[k]));
+                SetGem(crownGems[k], Crown.Order[k], state.HasGem(player, Crown.Order[k]) && !GemComing(k));
             int have = state.Gems[player].Count;
             kingdomsButton.tooltip = Words.CrownTip(have);
-            foreach ((Gem gem, VisualElement row, VisualElement icon, Label progress) in crownRows)
+            foreach ((Gem gem, VisualElement row, VisualElement icon, Label progress, Label feat) in crownRows)
             {
                 bool won = state.HasGem(player, gem);
                 SetGem(icon, gem, won);
                 row.EnableInClassList("crown-row-won", won);
-                if (won)
-                    progress.text = Words.GemWon(GemTurn(player, gem));
-                else
-                {
-                    (int now, int need) = Crown.Progress(state, player, gem);
-                    progress.text = Words.GemProgress(gem, now, need);
-                }
+                (int now, int need) = Crown.Progress(state, player, gem);
+                feat.text = Words.GemFeat(gem, need);
+                progress.text = won ? Words.GemWon(GemTurn(player, gem)) : Words.GemProgress(gem, now, need);
             }
             foreach ((int country, Label label) in rowGems)
                 label.text = Words.CrownCount(state.Gems[country].Count);
@@ -107,6 +105,122 @@ namespace Realms
                     continue;
                 SetGem(element, aim.Value, true);
                 element.tooltip = Words.RivalAim(aim.Value);
+            }
+        }
+
+        /// <summary>The players' crown is celebrated over their towns: the panels step aside, the top bar stays.</summary>
+        public void Parade(bool on) => root?.EnableInClassList("on-parade", on);
+
+        /// <summary>A gem on its way into the bar's crown, from the capital into its socket.</summary>
+        sealed class GemFlight
+        {
+            public VisualElement Icon;
+            public Vector2 From;
+            public int Socket;
+            public float Start;
+        }
+
+        readonly List<GemFlight> gemFlights = new List<GemFlight>();
+
+        /// <summary>When each socket took its gem, for its swell.</summary>
+        readonly float[] socketLanded = { -10f, -10f, -10f, -10f, -10f, -10f, -10f, -10f };
+
+        /// <summary>How long a gem flies into the crown and how long its socket swells, in seconds.</summary>
+        const float GemFlightSeconds = 1f, GemSwellSeconds = 0.35f;
+
+        /// <summary>A gem is flying into the crown.</summary>
+        public bool GemsFlying => gemFlights.Count > 0 || showGems.Count > 0;
+
+        bool GemComing(int socket)
+        {
+            foreach (GemFlight flight in gemFlights)
+            {
+                if (flight.Socket == socket)
+                    return true;
+            }
+            foreach (Gem gem in showGems)
+            {
+                if (Array.IndexOf(Crown.Order, gem) == socket)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// A gem the players won rises from their capital and flies into its socket in the bar's
+        /// crown in a second; the socket stays empty until it lands and then swells (the visual
+        /// plan's 12: each part of the crown flies into its place). From the screen's upper middle
+        /// when the capital is off the screen.
+        /// </summary>
+        public void FlyGem(Gem gem)
+        {
+            int socket = Array.IndexOf(Crown.Order, gem);
+            if (socket < 0 || socket >= crownGems.Length || crownGems[socket] == null || root?.panel == null || state == null)
+                return;
+            var icon = new VisualElement { pickingMode = PickingMode.Ignore };
+            icon.AddToClassList("gem-flight");
+            SetGem(icon, gem, true);
+            root.Add(icon);
+            gemFlights.Add(new GemFlight { Icon = icon, From = CapitalOnPanel(), Socket = socket, Start = ViewClock.Now });
+            SetGem(crownGems[socket], gem, false);
+            UpdateGemFlights();
+        }
+
+        /// <summary>The players' capital on the panel, or the panel's upper middle when it is not on the screen.</summary>
+        Vector2 CapitalOnPanel()
+        {
+            World world = state.World;
+            int capital = world.Countries[world.Player].Capital;
+            if (capital >= 0 && cam != null)
+            {
+                Vector3 screen = cam.WorldToScreenPoint(TownPoint(capital));
+                if (screen.z > 0f && screen.x >= 0f && screen.x <= Screen.width && screen.y >= 0f && screen.y <= Screen.height)
+                    return PanelPoint(screen);
+            }
+            Rect panel = root.worldBound;
+            return new Vector2(panel.center.x, panel.yMin + panel.height * 0.35f);
+        }
+
+        /// <summary>Each frame: the gems on their way, along an arc that rises first, and the sockets that took one.</summary>
+        void UpdateGemFlights()
+        {
+            float now = ViewClock.Now;
+            for (int i = gemFlights.Count - 1; i >= 0; i--)
+            {
+                GemFlight flight = gemFlights[i];
+                float t = Mathf.Clamp01((now - flight.Start) / GemFlightSeconds);
+                if (t >= 1f)
+                {
+                    flight.Icon.RemoveFromHierarchy();
+                    gemFlights.RemoveAt(i);
+                    socketLanded[flight.Socket] = now;
+                    RefreshCrown();
+                    continue;
+                }
+                Rect to = crownGems[flight.Socket].worldBound;
+                float e = t * t * (3f - 2f * t);
+                Vector2 at = Vector2.Lerp(flight.From, to.center, e);
+                at.y -= Mathf.Sin(Mathf.PI * e) * 90f;
+                float size = Mathf.Lerp(64f, Mathf.Max(14f, to.width), e);
+                flight.Icon.style.left = at.x - size * 0.5f;
+                flight.Icon.style.top = at.y - size * 0.5f;
+                flight.Icon.style.width = size;
+                flight.Icon.style.height = size;
+                flight.Icon.style.opacity = Mathf.Clamp01(t / 0.12f);
+            }
+            for (int k = 0; k < crownGems.Length; k++)
+            {
+                if (socketLanded[k] < 0f || crownGems[k] == null)
+                    continue;
+                float since = now - socketLanded[k];
+                if (since >= GemSwellSeconds)
+                {
+                    crownGems[k].style.scale = new StyleScale(StyleKeyword.Null);
+                    socketLanded[k] = -10f;
+                    continue;
+                }
+                float swell = 1f + 0.7f * Mathf.Sin(Mathf.PI * since / GemSwellSeconds);
+                crownGems[k].style.scale = new Scale(new Vector3(swell, swell, 1f));
             }
         }
 
@@ -148,7 +262,7 @@ namespace Realms
             string text = own ? Words.CrownWonText(turn, place) : Words.CrownLostText(world.Countries[country].Label, turn);
             Ask(title, own ? "crown" : FlagIcon(country), text, own ? Words.CrownWonAnswers : Words.CrownLostAnswers, chosen, body =>
             {
-                Text(body, "crown-end-map", Words.MenuMap(world.Seed, state.Turn), bold);
+                Text(body, "crown-end-map", Words.MenuMap(world, state.Turn), bold);
                 VisualElement gems = Child(body, "crown-end-gems");
                 foreach (GemWon won in state.Gems[country])
                 {

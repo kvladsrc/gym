@@ -217,6 +217,8 @@ namespace Realms
             Slot(grid, "icon_houses", T($"{city.Houses} {Words.Plural(city.Houses, "дом", "дома", "домов")}", $"{city.Houses} {En(city.Houses, "house", "houses")}")).AddToClassList("town-slot-houses");
             foreach (TownBuilding building in slotted)
                 Slot(grid, BuildingIcon(building), Words.Town(building)).tooltip = Words.TownHint(building);
+            if (city.BuildStage > 0)
+                Slot(grid, Words.GemIcon(Gem.Build), Words.BuildSlot(city)).tooltip = Words.BuildRaised(city);
             for (int k = 0; k < free; k++)
             {
                 VisualElement slot = Child(grid, "town-slot");
@@ -264,6 +266,29 @@ namespace Realms
                     () => BuildTown?.Invoke(city.Index, chosen), BuildingIcon(building), into: townBody);
             }
             Text(townBody, "screen-note", T("Стены и замок не занимают мест.", "Walls and the castle take no places."), regular);
+            // Only once the castle is the next step: a pale goal two steps away only fills the screen (the plan's 3.7).
+            if (city.Capital && (Towns.Level(city) >= Economy.Level(TownBuilding.Castle) || city.Buildings.Contains(TownBuilding.Castle)))
+                GreatBuildSection(city);
+        }
+
+        /// <summary>
+        /// The capital's Great Build (the economy plan's 3.4, 2026-11-11): the stages raised, then
+        /// the next one with its price and what it brings. Before the castle its button is pale
+        /// with what it waits for, so the players see the goal coming (the plan's 3.7).
+        /// </summary>
+        void GreatBuildSection(City city)
+        {
+            Text(townBody, "screen-section", Words.GreatBuildName, black);
+            if (city.BuildStage > 0)
+                Text(townBody, "screen-note", Words.BuildRaised(city), regular);
+            else
+                Text(townBody, "screen-note", Words.BuildPlaceNote, regular);
+            int next = GreatBuild.Next(city);
+            if (next == 0)
+                return;
+            Refusal refusal = GreatBuild.Can(city, state.Treasury[city.Country]);
+            ActionButton(Words.BuildStageName(next), Words.BuildStageHint(next), GreatBuild.Cost(next), refusal,
+                () => RaiseBuild?.Invoke(city.Index), Words.GemIcon(Gem.Build), into: townBody);
         }
 
         /// <summary>
@@ -343,6 +368,7 @@ namespace Realms
                 Text(townBody, "screen-note", led
                     ? T($"Нанятые встанут в войско героя {standing.Label}.", $"The hired troops will join {standing.Label}'s army.")
                     : T("В городе нет героя: нанятые подождут его здесь.", "No hero in town: the hired troops will wait for one here."), regular);
+                Text(townBody, "screen-note", Words.ArmyUpkeep(Upkeep.Warriors(state, city.Country), Upkeep.Of(state, city.Country)), regular);
             }
 
             Text(townBody, "screen-section", T("Поселенцы", "Settlers"), black);

@@ -55,7 +55,8 @@ namespace Realms.Tests
 
         sealed class Tally
         {
-            public int Battles, Won, GaveUp, Capped, ClashBy2, Openings, Grounds;
+            public int Battles, Won, GaveUp, Capped, ClashBy2, Openings, Grounds, Covers, MonsterStrikes, MonsterRunUps, PlayerRunUps, Orders,
+                OrderRounds;
             public double Losses;
             public readonly List<int> Rounds = new List<int>();
             public readonly int[] FirstTarget = new int[3], AllTargets = new int[3];
@@ -68,6 +69,12 @@ namespace Realms.Tests
                 GaveUp += t.GaveUp;
                 Capped += t.Capped;
                 ClashBy2 += t.ClashBy2;
+                Covers += t.Covers;
+                MonsterStrikes += t.MonsterStrikes;
+                MonsterRunUps += t.MonsterRunUps;
+                PlayerRunUps += t.PlayerRunUps;
+                Orders += t.Orders;
+                OrderRounds += t.OrderRounds;
                 Losses += t.Losses;
                 Rounds.AddRange(t.Rounds);
                 for (int i = 0; i < 3; i++)
@@ -96,15 +103,18 @@ namespace Realms.Tests
                 "Losses: units of the army lost, a lost battle counting as all. " +
                 "Blows: melee strikes and shots of the monsters at the players' spearmen / archers / riders. " +
                 "Turns: what the stacks did with a turn: walked only / struck / shot / defended. " +
-                "Openings: different sequences of who did what to whom in the first two rounds, per 200 seeds.");
+                "Openings: different sequences of who did what to whom in the first two rounds, per 200 seeds. " +
+                "Covers: the spears' cover (struck first) per battle, and the share of the monsters' melee strikes it met. " +
+                "Run-ups: strikes with a run-up per battle, the monsters' / the players'. " +
+                "Order: battles in which the players' auto battle gave the hero's order, and the mean round of it.");
             foreach (Army army in Armies)
             {
                 text.AppendLine();
                 text.AppendLine($"## {army.Name}");
                 text.AppendLine();
-                text.AppendLine("| Monsters | Depth | Ground | Count | Won | Gave up | Losses | Rounds (p10-p90) | Hit 50 | First melee by round 2 | " +
-                    "First monster blow Sp/Ar/Ri | All monster blows Sp/Ar/Ri | Player turns W/St/Sh/D | Monster turns W/St/Sh/D | Openings |");
-                text.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+                text.AppendLine("| Monsters | Depth | Ground | Count | Won | Gave up | Losses | Rounds (p10-p90; long) | Hit 50 | First melee by round 2 | " +
+                    "First monster blow Sp/Ar/Ri | All monster blows Sp/Ar/Ri | Player turns W/St/Sh/D | Monster turns W/St/Sh/D | Openings | Covers (of strikes) | Run-ups M/P | Order (round) |");
+                text.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
                 var all = new Tally();
                 foreach (Monster monster in Enum.GetValues(typeof(Monster)))
                 {
@@ -152,6 +162,92 @@ namespace Realms.Tests
             return false;
         }
 
+        /// <summary>
+        /// The fields of the combat plan's 3.5 (2026-11-12): the same fights on the open field, the
+        /// grove and the gorge, with nothing happening, an ambush and a chest, against the old
+        /// scattered obstacles; the plan wants no pattern to move the odds by more than 15 points.
+        /// Each army meets every kind at one depth, 200 seeds each. It runs only when asked for:
+        /// REALMS_FIELD_REPORT=fields.md dotnet test --filter Name=FieldReportTable
+        /// </summary>
+        [Test, Explicit("A report, not a check")]
+        public void FieldReportTable()
+        {
+            var clock = Stopwatch.StartNew();
+            var text = new StringBuilder();
+            text.AppendLine("# Auto battles by field");
+            text.AppendLine();
+            text.AppendLine($"{Seeds} seeds a cell. Old: the scattered obstacles before the patterns, on meadow / forest / hills. " +
+                "Open, Grove, Gorge: the patterns (meadow, forest, hills), nothing happening. Ambush and Loot: the same three patterns " +
+                "with the event. Won %, then rounds (mean; share over 8). Chest: the share of loot fights in which the players took it.");
+            Biome[] grounds = { Biome.Meadow, Biome.Forest, Biome.Hills };
+            int[] depths = { 6, 12, 18 };
+            bool patterns = Battle.Patterns, shelterRule = Battle.ShelterRule;
+            try
+            {
+                for (int a = 0; a < Armies.Length; a++)
+                {
+                    Army army = Armies[a];
+                    text.AppendLine();
+                    text.AppendLine($"## {army.Name}, depth {depths[a]}");
+                    text.AppendLine();
+                    text.AppendLine("| Monsters | Count | Old M/F/H | Open / Grove / Gorge | With shelter | Ambush O/G/Go | Loot O/G/Go | Rounds O/G/Go | Rounds with shelter | Chest taken |");
+                    text.AppendLine("|---|---|---|---|---|---|---|---|---|---|");
+                    foreach (Monster monster in Enum.GetValues(typeof(Monster)))
+                    {
+                        if (monster == Monster.None)
+                            continue;
+                        int count = Wilds.Size(monster, depths[a], 1f);
+                        Battle.Patterns = false;
+                        var old = grounds.Select(g => Field(army, monster, count, g, FieldEvent.None)).ToArray();
+                        Battle.Patterns = true;
+                        var plain = grounds.Select(g => Field(army, monster, count, g, FieldEvent.None)).ToArray();
+                        var ambush = grounds.Select(g => Field(army, monster, count, g, FieldEvent.Ambush)).ToArray();
+                        var loot = grounds.Select(g => Field(army, monster, count, g, FieldEvent.Loot)).ToArray();
+                        Battle.ShelterRule = true;
+                        var shelter = grounds.Select(g => Field(army, monster, count, g, FieldEvent.None)).ToArray();
+                        Battle.ShelterRule = shelterRule;
+                        string Wins((float Won, float Rounds, float Long, float Chest)[] r) => string.Join(" / ", r.Select(x => $"{x.Won:0}"));
+                        string Rounds((float Won, float Rounds, float Long, float Chest)[] r) => string.Join(" / ", r.Select(x => $"{x.Rounds:0.0} ({x.Long:0}%)"));
+                        text.AppendLine($"| {monster} | {count} | {Wins(old)} | {Wins(plain)} | {Wins(shelter)} | {Wins(ambush)} | {Wins(loot)} | {Rounds(plain)} | " +
+                            $"{Rounds(shelter)} | {string.Join(" / ", loot.Select(x => $"{x.Chest:0}%"))} |");
+                    }
+                }
+            }
+            finally
+            {
+                Battle.Patterns = patterns;
+                Battle.ShelterRule = shelterRule;
+            }
+            text.AppendLine();
+            text.AppendLine($"Took {clock.Elapsed.TotalSeconds:0} s.");
+            string path = Environment.GetEnvironmentVariable("REALMS_FIELD_REPORT");
+            if (string.IsNullOrEmpty(path))
+                TestContext.Progress.WriteLine(text.ToString());
+            else
+                File.WriteAllText(path, text.ToString());
+        }
+
+        /// <summary>Won %, mean rounds, % of fights over eight rounds and % of chests taken, over the seeds.</summary>
+        static (float Won, float Rounds, float Long, float Chest) Field(Army army, Monster monster, int count, Biome ground, FieldEvent fieldEvent)
+        {
+            int won = 0, rounds = 0, longer = 0, chests = 0;
+            for (int seed = 0; seed < Seeds; seed++)
+            {
+                var stacks = army.Stacks.Select(s => new Stack(s.Unit, s.Count)).ToList();
+                var battle = new Battle(stacks, army.Attack, army.Defence, monster, count, ground,
+                    seed * 7919 + (int)ground * 104729 + 17, fieldEvent);
+                battle.AutoToEnd();
+                if (battle.Outcome == Outcome.Won)
+                    won++;
+                rounds += battle.Round;
+                if (battle.Round > 8)
+                    longer++;
+                if (battle.ChestTaken)
+                    chests++;
+            }
+            return (100f * won / Seeds, (float)rounds / Seeds, 100f * longer / Seeds, 100f * chests / Seeds);
+        }
+
         static Tally Measure(Army army, Monster monster, int count, Biome[] grounds)
         {
             var tally = new Tally();
@@ -164,6 +260,11 @@ namespace Realms.Tests
                     var battle = new Battle(stacks, army.Attack, army.Defence, monster, count, ground,
                         seed * 7919 + (int)ground * 104729 + 17);
                     battle.AutoToEnd();
+                    if (battle.OrderRound > 0)
+                    {
+                        tally.Orders++;
+                        tally.OrderRounds += battle.OrderRound;
+                    }
                     openings.Add(Read(battle, tally));
                 }
                 tally.Openings += openings.Count;
@@ -194,17 +295,36 @@ namespace Realms.Tests
             tally.Losses += start > 0 ? 1.0 - (double)left / start : 0;
 
             var opening = new StringBuilder();
-            int round = 0, walker = -1, clash = 0;
+            int round = 0, walker = -1, clash = 0, covered = -1;
             bool monsterBlow = false;
             void Count(int actor, Turn turn)
             {
                 Fighter f = battle.Fighters[actor];
                 (f.Side == Side.Players ? tally.PlayerTurns : tally.MonsterTurns)[(int)turn]++;
             }
+            // A monster the spears struck first and that fell before its own strike still spent its turn striking.
+            void Fell()
+            {
+                if (covered < 0)
+                    return;
+                tally.MonsterStrikes++;
+                Count(covered, Turn.Strike);
+                if (walker == covered)
+                    walker = -1;
+                covered = -1;
+            }
             foreach (BattleEvent e in battle.Events)
             {
+                if (covered >= 0 && !(e.Kind == BattleEventKind.Strike && e.Actor == covered))
+                    Fell();
                 switch (e.Kind)
                 {
+                    case BattleEventKind.Cover:
+                        tally.Covers++;
+                        covered = e.Target;
+                        if (round <= 2)
+                            opening.Append(Short(battle, e.Actor)).Append("-cov-").Append(Short(battle, e.Target)).Append(' ');
+                        break;
                     case BattleEventKind.Round:
                         if (walker >= 0)
                             Count(walker, Turn.Walk);
@@ -236,6 +356,17 @@ namespace Realms.Tests
                         }
                         if (e.Kind == BattleEventKind.Strike && clash == 0)
                             clash = round;
+                        if (e.Kind == BattleEventKind.Strike && battle.Fighters[e.Actor].Side == Side.Monsters)
+                            tally.MonsterStrikes++;
+                        if (e.Kind == BattleEventKind.Strike)
+                            covered = -1;
+                        if (e.Kind == BattleEventKind.Strike && e.RunUp)
+                        {
+                            if (battle.Fighters[e.Actor].Side == Side.Monsters)
+                                tally.MonsterRunUps++;
+                            else
+                                tally.PlayerRunUps++;
+                        }
                         if (turn != Turn.Defend && battle.Fighters[e.Actor].Side == Side.Monsters)
                         {
                             int k = Array.IndexOf(Mine, battle.Fighters[e.Target].Unit);
@@ -250,6 +381,7 @@ namespace Realms.Tests
                         break;
                 }
             }
+            Fell();
             if (walker >= 0)
                 Count(walker, Turn.Walk);
             if (clash > 0 && clash <= 2)
@@ -260,6 +392,9 @@ namespace Realms.Tests
         static string Short(Battle battle, int fighter) => battle.Fighters[fighter].Unit.ToString().Substring(0, 2);
 
         static string Abbreviation(Biome ground) => ground == Biome.Mountains ? "Mt" : ground.ToString().Substring(0, 1);
+
+        /// <summary>A battle longer than this many rounds counts as long: the fun plan wants at most 5% of them (2026-11-11).</summary>
+        const int LongRounds = 8;
 
         static string Row(string monsters, int depth, Biome[] grounds, int count, Tally t)
         {
@@ -274,9 +409,12 @@ namespace Realms.Tests
             string openings = t.Grounds == 0 ? "" : $"{(double)t.Openings / t.Grounds:0}";
             return $"| {monsters} | {(depth > 0 ? depth.ToString() : "")} | {where} | {(count > 0 ? count.ToString() : "")} | " +
                 $"{100.0 * t.Won / t.Battles:0}% | {100.0 * t.GaveUp / t.Battles:0}% | {100 * t.Losses / t.Battles:0}% | " +
-                $"{t.Rounds.Average():0.0} ({t.Rounds[(int)(0.1 * (n - 1))]}-{t.Rounds[(int)(0.9 * (n - 1))]}) | {t.Capped} | " +
+                $"{t.Rounds.Average():0.0} ({t.Rounds[(int)(0.1 * (n - 1))]}-{t.Rounds[(int)(0.9 * (n - 1))]}; {100.0 * t.Rounds.Count(r => r > LongRounds) / n:0}% over {LongRounds}) | {t.Capped} | " +
                 $"{100.0 * t.ClashBy2 / t.Battles:0}% | {Shares(t.FirstTarget)} | {Shares(t.AllTargets)} | " +
-                $"{Shares(t.PlayerTurns)} | {Shares(t.MonsterTurns)} | {openings} |";
+                $"{Shares(t.PlayerTurns)} | {Shares(t.MonsterTurns)} | {openings} | " +
+                $"{(double)t.Covers / t.Battles:0.0} ({(t.MonsterStrikes == 0 ? 0 : 100.0 * t.Covers / t.MonsterStrikes):0}%) | " +
+                $"{(double)t.MonsterRunUps / t.Battles:0.0}/{(double)t.PlayerRunUps / t.Battles:0.0} | " +
+                $"{100.0 * t.Orders / t.Battles:0}% ({(t.Orders == 0 ? 0 : (double)t.OrderRounds / t.Orders):0.0}) |";
         }
     }
 }

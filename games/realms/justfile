@@ -8,6 +8,10 @@ default:
 fetch-art *args:
     python3 tools/fetch_art.py {{args}}
 
+# Cut the sounds in sounds.json from Assets Studio into Assets/Realms/Art/Audio (needs ffmpeg)
+fetch-sounds *args:
+    python3 tools/fetch_sounds.py {{args}}
+
 # Build the player, linux (default) or windows (through the open Editor, or headless when it is closed)
 build platform="linux":
     tools/build.sh {{platform}}

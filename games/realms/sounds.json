@@ -1,0 +1,589 @@
+{
+ "comment": "Sounds of the game, generated through fal.ai on 2026-11-12 and kept in the Studio project realms; every take is provisional until the family rates it. tools/fetch_sounds.py cuts them.",
+ "sounds": {
+  "Click": {
+   "kind": "effect",
+   "group": "Interface",
+   "volume": 0.4,
+   "pitch": 0.04,
+   "spread": 1.5,
+   "limit": 1,
+   "cooldown": 0.05,
+   "priority": 2,
+   "takes": [
+    {
+     "id": "01a1cd3745f5c77f262b53",
+     "comment": "click/sonilo-v1.1-text-to-sound-effects-3.wav (sonilo/v1.1/text-to-sound-effects)"
+    }
+   ]
+  },
+  "ClickOff": {
+   "from": "Click",
+   "semitones": -3,
+   "lowpass": 2500,
+   "group": "Interface",
+   "volume": 0.45,
+   "pitch": 0.03,
+   "spread": 1.0,
+   "limit": 1,
+   "cooldown": 0.05,
+   "priority": 2
+  },
+  "Back": {
+   "from": "Click",
+   "pair": -4,
+   "count": 2,
+   "group": "Interface",
+   "volume": 0.4,
+   "limit": 1,
+   "cooldown": 0.05,
+   "priority": 2
+  },
+  "Coins": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.6,
+   "pitch": 0.03,
+   "spread": 1.0,
+   "limit": 2,
+   "cooldown": 0.1,
+   "priority": 1,
+   "takes": [
+    {
+     "id": "01a1cd4f79b8618e5728a5",
+     "comment": "coins/elevenlabs-sound-effects-v3-5.wav (elevenlabs/sound-effects/v3)",
+     "max": 1.2
+    }
+   ]
+  },
+  "CoinsBig": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.7,
+   "pitch": 0.0,
+   "spread": 0.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 1,
+   "takes": [
+    {
+     "id": "01a1cd527c306d7ef263c9",
+     "comment": "coinsbig/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)",
+     "whole": true
+    }
+   ]
+  },
+  "Build": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.7,
+   "pitch": 0.03,
+   "spread": 0.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 1,
+   "takes": [
+    {
+     "id": "01a1cd4fc1f1b707bcc7fe",
+     "comment": "build/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)",
+     "whole": true
+    }
+   ]
+  },
+  "BuildStone": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.7,
+   "pitch": 0.03,
+   "spread": 0.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 1,
+   "takes": [
+    {
+     "id": "01a1cd502a0e8631f9ad1b",
+     "comment": "buildstone/sonilo-v1.1-text-to-sound-effects-2.wav (sonilo/v1.1/text-to-sound-effects)",
+     "whole": true
+    }
+   ]
+  },
+  "Stake": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.8,
+   "pitch": 0.0,
+   "spread": 0.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 1,
+   "takes": [
+    {
+     "id": "01a1cd51e3858ef54015c5",
+     "comment": "stake/sonilo-v1.1-text-to-sound-effects-2.wav (sonilo/v1.1/text-to-sound-effects)",
+     "whole": true
+    }
+   ]
+  },
+  "Grew": {
+   "from": "Reward",
+   "semitones": -5,
+   "group": "World",
+   "volume": 0.5,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 2
+  },
+  "Warn": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 0.6,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd51fb9dc2cb5e92de",
+     "comment": "warn/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "Rival": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 0.6,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd52644758c8de98b8",
+     "comment": "rival/sonilo-v1.1-text-to-sound-effects-2.wav (sonilo/v1.1/text-to-sound-effects)"
+    }
+   ]
+  },
+  "Recruit": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.6,
+   "pitch": 0.0,
+   "spread": 0.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 1,
+   "takes": [
+    {
+     "id": "01a1cd53905286d102800f",
+     "comment": "recruit/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)",
+     "whole": true
+    }
+   ]
+  },
+  "Settlers": {
+   "from": "Recruit",
+   "semitones": -2,
+   "group": "World",
+   "volume": 0.6,
+   "limit": 1,
+   "cooldown": 0.2
+  },
+  "ChestOpen": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.7,
+   "pitch": 0.0,
+   "spread": 0.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 1,
+   "takes": [
+    {
+     "id": "01a1cd517d2150a0e5c6a2",
+     "comment": "chestopen/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)",
+     "whole": true
+    }
+   ]
+  },
+  "BattleStart": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 0.8,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd536daf5c06f655ff",
+     "comment": "battlestart/sonilo-v1.1-text-to-sound-effects-2.wav (sonilo/v1.1/text-to-sound-effects)"
+    }
+   ]
+  },
+  "HitBlade": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.8,
+   "pitch": 0.04,
+   "spread": 1.5,
+   "limit": 2,
+   "cooldown": 0.09,
+   "priority": 2,
+   "takes": [
+    {
+     "id": "01a1cd509df11432a45e9e",
+     "comment": "hitblade/sonilo-v1.1-text-to-sound-effects-6.wav (sonilo/v1.1/text-to-sound-effects)"
+    }
+   ]
+  },
+  "HitBeast": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.8,
+   "pitch": 0.04,
+   "spread": 1.5,
+   "limit": 2,
+   "cooldown": 0.09,
+   "priority": 2,
+   "takes": [
+    {
+     "id": "01a1cd50b6db3c38274a30",
+     "comment": "hitbeast/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "ArrowHit": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.7,
+   "pitch": 0.04,
+   "spread": 1.5,
+   "limit": 2,
+   "cooldown": 0.09,
+   "priority": 2,
+   "takes": [
+    {
+     "id": "01a1cd5064dc61e6e186cb",
+     "comment": "swing/sonilo-v1.1-text-to-sound-effects-2.wav (sonilo/v1.1/text-to-sound-effects)"
+    }
+   ]
+  },
+  "Fall": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.7,
+   "pitch": 0.03,
+   "spread": 1.0,
+   "limit": 2,
+   "cooldown": 0.09,
+   "priority": 1,
+   "takes": [
+    {
+     "id": "01a1cd511467a5a792344e",
+     "comment": "fall/sonilo-v1.1-text-to-sound-effects-2.wav (sonilo/v1.1/text-to-sound-effects)"
+    }
+   ]
+  },
+  "Defend": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.6,
+   "pitch": 0.03,
+   "spread": 1.0,
+   "limit": 2,
+   "cooldown": 0.09,
+   "priority": 1,
+   "takes": [
+    {
+     "id": "01a1cd5429870cfbe55b11",
+     "comment": "defend/sonilo-v1.1-text-to-sound-effects-2.wav (sonilo/v1.1/text-to-sound-effects)",
+     "events": [
+      0,
+      2,
+      5,
+      6
+     ]
+    }
+   ]
+  },
+  "Heal": {
+   "from": "Gem",
+   "semitones": 5,
+   "group": "World",
+   "volume": 0.5,
+   "limit": 1,
+   "cooldown": 0.2
+  },
+  "Reward": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 0.8,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd54495934eecd6f54",
+     "comment": "reward/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "LevelUp": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 0.9,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd54ae08769f16c118",
+     "comment": "levelup/elevenlabs-sound-effects-v3-2.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "QuestDone": {
+   "comment": "An octave lower, dulled and with its last note cut short: the players found the take too ringing, as tasks finish every few seconds in the first turns (2026-11-12).",
+   "kind": "sign",
+   "group": "World",
+   "volume": 0.7,
+   "semitones": -12,
+   "lowpass": 2000,
+   "max": 1.5,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd54fe87976ecc9af0",
+     "comment": "questdone/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "TownLevel": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 0.9,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd5567e3206cc539ed",
+     "comment": "townlevel/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "HeroHired": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 0.9,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd571bdd973131fd62",
+     "comment": "herohired/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "NewTown": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 1.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd566597e70af101df",
+     "comment": "newtown/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "Gem": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 0.9,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd56bec072f43f4a7d",
+     "comment": "gem/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "Victory": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 1.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd42d97d4674e55a21",
+     "comment": "victory/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "Defeat": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 1.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd36de11be98f2c105",
+     "comment": "defeat/sonilo-v1.1-text-to-music-4.m4a (sonilo/v1.1/text-to-music)"
+    }
+   ]
+  },
+  "GameWon": {
+   "kind": "sign",
+   "group": "World",
+   "volume": 1.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd5829f8ae29db0889",
+     "comment": "gamewon/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "AmbSea": {
+   "kind": "loop",
+   "group": "Ambience",
+   "volume": 1.0,
+   "lufs": -20.0,
+   "limit": 1,
+   "priority": 4,
+   "takes": [
+    {
+     "id": "01a1cd42d8b10d8980dc9a",
+     "comment": "amb-sea/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "AmbForest": {
+   "kind": "loop",
+   "group": "Ambience",
+   "volume": 1.0,
+   "lufs": -20.0,
+   "limit": 1,
+   "priority": 4,
+   "takes": [
+    {
+     "id": "01a1cd59053e62da7c9ec8",
+     "comment": "amb-forest/elevenlabs-sound-effects-v3-1.wav (elevenlabs/sound-effects/v3)"
+    }
+   ]
+  },
+  "MusicMap": {
+   "kind": "music",
+   "group": "Music",
+   "volume": 1.0,
+   "lufs": -16.0,
+   "limit": 1,
+   "priority": 4,
+   "takes": [
+    {
+     "id": "01a1cd2f8b0d56f19a2e1f",
+     "comment": "music-map/lyria3-1.mp3 (fal-ai/lyria3)"
+    },
+    {
+     "id": "01a1cd7bbc8e6462cd462e",
+     "comment": "music-map/lyria3-5.mp3 (fal-ai/lyria3)"
+    },
+    {
+     "id": "01a1cd7c3bdcd99af70b09",
+     "comment": "music-map/lyria3-6.mp3 (fal-ai/lyria3)"
+    },
+    {
+     "id": "01a1cd7d1f9a6db1bc474e",
+     "comment": "music-map/lyria3-8.mp3 (fal-ai/lyria3)"
+    }
+   ]
+  },
+  "TurnEnd": {
+   "kind": "effect",
+   "group": "Interface",
+   "volume": 0.5,
+   "pitch": 0.0,
+   "spread": 0.0,
+   "limit": 1,
+   "cooldown": 0.2,
+   "priority": 3,
+   "takes": [
+    {
+     "id": "01a1cd7ef8ca5128e54ee9",
+     "comment": "turnend/elevenlabs-sound-effects-v3-4.wav (elevenlabs/sound-effects/v3)",
+     "whole": true
+    }
+   ]
+  },
+  "StepGrass": {
+   "kind": "effect",
+   "group": "World",
+   "volume": 0.35,
+   "pitch": 0.03,
+   "spread": 1.0,
+   "limit": 2,
+   "cooldown": 0.09,
+   "priority": 0,
+   "takes": [
+    {
+     "id": "01a1cd7508d2a016ea10d7",
+     "comment": "stepgrass/elevenlabs-sound-effects-v3-3.wav (elevenlabs/sound-effects/v3)",
+     "max": 0.5
+    }
+   ]
+  },
+  "MusicTheme": {
+   "kind": "music",
+   "group": "Music",
+   "volume": 1.0,
+   "lufs": -15.0,
+   "limit": 1,
+   "priority": 4,
+   "takes": [
+    {
+     "id": "01a1cd7b566e125fc76a7f",
+     "comment": "music-theme/google-lyria-3.5-2.mp3 (google/lyria-3.5)"
+    }
+   ]
+  },
+  "MusicBattle": {
+   "kind": "music",
+   "group": "Music",
+   "volume": 1.0,
+   "lufs": -14.0,
+   "limit": 1,
+   "priority": 4,
+   "takes": [
+    {
+     "id": "01a1cd7da3a978835f8974",
+     "comment": "music-battle/lyria3-pro-4.mp3 (fal-ai/lyria3/pro)"
+    }
+   ]
+  },
+  "MusicLair": {
+   "kind": "music",
+   "group": "Music",
+   "volume": 1.0,
+   "lufs": -14.0,
+   "limit": 1,
+   "priority": 4,
+   "takes": [
+    {
+     "id": "01a1cd7e4d4e2581c9b6c7",
+     "comment": "music-lair/lyria3-pro-1.mp3 (fal-ai/lyria3/pro)"
+    }
+   ]
+  }
+ }
+}

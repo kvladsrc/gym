@@ -83,6 +83,8 @@ namespace Realms.Tests
             Assert.AreEqual(26f, read.View.Distance);
             Assert.AreEqual(report.Events.Count, read.Report.Events.Count);
             Same(report.Events, read.Report.Events, "the report");
+            Assert.AreEqual(report.GrowthFood, read.Report.GrowthFood);
+            Assert.AreEqual(report.ArmyFood, read.Report.ArmyFood, "the army's food");
 
             using (var stream = new System.IO.MemoryStream(first))
                 Assert.AreEqual(state.Turn, Save.ReadHeader(stream).Turn);

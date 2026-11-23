@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
@@ -11,14 +10,28 @@ namespace Realms
     /// mouse button; zooms towards the cursor; turns around the point with Q and E (or Z and X)
     /// or by dragging with the middle button (it starts facing north; Backspace faces north again). Moves smoothly towards its goal. A town
     /// or hero screen holds it close on its subject (<see cref="Hold"/>), lower and swaying.
-    /// It keeps over the land the players have seen (<see cref="SetSeen"/>) and pulls back no
-    /// further than that land spans the view, nor than the clouds over the unseen land fill
-    /// <see cref="MostFog"/> of it.
+    /// It keeps over the land the players have seen (<see cref="SetSeen"/>) and zooms between
+    /// fixed limits, <see cref="minDistance"/> and <see cref="Highest"/>, whatever is seen.
     /// </summary>
     [RequireComponent(typeof(Camera))]
     public sealed class MapCamera : MonoBehaviour
     {
+        /// <summary>
+        /// The nearest distance, and the distance at which the camera has tilted all the way down
+        /// (<see cref="farPitch"/>); it may pull back further, to <see cref="Highest"/>, looking
+        /// down as steeply.
+        /// </summary>
         public float minDistance = 6f, maxDistance = 75f;
+
+        /// <summary>
+        /// The farthest the camera pulls back, always: from here a map of the usual size fits the
+        /// view. The limit once followed the seen land and the share of the view the clouds over
+        /// the unseen land filled, measured over the middle of the seen land; once a hero had gone
+        /// far, that middle lay by unseen land, and in the family's game of 2026-11-12 the camera
+        /// was held at 12 from about turn 50, the wheel pulling back no more. The players asked
+        /// for a higher camera and for fixed limits instead (2026-11-12).
+        /// </summary>
+        public const float Highest = 90f;
         public float closePitch = 44f, farPitch = 66f;
         public float smoothing = 12f;
         public float turnSpeed = 100f;
@@ -54,19 +67,6 @@ namespace Realms
         /// <summary>How far past the seen land the camera's point may go, world units (2-3 cells).</summary>
         const float SeenMargin = 4f;
 
-        /// <summary>However little is seen, the camera may pull back this far.</summary>
-        const float FarthestFloor = 12f;
-
-        /// <summary>
-        /// The most of the view the clouds over the unseen land may fill when the camera pulls
-        /// back over the middle of the seen land. The whole screen is sampled, the bottom panel's
-        /// part too, which mostly shows seen land; at 0.45 the fog read as an unloaded map, at
-        /// 0.2 still as a slab beside the land (review of 2026-11-10).
-        /// </summary>
-        const float MostFog = 0.15f;
-
-        /// <summary>The grid of the view that <see cref="FogShare"/> samples.</summary>
-        const int ShareColumns = 16, ShareRows = 9;
 
         Held held;
 
@@ -84,7 +84,6 @@ namespace Realms
         float yaw, goalYaw;
         Rect bounds = new Rect(0, 0, 100, 50);
         Rect seen;
-        Func<Vector2, bool> seenAt;
         bool dragging, turning;
         float turnFrom;
         Vector3 dragGround;
@@ -102,79 +101,18 @@ namespace Realms
         public void SetBounds(Rect rect) => bounds = rect;
 
         /// <summary>
-        /// The land the players have seen, a box in x and z (empty: the whole map), and whether a
-        /// point of the map (x, z) lies on it: the camera's point stays over the box and a margin of
-        /// a few cells round it, and the camera pulls back only until the land and its margin span
-        /// the view's width and the unseen land fills no more than <see cref="MostFog"/> of it.
+        /// The land the players have seen, a box in x and z (empty: the whole map): the camera's
+        /// point stays over the box and a margin of a few cells round it.
         /// </summary>
-        public void SetSeen(Rect area, Func<Vector2, bool> seenAt = null)
+        public void SetSeen(Rect area)
         {
             seen = area;
-            this.seenAt = seenAt;
             goalTarget = Clamp(goalTarget);
             goalDistance = ClampDistance(goalDistance);
         }
 
         /// <summary>The middle of the seen land (see <see cref="SetSeen"/>), or of the world before any is seen.</summary>
         public Vector2 SeenMiddle => seen.width > 0f ? seen.center : bounds.center;
-
-        /// <summary>
-        /// The farthest the camera may pull back over the seen land (see <see cref="SetSeen"/>):
-        /// until the land and its margin span the view's width, and only while the unseen land
-        /// fills no more than <see cref="MostFog"/> of the view over the land's middle; never less
-        /// than <see cref="FarthestFloor"/>.
-        /// </summary>
-        float Farthest()
-        {
-            if (seen.width <= 0f)
-                return maxDistance;
-            float span = Mathf.Max(seen.width, seen.height) + 2f * SeenMargin;
-            float tanHalf = Mathf.Tan(Camera.VerticalToHorizontalFieldOfView(cam.fieldOfView, cam.aspect) * 0.5f * Mathf.Deg2Rad);
-            float near = Mathf.Min(FarthestFloor, maxDistance);
-            float far = Mathf.Clamp(span / (2f * tanHalf), near, maxDistance);
-            if (seenAt == null || FogShare(seen.center, far) <= MostFog)
-                return far;
-            if (FogShare(seen.center, near) > MostFog)
-                return near;
-            for (int k = 0; k < 10; k++)
-            {
-                float mid = (near + far) * 0.5f;
-                if (FogShare(seen.center, mid) <= MostFog)
-                    near = mid;
-                else
-                    far = mid;
-            }
-            return near;
-        }
-
-        /// <summary>
-        /// The share of the view, sampled on a grid, that falls on land the players have not seen,
-        /// with the camera over <paramref name="point"/> at <paramref name="d"/> on the map.
-        /// </summary>
-        float FogShare(Vector2 point, float d)
-        {
-            Quaternion rotation = Quaternion.Euler(Pitch(d), goalYaw, 0f);
-            Vector3 eye = new Vector3(point.x, 0.2f, point.y) - rotation * Vector3.forward * d;
-            float tanV = Mathf.Tan(cam.fieldOfView * 0.5f * Mathf.Deg2Rad), tanH = tanV * cam.aspect;
-            int fog = 0;
-            for (int j = 0; j < ShareRows; j++)
-            {
-                for (int i = 0; i < ShareColumns; i++)
-                {
-                    float u = (i + 0.5f) / ShareColumns * 2f - 1f, v = (j + 0.5f) / ShareRows * 2f - 1f;
-                    Vector3 ray = rotation * new Vector3(u * tanH, v * tanV, 1f);
-                    if (ray.y > -0.001f)
-                    {
-                        fog++;
-                        continue;
-                    }
-                    Vector3 at = eye + ray * (-eye.y / ray.y);
-                    if (!seenAt(new Vector2(at.x, at.z)))
-                        fog++;
-                }
-            }
-            return fog / (float)(ShareColumns * ShareRows);
-        }
 
         /// <summary>Flies to a point; <paramref name="snap"/> jumps there at once.</summary>
         public void Focus(Vector2 point, float newDistance, bool snap = false)
@@ -183,11 +121,11 @@ namespace Realms
             {
                 // A screen holds the camera: the map comes back here when it lets go.
                 held.BackTarget = Clamp(point);
-                held.BackDistance = Mathf.Clamp(newDistance, minDistance, Farthest());
+                held.BackDistance = Mathf.Clamp(newDistance, minDistance, Highest);
                 return;
             }
             goalTarget = Clamp(point);
-            goalDistance = Mathf.Clamp(newDistance, minDistance, Farthest());
+            goalDistance = Mathf.Clamp(newDistance, minDistance, Highest);
             if (snap)
             {
                 target = goalTarget;
@@ -349,7 +287,7 @@ namespace Realms
 
         static Vector2 Forward(float degrees) => new Vector2(Mathf.Sin(degrees * Mathf.Deg2Rad), Mathf.Cos(degrees * Mathf.Deg2Rad));
 
-        float ClampDistance(float d) => held != null ? Mathf.Clamp(d, held.Near, held.Far) : Mathf.Clamp(d, minDistance, Farthest());
+        float ClampDistance(float d) => held != null ? Mathf.Clamp(d, held.Near, held.Far) : Mathf.Clamp(d, minDistance, Highest);
 
         /// <summary>The point kept over the map and over the seen land with its margin.</summary>
         Vector2 Clamp(Vector2 p)
@@ -377,13 +315,14 @@ namespace Realms
                 if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed) move.x += 1;
                 if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed) move.x -= 1;
                 bool fast = keyboard.leftShiftKey.isPressed;
-                Pan(move, dt, fast);
+                // The players' speeds from the settings (the interface plan's 3.5); 5 is as before.
+                Pan(move, dt * GameSettings.MoveFactor, fast);
                 // Q (and Z) turns the map towards the left hand, E (and X) towards the right: the
                 // other way round felt backwards to the players (2026-11-10).
                 float turn = 0f;
                 if (keyboard.qKey.isPressed || keyboard.zKey.isPressed) turn += 1;
                 if (keyboard.eKey.isPressed || keyboard.xKey.isPressed) turn -= 1;
-                TurnKeys(turn, dt, fast);
+                TurnKeys(turn, dt * GameSettings.TurnFactor, fast);
                 float zoom = 0f;
                 if (keyboard.equalsKey.isPressed || keyboard.numpadPlusKey.isPressed) zoom -= 1;
                 if (keyboard.minusKey.isPressed || keyboard.numpadMinusKey.isPressed) zoom += 1;
@@ -434,6 +373,12 @@ namespace Realms
                 }
             }
 
+            // The pointer at the screen's edge moves the map when the players turn it on in the
+            // settings: only in a focused window, not while a dialog, the menu or a screen holds
+            // the map, nor while it is dragged or turned.
+            if (GameSettings.EdgePan && mouse != null && !KeyboardBlocked && !Scripted && !dragging && !turning && Application.isFocused)
+                Pan(EdgeMove(mouse.position.ReadValue()), dt * GameSettings.MoveFactor);
+
             if (held != null)
             {
                 // Sway round the subject and keep it beside the screen's panel.
@@ -453,6 +398,24 @@ namespace Realms
             distance = Mathf.Lerp(distance, goalDistance, k);
             yaw = Mathf.Lerp(yaw, goalYaw, k);
             Apply();
+        }
+
+        /// <summary>Which way the pointer at the screen's edge moves the map: a few pixels at each edge, nothing outside the window.</summary>
+        static Vector2 EdgeMove(Vector2 pointer)
+        {
+            if (pointer.x < 0f || pointer.y < 0f || pointer.x >= Screen.width || pointer.y >= Screen.height)
+                return Vector2.zero;
+            float edge = Mathf.Max(3f, Screen.height * 0.005f);
+            var move = Vector2.zero;
+            if (pointer.x <= edge)
+                move.x -= 1;
+            else if (pointer.x >= Screen.width - 1 - edge)
+                move.x += 1;
+            if (pointer.y <= edge)
+                move.y -= 1;
+            else if (pointer.y >= Screen.height - 1 - edge)
+                move.y += 1;
+            return move;
         }
 
         void Apply()

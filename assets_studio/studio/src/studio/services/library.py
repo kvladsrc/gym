@@ -153,6 +153,10 @@ class Library:
             limit=limit,
         )
 
+    def tags(self, *, project: str | None = None) -> list[tuple[str, int]]:
+        """Every tag in the library with the number of its assets (ADR-007)."""
+        return self._repository.tags(project=project)
+
     def update(
         self,
         asset_id: str,

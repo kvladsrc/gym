@@ -17,13 +17,13 @@ namespace Realms
     /// </summary>
     public sealed class MapView : MonoBehaviour
     {
-        public Material terrainMaterial, waterMaterial, riverMaterial, propMaterial, fogMaterial, flagMaterial, smokeMaterial, cloudMaterial;
+        public Material terrainMaterial, waterMaterial, riverMaterial, propMaterial, fogMaterial, flagMaterial, smokeMaterial, cloudMaterial, puffMaterial, birdMaterial;
 
         /// <summary>How hard the wind blows: 1 bends the plants as far as they were made to bend.</summary>
         public float wind = 1f;
 
         /// <summary>Where the wind blows to on the map (x, z): the clouds drift this way.</summary>
-        static readonly Vector2 WindToward = new Vector2(-0.011f, -0.005f).normalized;
+        public static readonly Vector2 WindToward = new Vector2(-0.011f, -0.005f).normalized;
 
         /// <summary>The drifting clouds' height over the map, in world units.</summary>
         public float cloudHeight = 4.5f;
@@ -83,6 +83,11 @@ namespace Realms
         bool fogMoving;
 
         public PropBuilder Props => props;
+
+        /// <summary>The flocks and gulls over the map (<see cref="Realms.Birds"/>); null without their material.</summary>
+        public Birds Birds => birds;
+
+        Birds birds;
 
         /// <summary>The neighbours' troops at the lairs, whose flags the map shows (set with the game's state before <see cref="Show"/>).</summary>
         public System.Collections.Generic.IReadOnlyList<Troop> LairTroops { get; set; }
@@ -161,6 +166,7 @@ namespace Realms
             var props = new GameObject("Props");
             props.transform.SetParent(content, false);
             SmokePlumes.Material = smokeMaterial;
+            Puffs.Material = puffMaterial;
             contact = new ContactShade(world);
             this.props = new PropBuilder(world, Field, art, propMaterial, props.transform, contact);
             Lap("contact");
@@ -197,6 +203,10 @@ namespace Realms
                 driftingRenderer.shadowCastingMode = ShadowCastingMode.Off;
                 driftingRenderer.receiveShadows = false;
             }
+
+            // Birds over the land (the visual plan's 6): a flock now and then, gulls over the piers.
+            Birds.Material = birdMaterial;
+            birds = Birds.Make(this, content);
 
             SetHover(-1);
             SetSelect(-1);
@@ -431,14 +441,63 @@ namespace Realms
             fog.Apply(false);
         }
 
+        static readonly int FlagWaveId = Shader.PropertyToID("_Wave"), SmokeOpacityId = Shader.PropertyToID("_Opacity");
+
+        /// <summary>The flags' wave and the smoke's opacity before a feast eased them (NaN when none is on).</summary>
+        float calmWave = float.NaN, calmSmoke = float.NaN, feast, feastGoal;
+
+        /// <summary>
+        /// The players' crown is celebrated (the visual plan's 12): every flag flies harder and the
+        /// chimneys smoke thicker, eased in and out over half a second. The materials are shared by
+        /// every flag and plume, so the calm values come back when it ends and when the map goes.
+        /// </summary>
+        public void Feast(bool on) => feastGoal = on ? 1f : 0f;
+
+        void EaseFeast()
+        {
+            if (feast == feastGoal)
+            {
+                if (feast == 0f)
+                    RestoreFeast();
+                return;
+            }
+            Material flag = FlagArt.ClothMaterial, smoke = smokeMaterial;
+            if (float.IsNaN(calmWave))
+            {
+                calmWave = flag != null && flag.HasProperty(FlagWaveId) ? flag.GetFloat(FlagWaveId) : 1f;
+                calmSmoke = smoke != null && smoke.HasProperty(SmokeOpacityId) ? smoke.GetFloat(SmokeOpacityId) : 0.35f;
+            }
+            feast = Mathf.MoveTowards(feast, feastGoal, ViewClock.Delta * 2f);
+            float k = Mathf.SmoothStep(0f, 1f, feast);
+            if (flag != null && flag.HasProperty(FlagWaveId))
+                flag.SetFloat(FlagWaveId, Mathf.Min(2f, calmWave * Mathf.Lerp(1f, 1.8f, k)));
+            if (smoke != null && smoke.HasProperty(SmokeOpacityId))
+                smoke.SetFloat(SmokeOpacityId, Mathf.Min(1f, calmSmoke * Mathf.Lerp(1f, 1.6f, k)));
+        }
+
+        void RestoreFeast()
+        {
+            if (float.IsNaN(calmWave))
+                return;
+            Material flag = FlagArt.ClothMaterial, smoke = smokeMaterial;
+            if (flag != null && flag.HasProperty(FlagWaveId))
+                flag.SetFloat(FlagWaveId, calmWave);
+            if (smoke != null && smoke.HasProperty(SmokeOpacityId))
+                smoke.SetFloat(SmokeOpacityId, calmSmoke);
+            calmWave = calmSmoke = float.NaN;
+            feast = feastGoal = 0f;
+        }
+
         void Update()
         {
+            EaseFeast();
             if (drawing)
                 return;
             // The clouds fade out as the camera comes down (a town's or hero's screen holds it low).
             Camera view = Camera.main;
             float height = view != null ? view.transform.position.y : cloudsFrom;
             Shader.SetGlobalFloat(CloudShowId, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(cloudsGone, cloudsFrom, height)));
+            JumpFish(view);
             if (props != null && props.DressPending())
                 contact?.Flush();
             if (!fogMoving || seen == null || clear == null)
@@ -464,6 +523,46 @@ namespace Realms
 
         /// <summary>Starts clearing the cells the players have just seen.</summary>
         public void UpdateFog() => fogMoving = true;
+
+        /// <summary>When the next fish may jump (Time.time).</summary>
+        float nextFish;
+        static readonly Color FishSplash = new Color(0.86f, 0.93f, 0.97f, 1f);
+
+        /// <summary>
+        /// Now and then a fish jumps on a seen cell with fish in the view: a small splash in the
+        /// open water of the cell, once in 20-40 s, so the resource shows where it is without
+        /// turning into noise (the visual plan's water, 9, 2026-11-12).
+        /// </summary>
+        void JumpFish(Camera view)
+        {
+            if (Time.time < nextFish || World == null || Field == null || view == null)
+                return;
+            nextFish = Time.time + Random.Range(20f, 40f);
+            int count = 0, pick = -1;
+            foreach (Cell cell in World.Cells)
+            {
+                if (cell.Resource != Resource.Fish || !Visible(cell.Index))
+                    continue;
+                Vector3 p = view.WorldToViewportPoint(new Vector3(World.CenterX(cell.Index), 0f, World.CenterZ(cell.Index)));
+                if (p.z <= 0f || p.x < 0.05f || p.x > 0.95f || p.y < 0.15f || p.y > 0.9f)
+                    continue;
+                // Each such cell as likely as the others, in one pass.
+                if (Random.Range(0, ++count) == 0)
+                    pick = cell.Index;
+            }
+            if (pick < 0)
+                return;
+            float cx = World.CenterX(pick), cz = World.CenterZ(pick);
+            for (int attempt = 0; attempt < 6; attempt++)
+            {
+                float a = Random.Range(0f, Mathf.PI * 2f), d = Random.Range(0.1f, 0.5f);
+                float x = cx + Mathf.Cos(a) * d, z = cz + Mathf.Sin(a) * d;
+                if (Field.Height(x, z) > -0.12f)
+                    continue;
+                Puffs.Ring(new Vector3(x, 0.01f, z), 0.12f, 6, FishSplash);
+                return;
+            }
+        }
 
         static Mesh SeaMesh(World world, float margin = 140f)
         {
@@ -526,6 +625,7 @@ namespace Realms
 
         void OnDestroy()
         {
+            RestoreFeast();
             Clear();
             if (cells != null)
                 Destroy(cells);

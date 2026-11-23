@@ -12,10 +12,14 @@ namespace Realms
     /// </summary>
     public static class Figures
     {
-        /// <summary>A unit's figure, <paramref name="size"/> tall and wide at most.</summary>
-        public static GameObject Unit(Unit unit, ArtLibrary art, Material material, Transform parent, float size)
+        /// <summary>
+        /// A unit's figure, <paramref name="size"/> tall and wide at most, in the look of the group
+        /// on <paramref name="cell"/> (<see cref="PropBuilder.ModelOf(Unit, int, ArtLibrary)"/>;
+        /// -1 for the kind's own).
+        /// </summary>
+        public static GameObject Unit(Unit unit, ArtLibrary art, Material material, Transform parent, float size, int cell = -1)
         {
-            GameObject prefab = art != null ? art.ModelOf(PropBuilder.ModelOf(unit)) : null;
+            GameObject prefab = art != null ? art.ModelOf(PropBuilder.ModelOf(unit, cell, art)) : null;
             if (prefab != null)
                 return Model(prefab, parent, size);
             var kit = new MeshKit();
@@ -177,6 +181,32 @@ namespace Realms
             side = any ? Mathf.Max(box.size.x, box.size.z, 1e-3f) : 1f;
             groundSides[prefab] = side;
             return side;
+        }
+
+        /// <summary>
+        /// The box round a renderer's mesh in the world as it stands now. A skinned creature's is
+        /// baked from its pose: its own box stays round its root bone, roomy enough for every move
+        /// it has (Setup), so it is no measure of the creature.
+        /// </summary>
+        public static Bounds BoundsOf(Renderer renderer)
+        {
+            if (renderer is not SkinnedMeshRenderer skin || skin.sharedMesh == null)
+                return renderer.bounds;
+            var baked = new Mesh();
+            skin.BakeMesh(baked, true);
+            Vector3[] vertices = baked.vertices;
+            if (Application.isPlaying)
+                Object.Destroy(baked);
+            else
+                Object.DestroyImmediate(baked);
+            if (vertices.Length == 0)
+                return renderer.bounds;
+            // Baked with the renderer's scale, in its place and turn.
+            Matrix4x4 toWorld = Matrix4x4.TRS(skin.transform.position, skin.transform.rotation, Vector3.one);
+            var box = new Bounds(toWorld.MultiplyPoint3x4(vertices[0]), Vector3.zero);
+            foreach (Vector3 v in vertices)
+                box.Encapsulate(toWorld.MultiplyPoint3x4(v));
+            return box;
         }
 
         /// <summary>A studio model under the parent, scaled to the size, at the parent's origin.</summary>

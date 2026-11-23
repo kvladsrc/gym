@@ -72,6 +72,17 @@ namespace Realms
         static readonly Dictionary<Emblem, Mask> masks = new Dictionary<Emblem, Mask>();
         static readonly Dictionary<string, Texture2D> cache = new Dictionary<string, Texture2D>();
 
+        /// <summary>
+        /// The art with the emblems alone, for flags painted before any game is drawn (the new
+        /// game's window): the world's cloth and colours stay as they are.
+        /// </summary>
+        public static void UseArt(ArtLibrary library)
+        {
+            if (art != library)
+                masks.Clear();
+            art = library;
+        }
+
         /// <summary>The world whose kingdoms fly the flags, the art with the emblems and the cloth's material.</summary>
         public static void Bind(World playing, ArtLibrary library, Material material)
         {

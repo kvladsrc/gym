@@ -1,0 +1,53 @@
+[project]
+name = "bpt-model-server"
+version = "0.1.0"
+description = "Artist-like mesh generation server for the asset studio, based on BPT."
+# Upstream tests on Python 3.9 with torch 2.1.2 (CUDA 12.1). The server runs
+# on Python 3.11, the SDK's, with torch 2.5.1 (CUDA 12.4), the stack of the
+# `deepmesh` server, so the two share its files on disk. x-transformers and
+# pytorch-custom-utils are upstream's versions. Of upstream's requirements
+# only what inference imports is installed.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.5.1",
+  "triton==3.1.0",
+  "x-transformers==1.26.6",
+  # Only its save_load decorator on the model class; the checkpoint is read
+  # by the server (see read_weights).
+  "pytorch-custom-utils==0.0.21",
+  # The point-cloud encoder imports CLIPModel and never loads it.
+  "transformers==4.46.3",
+  "einops>=0.7",
+  "omegaconf>=2.3",
+  "beartype>=0.19",
+  "scikit-image>=0.24",
+  "networkx>=3.2",
+  "six>=1.16",
+  "scipy>=1.13",
+  "pyyaml>=6",
+  "tqdm",
+  "huggingface-hub>=0.28,<1",
+  "numpy==1.26.4",
+  "trimesh>=4.4,<5",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+bpt-model-server = "bpt_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu124" }
+triton = { index = "pytorch-cu124" }
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
