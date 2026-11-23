@@ -1,0 +1,45 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+import "../common.just"
+
+source := cache / "bpt-source"
+revision := `sed -n 's/^SOURCE_REVISION = "\([0-9a-f]*\)".*/\1/p' src/bpt_model_server/server.py`
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/bpt"
+export BPT_SOURCE := source
+export BPT_WEIGHTS := cache / "bpt"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+export PYTORCH_CUDA_ALLOC_CONF := "expandable_segments:True"
+# The sampling loop draws a progress bar; in a log, once in ten seconds is enough.
+export TQDM_MININTERVAL := "10"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Fetch the pinned BPT source and create the environment
+setup:
+    if [[ ! -d "{{ source }}/.git" ]]; then \
+        git clone --no-checkout https://github.com/Tencent-Hunyuan/bpt.git "{{ source }}"; \
+    fi
+    git -C "{{ source }}" cat-file -e "{{ revision }}^{commit}" 2>/dev/null \
+        || git -C "{{ source }}" fetch --quiet origin "{{ revision }}"
+    git -C "{{ source }}" checkout --quiet --detach "{{ revision }}"
+    {{ gpu_shell }} uv sync --extra test
+
+# Download the checkpoint (~1.6 GB; network only, no GPU)
+download:
+    {{ gpu_shell }} uv run --no-sync python -c "from bpt_model_server.server import download; download()"
+
+# Report PyTorch, the CUDA device, the source and whether the weights are downloaded
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m bpt_model_server.doctor
+
+# Serve on 127.0.0.1:9137 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync bpt-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

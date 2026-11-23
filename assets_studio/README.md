@@ -125,8 +125,12 @@ for: `nvidia-smi --query-gpu=compute_cap --format=csv`.
 | --- | --- | --- | --- |
 | Images | `qwen_image` | Qwen-Image 2.1 | Text → image, image editing |
 | | `birefnet` | BiRefNet | Background removal for images and videos |
+| | `pbrfusion4` | PBRFusion 4 | Flat texture → normal map or height map, tileable kept; [use](model_servers/pbrfusion4/README.md) |
 | 3D | `hunyuan3d21` | Hunyuan3D-2.1 Shape | Image → coarse mesh |
 | | `hi3d` | Hi3D v1.0 | Coarse mesh + its image → detailed surface; [setup](model_servers/hi3d/README.md) |
+| | `lato2` | LATO.2 | Detailed mesh → low-poly mesh with a target vertex count, geometry only; [setup](model_servers/lato2/README.md) |
+| | `deepmesh` | DeepMesh 0.5B | Detailed mesh → artist-like low-poly mesh, written triangle by triangle, geometry only; [setup](model_servers/deepmesh/README.md) |
+| | `bpt` | BPT 0.5B | Detailed mesh → artist-like low-poly mesh of up to 10,000 tokens, geometry only; [setup](model_servers/bpt/README.md) |
 | | `trellis2_paint` | TRELLIS.2 Paint | PBR paint of an existing mesh, its surface kept; [setup](model_servers/trellis2_paint/README.md) |
 | | `paint21` | Hunyuan3D-Paint 2.1 | PBR paint from the source image |
 | | `hairdeck` | HairDeck | Character image → hair cards (game-style strips, coloured); [setup](model_servers/hairdeck/README.md) |
@@ -144,6 +148,7 @@ for: `nvidia-smi --query-gpu=compute_cap --format=csv`.
 | | `song` | YuE2 | Songs with vocals from lyrics |
 | Text | `gemma`, `qwen` | Gemma 4 12B, Qwen3.8 27B | Text; Qwen also describes images and videos |
 | | `unlimited_ocr` | Unlimited-OCR 2 | Document page image → text; [setup](model_servers/unlimited_ocr/README.md) |
+| | `qwen_review` | Qwen3.5-2B + LoRA | Game screenshot → predicted Steam reviews; [adapter](https://huggingface.co/zjgkkn/qwen3.5-2b-steam-reviews-lora), [setup](model_servers/qwen_review/README.md) |
 
 `model_servers/` also keeps five retired servers: `flux` (FLUX.1-schnell),
 `hunyuan3d` (Hunyuan3D-2mini), `hunyuan_paint` (Hunyuan3D-Paint 2.0),

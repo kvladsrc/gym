@@ -120,6 +120,7 @@ export function sectionOfJob(job: Job): string | undefined {
       "3d-retopo",
       "3d-bake-normals",
       "3d-bake-colour",
+      "3d-fit-hair",
     ].includes(job.task)
   )
     return "mesh";

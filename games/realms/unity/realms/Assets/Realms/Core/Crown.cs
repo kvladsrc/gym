@@ -20,23 +20,44 @@ namespace Realms.Core
 
         /// <summary>The kingdom's land has grown by <see cref="Crown.LandsGoal"/> cells since the start.</summary>
         Lands,
+
+        /// <summary>
+        /// The capital's Great Build stands finished, all its <see cref="GreatBuild.Stages"/> stages
+        /// (the family asked for this sixth gem on 2026-11-12). Last in the enum, so the saves'
+        /// gems keep their numbers.
+        /// </summary>
+        Build,
     }
 
     /// <summary>
     /// The game's goal and end (the economy and fun plans of 2026-11-11): every kingdom has a crown
     /// with a socket for each gem, the gems are won in any order, and the first kingdom to set
-    /// <see cref="Needed"/> of them has won. The players chose this short game, three gems of five
-    /// in about 35-45 turns, as the main one; a longer crown waits until the game has more to do
-    /// in its middle. The numbers are the plan's first ones, to be tuned by the measurer.
+    /// <see cref="Needed"/> of them has won. The players chose this short game, three gems in about
+    /// 35-45 turns, as the main one; a longer crown waits until the game has more to do in its
+    /// middle. The numbers are the plan's first ones, to be tuned by the measurer. The crown had
+    /// five sockets until the family gave the finished Great Build its own gem (2026-11-12): six,
+    /// as many as a hex has sides.
     /// </summary>
     public static class Crown
     {
-        public static readonly Gem[] Order = { Gem.Capital, Gem.Towns, Gem.Hunter, Gem.Hero, Gem.Lands };
+        /// <summary>The gems in the crown's sockets, left to right: the Great Build beside the capital's.</summary>
+        public static readonly Gem[] Order = { Gem.Capital, Gem.Build, Gem.Towns, Gem.Hunter, Gem.Hero, Gem.Lands };
 
         /// <summary>The gems that win the game.</summary>
         public const int Needed = 3;
 
-        public const int CapitalLevel = 4, TownsLevel = 3, TownsGoal = 4, HunterGoal = 3, HeroGoal = 5, LandsGoal = 60;
+        public const int CapitalLevel = 4, TownsLevel = 3, TownsGoal = 4, HunterGoal = 3, HeroGoal = 5;
+
+        /// <summary>
+        /// How many cells the kingdom's land must grow by for the Lands gem: 60, and 50 on a small
+        /// map. There four kingdoms crowd a smaller land and the players' land grew more slowly:
+        /// in 60 games of each size (2026-11-12) the gem came on turn 44 there against 36 on the
+        /// middle map, and the crown five turns later, though a smaller map should not make a
+        /// longer game.
+        /// </summary>
+        public static int LandsGoal(World world) => LandsGoal(WorldSettings.SizeOf(world));
+
+        public static int LandsGoal(MapSize size) => size == MapSize.Small ? 50 : 60;
 
         /// <summary>How far the kingdom has come towards the gem and how far it must, as in «2 из 3».</summary>
         public static (int Have, int Need) Progress(GameState state, int country, Gem gem)
@@ -72,7 +93,12 @@ namespace Realms.Core
                     return (level, HeroGoal);
                 }
                 case Gem.Lands:
-                    return (Math.Max(0, Land(world, country) - state.StartLand[country]), LandsGoal);
+                    return (Math.Max(0, Land(world, country) - state.StartLand[country]), LandsGoal(world));
+                case Gem.Build:
+                {
+                    int capital = world.Countries[country].Capital;
+                    return (capital >= 0 ? world.Cities[capital].BuildStage : 0, GreatBuild.Stages);
+                }
                 default:
                     return (0, 1);
             }

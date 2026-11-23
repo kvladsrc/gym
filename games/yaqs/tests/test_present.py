@@ -60,7 +60,7 @@ def test_compact_search_keeps_citation_fields_and_drops_storage_details(tmp_path
         "text": "282 ◾ Chapter 10\n\nA classic example of attack.",
     }
     assert compact["context"] == {"used_tokens": len(LAYOUT), "omitted_blocks": 0}
-    assert set(compact) == {"mode", "hits", "context"}
+    assert set(compact) == {"mode", "corpus", "hits", "context"}
 
 
 def test_unpaginated_compact_hits_keep_offsets_for_citation(tmp_path):
@@ -93,6 +93,7 @@ def test_compact_books_hide_files_and_hashes(tmp_path):
         "author": "Author",
         "page_count": 1,
         "chunks": 1,
+        "corpus": "books",
         "status": "extracted",
         "indexed_chunks": 0,
     }
@@ -114,6 +115,23 @@ def test_mcp_tools_answer_compactly_unless_asked_for_full(tmp_path):
     ).structured_content
     assert "sha256" not in compact["hits"][0] and "sha256" in full["hits"][0]
     assert full["hits"][0]["text"] == LAYOUT
+
+
+@pytest.mark.parametrize(
+    "corpus,expected", [(None, {1}), ("books", {1}), ("kb", {2}), ("all", {1, 2})]
+)
+def test_mcp_reads_books_unless_asked_for_another_corpus(mixed_library, encoder, corpus, expected):
+    service = KnowledgeService(mixed_library.path)
+    service.encoder = encoder
+    server = build_server(service)
+    asked = {} if corpus is None else {"corpus": corpus}
+    found = asyncio.run(
+        server.call_tool("search_knowledge", {"query": "attack", "mode": "lexical", **asked})
+    ).structured_content
+    assert found["corpus"] == (corpus or "books")
+    assert {hit["book_id"] for hit in found["hits"]} == expected
+    listed = asyncio.run(server.call_tool("list_books", asked)).structured_content["result"]
+    assert {book["id"] for book in listed} == expected
 
 
 @pytest.mark.parametrize(

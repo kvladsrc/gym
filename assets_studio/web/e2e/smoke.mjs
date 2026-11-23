@@ -478,8 +478,17 @@ await step("library lists results and shows details", async () => {
   await details
     .getByRole("button", { name: "style:cartoon", exact: true })
     .click();
-  await page
-    .locator(".filters")
+  const filters = page.locator(".filters");
+  await filters
+    .getByRole("button", { name: "Убрать тег style:cartoon" })
+    .click();
+  // The filter's field lists the library's tags: take the same one from there.
+  await filters.getByRole("button", { name: "+ Тег" }).click();
+  await filters
+    .getByRole("listbox", { name: "Теги библиотеки" })
+    .getByRole("option", { name: "style:cartoon" })
+    .click();
+  await filters
     .getByRole("button", { name: "Убрать тег style:cartoon" })
     .click();
   await page.getByRole("button", { name: "★ Избранное" }).click();

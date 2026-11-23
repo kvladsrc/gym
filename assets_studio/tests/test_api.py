@@ -308,6 +308,39 @@ def test_tasks_are_remembered_after_the_server_stops(tmp_path: Path) -> None:
         assert [task["task"] for task in image["tasks"]] == ["text-to-image"]
 
 
+def test_tasks_are_remembered_from_a_server_stopped_while_loading(tmp_path: Path) -> None:
+    # A first start downloads the weights for minutes; stopped before that
+    # ends, the server has still said what it does.
+    port = _free_port()
+    may_load = threading.Event()
+
+    class NeverLoaded(FakeModelServer):
+        def load(self) -> None:
+            may_load.wait(timeout=30)
+
+    model = create_app(NeverLoaded(tasks=["text-to-image"]))
+    try:
+        with studio_server(tmp_path, model_server("image", f"http://127.0.0.1:{port}")) as url:
+            http = httpx.Client(base_url=url, timeout=30)
+            stop = _serve_model(model, port)
+            try:
+                for _ in range(500):
+                    if http.get("/api/servers").json()[0]["state"] == "loading":
+                        break
+                    time.sleep(0.01)
+                else:
+                    raise AssertionError("the studio never saw the model loading")
+            finally:
+                stop()
+        with studio_server(tmp_path, model_server("image", f"http://127.0.0.1:{port}")) as url:
+            image: dict[str, Any] = httpx.get(f"{url}/api/servers", timeout=30).json()[0]
+            assert image["state"] == "unavailable"
+            assert image["seen"] is True
+            assert [task["task"] for task in image["tasks"]] == ["text-to-image"]
+    finally:
+        may_load.set()
+
+
 def test_a_server_never_seen_has_no_tasks(tmp_path: Path) -> None:
     with studio_server(tmp_path, model_server("ghost", f"http://127.0.0.1:{_free_port()}")) as url:
         [ghost] = httpx.get(f"{url}/api/servers", timeout=30).json()
@@ -479,6 +512,36 @@ def test_ratings_and_tags_filter_the_library(tmp_path: Path) -> None:
         assert http.get(f"/api/assets/{ids[0]}").json()["rating"] == 5
         cleared = http.patch(f"/api/assets/{ids[0]}", json={"rating": None}).json()
         assert cleared["rating"] is None
+
+
+def test_the_library_lists_its_tags(tmp_path: Path) -> None:
+    with fake_and_studio(tmp_path) as (_, http):
+        other = http.post("/api/projects", json={"title": "Other"}).json()["id"]
+        ids: list[str] = []
+        for shade, project in ((10, "default"), (90, "default"), (170, other)):
+            data = media.encode_png(4, 4, lambda x, y, s=shade: (s, s, s))
+            ids.append(
+                http.post(
+                    "/api/assets",
+                    content=data,
+                    params={"project": project},
+                    headers={"Content-Type": "application/octet-stream"},
+                ).json()["id"]
+            )
+        http.patch(f"/api/assets/{ids[0]}", json={"tags": ["style:cartoon", "model:flux"]})
+        http.patch(f"/api/assets/{ids[1]}", json={"tags": ["style:cartoon"]})
+        http.patch(f"/api/assets/{ids[2]}", json={"tags": ["style:noir"]})
+
+        def tags(**params: Any) -> list[tuple[str, int]]:
+            listed = http.get("/api/tags", params=params).json()
+            return [(item["tag"], item["count"]) for item in listed]
+
+        assert tags() == [("model:flux", 1), ("style:cartoon", 2), ("style:noir", 1)]
+        assert tags(project=other) == [("style:noir", 1)]
+        # A deleted asset's tags leave the list with it.
+        http.delete(f"/api/assets/{ids[0]}")
+        assert tags(project="default") == [("style:cartoon", 1)]
+        assert http.get("/api/tags", params={"project": "missing"}).status_code == 404
 
 
 def test_motion_filter_finds_animations_whatever_their_format(tmp_path: Path) -> None:

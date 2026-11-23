@@ -1,0 +1,31 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+import "../common.just"
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/pbrfusion4"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Create the environment
+setup:
+    {{ gpu_shell }} uv sync --extra test
+
+# Download the weights (~4.3 GB, network only, no GPU)
+download:
+    {{ gpu_shell }} uv run --no-sync python -c "from pbrfusion4_model_server.server import download; download()"
+
+# Report PyTorch, the CUDA device and whether the weights are downloaded
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m pbrfusion4_model_server.doctor
+
+# Serve on 127.0.0.1:9145 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync pbrfusion4-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

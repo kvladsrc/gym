@@ -1,0 +1,40 @@
+[project]
+name = "fromsoma-model-server"
+version = "0.1.0"
+description = "A realistic person on SOMA's mesh and skeleton from two pictures of a bald head, for the asset studio."
+# Everything runs on the CPU: the reader is a small network (DINOv2 ViT-S/14 and an MLP), the body
+# SOMA-X's fitting; CPU PyTorch keeps the environment small and the GPU free.
+requires-python = "==3.12.*"
+dependencies = [
+  "model-server-sdk[images]",
+  "torch==2.15.0",
+  "torchvision",
+  "timm==1.0.30",
+  "numpy==2.5.4",
+  "scipy==1.18.1",
+  "pillow==13.0.0",
+  "anny==0.6.2",
+  "py-soma-x==0.3.3",
+  "mediapipe==1.2.3",
+  "huggingface-hub>=1.16",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+fromsoma-model-server = "fromsoma_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

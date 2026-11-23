@@ -134,6 +134,16 @@ namespace Realms.Core
                 }
                 return refusal == Refusal.NotEnough;
             }
+            void Raise(City city)
+            {
+                if (done >= budget || !city.Capital)
+                    return;
+                if (state.RaiseBuild(country, city.Index) == Refusal.None)
+                {
+                    done++;
+                    Dress(city);
+                }
+            }
             void Dress(City city)
             {
                 changed?.Add(city.Cell);
@@ -173,7 +183,10 @@ namespace Realms.Core
                 City city = world.Cities[index];
                 if (Towns.Limit(city) == GrowthStop.Tavern || city.Houses == Towns.TavernHouses - 1)
                     saving |= InTown(index, TownBuilding.Tavern);
-                if (Towns.Free(city) == 0 && city.Houses < Towns.MaxHouses)
+                // A full town grows a quarter while houses are still to come, and a capital with
+                // a castle for its Great Build's place.
+                bool buildWaits = city.Capital && city.BuildStage == 0 && city.Buildings.Contains(TownBuilding.Castle);
+                if (Towns.Free(city) == 0 && (city.Houses < Towns.MaxHouses || buildWaits))
                     saving |= Grow(city);
                 // A town of the castle's size grows on only behind walls and with a castle; a
                 // neighbour after the capital's gem keeps its stone for the capital's.
@@ -191,6 +204,9 @@ namespace Realms.Core
             }
             if (saving)
                 return done;
+            // The capital's Great Build, a stage whenever the treasury covers it (the economy plan's 3.4).
+            foreach (int index in towns)
+                Raise(world.Cities[index]);
             if (aim == Gem.Lands && state.Treasury[country].Gold > 15)
             {
                 foreach (int index in towns)

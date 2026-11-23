@@ -50,6 +50,8 @@ namespace Realms.Editor
             var flag = MaterialAt(Generated + "/Flag.mat", "Realms/Flag");
             var smoke = MaterialAt(Generated + "/Smoke.mat", "Realms/Smoke");
             var clouds = MaterialAt(Generated + "/Clouds.mat", "Realms/Clouds");
+            var puff = MaterialAt(Generated + "/Puff.mat", "Realms/Puff");
+            var bird = MaterialAt(Generated + "/Bird.mat", "Realms/Bird");
             prop.SetFloat("_UseVertexColor", 1f);
             prop.SetFloat("_Sway", 1f);
             prop.SetFloat("_Rim", 0.2f);
@@ -66,13 +68,15 @@ namespace Realms.Editor
                 ArtAssets(out models, out icons);
             else
                 Debug.LogWarning("Realms: no Assets/Realms/Art; run `just realms fetch-art` for the models and icons. The map uses simple stand-ins.");
+            int sounds = SoundAssets();
+            int videos = VideoAssets();
 
             var profile = VolumeProfileAt(Generated + "/MapVolume.asset");
             var panel = PanelAt(Generated + "/RealmsPanel.asset");
-            BuildScene(terrain, water, river, prop, fog, flag, smoke, clouds, profile, panel);
+            BuildScene(terrain, water, river, prop, fog, flag, smoke, clouds, puff, bird, profile, panel);
             Player();
             AssetDatabase.SaveAssets();
-            Debug.Log($"Realms: setup done; {models} models, {icons} icons, scene {ScenePath}.");
+            Debug.Log($"Realms: setup done; {models} models, {icons} icons, {sounds} sounds, {videos} videos, scene {ScenePath}.");
         }
 
         static void Folder(string path)
@@ -311,7 +315,7 @@ namespace Realms.Editor
                     Debug.LogWarning($"Realms: {path} did not import as a model; skipped.");
                     continue;
                 }
-                var prefab = ModelPrefab(name, source, shader);
+                var prefab = ModelPrefab(name, path, source, shader);
                 if (prefab != null)
                     library.models.Add(new ArtLibrary.Model { name = name, prefab = prefab });
             }
@@ -360,8 +364,9 @@ namespace Realms.Editor
 
         // A prefab whose root sits on the ground at the model's bottom centre, the largest
         // dimension one unit long, facing the camera (-Z; glTF models face +Z), with the model's
-        // materials converted to Realms/Prop so they share the map's light.
-        static GameObject ModelPrefab(string name, GameObject source, Shader shader)
+        // materials converted to Realms/Prop so they share the map's light. A model with clips
+        // (a creature captured with AnyMove) also gets its moves (Rig).
+        static GameObject ModelPrefab(string name, string path, GameObject source, Shader shader)
         {
             var root = new GameObject(name);
             var model = UnityEngine.Object.Instantiate(source);
@@ -378,9 +383,10 @@ namespace Realms.Editor
                 Debug.LogWarning($"Realms: {name} has no renderers; skipped.");
                 return null;
             }
-            var bounds = renderers[0].bounds;
+            // A skinned creature measured in its rest pose.
+            var bounds = Figures.BoundsOf(renderers[0]);
             foreach (var renderer in renderers)
-                bounds.Encapsulate(renderer.bounds);
+                bounds.Encapsulate(Figures.BoundsOf(renderer));
             float largest = Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z);
             float scale = largest > 1e-5f ? 1f / largest : 1f;
             model.transform.localScale = Vector3.one * scale;
@@ -397,7 +403,7 @@ namespace Realms.Editor
                     if (!converted.TryGetValue(materials[i], out var material))
                     {
                         material = PropMaterial(materials[i], shader, $"{Art}/Materials/{name}_{converted.Count}.mat",
-                            PropBuilder.IsTree(name) ? TreeSaturation : 1f);
+                            PropBuilder.IsTree(name) ? TreeSaturation : 1f, !PropBuilder.IsFigure(name));
                         converted[materials[i]] = material;
                     }
                     materials[i] = material;
@@ -410,9 +416,117 @@ namespace Realms.Editor
             Footing(name, root);
             if (Array.IndexOf(PropBuilder.ScatterModels, name) >= 0)
                 Flatten(name, root);
+            AnimationClip[] clips = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
+                .Where(c => !c.name.StartsWith("__preview__", StringComparison.Ordinal)).OrderBy(c => c.name, StringComparer.Ordinal).ToArray();
+            if (clips.Length > 0)
+                Rig(name, root, model, clips);
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, $"{Art}/Prefabs/{name}.prefab");
             UnityEngine.Object.DestroyImmediate(root);
             return prefab;
+        }
+
+        /// <summary>
+        /// A creature with its own moves (<see cref="Moves"/>): the Animator plays nothing by
+        /// itself and stops off screen, the skinned mesh keeps a fixed box round its root bone
+        /// roomy enough for every pose (working one out each frame costs every figure on the
+        /// map), and Moves gets the clips, how fast the run goes and when the bite strikes.
+        /// </summary>
+        static void Rig(string name, GameObject root, GameObject model, AnimationClip[] clips)
+        {
+            var animator = model.GetComponent<Animator>();
+            if (animator == null)
+                animator = model.AddComponent<Animator>();
+            animator.runtimeAnimatorController = null;
+            animator.applyRootMotion = false;
+            animator.cullingMode = AnimatorCullingMode.CullCompletely;
+            foreach (var skin in model.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                Bounds rest = Figures.BoundsOf(skin);
+                Transform frame = skin.rootBone != null ? skin.rootBone : skin.transform;
+                var local = new Bounds(frame.InverseTransformPoint(rest.center), Vector3.zero);
+                for (int k = 0; k < 8; k++)
+                {
+                    var sign = new Vector3((k & 1) == 0 ? -1f : 1f, (k & 2) == 0 ? -1f : 1f, (k & 4) == 0 ? -1f : 1f);
+                    local.Encapsulate(frame.InverseTransformPoint(rest.center + Vector3.Scale(rest.extents, sign)));
+                }
+                // Some 0.3 of the box's diagonal more on every side: a bite reaches forward, and
+                // as a creature sits its root bone sinks while its paws stay where they were.
+                local.Expand(local.size.magnitude * 0.6f);
+                skin.updateWhenOffscreen = false;
+                skin.localBounds = local;
+            }
+            var moves = root.AddComponent<Moves>();
+            moves.clips = clips;
+            Measure(name, root, model, moves);
+        }
+
+        static int Depth(Transform t)
+        {
+            int depth = 0;
+            for (; t.parent != null; t = t.parent)
+                depth++;
+            return depth;
+        }
+
+        /// <summary>
+        /// Samples the clips on the prefab's own model: the run's speed from its root-motion twin
+        /// (Run_Root moves the hips as far as the feet carry them), and the bite's strike (the head
+        /// furthest forward) and windup (the head furthest back before it: the crouch before the
+        /// leap). The model is put back in its rest pose afterwards.
+        /// </summary>
+        static void Measure(string name, GameObject root, GameObject model, Moves moves)
+        {
+            var rest = model.GetComponentsInChildren<Transform>(true)
+                .Select(t => (t, t.localPosition, t.localRotation, t.localScale)).ToArray();
+            // The skeleton's root: the shallowest of the skin's bones (glTF puts them in no order).
+            Transform hips = model.GetComponentsInChildren<SkinnedMeshRenderer>(true).SelectMany(s => s.bones)
+                .Where(b => b != null).OrderBy(b => Depth(b)).FirstOrDefault();
+            Transform head = model.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == "head");
+            Matrix4x4 toRoot = root.transform.worldToLocalMatrix;
+            AnimationClip run = moves.clips.FirstOrDefault(c => c.name == Moves.Run + "_Root");
+            if (run != null && hips != null)
+            {
+                run.SampleAnimation(model, 0f);
+                Vector3 from = toRoot.MultiplyPoint3x4(hips.position);
+                run.SampleAnimation(model, run.length);
+                Vector3 to = toRoot.MultiplyPoint3x4(hips.position);
+                moves.runSpeed = new Vector2(to.x - from.x, to.z - from.z).magnitude / Mathf.Max(run.length, 1e-3f);
+            }
+            AnimationClip bite = moves.clips.FirstOrDefault(c => c.name == Moves.Bite);
+            if (bite != null && head != null && hips != null)
+            {
+                // Forward is where the head points from the hips in the rest pose.
+                Vector3 forward = toRoot.MultiplyVector(head.position - hips.position);
+                forward.y = 0f;
+                forward.Normalize();
+                int frames = Mathf.Max(2, Mathf.RoundToInt(bite.length * bite.frameRate));
+                var reach = new float[frames + 1];
+                for (int f = 0; f <= frames; f++)
+                {
+                    bite.SampleAnimation(model, bite.length * f / frames);
+                    reach[f] = Vector3.Dot(toRoot.MultiplyPoint3x4(head.position), forward);
+                }
+                int strike = Array.IndexOf(reach, reach.Max());
+                int windup = 0;
+                for (int f = 0; f <= strike; f++)
+                {
+                    if (reach[f] < reach[windup])
+                        windup = f;
+                }
+                moves.strike = bite.length * strike / frames;
+                moves.windup = bite.length * windup / frames;
+                // The battle plays the bite from a little before the windup (BattleView.Bite).
+                int start = Mathf.Clamp(Mathf.RoundToInt((moves.windup - Moves.Lead) / bite.length * frames), 0, strike);
+                moves.biteReach = Mathf.Max(0f, reach[strike] - reach[start]);
+            }
+            foreach (var (t, position, rotation, scale) in rest)
+            {
+                t.localPosition = position;
+                t.localRotation = rotation;
+                t.localScale = scale;
+            }
+            Debug.Log($"Realms: {name} moves {string.Join(", ", moves.clips.Select(c => $"{c.name} {c.length:F2} s"))}; "
+                + $"run {moves.runSpeed:F2} lengths/s, bite strikes at {moves.strike:F2} s after a windup at {moves.windup:F2} s, the head {moves.biteReach:F2} lengths forward.");
         }
 
         // Where the model meets the ground (ModelFooting, for ContactShade): the box round its
@@ -517,7 +631,7 @@ namespace Realms.Editor
         /// <summary>The trees' paint a little calmer than the buildings', so the woods stay behind the towns.</summary>
         const float TreeSaturation = 0.9f;
 
-        static Material PropMaterial(Material source, Shader shader, string path, float saturation)
+        static Material PropMaterial(Material source, Shader shader, string path, float saturation, bool normalMap)
         {
             var material = new Material(shader);
             foreach (string property in new[] { "baseColorTexture", "_BaseMap", "_MainTex" })
@@ -538,10 +652,19 @@ namespace Realms.Editor
             }
             // A normal map baked from a denser surface (Studio's 3d-bake-normals). glTF stores it as
             // raw values; if the importer made it an sRGB texture, the shader undoes the conversion.
+            // The figures (the units and the hero) are drawn without theirs: on them it put the
+            // battle's outline light in the middle of the body as white patches (the family,
+            // 2026-11-21). Their colour is unchanged: the Studio's model before the normal bake has
+            // the same mesh and colour map, and the troll and the sheep never had a normal map.
             foreach (string property in new[] { "normalTexture", "_BumpMap", "_NormalMap" })
             {
                 if (!source.HasProperty(property) || source.GetTexture(property) is not Texture2D normals)
                     continue;
+                if (!normalMap)
+                {
+                    Debug.Log($"Realms: {Path.GetFileNameWithoutExtension(path)} leaves its normal map out (a figure).");
+                    break;
+                }
                 bool srgb = GraphicsFormatUtility.IsSRGBFormat(normals.graphicsFormat);
                 material.SetTexture("_NormalMap", normals);
                 material.SetFloat("_UseNormalMap", 1f);
@@ -555,6 +678,130 @@ namespace Realms.Editor
             material.SetFloat("_Saturation", saturation);
             material.SetFloat("_Rim", 0.25f);
             return Store(material, path);
+        }
+
+        // ----- Studio sounds -----
+
+        [Serializable]
+        sealed class SoundList
+        {
+            public List<SoundItem> entries = new List<SoundItem>();
+        }
+
+        [Serializable]
+        sealed class SoundItem
+        {
+            public string name, group, kind;
+            public float volume = 1f, pitch, spread, cooldown = 0.05f;
+            public int limit = 2, priority = 1;
+            public bool symbolic;
+            public List<string> clips = new List<string>();
+        }
+
+        // tools/fetch_sounds.py cuts the takes into Art/Audio and lists them in library.json; the
+        // library asset the game loads is made from that list. Without it the game is silent.
+        static int SoundAssets()
+        {
+            string folder = Art + "/Audio";
+            string listPath = folder + "/library.json";
+            string libraryPath = Art + "/Resources/RealmsSounds.asset";
+            if (!File.Exists(listPath))
+            {
+                AssetDatabase.DeleteAsset(libraryPath);
+                Debug.LogWarning("Realms: no Assets/Realms/Art/Audio; run `just realms fetch-sounds` for the sounds. The game is silent.");
+                return 0;
+            }
+            var list = JsonUtility.FromJson<SoundList>(File.ReadAllText(listPath));
+            Folder(Art + "/Resources");
+            var library = AssetDatabase.LoadAssetAtPath<SoundLibrary>(libraryPath);
+            if (library == null)
+            {
+                library = ScriptableObject.CreateInstance<SoundLibrary>();
+                AssetDatabase.CreateAsset(library, libraryPath);
+            }
+            library.entries.Clear();
+            foreach (SoundItem item in list.entries)
+            {
+                if (!Enum.TryParse(item.group, out SoundGroup group))
+                    group = SoundGroup.World;
+                var entry = new SoundLibrary.Entry
+                {
+                    name = item.name,
+                    group = group,
+                    volume = item.volume,
+                    pitch = item.pitch,
+                    spread = item.spread,
+                    limit = Math.Max(1, item.limit),
+                    cooldown = item.cooldown,
+                    priority = item.priority,
+                    symbolic = item.symbolic,
+                };
+                foreach (string clipPath in item.clips)
+                {
+                    string path = folder + "/" + clipPath.Replace('\\', '/');
+                    AudioImport(path, item.kind);
+                    var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+                    if (clip != null)
+                        entry.clips.Add(clip);
+                    else
+                        Debug.LogWarning($"Realms: {path} did not import as a sound; skipped.");
+                }
+                if (entry.clips.Count > 0)
+                    library.entries.Add(entry);
+            }
+            EditorUtility.SetDirty(library);
+            return library.entries.Count;
+        }
+
+        // The videos in Art/Resources (fetch_art.py makes them VP8 WebM, which the player decodes on
+        // Linux and Windows alike) are kept as they are: no transcoding, sRGB colour, no sound.
+        static int VideoAssets()
+        {
+            if (!AssetDatabase.IsValidFolder(Art + "/Resources"))
+                return 0;
+            int count = 0;
+            foreach (string guid in AssetDatabase.FindAssets("t:VideoClip", new[] { Art + "/Resources" }))
+            {
+                if (AssetImporter.GetAtPath(AssetDatabase.GUIDToAssetPath(guid)) is not VideoClipImporter importer)
+                    continue;
+                count++;
+                VideoImporterTargetSettings settings = importer.defaultTargetSettings;
+                if (!settings.enableTranscoding && importer.sRGBClip && !importer.importAudio)
+                    continue;
+                settings.enableTranscoding = false;
+                importer.defaultTargetSettings = settings;
+                importer.sRGBClip = true;
+                importer.importAudio = false;
+                importer.SaveAndReimport();
+            }
+            return count;
+        }
+
+        // The sound plan's storage (П8): effects and signs are small and decompressed when loaded,
+        // effects in mono; the ambience loops stay compressed in memory; the music streams.
+        static void AudioImport(string path, string kind)
+        {
+            if (AssetImporter.GetAtPath(path) is not AudioImporter importer)
+                return;
+            bool music = kind == "music", loop = kind == "loop", mono = kind == "effect";
+            var load = music ? AudioClipLoadType.Streaming : loop ? AudioClipLoadType.CompressedInMemory : AudioClipLoadType.DecompressOnLoad;
+            var format = music || loop ? AudioCompressionFormat.Vorbis : AudioCompressionFormat.PCM;
+            float quality = music ? 0.7f : loop ? 0.5f : 1f;
+            AudioImporterSampleSettings settings = importer.defaultSampleSettings;
+            bool ready = settings.loadType == load && settings.compressionFormat == format
+                && Mathf.Approximately(settings.quality, quality) && settings.preloadAudioData == !music
+                && importer.forceToMono == mono && importer.loadInBackground == music;
+            if (ready)
+                return;
+            settings.loadType = load;
+            settings.compressionFormat = format;
+            settings.quality = quality;
+            settings.preloadAudioData = !music;
+            settings.sampleRateSetting = AudioSampleRateSetting.PreserveSampleRate;
+            importer.defaultSampleSettings = settings;
+            importer.forceToMono = mono;
+            importer.loadInBackground = music;
+            importer.SaveAndReimport();
         }
 
         // Icons are drawn small by UI Toolkit: uncompressed, clamped, with mipmaps against shimmer.
@@ -635,7 +882,7 @@ namespace Realms.Editor
         // ----- Scene and player -----
 
         static void BuildScene(Material terrain, Material water, Material river, Material prop, Material fog, Material flag,
-            Material smoke, Material clouds, VolumeProfile profile, PanelSettings panel)
+            Material smoke, Material clouds, Material puff, Material bird, VolumeProfile profile, PanelSettings panel)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
@@ -700,6 +947,8 @@ namespace Realms.Editor
             view.flagMaterial = flag;
             view.smokeMaterial = smoke;
             view.cloudMaterial = clouds;
+            view.puffMaterial = puff;
+            view.birdMaterial = bird;
             var realms = game.AddComponent<RealmsGame>();
             realms.view = view;
             realms.mapCamera = mapCamera;

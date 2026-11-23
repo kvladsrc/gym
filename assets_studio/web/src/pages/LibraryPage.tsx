@@ -307,6 +307,9 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
     if (!viewer) return;
     function onKey(event: KeyboardEvent) {
       if (typing(event.target) || event.altKey || event.ctrlKey) return;
+      // A full-screen model keeps the arrows for itself: stepping to the next
+      // asset would replace it and drop out of full screen.
+      if (document.fullscreenElement) return;
       if (event.key === "ArrowLeft") step(-1);
       else if (event.key === "ArrowRight") step(1);
       else return;
@@ -366,6 +369,7 @@ export function LibraryPage({ selectedId }: { selectedId: string | null }) {
             tags={tagFilter}
             label={t("library.filterTags")}
             onChange={refilter(setTagFilter)}
+            known={() => api.tags(project)}
           />
           <select
             aria-label={t("asset.rating")}

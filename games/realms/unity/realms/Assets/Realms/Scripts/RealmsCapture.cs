@@ -22,6 +22,8 @@ namespace Realms
         {
             capturing = true;
             mapCamera.Scripted = true;
+            // No flock comes by itself into the frames; the birds' own frames send theirs.
+            Birds.Wild = false;
             Directory.CreateDirectory(captureDir);
             World world = state.World;
             yield return null;
@@ -32,9 +34,9 @@ namespace Realms
                 yield break;
             }
 
-            // The whole seen land, pulled back as far as the camera goes over it (a little south
-            // of its middle, so the land sits between the top bar and the bottom panel).
-            mapCamera.Focus(mapCamera.SeenMiddle - new Vector2(0, 2f), 85f, true);
+            // The whole seen land, pulled back as far as the camera goes (a little south of its
+            // middle, so the land sits between the top bar and the bottom panel).
+            mapCamera.Focus(mapCamera.SeenMiddle - new Vector2(0, 2f), MapCamera.Highest, true);
             yield return Shot("01-overview");
 
             City capital = world.Cities[world.Countries[world.Player].Capital];
@@ -94,8 +96,32 @@ namespace Realms
                 Select(-1);
             }
 
-            // The hero's way to the nearest monster group (shown to the camera if the fog hides it).
+            // A way into the fog (2026-11-12): over the seen land and on through the clouds, to an
+            // unseen cell some eight steps from the first hero; the way is dropped again.
             Hero first = state.HeroesOf(world.Player)[0];
+            Hex firstAt = world.Cells[first.Cell].Hex;
+            int fogGoal = -1;
+            foreach (Cell c in world.Cells)
+            {
+                if (!state.Seen[c.Index] && c.IsLand && Hex.Distance(c.Hex, firstAt) == 8 && (fogGoal < 0 || c.Index < fogGoal)
+                    && state.Path(first, c.Index) != null)
+                    fogGoal = c.Index;
+            }
+            if (fogGoal >= 0)
+            {
+                ChooseHero(first, false);
+                var middle = new Vector2(world.CenterX(first.Cell) + world.CenterX(fogGoal), world.CenterZ(first.Cell) + world.CenterZ(fogGoal)) * 0.5f;
+                mapCamera.Focus(middle - new Vector2(0, 1f), 22f, true);
+                yield return null;
+                Order(fogGoal);
+                for (float t = 0; t < 1.2f; t += Time.deltaTime)
+                    yield return null;
+                yield return Shot("04f-fog-way");
+                Order(first.Cell);
+                ChooseHero(null, false);
+            }
+
+            // The hero's way to the nearest monster group (shown to the camera if the fog hides it).
             int group = Nearest(first.Cell, c => c.Monster != Monster.None && !c.Lair);
             if (group >= 0)
             {
@@ -120,7 +146,19 @@ namespace Realms
 
                 // Walk there when it is this turn's way, else fight from where the hero stands.
                 if (path != null && path.Turns[path.Turns.Count - 1] == 0)
+                {
+                    // The ride, close: dust at each landing, the banner flying harder (04s-walk,
+                    // the visual plan's proposal 3), a frame every 3 frames over about three steps.
+                    mapCamera.Focus(new Vector2(world.CenterX(first.Cell), world.CenterZ(first.Cell) - 0.4f), 6f, true);
+                    for (int i = 0; i < 10; i++)
+                        yield return null;
+                    Time.captureFramerate = 30;
                     StartCoroutine(Walk());
+                    for (int k = 0; k < 8; k++)
+                        yield return Frame($"04s-walk-{k}", 3);
+                    Time.captureFramerate = 0;
+                    mapCamera.Focus(mid, 16f, true);
+                }
                 else
                 {
                     busy = true;
@@ -133,20 +171,20 @@ namespace Realms
                 for (float t = 0; t < 1.5f; t += Time.deltaTime)
                     yield return null;
                 yield return Shot("06-battle");
-                // A monster stack's card, with the line telling whom its kind goes for; set again
-                // each frame, as the pointer's own card would replace it.
+                // The pointer on a monster stack: its card, with the line telling whom its kind goes
+                // for, and the cells it could strike next turn outlined in red (the combat plan's 3.1).
                 Fighter monster = battleView.Fight?.Fighters.Find(x => x.Side == Side.Monsters && x.Alive);
                 if (monster != null)
                 {
                     for (int i = 0; i < 10; i++)
                     {
-                        hud.BattleInfo(monster, null);
+                        battleView.Point(monster.Cell);
                         yield return null;
                     }
-                    hud.BattleInfo(monster, null);
+                    battleView.Point(monster.Cell);
                     ScreenCapture.CaptureScreenshot(Path.Combine(captureDir, "06b-battle-card.png"));
                     yield return null;
-                    hud.BattleInfo(null, null);
+                    battleView.Point(-1);
                 }
                 // The menu in a battle, which waits while it is open.
                 hud.ShowMenu(true);
@@ -159,12 +197,66 @@ namespace Realms
                 yield return Shot("06d-retreat-ask");
                 hud.AnswerModal(1);
                 yield return null;
+                // The hero's order, when the battles have one (the combat plan's 3.4): the two
+                // orders on the bar (06e-orders), then «В атаку!» with the hero's hop over a few
+                // frames (06f-order).
+                if (battleView.Fight != null && Battle.OrdersPerBattle > 0)
+                {
+                    for (float t = 0; t < 6f && !battleView.Waiting; t += Time.deltaTime)
+                        yield return null;
+                    if (battleView.Waiting && battleView.Fight.CanOrder)
+                    {
+                        battleView.ToggleOrders();
+                        yield return Shot("06e-orders");
+                        battleView.Order(HeroOrder.Attack);
+                        yield return Series("06f-order", 6, 3);
+                    }
+                    else
+                        Debug.Log("Realms capture: no turn of the players to show the hero's order on");
+                }
                 battleView.SetAuto(true);
+                // White rags going up, if the monsters offer to give up (07s-surrender); the spears'
+                // cover striking first, if it does (07c-cover); a strike with a run-up (07r-runup).
+                bool rags = false, cover = false, charge = false;
                 for (float t = 0; t < 2.5f && !hud.DialogOpen; t += Time.deltaTime)
+                {
+                    if (!cover && battleView.CoversShown > 0)
+                    {
+                        cover = true;
+                        yield return Series("07c-cover", 6, 3);
+                    }
+                    if (!charge && battleView.RunUpsShown > 0)
+                    {
+                        charge = true;
+                        yield return Series("07r-runup", 6, 3);
+                    }
+                    if (!rags && battleView.WhiteFlagsUp)
+                    {
+                        rags = true;
+                        yield return Series("07s-surrender", 6, 3);
+                    }
                     yield return null;
+                }
                 yield return Shot("07-battle-later");
                 while (!hud.DialogOpen)
+                {
+                    if (!cover && battleView.CoversShown > 0)
+                    {
+                        cover = true;
+                        yield return Series("07c-cover", 6, 3);
+                    }
+                    if (!charge && battleView.RunUpsShown > 0)
+                    {
+                        charge = true;
+                        yield return Series("07r-runup", 6, 3);
+                    }
+                    if (!rags && battleView.WhiteFlagsUp)
+                    {
+                        rags = true;
+                        yield return Series("07s-surrender", 6, 3);
+                    }
                     yield return null;
+                }
                 // The monsters may offer to give up before the end: let them go, then the result.
                 if (battleView.Fight != null && battleView.Fight.Offered)
                 {
@@ -173,6 +265,8 @@ namespace Realms
                     while (!hud.DialogOpen)
                         yield return null;
                 }
+                // The spoils flying into the result (08s-victory), then the result as it stays.
+                yield return Series("08s-victory", 8, 4);
                 yield return Shot("08-result");
                 while (busy)
                 {
@@ -182,6 +276,23 @@ namespace Realms
                 }
                 mapCamera.Focus(new Vector2(world.CenterX(first.Cell), world.CenterZ(first.Cell) - 1f), 18f, true);
                 yield return Shot("09-after-fight");
+                // The window before a fight whose field has an event (the combat plan's 3.5).
+                yield return EventWindow(first, FieldEvent.Ambush, "05b-fight-ambush");
+                yield return EventWindow(first, FieldEvent.Loot, "05c-fight-loot");
+
+                // The monsters' habits (the combat plan's 3.1) on fields set up here with the first
+                // hero's army, not the map's fights: a troll's arrow to the stack it told (07t-troll)
+                // and the cells it could strike (07u-troll-zone); wolves after their first, circling
+                // walk (07w-wolves) and theirs (07x-wolves-zone).
+                yield return Staged(first, Monster.Troll, 2, Biome.Hills, "07t-troll", "07u-troll-zone");
+                yield return Staged(first, Monster.Wolves, 12, Biome.Meadow, "07w-wolves", "07x-wolves-zone");
+                yield return Staged(first, Monster.Boar, 8, Biome.Meadow, "07v-boars", "07y-boars-zone", runUp: true);
+                // The field patterns and events (the combat plan's 3.5) on fields set up here: a
+                // grove, a gorge, an ambush, and a chest the auto battle takes (07l-chest).
+                yield return Staged(first, Monster.Goblins, 20, Biome.Forest, "07g-grove", null);
+                yield return Staged(first, Monster.Skeletons, 16, Biome.Hills, "07h-gorge", null);
+                yield return Staged(first, Monster.Bandits, 8, Biome.Meadow, "07i-ambush", null, fieldEvent: FieldEvent.Ambush);
+                yield return Staged(first, Monster.Goblins, 20, Biome.Meadow, "07l-loot", null, fieldEvent: FieldEvent.Loot);
             }
 
             // A group in the mountains, close: its figures must stand clear of the peaks.
@@ -201,6 +312,34 @@ namespace Realms
                 yield return Shot("09b-mountain-group");
             }
 
+            // Wolves and spiders, each in its two looks, close (the players took both looks of each
+            // on 2026-11-12): 09c/09d the wolves' first and second, 09e/09f the spiders'. Two rings
+            // round the pack are revealed, so the fog does not grey the figures.
+            Monster[] kinds = { Monster.Wolves, Monster.Spiders };
+            string[] names = { "09c-wolves-first", "09d-wolves-second", "09e-spiders-first", "09f-spiders-second" };
+            for (int shot = 0; shot < names.Length; shot++)
+            {
+                Monster kind = kinds[shot / 2];
+                bool second = shot % 2 == 1;
+                string name = names[shot];
+                int pack = Nearest(capital.Cell, c => c.Monster == kind
+                    && PropBuilder.ModelOf(Units.Of(c.Monster), c.Index, art).EndsWith("_2", StringComparison.Ordinal) == second);
+                if (pack < 0)
+                {
+                    Debug.Log($"Realms capture {name}: no {kind} in that look");
+                    continue;
+                }
+                state.Reveal(pack, 2);
+                view.UpdateFog();
+                hud.RebuildLabels();
+                hud.WorldChanged();
+                ChooseHero(null, false);
+                Select(-1);
+                Debug.Log($"Realms capture {name}: {kind} as {PropBuilder.ModelOf(Units.Of(kind), pack, art)}");
+                mapCamera.Focus(new Vector2(world.CenterX(pack), world.CenterZ(pack) - 0.4f), 5f, true);
+                yield return Shot(name);
+            }
+
             int coast = Nearest(capital.Cell, c => c.City >= 0 && !world.Cities[c.City].Capital && HasWaterNeighbor(c.Index) && state.Seen[c.Index]);
             if (coast >= 0)
             {
@@ -213,7 +352,12 @@ namespace Realms
             // A few turns played by a simple bot: buildings, land, hired units, the hero exploring and fighting.
             TurnReport last = null;
             for (int turn = 0; turn < 14; turn++)
+            {
                 last = AutoTurn();
+                // The last few turns' events, for the events dialog's frame.
+                if (turn >= 10 && turn < 13)
+                    hud.ShowReport(last);
+            }
             view.UpdateFog();
             heroes.Refresh();
             hud.RebuildLabels();
@@ -269,6 +413,10 @@ namespace Realms
             hud.ToggleKingdoms();
             yield return Shot("13b-lists");
             hud.CloseLists();
+            // The day's events along the right edge open the last turns' events in a dialog (C).
+            hud.ShowEvents();
+            yield return Shot("13c-events");
+            hud.AnswerModal(0);
             ChooseHero(null, false);
             Select(capital.Cell);
             mapCamera.Focus(capitalAt - new Vector2(0, 0.5f), 6.5f, true);
@@ -490,7 +638,6 @@ namespace Realms
                 state.Treasury[world.Player] += new Stock(80, 0, 80, 80);
                 capital.Houses = Math.Max(capital.Houses, 8);
                 state.Build(world.Player, capital.Index, TownBuilding.Walls);
-                state.Build(world.Player, capital.Index, TownBuilding.Castle);
                 while (true)
                 {
                     capital.Houses = Math.Min(Towns.MaxHouses, capital.Houses + Towns.Free(capital));
@@ -515,10 +662,22 @@ namespace Realms
                 RedrawMap();
                 hud.RebuildLabels();
                 hud.WorldChanged();
+                // The castle rising in the walled capital, a frame every 4 frames over its 0.8 s
+                // (21s-castle); it is built as the players build it, the camera already on it.
+                mapCamera.Focus(capitalAt - new Vector2(0, 0.5f), 6.5f, true);
+                for (int i = 0; i < 10; i++)
+                    yield return null;
+                Time.captureFramerate = 30;
+                state.Treasury[world.Player] += Economy.Cost(TownBuilding.Castle);
+                Done(state.Build(world.Player, capital.Index, TownBuilding.Castle), capital.Cell, TownBuilding.Castle, Economy.Income(world, world.Player));
+                for (int k = 0; k < 8; k++)
+                    yield return Frame($"21s-castle-{k}", 4);
+                Time.captureFramerate = 0;
+                Rise.FinishAll();
+                hud.ClearToast();
                 // The capital chosen, so the panel shows it rather than a black strip with one
                 // line (review of 2026-11-11).
                 Select(capital.Cell);
-                mapCamera.Focus(capitalAt - new Vector2(0, 0.5f), 6.5f, true);
                 yield return Shot("21-castle");
                 mapCamera.Focus(capitalAt - new Vector2(0, 0.35f), 3.6f, true);
                 yield return Shot("21b-castle-close");
@@ -530,6 +689,16 @@ namespace Realms
                     Vector2 at = new Vector2(world.CenterX(walled.Cell), world.CenterZ(walled.Cell));
                     mapCamera.Focus(at - new Vector2(0, 0.4f), 5f, true);
                     yield return Shot("22-walls");
+                }
+                // The Great Build's place before its first stage, on the map: the economy plan's 3.4
+                // asks for the build in four frames, from the empty place to the third stage (23d).
+                int buildPlace = Array.IndexOf(Towns.Layout(capital), Towns.FreeLot);
+                int buildCell = buildPlace >= 0 && GreatBuild.Next(capital) == 1 ? Towns.CellOf(capital, buildPlace, out _) : -1;
+                Vector2 site = buildCell >= 0 ? new Vector2(world.CenterX(buildCell), world.CenterZ(buildCell)) : capitalAt;
+                if (buildCell >= 0)
+                {
+                    mapCamera.Focus(site - new Vector2(0, 0.3f), 3.2f, true);
+                    yield return Shot("23d-build-0");
                 }
                 foreach (City town in walled != null ? new[] { capital, walled } : new[] { capital })
                 {
@@ -543,7 +712,48 @@ namespace Realms
                     for (float t = 0; t < 1f; t += Time.deltaTime)
                         yield return null;
                     yield return Shot(town == capital ? "23-town-fortifications" : "23b-walled-town-screen");
+                    if (town == capital && GreatBuild.Next(capital) == 1)
+                    {
+                        // The Great Build's first stage raised from the screen (the economy plan's 3.4).
+                        state.Treasury[world.Player] += GreatBuild.Cost(1);
+                        RaiseStage(capital.Index);
+                        for (float t = 0; t < 0.5f; t += Time.deltaTime)
+                            yield return null;
+                        hud.ScrollTownToEnd();
+                        for (float t = 0; t < 1f; t += Time.deltaTime)
+                            yield return null;
+                        yield return Shot("23c-great-build");
+                    }
                     LeaveScreen();
+                }
+                if (buildCell >= 0 && capital.BuildStage == 1)
+                {
+                    // The first stage on its place, then the next two growing out of it: a frame
+                    // about a tenth of a second into each 0.8 s rise, when the new part has come
+                    // up about half its height, and one of the stage standing.
+                    Rise.FinishAll();
+                    mapCamera.Focus(site - new Vector2(0, 0.3f), 3.2f, true);
+                    yield return Shot("23d-build-1");
+                    int player = world.Player, crowned = state.Crowned[player];
+                    for (int stage = 2; stage <= GreatBuild.Stages; stage++)
+                    {
+                        Time.captureFramerate = 30;
+                        state.Treasury[player] += GreatBuild.Cost(stage);
+                        RaiseStage(capital.Index);
+                        yield return Frame($"23d-build-{stage}-rising", 5);
+                        Time.captureFramerate = 0;
+                        Rise.FinishAll();
+                        hud.ClearToast();
+                        yield return Shot($"23d-build-{stage}");
+                    }
+                    // The gem «Стройка» the last stage brought goes again, with the second stage,
+                    // so that the later frames show the crown as the game had it.
+                    state.Gems[player].RemoveAll(won => won.Gem == Gem.Build);
+                    state.Crowned[player] = crowned;
+                    capital.BuildStage = 2;
+                    RedrawMap();
+                    hud.RebuildLabels();
+                    hud.Refresh();
                 }
 
                 // A quarter across a river from its centre: the street to it goes over a bridge and,
@@ -610,6 +820,8 @@ namespace Realms
             yield return null;
             yield return Shot("24e-flag-kingdoms");
             hud.ToggleKingdoms();
+            yield return MotionSeries(capital, capitalAt);
+            yield return BirdShots(capitalAt);
 
             mapCamera.Focus(capitalAt - new Vector2(0, 1f), 30f, true);
             hud.ToggleHelp(true);
@@ -617,11 +829,13 @@ namespace Realms
             yield return Shot("15-help");
             hud.ShowHelpPage(1);
             yield return Shot("15h-help-keys");
+            hud.ShowHelpPage(Hud.HelpBattlePage);
+            yield return Shot("15m-help-battle");
             // The hints page as after the guide frames: the capture saw them all.
             seen = (Learned)2047;
             hud.SetSeenHints(SeenLines());
             hud.ToggleHelp(true);
-            hud.ShowHelpPage(2);
+            hud.ShowHelpPage(Hud.HelpHintsPage);
             yield return Shot("15i-help-hints");
             hud.ShowHelpPage(0);
             // The menu beside the map, then its lists of saves (the capture's own, beside its
@@ -629,11 +843,16 @@ namespace Realms
             hud.ToggleHelp(false);
             hud.ShowMenu(true);
             yield return Shot("15b-menu");
+            // The settings in the column.
+            hud.ShowSettings();
+            yield return null;
+            yield return Shot("15n-settings");
+            hud.CloseMenuList();
             SaveInto(1);
             ShowSaveList();
             yield return null;
             yield return Shot("15c-save-list");
-            hud.CloseSaves();
+            hud.CloseMenuList();
             AutoSave();
             ShowLoadList();
             yield return null;
@@ -645,21 +864,72 @@ namespace Realms
                 hud.AnswerModal(0);
                 yield return null;
             }
-            // The new game's screen beside the capture's own map, not made anew, then the main
-            // menu over its picture; the capture plays on.
-            hud.ShowNewGame(state.World.Seed, difficulty);
-            yield return Shot("15e-new-game");
+            // The new game's window on the capture's own map number, its large map and the flag
+            // editor over it, then the main menu over its picture; the capture plays on.
+            yield return NewGameShots(true);
             hud.ShowTitle(Words.TitleContinueLine(state.World.Countries[state.World.Player].Label, state.Turn));
+            yield return TitleVideo();
             yield return Shot("15j-title");
+            // «Настройки» from the main menu, in the logo's place.
+            hud.ShowSettings();
+            yield return null;
+            yield return Shot("15q-title-settings");
+            hud.CloseMenuList();
+            // «Об игре» in the same place (the interface plan's 3.7).
+            ShowAbout();
+            yield return null;
+            yield return Shot("15u-title-about");
+            hud.CloseMenuList();
             // «Загрузить» from the main menu: the list in its own panel under the logo.
             ShowLoadList();
             yield return null;
             yield return Shot("15l-title-load");
-            hud.CloseSaves();
+            hud.CloseMenuList();
             hud.ShowMenu(false);
             // The end of the game: the players' crown set with the three gems they are nearest to.
             yield return CrownShot();
             Application.Quit();
+        }
+
+        /// <summary>
+        /// The new game's window as «Новая игра» in the menu opens it, on the capture's own map
+        /// number: 15e; with <paramref name="all"/> also the large map of that number (15s) and the
+        /// flag editor over the window (15t), cancelled. «Назад» brings the menu over the game back.
+        /// </summary>
+        IEnumerator NewGameShots(bool all)
+        {
+            newGameFrom = MenuMode.Pause;
+            behindTitle = true;
+            setup = null;
+            MakeSetup(state.World.Seed, MapSize.Medium);
+            yield return SetupMade();
+            yield return Shot("15e-new-game");
+            if (all)
+            {
+                MakeSetup(state.World.Seed, MapSize.Large);
+                yield return SetupMade();
+                yield return Shot("15s-new-game-large");
+                StartCoroutine(EditSetupFlag());
+                yield return null;
+                yield return null;
+                yield return Shot("15t-new-game-flag");
+                hud.AnswerModal(1);
+                yield return null;
+                yield return null;
+            }
+            LeaveNewGame();
+            yield return null;
+        }
+
+        /// <summary>Until the new game's window has its map made, or 20 s.</summary>
+        IEnumerator SetupMade()
+        {
+            float until = Time.realtimeSinceStartup + 20f;
+            while (setup == null && Time.realtimeSinceStartup < until)
+                yield return null;
+            if (setup == null)
+                Debug.LogWarning("The new game's map was not made within 20 s");
+            yield return null;
         }
 
         /// <summary>
@@ -670,13 +940,40 @@ namespace Realms
         {
             hud.ShowMenu(true);
             yield return Shot("15b-menu");
-            hud.ShowNewGame(state.World.Seed, difficulty);
-            yield return Shot("15e-new-game");
+            hud.ShowSettings();
+            yield return null;
+            yield return Shot("15n-settings");
+            hud.CloseMenuList();
+            yield return NewGameShots(false);
             hud.ShowTitle(Words.TitleContinueLine(state.World.Countries[state.World.Player].Label, state.Turn));
+            yield return TitleVideo();
             yield return Shot("15j-title");
+            hud.ShowSettings();
+            yield return null;
+            yield return Shot("15q-title-settings");
+            hud.CloseMenuList();
+            // «Об игре» in the same place (the interface plan's 3.7).
+            ShowAbout();
+            yield return null;
+            yield return Shot("15u-title-about");
+            hud.CloseMenuList();
+            // Four seconds later, half the moving picture's round: its flags and trees have stirred.
+            yield return new WaitForSecondsRealtime(4f);
+            yield return Shot("15j2-title-later");
+            // Past the end of its first round, for the log's line that it went round.
+            yield return new WaitForSecondsRealtime(5f);
             hud.ShowTitle("");
             yield return Shot("15k-title-new");
             hud.ShowMenu(false);
+        }
+
+        /// <summary>Waits up to three seconds for the main menu's moving picture, where the art has one.</summary>
+        IEnumerator TitleVideo()
+        {
+            float until = Time.realtimeSinceStartup + 3f;
+            while (!hud.TitleVideoShown && Time.realtimeSinceStartup < until)
+                yield return null;
+            Debug.Log($"Realms capture: the main menu's picture {(hud.TitleVideoShown ? "moves" : "is still")}.");
         }
 
         /// <summary>
@@ -919,11 +1216,34 @@ namespace Realms
                 if (state.Gems[player].Count < Crown.Needed && !state.HasGem(player, gem))
                     state.Gems[player].Add(new GemWon(gem, Mathf.Max(1, state.Turn - 2 + state.Gems[player].Count)));
             }
+            // The last gem flies from the capital into its socket in the bar's crown (the visual
+            // plan's 12): on its way, and landed.
+            hud.Refresh();
+            if (state.Gems[player].Count > 0)
+            {
+                hud.FlyGem(state.Gems[player][state.Gems[player].Count - 1].Gem);
+                yield return new WaitForSecondsRealtime(0.45f);
+                yield return Shot("30a-gem-flight");
+                while (hud.GemsFlying)
+                    yield return null;
+                yield return Shot("30b-gem-landed");
+            }
             state.Crowned[player] = state.Turn;
             hud.Refresh();
             ShowCrownEnd(true);
-            while (!hud.DialogOpen)
+            // The parade over the players' towns before the end's window, a frame a second.
+            float until = Time.realtimeSinceStartup + 20f;
+            for (int k = 0; k < 10 && !hud.DialogOpen && Time.realtimeSinceStartup < until; k++)
+            {
+                yield return new WaitForSecondsRealtime(k == 0 ? 0.6f : 1f);
+                if (!parading)
+                    break;
+                yield return Shot($"30s-parade-{k}");
+            }
+            while (!hud.DialogOpen && Time.realtimeSinceStartup < until)
                 yield return null;
+            if (!hud.DialogOpen)
+                Debug.Log("Capture: the crown's end did not show within 20 s");
             yield return Shot("15d-crown-end");
             hud.AnswerModal(0);
         }
@@ -967,6 +1287,272 @@ namespace Realms
             hint = null;
             hud.SetGuide(null, null, null, false);
             view.SetGuide(null);
+        }
+
+        /// <summary>
+        /// Frames of the motion on a steady clock, 30 frames a second (the visual plan's checks of
+        /// 2026-11-11): a real «Следующий ход» with two towns about to grow, a frame every 0.2 s
+        /// (13s-turn); the next one cut short after 0.3 s as a key does (13s-turn-skip); a building
+        /// rising in its dust under what it adds to the income (11s-build); a castle rising
+        /// (21s-castle, taken with the capital's castle). It comes after the other map frames, as it
+        /// plays two turns more.
+        /// </summary>
+        IEnumerator MotionSeries(City capital, Vector2 capitalAt)
+        {
+            World world = state.World;
+            int me = world.Player;
+            Select(-1);
+            ChooseHero(null, false);
+            hud.Toast("", 0f);
+            mapCamera.Focus(capitalAt - new Vector2(0, 1f), 18f, true);
+            for (int i = 0; i < 10; i++)
+                yield return null;
+            Time.captureFramerate = 30;
+            Ripen(capital.Cell, 2);
+            EndTurn();
+            for (int k = 0; k < 10; k++)
+                yield return Frame($"13s-turn-{k:00}", 6);
+            hud.FinishTurnShow();
+            Rise.FinishAll();
+            for (int i = 0; i < 3; i++)
+                yield return null;
+            Ripen(capital.Cell, 2);
+            EndTurn();
+            yield return Frame("13s-turn-skip-0", 9);
+            // What a key does (RealmsGame.CutShows).
+            hud.FinishTurnShow();
+            Rise.FinishAll();
+            for (int k = 1; k < 4; k++)
+                yield return Frame($"13s-turn-skip-{k}", 3);
+            hud.ClearToast();
+
+            // A field building if a cell near the capital takes one, or else a building in the
+            // capital; its cost is given first, so the treasury stays as it was.
+            var plenty = new Stock(9999, 9999, 9999, 9999);
+            int cell = Nearest(capital.Cell, c => c.Owner == me && c.IsLand && c.Building == FieldBuilding.None
+                && Economy.CanBuild(world, plenty, me, c.Index) == Refusal.None);
+            TownBuilding? building = null;
+            if (cell < 0)
+            {
+                foreach (TownBuilding b in new[] { TownBuilding.Market, TownBuilding.Granary, TownBuilding.Tavern, TownBuilding.Barracks, TownBuilding.ArcheryRange, TownBuilding.Stables })
+                {
+                    if (Economy.CanBuild(capital, plenty, b) == Refusal.None)
+                    {
+                        building = b;
+                        cell = capital.Cell;
+                        break;
+                    }
+                }
+            }
+            if (cell >= 0)
+            {
+                mapCamera.Focus(new Vector2(world.CenterX(cell), world.CenterZ(cell) - 0.4f), 6f, true);
+                for (int i = 0; i < 10; i++)
+                    yield return null;
+                Cell c = world.Cells[cell];
+                state.Treasury[me] += building.HasValue ? Economy.Cost(building.Value) : Economy.Cost(Economy.BuildingFor(c.Resource));
+                Stock income = Economy.Income(world, me);
+                Refusal refusal = building.HasValue ? state.Build(me, capital.Index, building.Value) : state.Build(me, cell);
+                Done(refusal, cell, building, income);
+                for (int k = 0; k < 6; k++)
+                    yield return Frame($"11s-build-{k}", 5);
+                Debug.Log($"Realms capture 11s-build: {(building.HasValue ? building.Value.ToString() : c.Resource.ToString())}, {refusal}");
+            }
+            else
+                Debug.Log("Realms capture 11s-build: nothing to build near the capital");
+            // The castle's rise is taken where the capital gets its castle (21s-castle).
+            Time.captureFramerate = 0;
+            hud.ClearToast();
+        }
+
+        /// <summary>
+        /// Up to <paramref name="count"/> of the players' towns nearest to the capital that can grow
+        /// get all the food but one for their next house, and the treasury the food for it.
+        /// </summary>
+        void Ripen(int capitalCell, int count)
+        {
+            World world = state.World;
+            int me = world.Player;
+            Hex at = world.Cells[capitalCell].Hex;
+            var towns = new List<City>();
+            foreach (int index in world.Countries[me].Cities)
+            {
+                City city = world.Cities[index];
+                if (Towns.Limit(city) == GrowthStop.None && !Core.Raids.AtTown(state, index))
+                    towns.Add(city);
+            }
+            towns.Sort((a, b) => Hex.Distance(at, world.Cells[a.Cell].Hex).CompareTo(Hex.Distance(at, world.Cells[b.Cell].Hex)));
+            for (int i = 0; i < Mathf.Min(count, towns.Count); i++)
+                towns[i].Growth = Towns.NextHouse(towns[i]) - 1;
+            state.Treasury[me] += new Stock(0, 20, 0, 0);
+        }
+
+        /// <summary>A frame after <paramref name="frames"/> frames of the steady clock.</summary>
+        /// <summary>
+        /// A battle of the hero's army against a group set up for the captures: a frame once the
+        /// players' first turn comes, then one with the pointer on the first monster stack, and
+        /// with <paramref name="runUp"/> the auto battle on until a strike with a run-up, shown
+        /// as 07r-runup. Without <paramref name="pointed"/> no pointer frame. A field with a chest
+        /// goes on in the auto battle until a stack takes it, shown as 07l-chest. The field closes
+        /// after them; nothing of the fight reaches the game.
+        /// </summary>
+        IEnumerator Staged(Hero hero, Monster monster, int count, Biome ground, string field, string pointed, bool runUp = false,
+            FieldEvent fieldEvent = FieldEvent.None)
+        {
+            var army = new List<Core.Stack>();
+            foreach (Core.Stack s in hero.Army)
+                army.Add(new Core.Stack(s.Unit, s.Count));
+            int seed = fieldEvent == FieldEvent.Loot ? ChestSeed(army, hero, monster, count, ground) : 7;
+            var battle = new Battle(army, hero.Attack, hero.Defence, monster, count, ground, seed, fieldEvent)
+            {
+                ChestGold = fieldEvent == FieldEvent.Loot ? 15 : 0,
+            };
+            battleView.StartCoroutine(battleView.Play(battle, Words.Monster(monster, false), -1, hero.Country));
+            for (float t = 0; t < 8f && (battle.Current == null || battle.Current.Side != Side.Players); t += Time.deltaTime)
+                yield return null;
+            for (float t = 0; t < 1.5f; t += Time.deltaTime)
+                yield return null;
+            yield return Shot(field);
+            Fighter first = battle.Fighters.Find(x => x.Side == Side.Monsters && x.Alive);
+            if (first != null && pointed != null)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    battleView.Point(first.Cell);
+                    yield return null;
+                }
+                battleView.Point(first.Cell);
+                ScreenCapture.CaptureScreenshot(Path.Combine(captureDir, pointed + ".png"));
+                yield return null;
+            }
+            if (runUp)
+            {
+                battleView.Point(-1);
+                battleView.SetAuto(true);
+                for (float t = 0; t < 15f && battleView.RunUpsShown == 0 && battle.Outcome == Outcome.Running; t += Time.deltaTime)
+                    yield return null;
+                if (battleView.RunUpsShown > 0)
+                    yield return Series("07r-runup", 6, 3);
+                else
+                    Debug.Log("Realms capture: no strike with a run-up in the staged fight");
+                battleView.SetAuto(false);
+            }
+            if (fieldEvent == FieldEvent.Loot)
+            {
+                battleView.Point(-1);
+                battleView.SetAuto(true);
+                for (float t = 0; t < 20f && battleView.ChestsShown == 0 && battle.Outcome == Outcome.Running; t += Time.deltaTime)
+                    yield return null;
+                if (battleView.ChestsShown > 0)
+                    yield return Series("07l-chest", 4, 3);
+                else
+                    Debug.Log("Realms capture: the auto battle left the chest on the field");
+                battleView.SetAuto(false);
+            }
+            battleView.Close();
+            Music.BattleEnd();
+            yield return null;
+        }
+
+        /// <summary>
+        /// The first seed from 7 on whose field the auto battle takes the chest, so that the
+        /// staged fight shows it taken; 7 when none of fifty does.
+        /// </summary>
+        static int ChestSeed(List<Core.Stack> army, Hero hero, Monster monster, int count, Biome ground)
+        {
+            for (int seed = 7; seed < 57; seed++)
+            {
+                var copy = army.ConvertAll(s => new Core.Stack(s.Unit, s.Count));
+                var probe = new Battle(copy, hero.Attack, hero.Defence, monster, count, ground, seed, FieldEvent.Loot);
+                probe.AutoToEnd();
+                if (probe.ChestTaken)
+                    return seed;
+            }
+            return 7;
+        }
+
+        /// <summary>
+        /// The window before a fight whose field has <paramref name="fieldEvent"/> (the combat
+        /// plan's 3.5): the first group with it this turn, shot and answered «Назад», its way
+        /// cleared after.
+        /// </summary>
+        IEnumerator EventWindow(Hero fighter, FieldEvent fieldEvent, string name)
+        {
+            World world = state.World;
+            int cell = -1;
+            for (int i = 0; i < world.Cells.Length && cell < 0; i++)
+            {
+                Cell c = world.Cells[i];
+                if (c.Monster != Monster.None && c.Count > 0 && state.FieldEventOf(i) == fieldEvent)
+                    cell = i;
+            }
+            if (cell < 0)
+            {
+                Debug.Log($"Realms capture: no group with {fieldEvent} on its field this turn");
+                yield break;
+            }
+            mapCamera.Focus(new Vector2(world.CenterX(cell), world.CenterZ(cell) - 1f), 18f, true);
+            StartCoroutine(Fight(fighter, cell));
+            while (!hud.DialogOpen)
+                yield return null;
+            yield return Shot(name);
+            hud.AnswerModal(2);
+            for (int i = 0; i < 5; i++)
+                yield return null;
+            path = null;
+            heroes.ShowPath(null, null);
+        }
+
+        /// <summary>
+        /// The birds (the visual plan's 6): the kingdom twice half a second apart without them,
+        /// then a flock sent over the view's middle in six frames half a second apart (the plan's
+        /// series 25s-birds; its first pair against the still pair measures the motion the birds
+        /// add), then the gulls over the pier or fishing hut nearest the capital, twice.
+        /// </summary>
+        IEnumerator BirdShots(Vector2 capitalAt)
+        {
+            Birds birds = view.Birds;
+            if (birds == null)
+                yield break;
+            Select(-1);
+            ChooseHero(null, false);
+            hud.ClearToast();
+            mapCamera.Focus(capitalAt - new Vector2(0, 1f), 20f, true);
+            Birds.Shown = false;
+            yield return Shot("25n-still-0");
+            Time.captureFramerate = 30;
+            yield return Frame("25n-still-1", 15);
+            Time.captureFramerate = 0;
+            Birds.Shown = true;
+            birds.Fly(capitalAt + new Vector2(1.5f, 0.5f), 2f);
+            yield return Series("25s-birds", 6, 15);
+            if (birds.NearestSite(capitalAt, out Vector2 site))
+            {
+                mapCamera.Focus(site - new Vector2(0, 0.6f), 11f, true);
+                // The gulls ease in as the camera comes close.
+                yield return new WaitForSeconds(1f);
+                yield return Shot("25g-gulls");
+                Time.captureFramerate = 30;
+                yield return Frame("25h-gulls", 15);
+                Time.captureFramerate = 0;
+            }
+        }
+
+        /// <summary><paramref name="count"/> frames named name-0, name-1…, one every <paramref name="every"/> frames at 30 frames a second.</summary>
+        IEnumerator Series(string name, int count, int every)
+        {
+            Time.captureFramerate = 30;
+            for (int k = 0; k < count; k++)
+                yield return Frame($"{name}-{k}", every);
+            Time.captureFramerate = 0;
+        }
+
+        IEnumerator Frame(string name, int frames)
+        {
+            for (int i = 0; i < frames - 1; i++)
+                yield return null;
+            ScreenCapture.CaptureScreenshot(Path.Combine(captureDir, name + ".png"));
+            yield return null;
         }
 
         IEnumerator Shot(string name)

@@ -1,5 +1,6 @@
 import dataclasses
 import hashlib
+import json
 import sqlite3
 
 import numpy as np
@@ -79,6 +80,36 @@ def test_book_filter_applies_to_knn_before_limiting(store):
     store.add_vectors(rows, vectors([2]))
     hits = store.search("attack", vectors([0])[0].tolist(), book_id=second, limit=1)
     assert hits and hits[0]["book_id"] == second != first
+
+
+@pytest.mark.parametrize("mode", ["semantic", "lexical", "hybrid"])
+def test_corpus_filters_before_candidate_limit_and_intersects_book(store, mode):
+    # KB is ID 1 with an ordinary title; the book has an AtomKB-looking title.
+    # More than 30 closer KB candidates would hide the book in a post-filter.
+    rules = dataclasses.replace(
+        document("ordinary title", tuple(f"Enemy attack rule {i}" for i in range(40))),
+        import_profile=json.dumps({"input": "atomkb-jsonl"}),
+    )
+    kb = store.add_document(rules, chunks(rules))
+    rows = store.pending_chunks(kb)
+    store.add_vectors(rows, vectors([0] * len(rows)))
+    book = store.add_document(
+        document("AtomKB book", ("Enemy attack detail",)),
+        chunks(document("AtomKB book", ("Enemy attack detail",))),
+    )
+    store.add_vectors(store.pending_chunks(book), vectors([1]))
+    query = vectors([0])[0].tolist()
+    assert store.search("attack", query, corpus="books", mode=mode, limit=1)[0]["book_id"] == book
+    assert store.search("attack", query, corpus="kb", mode=mode, limit=1)[0]["book_id"] == kb
+    assert store.search("attack", query, corpus="books", book_id=kb, mode=mode) == []
+    assert store.search("attack", query, corpus="kb", book_id=book, mode=mode) == []
+    assert [(r["id"], r["corpus"]) for r in store.books()] == [(kb, "kb"), (book, "books")]
+
+
+@pytest.mark.parametrize("mode", ["semantic", "lexical", "hybrid"])
+def test_empty_corpus_returns_no_hits(store, mode):
+    populated(store)
+    assert store.search("attack", vectors([0])[0].tolist(), corpus="kb", mode=mode) == []
 
 
 def test_lexical_search_does_not_need_a_model_or_vector(store):

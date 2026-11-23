@@ -467,6 +467,54 @@ def emit_base_colour(obj: Any) -> None:
     """Every Principled material of ``obj`` emits its base colour instead of
     shading, for an EMIT bake of the colour alone, whatever its metal,
     transmission or alpha."""
+    emit(obj, lambda tree, principled: source(principled.inputs["Base Color"]))
+
+
+def emit_metal_rough(obj: Any) -> None:
+    """Every Principled material of ``obj`` emits glTF's metallic-roughness
+    packing instead of shading: roughness in green, metallic in blue."""
+
+    def packed(tree: Any, principled: Any) -> Any:
+        combine = tree.nodes.new("ShaderNodeCombineColor")
+        combine.inputs["Red"].default_value = 1.0
+        for name, channel in (("Roughness", "Green"), ("Metallic", "Blue")):
+            value = source(principled.inputs[name])
+            if isinstance(value, float):
+                combine.inputs[channel].default_value = value
+            else:
+                tree.links.new(value, combine.inputs[channel])
+        return combine.outputs["Color"]
+
+    emit(obj, packed)
+
+
+def has_metal_rough(obj: Any) -> bool:
+    """A Principled material of ``obj`` takes its metallic or roughness from a
+    texture, or is metal at all."""
+    for material in obj.data.materials:
+        tree = material.node_tree if material else None
+        principled = (
+            next((n for n in tree.nodes if n.type == "BSDF_PRINCIPLED"), None) if tree else None
+        )
+        if principled is None:
+            continue
+        metallic, roughness = principled.inputs["Metallic"], principled.inputs["Roughness"]
+        if metallic.is_linked or roughness.is_linked or metallic.default_value > 0:
+            return True
+    return False
+
+
+def source(socket: Any) -> Any:
+    """What feeds a shader input: the linked socket, or its own value."""
+    if socket.is_linked:
+        return socket.links[0].from_socket
+    value = socket.default_value
+    return value if isinstance(value, float) else tuple(value)
+
+
+def emit(obj: Any, colour: Any) -> None:
+    """Every Principled material of ``obj`` emits ``colour(tree, principled)``
+    (a socket, a colour or a value) instead of shading."""
     for material in obj.data.materials:
         tree = material.node_tree if material else None
         if tree is None:
@@ -478,11 +526,13 @@ def emit_base_colour(obj: Any) -> None:
         if principled is None or output is None:
             continue
         emission = tree.nodes.new("ShaderNodeEmission")
-        base = principled.inputs["Base Color"]
-        if base.is_linked:
-            tree.links.new(base.links[0].from_socket, emission.inputs["Color"])
+        value = colour(tree, principled)
+        if isinstance(value, float):
+            emission.inputs["Color"].default_value = (value, value, value, 1.0)
+        elif isinstance(value, tuple):
+            emission.inputs["Color"].default_value = value
         else:
-            emission.inputs["Color"].default_value = base.default_value
+            tree.links.new(value, emission.inputs["Color"])
         tree.links.new(emission.outputs["Emission"], output.inputs["Surface"])
 
 
@@ -513,22 +563,43 @@ def bake_colour(painted_path: Path, mesh_path: Path, target: Path, size: int, ra
     tree = material.node_tree
     texture = tree.nodes.new("ShaderNodeTexImage")
     texture.image = colour
-    tree.nodes.active = texture  # the bake target
+    principled = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
 
     diagonal = (Vector(low.dimensions)).length
-    activate(painted, low)  # selected to active: from the painted onto the mesh
-    bpy.ops.object.bake(
-        type="EMIT",
-        use_selected_to_active=True,
-        cage_extrusion=ray * diagonal,
-        max_ray_distance=2 * ray * diagonal,
-        margin=16,
-    )
-    colour.pack()
-    principled = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+
+    def bake_into(node: Any) -> None:
+        tree.nodes.active = node  # the bake target
+        activate(painted, low)  # selected to active: from the painted onto the mesh
+        bpy.ops.object.bake(
+            type="EMIT",
+            use_selected_to_active=True,
+            cage_extrusion=ray * diagonal,
+            max_ray_distance=2 * ray * diagonal,
+            margin=16,
+        )
+        node.image.pack()
+
+    bake_into(texture)
     tree.links.new(texture.outputs["Color"], principled.inputs["Base Color"])
-    principled.inputs["Metallic"].default_value = 0.0
-    principled.inputs["Roughness"].default_value = 1.0
+    # The paint's metal and roughness (TRELLIS.2 paints them into a texture of
+    # their own): baked the same way, packed as glTF keeps them, so a metal
+    # part stays metal. A paint without them gives a matte, non-metal mesh.
+    metal = has_metal_rough(painted)
+    if metal:
+        emit_metal_rough(painted)
+        packed = bpy.data.images.new("metallic roughness", size, size, alpha=False)
+        packed.colorspace_settings.name = "Non-Color"
+        metal_texture = tree.nodes.new("ShaderNodeTexImage")
+        metal_texture.image = packed
+        bake_into(metal_texture)
+        split = tree.nodes.new("ShaderNodeSeparateColor")
+        tree.links.new(metal_texture.outputs["Color"], split.inputs["Color"])
+        tree.links.new(split.outputs["Green"], principled.inputs["Roughness"])
+        tree.links.new(split.outputs["Blue"], principled.inputs["Metallic"])
+    else:
+        principled.inputs["Metallic"].default_value = 0.0
+        principled.inputs["Roughness"].default_value = 1.0
+    tree.nodes.active = texture
 
     bpy.data.objects.remove(painted, do_unlink=True)
     report(
@@ -536,6 +607,7 @@ def bake_colour(painted_path: Path, mesh_path: Path, target: Path, size: int, ra
         ray_share=ray,
         triangles=triangles(low),
         unwrapped=unwrapped,
+        metallic_roughness=metal,
     )
     export(low, target, materials=True)
 

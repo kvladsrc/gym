@@ -4,9 +4,11 @@ from pathlib import Path
 
 import pytest
 from animation_tools_model_server.server import (
+    HAIR_SCRIPT,
     AnimationToolsServer,
     BakeColourParams,
     BakeParams,
+    FitHairParams,
     RetargetParams,
     RetopoParams,
     blender,
@@ -228,7 +230,18 @@ texture = material.node_tree.nodes.new("ShaderNodeTexImage")
 texture.image = image
 principled = material.node_tree.nodes["Principled BSDF"]
 material.node_tree.links.new(texture.outputs["Color"], principled.inputs["Base Color"])
-principled.inputs["Metallic"].default_value = 1.0
+# Metal above (roughness 0.3), matte below (0.9), packed as glTF keeps them.
+metal = bpy.data.images.new("metal", 4, 4)
+metal.colorspace_settings.name = "Non-Color"
+metal.pixels = [c for y in range(4) for x in range(4)
+                for c in ((1.0, 0.3, 1.0, 1.0) if y >= 2 else (1.0, 0.9, 0.0, 1.0))]
+metal.pack()
+metal_texture = material.node_tree.nodes.new("ShaderNodeTexImage")
+metal_texture.image = metal
+split = material.node_tree.nodes.new("ShaderNodeSeparateColor")
+material.node_tree.links.new(metal_texture.outputs["Color"], split.inputs["Color"])
+material.node_tree.links.new(split.outputs["Green"], principled.inputs["Roughness"])
+material.node_tree.links.new(split.outputs["Blue"], principled.inputs["Metallic"])
 painted.data.materials.append(material)
 bpy.ops.export_scene.gltf(filepath=work + "/painted.glb", export_format="GLB", use_selection=True)
 bpy.ops.object.delete()
@@ -250,11 +263,20 @@ import sys, bpy
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=sys.argv[sys.argv.index("--") + 1])
 obj = next(o for o in bpy.data.objects if o.type == "MESH")
-image = next(n.image for n in obj.data.materials[0].node_tree.nodes if n.type == "TEX_IMAGE")
+tree = obj.data.materials[0].node_tree
+principled = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+def feeding(name):
+    node = principled.inputs[name].links[0].from_node
+    while node.type != "TEX_IMAGE":
+        node = next(i for i in node.inputs if i.is_linked).links[0].from_node
+    return node.image
+image = feeding("Base Color")
+metal = feeding("Metallic")
 w, h = image.size
 pixels = image.pixels[:]
+metal_pixels = metal.pixels[:]
 uv = obj.data.uv_layers.active.data
-checked = wrong = dim = 0
+checked = wrong = dim = wrong_metal = 0
 for polygon in obj.data.polygons:
     z = (obj.matrix_world @ polygon.center).z
     if abs(z) < 0.2:
@@ -266,11 +288,14 @@ for polygon in obj.data.polygons:
     checked += 1
     wrong += (red > blue) != (z > 0)
     dim += max(red, blue) < 0.7
-print("PAINT_CHECK", checked, wrong, dim)
+    rough, metallic = metal_pixels[at + 1], metal_pixels[at + 2]
+    wanted = (0.3, 1.0) if z > 0 else (0.9, 0.0)
+    wrong_metal += abs(rough - wanted[0]) > 0.08 or abs(metallic - wanted[1]) > 0.08
+print("PAINT_CHECK", checked, wrong, dim, wrong_metal)
 """
 
 
-def test_colour_baking_carries_the_paint_to_an_unwrapped_mesh(tmp_path):
+def test_colour_baking_carries_the_paint_and_metal_to_an_unwrapped_mesh(tmp_path):
     binary = blender()
     assert binary, "Blender is required"
     subprocess.run(
@@ -300,10 +325,12 @@ def test_colour_baking_carries_the_paint_to_an_unwrapped_mesh(tmp_path):
         timeout=120,
     )
     line = next(line for line in done.stdout.splitlines() if line.startswith("PAINT_CHECK"))
-    checked, wrong, dim = map(int, line.split()[1:])
+    checked, wrong, dim, wrong_metal = map(int, line.split()[1:])
     assert checked > 200
     assert wrong == 0
     assert dim == 0
+    assert baked.meta["metallic_roughness"]
+    assert wrong_metal == 0
 
     # The paint has to come from a mesh that has some.
     swapped = Job("3d-bake-colour", None, {"painted": coarse, "mesh": painted}, params, (0,))
@@ -352,3 +379,97 @@ def test_decimation_stopping_above_its_target_fails(tmp_path):
     job = Job("3d-retopo", None, mesh, RetopoParams(faces=500, method="decimate"), (0,))
     with pytest.raises(InvalidInput, match="non-manifold edges"):
         server.generate(job)
+
+
+def read_glb(data):
+    """(document, accessor reader) of a GLB, without numpy."""
+    import json
+    import struct
+
+    length = struct.unpack_from("<I", data, 12)[0]
+    document = json.loads(data[20 : 20 + length])
+    binary = data[28 + length :]
+    formats = {5121: "B", 5123: "H", 5125: "I", 5126: "f"}
+    widths = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4}
+
+    def accessor(index):
+        a = document["accessors"][index]
+        view = document["bufferViews"][a["bufferView"]]
+        width = widths[a["type"]]
+        start = view.get("byteOffset", 0) + a.get("byteOffset", 0)
+        values = struct.unpack_from(
+            f"<{a['count'] * width}{formats[a['componentType']]}", binary, start
+        )
+        return [values[k : k + width] for k in range(0, len(values), width)]
+
+    return document, accessor
+
+
+def test_hair_fitting_puts_hairdeck_cards_on_a_soma_head(tmp_path):
+    binary = blender()
+    assert binary, "Blender is required"
+    fixture = Path(__file__).with_name("hair_fixture.py")
+    haircap = HAIR_SCRIPT.with_name("soma_haircap.json")
+    subprocess.run(
+        [binary, "-b", "--factory-startup", "-P", str(fixture), "--", str(haircap), str(tmp_path)],
+        check=True,
+        capture_output=True,
+        timeout=120,
+    )
+    server = AnimationToolsServer()
+    server.load()
+    body = (tmp_path / "body.glb").read_bytes()
+    hair = (tmp_path / "hair.glb").read_bytes()
+
+    def fit(params, body=body, hair=hair):
+        inputs = {
+            "body": InputData("model/gltf-binary", body),
+            "hair": InputData("model/gltf-binary", hair),
+        }
+        return server.generate(Job("3d-fit-hair", None, inputs, params, (0,)))[0]
+
+    fitted = fit(FitHairParams())
+    report = fitted.meta
+    assert report["cards"] == 69  # 66 on the crown and sides, 3 braid cards
+    assert not report["proxy_in_file"]
+    assert report["vertices_inside_after"] == 0
+    # The roots land on the skin plus the clearance, not on HairDeck's shell.
+    assert 0.5 < report["root_gap_mm"]["median"] < 4
+    # The whole hairstyle moved as one piece: the cards bent only with the
+    # field (real HairDeck hair: p95 0.17-0.37 of a card's length).
+    assert report["card_shape_change"]["p95"] < 0.15
+    assert report["braid"] is None
+
+    document, accessor = read_glb(fitted.data)
+    source, source_accessor = read_glb(body)
+    assert len(document["meshes"]) == len(source["meshes"]) + 1
+    for name in ("POSITION", "JOINTS_0", "WEIGHTS_0"):  # the body as it came
+        index = source["meshes"][0]["primitives"][0]["attributes"][name]
+        assert accessor(index) == source_accessor(index)
+    names = [node.get("name") for node in document["nodes"]]
+    node = document["nodes"][names.index("hair")]
+    assert node["skin"] == 0
+    assert names.index("hair") in document["scenes"][0]["nodes"]
+    primitive = document["meshes"][node["mesh"]]["primitives"][0]
+    assert {"POSITION", "NORMAL", "TEXCOORD_0", "COLOR_0", "JOINTS_0", "WEIGHTS_0"} <= set(
+        primitive["attributes"]
+    )
+    head = [document["nodes"][j]["name"] for j in document["skins"][0]["joints"]].index("Head")
+    assert {j[0] for j in accessor(primitive["attributes"]["JOINTS_0"])} == {head}
+    assert {w[0] for w in accessor(primitive["attributes"]["WEIGHTS_0"])} == {1.0}
+    assert document["materials"][primitive["material"]]["doubleSided"]
+
+    # A braid follows the chest down the back; the crown stays on the head.
+    braided = fit(FitHairParams(braid=True, thickness=0.8))
+    assert braided.meta["braid"]["vertices_following_chest"] > 0
+    document, accessor = read_glb(braided.data)
+    names = [node.get("name") for node in document["nodes"]]
+    primitive = document["meshes"][document["nodes"][names.index("hair")]["mesh"]]["primitives"][0]
+    chest = [w[1] for w in accessor(primitive["attributes"]["WEIGHTS_0"])]
+    assert max(chest) > 0.9
+    assert sum(1 for w in chest if w > 0) < len(chest) / 3
+
+    with pytest.raises(InvalidInput, match="not a SOMA person"):
+        fit(FitHairParams(), body=(tmp_path / "not_soma.glb").read_bytes())
+    with pytest.raises(InvalidInput, match="hair_cards"):
+        fit(FitHairParams(), hair=body)

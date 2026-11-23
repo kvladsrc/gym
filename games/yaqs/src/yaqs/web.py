@@ -96,7 +96,8 @@ def endpoints(service: KnowledgeService, *, host: str = "127.0.0.1") -> dict[str
         limit = _integer(request, "limit", 10)
         book = _integer(request, "book")
         budget = DEFAULT_CONTEXT_TOKENS * 2
-        return service.search, (query, limit, book, mode, budget, "compact")
+        corpus = request.query_params.get("corpus", "all")
+        return service.search, (query, limit, book, mode, budget, "compact", corpus)
 
     def passage(request: Request):
         chunk = int(request.path_params["chunk_id"])

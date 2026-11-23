@@ -41,6 +41,9 @@ namespace Realms
             public Label Label;
             public Vector3 World;
             public float Start, Seconds;
+
+            /// <summary>How many pixels above its point the word starts (negative is up).</summary>
+            public float Lift;
         }
 
         struct Question
@@ -50,6 +53,9 @@ namespace Realms
             public Action<int> Chosen;
             public Action<VisualElement> Body;
             public int Back;
+
+            /// <summary>A key that answers the way back too: the key that opened the dialog closes it.</summary>
+            public Key Also;
         }
 
         VisualElement heroRows, heroCard, heroPortrait, heroXpFill, heroArmy, heroSwaps, heroLevelUp, heroMovesFill, heroDetails;
@@ -61,6 +67,7 @@ namespace Realms
         readonly Queue<Question> questions = new Queue<Question>();
         Action<int> answer;
         int back, modalOpenedFrame = -10, modalClosedFrame = -10;
+        Key alsoBack;
 
         Hero hero;
         HeroPath path;
@@ -350,12 +357,12 @@ namespace Realms
         /// <summary>
         /// A dialog in the middle of the screen: a title, a line of text, an optional body and
         /// buttons; the first button is the main one (Enter), the last one, or the
-        /// <paramref name="back"/> one, the way back (Esc). Dialogs asked while one is open wait
-        /// their turn.
+        /// <paramref name="back"/> one, the way back (Esc, and <paramref name="also"/>). Dialogs
+        /// asked while one is open wait their turn.
         /// </summary>
-        public void Ask(string title, string icon, string text, string[] buttons, Action<int> chosen, Action<VisualElement> body = null, int back = -1)
+        public void Ask(string title, string icon, string text, string[] buttons, Action<int> chosen, Action<VisualElement> body = null, int back = -1, Key also = Key.None)
         {
-            questions.Enqueue(new Question { Title = title, Icon = icon, Text = text, Buttons = buttons, Chosen = chosen, Body = body, Back = back });
+            questions.Enqueue(new Question { Title = title, Icon = icon, Text = text, Buttons = buttons, Chosen = chosen, Body = body, Back = back, Also = also });
             if (modalOverlay.style.display != DisplayStyle.Flex)
                 NextQuestion();
         }
@@ -381,6 +388,7 @@ namespace Realms
             modalButtons.Clear();
             answer = q.Chosen;
             back = q.Back >= 0 ? q.Back : q.Buttons.Length - 1;
+            alsoBack = q.Also;
             // The key that opened it (Enter for the next turn) must not answer it in the same frame.
             modalOpenedFrame = Time.frameCount;
             for (int k = 0; k < q.Buttons.Length; k++)
@@ -415,6 +423,7 @@ namespace Realms
         void Update()
         {
             Presses();
+            UpdateSettings();
             if (modalOverlay == null || modalOverlay.style.display != DisplayStyle.Flex)
                 return;
             var keyboard = Keyboard.current;
@@ -424,15 +433,16 @@ namespace Realms
                 return;
             if (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame)
                 Answer(0);
-            else if (keyboard.escapeKey.wasPressedThisFrame)
+            else if (keyboard.escapeKey.wasPressedThisFrame || (alsoBack != Key.None && keyboard[alsoBack].wasPressedThisFrame))
                 Answer(back);
         }
 
         /// <summary>Goods as reward chips inside a dialog's body.</summary>
-        public void RewardChips(VisualElement parent, Stock stock)
+        public VisualElement RewardChips(VisualElement parent, Stock stock)
         {
             VisualElement row = Child(parent, "modal-chips");
             Reward(row, stock);
+            return row;
         }
 
         /// <summary>A text field for a name in a dialog's body, its text chosen so that typing replaces it.</summary>
@@ -451,7 +461,7 @@ namespace Realms
         }
 
         /// <summary>A line of the dialog's body: a key and a value.</summary>
-        public void BodyLine(VisualElement parent, string key, string value, string cls = null)
+        public Label BodyLine(VisualElement parent, string key, string value, string cls = null)
         {
             VisualElement row = Child(parent, "modal-line");
             if (!string.IsNullOrEmpty(key))
@@ -459,6 +469,7 @@ namespace Realms
             Label v = Text(row, "modal-value", value, black);
             if (cls != null)
                 v.AddToClassList(cls);
+            return v;
         }
 
         /// <summary>The hero's army in a dialog's body: a portrait a stack and its count, with the losses under it.</summary>
@@ -503,9 +514,9 @@ namespace Realms
         /// From afar a hero's figure is a few pixels among the trees and houses, where a review lost
         /// the heroes: then a small shield in the kingdom's colours stands over each seen hero, like
         /// the monsters' badges, clear of the towns' plates, hidden under the top bar and faint
-        /// under the task lines (<paramref name="tasks"/>).
+        /// under the task lines (<paramref name="tasks"/>) and the day's events (<paramref name="news"/>).
         /// </summary>
-        void PlaceHeroShields(float distance, float barBottom, Rect tasks)
+        void PlaceHeroShields(float distance, float barBottom, Rect tasks, Rect news)
         {
             bool far = distance >= ShieldsFrom && HeroFigure != null;
             foreach (Hero hero in state.Heroes)
@@ -534,7 +545,7 @@ namespace Realms
                 Vector2 middle = BesidePlates(shield, new Vector2(p.x, p.y - (float.IsNaN(h) ? 0f : h / 2f)), below: true);
                 anchor.style.translate = new Translate(middle.x, middle.y);
                 bool under = float.IsNaN(h) || middle.y - h / 2f < barBottom;
-                anchor.style.opacity = under ? 0f : tasks.Contains(middle) ? 0.12f : 1f;
+                anchor.style.opacity = under ? 0f : tasks.Contains(middle) || news.Contains(middle) ? 0.12f : 1f;
             }
             // The fallen heroes' shields go with them.
             shieldsGone.Clear();
@@ -581,16 +592,47 @@ namespace Realms
             floats.Clear();
         }
 
-        /// <summary>A word or number that rises from a point in the world and fades.</summary>
-        public void Float(string text, string cls, Vector3 world, float seconds = 1.1f)
+        /// <summary>A word or number that rises from a point in the world and fades; <paramref name="cls"/> may hold several classes, space-separated.</summary>
+        public void Float(string text, string cls, Vector3 world, float seconds = 1.1f, float lift = 0f)
         {
             VisualElement anchor = Child(tagLayer, "anchor");
             anchor.pickingMode = PickingMode.Ignore;
             Label label = Text(anchor, "float", text, black);
-            label.AddToClassList(cls);
+            foreach (string c in cls.Split(' '))
+                label.AddToClassList(c);
             label.pickingMode = PickingMode.Ignore;
-            floats.Add(new FloatText { Anchor = anchor, Label = label, World = world, Start = Time.time, Seconds = seconds });
-            Follow(anchor, world, 0f);
+            floats.Add(new FloatText { Anchor = anchor, Label = label, World = world, Start = Time.time, Seconds = seconds, Lift = lift });
+            Follow(anchor, world, lift);
+        }
+
+        /// <summary>
+        /// How many pixels higher (a negative lift for <see cref="Float"/>) a word rising from
+        /// <paramref name="point"/> starts, so that it rises above the name of the town on
+        /// <paramref name="cell"/> rather than through it (the turn's frames of 2026-11-12 had
+        /// «Городок!» crossing the town's name); 0 where there is no town, or its name is hidden
+        /// or out of the word's way.
+        /// </summary>
+        public float AboveName(Vector3 point, int cell)
+        {
+            if (cam == null || root?.panel == null || cam.WorldToScreenPoint(point).z <= 0f)
+                return 0f;
+            Vector2 p = RuntimePanelUtils.CameraTransformWorldToPanel(root.panel, point, cam);
+            foreach (MapLabel name in labels)
+            {
+                if (name.Cell != cell || name.Kind != LabelKind.Capital && name.Kind != LabelKind.Town || name.Anchor.childCount == 0)
+                    continue;
+                if (name.Anchor.resolvedStyle.display == DisplayStyle.None || name.Anchor.resolvedStyle.opacity < 0.5f)
+                    return 0f;
+                Rect box = name.Anchor[0].worldBound;
+                if (float.IsNaN(box.yMin) || box.width <= 0f)
+                    return 0f;
+                float top = box.yMin - (name.Kind == LabelKind.Capital ? CrownHeight : 0f);
+                // The word, about 30 pixels tall, rises 60 from the point: is the name on its way?
+                bool across = p.x > box.xMin - 60f && p.x < box.xMax + 60f;
+                bool along = box.yMax > p.y - 90f && top < p.y;
+                return across && along ? Mathf.Min(0f, top - 4f - p.y) : 0f;
+            }
+            return 0f;
         }
 
         void PlaceTags()
@@ -607,7 +649,7 @@ namespace Realms
                     floats.RemoveAt(i);
                     continue;
                 }
-                Follow(f.Anchor, f.World, -60f * Mathf.Sqrt(k));
+                Follow(f.Anchor, f.World, f.Lift - 60f * Mathf.Sqrt(k));
                 f.Label.style.opacity = Mathf.Clamp01((1f - k) / 0.35f);
             }
         }

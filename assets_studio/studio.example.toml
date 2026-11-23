@@ -21,8 +21,9 @@
 #
 # Set up a server once before its first job: `cd model_servers && just setup
 # <directory>`, the server's directory there (`llm` for gemma and qwen, `kimodo`
-# for both Kimodo servers); its README covers weights and tokens. A server that
-# is not set up simply never comes up; its jobs wait. The studio sorts every
+# for both Kimodo servers, `qwen3_tts` for the three Qwen3-TTS ones); its README
+# covers weights and tokens. A server that is not set up simply never comes up;
+# its jobs wait. The studio sorts every
 # server's tasks into sections by what they produce (images, 3D, animation,
 # sound, text, video); within a section, models keep the order given here.
 
@@ -38,6 +39,11 @@ id = "birefnet"
 title = "BiRefNet"
 url = "http://127.0.0.1:9121"
 
+[[servers]]
+id = "pbrfusion4"
+title = "PBRFusion 4"
+url = "http://127.0.0.1:9145"
+
 # 3D: shape, refinement, paint, rigs and mesh tools
 
 [[servers]]
@@ -51,6 +57,21 @@ title = "Hi3D v1.0"
 url = "http://127.0.0.1:9130"
 
 [[servers]]
+id = "lato2"
+title = "LATO.2"
+url = "http://127.0.0.1:9135"
+
+[[servers]]
+id = "deepmesh"
+title = "DeepMesh"
+url = "http://127.0.0.1:9136"
+
+[[servers]]
+id = "bpt"
+title = "BPT"
+url = "http://127.0.0.1:9137"
+
+[[servers]]
 id = "trellis2_paint"
 title = "TRELLIS.2 Paint"
 url = "http://127.0.0.1:9131"
@@ -59,6 +80,21 @@ url = "http://127.0.0.1:9131"
 id = "hairdeck"
 title = "HairDeck"
 url = "http://127.0.0.1:9133"
+
+[[servers]]
+id = "fromsoma"
+title = "fromsoma · person from a bald head"
+url = "http://127.0.0.1:9142"
+
+[[servers]]
+id = "frommhr"
+title = "frommhr · person from a bald head (MHR)"
+url = "http://127.0.0.1:9143"
+
+[[servers]]
+id = "fromanny"
+title = "fromanny · person from a bald head (Anny)"
+url = "http://127.0.0.1:9144"
 
 [[servers]]
 id = "paint21"
@@ -127,6 +163,11 @@ id = "vitpose"
 title = "ViTPose++ · 2D joints"
 url = "http://127.0.0.1:9134"
 
+[[servers]]
+id = "audio2face"
+title = "Audio2Face-3D · face from speech"
+url = "http://127.0.0.1:9138"
+
 # Video
 
 [[servers]]
@@ -151,7 +192,22 @@ id = "song"
 title = "YuE2"
 url = "http://127.0.0.1:9110"
 
-# Text: generation, image and video descriptions, OCR
+[[servers]]
+id = "qwen3_tts_design"
+title = "Qwen3-TTS · voice from a description"
+url = "http://127.0.0.1:9139"
+
+[[servers]]
+id = "qwen3_tts_voice"
+title = "Qwen3-TTS · built-in voices"
+url = "http://127.0.0.1:9140"
+
+[[servers]]
+id = "qwen3_tts_clone"
+title = "Qwen3-TTS · voice of a sample"
+url = "http://127.0.0.1:9141"
+
+# Text: generation, image and video descriptions, OCR, Steam review forecasts
 
 [[servers]]
 id = "gemma"
@@ -167,3 +223,8 @@ url = "http://127.0.0.1:9107"
 id = "unlimited_ocr"
 title = "Unlimited-OCR 2"
 url = "http://127.0.0.1:9132"
+
+[[servers]]
+id = "qwen_review"
+title = "Qwen3.5 · Steam reviews"
+url = "http://127.0.0.1:9146"

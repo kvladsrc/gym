@@ -11,8 +11,8 @@ namespace Realms
     /// The interface, built in code on the UI Toolkit panel. Over the map there are two strips
     /// along the screen's edges: the top bar (kingdom, treasury, season and year, buttons), with
     /// the kingdoms' list opening under it, and the bottom panel (the chosen hero, the chosen place
-    /// with its build buttons, the minimap). Then the tasks as lines of text under the bar,
-    /// the turn report, the help screen, short messages, and the labels that float over cities,
+    /// with its build buttons, the minimap). Then the tasks as lines of text under the bar on the
+    /// left, the day's events on the right (HudEvents), the help screen, short messages, and the labels that float over cities,
     /// resources and monsters. The hero's part of the bottom panel, the dialogs, the town and hero screens and
     /// the battle's panels are in the other parts of this class.
     /// </summary>
@@ -33,7 +33,10 @@ namespace Realms
         public event Action<int> PlaceStake;
         public event Action<int, TownBuilding> BuildTown;
 
-        /// <summary>A town in the turn report was clicked.</summary>
+        /// <summary>The players raise the next stage of the Great Build in the town, their capital.</summary>
+        public event Action<int> RaiseBuild;
+
+        /// <summary>A town in the day's events was clicked.</summary>
         public event Action<int> CityPicked;
 
         /// <summary>The players asked a town to hire units (town, unit, count) or a hero.</summary>
@@ -66,11 +69,11 @@ namespace Realms
 
         VisualElement root, labelLayer, shieldLayer, infoIcon, infoLines, minimap, minimapView, helpOverlay, topBar;
         VisualElement shield, infoDot, infoChips, infoTags, kingdoms, kingdomRows, seasonDot;
-        VisualElement infoTown, infoActions, quests, questRows, report, reportRows;
+        VisualElement infoTown, infoActions, quests, questRows;
         VisualElement dock, info, infoEmpty, infoMain, infoSide;
         Button kingdomsButton;
         VisualElement crownIcon;
-        Label kingdomName, seasonLabel, yearLabel, infoTitle, infoSubtitle, infoHint, toast, reportTitle;
+        Label kingdomName, seasonLabel, yearLabel, infoTitle, infoSubtitle, infoHint, toast;
         readonly Label[] amounts = new Label[4], incomes = new Label[4];
         readonly VisualElement[] goodsItems = new VisualElement[4];
         readonly Dictionary<int, VisualElement> badges = new Dictionary<int, VisualElement>();
@@ -81,6 +84,13 @@ namespace Realms
 
         /// <summary>The task lines' rectangle on screen for the map's shaders (RealmsHudShow).</summary>
         static readonly int HudMaskId = Shader.PropertyToID("_RealmsHudMask");
+        static readonly int HudMask2Id = Shader.PropertyToID("_RealmsHudMask2");
+
+        /// <summary>A box of lines over the map for the shaders: normalized, from the bottom left, 6 pixels wider each way.</summary>
+        static Vector4 Mask(Rect box, Rect panel) => panel.width > 0f && panel.height > 0f
+            ? new Vector4((box.xMin - 6f) / panel.width, 1f - (box.yMax + 6f) / panel.height,
+                (box.xMax + 6f) / panel.width, 1f - (box.yMin - 6f) / panel.height)
+            : Vector4.zero;
         readonly Vector3[] corners = new Vector3[4];
         readonly Vector2[] viewQuad = new Vector2[4];
         bool viewShown;
@@ -95,7 +105,6 @@ namespace Realms
 
         /// <summary>The part of the world (x, z) the minimap shows, see <see cref="MinimapWindow"/>.</summary>
         Rect minimapWindow;
-        float toastUntil, reportUntil;
         int shownCell = -1;
         bool shownActions;
 
@@ -146,7 +155,7 @@ namespace Realms
                 VisualElement item = Child(treasury, "goods");
                 item.tooltip = tips[k];
                 goodsItems[k] = item;
-                VisualElement icon = Child(item, "goods-icon");
+                VisualElement icon = goodsIcon[k] = Child(item, "goods-icon");
                 SetIcon(icon, GoodsIcons[k]);
                 amounts[k] = Text(item, "goods-amount", "0", black);
                 incomes[k] = Text(item, "goods-income", "", bold);
@@ -173,12 +182,8 @@ namespace Realms
             kingdomsButton = CrownButton(bar);
             Btn(bar, "?", "button-round", () => Help?.Invoke());
 
-            // The turn report, top centre under the bar; a click closes it.
-            report = Child(root, "report");
-            reportTitle = Text(report, "report-title", "", black);
-            reportRows = Child(report, "report-rows");
-            OnPress(report, () => reportUntil = 0);
-            report.style.display = DisplayStyle.None;
+            // The day's events along the right edge under their button (HudEvents).
+            BuildEvents();
 
             // The crown's feats and the kingdoms, top right under the bar, opened by the crown or K.
             kingdoms = Child(root, "kingdoms");
@@ -249,6 +254,7 @@ namespace Realms
             toast = Text(root, "toast", "", black);
             toast.pickingMode = PickingMode.Ignore;
             toast.style.opacity = 0;
+            BuildTurnShow();
 
             helpOverlay = Child(root, "help-overlay");
             VisualElement card = Child(helpOverlay, "help-card");
@@ -258,7 +264,7 @@ namespace Realms
             // matter first, the keys, and the hints the players have already seen.
             VisualElement tabs = Child(card, "screen-tabs");
             tabs.AddToClassList("help-tabs");
-            string[] pages = { Words.HelpMain, Words.HelpKeys, Words.HelpHints };
+            string[] pages = { Words.HelpMain, Words.HelpKeys, Words.HelpBattle, Words.HelpHints };
             helpTabs = new Button[pages.Length];
             helpPages = new VisualElement[pages.Length];
             VisualElement body = Child(card, "help-body");
@@ -278,14 +284,24 @@ namespace Realms
                 { T("Тащить правой", "Drag with the right button"), T("двигать карту", "move the map") },
                 { T("Колесо мыши, + и −", "Mouse wheel, + and −"), T("приблизить и отдалить", "zoom in and out") },
                 { T("Q и E, тащить средней", "Q and E, drag with the middle button"), T("повернуть карту; Backspace или компас у миникарты — снова на север", "turn the map; Backspace or the compass by the minimap — north again") },
-                { T("Держать Alt", "Hold Alt"), T("значки ресурсов, мест и чудовищ на всей карте", "icons of resources, places and monsters over the whole map") },
+                { AltHelpKey, AltHelpText },
                 { T("Левая кнопка мыши", "Left mouse button"), T("выбрать клетку, город или героя", "select a tile, a town or a hero") },
                 { T("Пробел, Home", "Space, Home"), T("к столице", "to the capital") },
                 { T("K, корона", "K, the crown"), T("подвиги короны и список королевств; щелчок — к столице", "the crown's deeds and the kingdoms; click — to the capital") },
+                { "C", T("события последних ходов", "the last turns' events") },
                 { "Enter", T("следующий ход: казна пополнится, города растут", "next turn: the treasury fills up, towns grow") },
                 { "F1, H", T("эта подсказка", "this help") },
                 { "Esc", T("снять выбор, закрыть подсказку или экран; когда снимать нечего — меню", "clear the selection, close the help or a screen; when there is nothing to close — the menu") },
             });
+            // The Alt row says how Alt works now: held, or pressed to turn on and off (the settings).
+            foreach (Label key in left.Query<Label>(className: "help-key").ToList())
+            {
+                if (key.text == AltHelpKey && key.parent.childCount > 1)
+                {
+                    altHelpKey = key;
+                    altHelpText = key.parent[1] as Label;
+                }
+            }
             HelpGroup(right, T("Герой и город", "Hero and town"), new[,]
             {
                 { T("Правая кнопка мыши", "Right mouse button"), T("проложить путь выбранному герою", "lay a path for the selected hero") },
@@ -296,12 +312,35 @@ namespace Realms
                 { T("T, дважды по городу", "T, double-click a town"), T("экран города: постройки, наём, войско", "town screen: buildings, recruits, army") },
                 { T("R, дважды по герою", "R, double-click a hero"), T("экран героя: сила, опыт, войско", "hero screen: strength, experience, army") },
             });
-            HelpGroup(right, T("Бой", "Battle"), new[,]
+            // The battle's keys and rules on a page of their own: under the hero and the town they
+            // ran past the card's bottom once the hero's order came (shots64).
+            VisualElement battleColumns = Child(helpPages[HelpBattlePage], "help-columns");
+            VisualElement battleKeys = Child(battleColumns, "help-column"), battleRules = Child(battleColumns, "help-column");
+            var keyRows = new List<string[]>
             {
-                { T("Щелчок по клетке", "Click a tile"), T("отряд идёт туда", "the troop goes there") },
-                { T("Щелчок по врагу", "Click an enemy"), T("отряд бьёт или стреляет", "the troop strikes or shoots") },
-                { "D", T("защита: отряд стоит и держит оборону до своего хода", "defend: the troop stands and holds until its next turn") },
-                { "A", T("бьются сами; A ещё раз — снова ты", "they fight on their own; A again — you are in charge again") },
+                new[] { T("Щелчок по клетке", "Click a tile"), T("отряд идёт туда", "the troop goes there") },
+                new[] { T("Щелчок по врагу", "Click an enemy"), T("отряд бьёт или стреляет", "the troop strikes or shoots") },
+                new[] { "D", T("защита: отряд стоит и держит оборону до своего хода", "defend: the troop stands and holds until its next turn") },
+                new[] { "A", T("бьются сами; A ещё раз — снова ты", "they fight on their own; A again — you are in charge again") },
+            };
+            // The hero's order (the combat plan's 3.4), once the battles have one.
+            if (Battle.OrdersPerBattle > 0)
+                keyRows.Insert(3, new[] { "O", T("приказ героя, раз за бой: «В атаку!» — отряд ходит ещё раз, вполсилы; «Щиты!» — все в защите до своего хода",
+                    "the hero's order, once a battle: Attack! — the troop acts once more, at half strength; Shields! — all defend until their turn") });
+            var keyTable = new string[keyRows.Count, 2];
+            for (int i = 0; i < keyRows.Count; i++)
+            {
+                keyTable[i, 0] = keyRows[i][0];
+                keyTable[i, 1] = keyRows[i][1];
+            }
+            HelpGroup(battleKeys, Words.HelpKeys, keyTable);
+            HelpGroup(battleRules, T("Правила", "Rules"), new[,]
+            {
+                { T("Копейщики", "Spearmen"), T("раз в раунд бьют первыми того, кто подошёл вплотную к ним или соседу", "once a round strike first at whoever comes up to them or a neighbour") },
+                { T("Всадники, кабаны", "Riders, boars"), T("с разбега, с трёх клеток и дальше, бьют в полтора раза сильнее", "charging from three tiles or more, strike half as hard again") },
+                { T("Стрелки", "Archers"), T("дальше шести клеток стреляют вполсилы; с врагом вплотную не стреляют", "beyond six tiles shoot at half strength; with an enemy beside them they cannot shoot") },
+                { T("Засада", "Ambush"), T("чудища начинают совсем рядом; об этом скажут до боя", "the monsters start close by; you are told before the fight") },
+                { T("Сундук", "Chest"), T("встань на него любым отрядом — золото твоё, даже если отступишь", "step on it with any troop — the gold is yours even if you retreat") },
             });
             Btn(card, T("Понятно", "Got it"), "button-primary", () => Help?.Invoke());
             ShowHelpPage(0);
@@ -310,6 +349,7 @@ namespace Realms
 
         public void Bind(GameState gameState, MapView mapView, ArtLibrary library, MapCamera camera)
         {
+            bool another = state != gameState;
             state = gameState;
             view = mapView;
             art = library;
@@ -317,6 +357,8 @@ namespace Realms
             cam = camera.GetComponent<Camera>();
             if (root == null)
                 Build();
+            if (another)
+                ForgetEvents();
             SetIcon(shield, FlagIcon(state.World.Player));
             SetIcon(crownIcon, "crown");
             kingdomName.text = state.World.Countries[state.World.Player].Label;
@@ -331,10 +373,12 @@ namespace Realms
         {
             int player = state.World.Player;
             Stock stock = state.Treasury[player], income = Economy.Income(state.World, player);
-            // The towns take food for their growth from the turn's harvest and the stores.
-            int growth = Math.Min(Towns.Demand(state.World, player), stock.Food + income.Food);
+            // The army eats first (the upkeep), then the towns take food for their growth from
+            // the turn's harvest and the stores.
+            int army = Math.Min(Upkeep.Of(state, player), Math.Max(0, stock.Food + income.Food));
+            int growth = Math.Min(Towns.Demand(state.World, player), Math.Max(0, stock.Food + income.Food - army));
             int[] have = { stock.Gold, stock.Food, stock.Wood, stock.Stone };
-            int[] gain = { income.Gold, income.Food - growth, income.Wood, income.Stone };
+            int[] gain = { income.Gold, income.Food - army - growth, income.Wood, income.Stone };
             for (int k = 0; k < 4; k++)
             {
                 amounts[k].text = have[k].ToString();
@@ -342,7 +386,7 @@ namespace Realms
                 incomes[k].EnableInClassList("goods-loss", gain[k] < 0);
             }
             goodsItems[0].tooltip = T($"Золото: +{income.Gold} за ход", $"Gold: +{income.Gold} a turn");
-            goodsItems[1].tooltip = growth > 0 ? T($"Еда: +{income.Food} за ход, на рост городов уйдёт {growth}", $"Food: +{income.Food} a turn, {growth} goes to growing towns") : T($"Еда: +{income.Food} за ход", $"Food: +{income.Food} a turn");
+            goodsItems[1].tooltip = Words.FoodTip(income.Food, Upkeep.Of(state, player), growth, Upkeep.Warriors(state, player));
             goodsItems[2].tooltip = T($"Дерево: +{income.Wood} за ход", $"Wood: +{income.Wood} a turn");
             goodsItems[3].tooltip = T($"Камень: +{income.Stone} за ход", $"Stone: +{income.Stone} a turn");
             BuildQuests();
@@ -380,7 +424,7 @@ namespace Realms
             Refresh();
         }
 
-        // ----- Tasks and the turn report -----
+        // ----- Tasks -----
 
         /// <summary>The tasks on offer, a line each: icon, task and reward.</summary>
         void BuildQuests()
@@ -474,106 +518,6 @@ namespace Realms
             return over;
         }
 
-        /// <summary>The season, the harvest, the food the towns took, and what happened to the towns and tasks.</summary>
-        /// <param name="title">The title instead of the season's: «Ход N. В прошлый ход:» on returning to a game.</param>
-        public void ShowReport(TurnReport turn, string title = null)
-        {
-            World world = state.World;
-            reportRows.Clear();
-            reportTitle.text = title ?? T($"{Words.Season(state.Turn)}, год {Words.Year(state.Turn)}", $"{Words.Season(state.Turn)}, year {Words.Year(state.Turn)}");
-            VisualElement harvest = Child(reportRows, "report-row");
-            Text(harvest, "report-text", T("Казна пополнилась", "The treasury filled up"), bold);
-            Reward(harvest, turn.Income);
-            if (turn.GrowthFood > 0)
-            {
-                VisualElement eaten = Child(reportRows, "report-row");
-                Text(eaten, "report-text", T("На рост городов ушло", "Spent on growing towns"), bold);
-                Reward(eaten, new Stock(0, turn.GrowthFood, 0, 0), "cost", false);
-            }
-            BorderRows(turn);
-            foreach (TurnEvent e in turn.Events)
-            {
-                if (e.Kind == TurnEventKind.Border)
-                    continue;
-                VisualElement row = Child(reportRows, "report-row");
-                string icon = e.Kind == TurnEventKind.QuestDone ? "coins" : e.Kind == TurnEventKind.LevelUp ? "crown"
-                    : e.Kind == TurnEventKind.GemSet ? Words.GemIcon(e.Gem)
-                    : e.Kind == TurnEventKind.StakeReached || e.Kind == TurnEventKind.StakeLost ? FlagIcon(world.Player)
-                    : e.Kind == TurnEventKind.RaidSent || e.Kind == TurnEventKind.RaidArrived || e.Kind == TurnEventKind.RaidLeft ? "swords"
-                    : e.Kind == TurnEventKind.RaidRepelled ? "coins"
-                    : e.Kind == TurnEventKind.TroopSent || e.Kind == TurnEventKind.TroopCleared || e.Kind == TurnEventKind.TroopRecalled ? FlagIcon(e.Country)
-                    : e.Kind == TurnEventKind.Grew ? "hammer" : e.Stop == GrowthStop.Food ? "wheat" : "hammer";
-                if (IconTexture(icon) == null)
-                    icon = "crown";
-                SetIcon(Child(row, "report-icon"), icon);
-                bool big = e.Kind == TurnEventKind.LevelUp || (e.Kind == TurnEventKind.GemSet && e.Country == world.Player);
-                Label text = Text(row, "report-text", Words.Event(e, world), big ? black : regular);
-                if (e.Kind == TurnEventKind.Stopped || e.Kind == TurnEventKind.LandFull || e.Kind == TurnEventKind.StakeLost
-                    || e.Kind == TurnEventKind.RaidSent || e.Kind == TurnEventKind.RaidArrived || e.Kind == TurnEventKind.TroopSent)
-                    text.AddToClassList("report-warn");
-                if (e.City >= 0)
-                {
-                    int city = e.City;
-                    row.AddToClassList("report-link");
-                    OnPress(row, () => CityPicked?.Invoke(city));
-                }
-                foreach (VisualElement child in row.Query<VisualElement>().ToList())
-                {
-                    if (child != row)
-                        child.pickingMode = PickingMode.Ignore;
-                }
-            }
-            report.style.display = DisplayStyle.Flex;
-            // On returning it stays longer: the players look round their kingdom first.
-            reportUntil = ViewClock.Now + (title != null ? 20f : turn.Events.Count > 0 ? 10f : 5f);
-        }
-
-        /// <summary>
-        /// The cells the players' towns took this turn, one line for all, and a line for each
-        /// resource that came inside the border (the territory plan of 2026-11-11).
-        /// </summary>
-        void BorderRows(TurnReport turn)
-        {
-            World world = state.World;
-            var towns = new List<string>();
-            var resources = new List<int>();
-            int cells = 0, first = -1;
-            foreach (TurnEvent e in turn.Events)
-            {
-                if (e.Kind != TurnEventKind.Border)
-                    continue;
-                cells++;
-                if (first < 0)
-                    first = e.City;
-                if (!towns.Contains(world.Cities[e.City].Label))
-                    towns.Add(world.Cities[e.City].Label);
-                if (world.Cells[e.Cell].Resource != Resource.None)
-                    resources.Add(e.Cell);
-            }
-            if (cells == 0)
-                return;
-            ReportLine(FlagIcon(world.Player), Words.BorderGrew(cells, towns), first);
-            foreach (int cell in resources)
-                ReportLine(Words.ResourceIcon(world.Cells[cell].Resource), Words.ResourceInside(world.Cells[cell].Resource), -1);
-        }
-
-        void ReportLine(string icon, string words, int city)
-        {
-            VisualElement row = Child(reportRows, "report-row");
-            SetIcon(Child(row, "report-icon"), IconTexture(icon) != null ? icon : "crown");
-            Text(row, "report-text", words, regular);
-            if (city >= 0)
-            {
-                row.AddToClassList("report-link");
-                OnPress(row, () => CityPicked?.Invoke(city));
-            }
-            foreach (VisualElement child in row.Query<VisualElement>().ToList())
-            {
-                if (child != row)
-                    child.pickingMode = PickingMode.Ignore;
-            }
-        }
-
         public void ToggleKingdoms()
         {
             if (kingdoms == null)
@@ -584,6 +528,8 @@ namespace Realms
                 ShowMenu(false);
             kingdoms.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             kingdomsButton.EnableInClassList("button-on", show);
+            // The list stands where the day's events are.
+            events.style.display = show ? DisplayStyle.None : DisplayStyle.Flex;
         }
 
         /// <summary>Closes the kingdoms' list opened from the bar; false when it was not open.</summary>
@@ -671,23 +617,36 @@ namespace Realms
             }
         }
 
-        public void ToggleHelp(bool show)
+        /// <summary>
+        /// Shows or hides the help, on <paramref name="page"/> when one is given (the battle opens
+        /// its own), else on the page the players last chose outside the battle's.
+        /// </summary>
+        public void ToggleHelp(bool show, int page = -1)
         {
             if (show)
+            {
                 FillHelpHints();
+                ShowHelpPage(page >= 0 ? page : mapHelpPage);
+            }
             helpOverlay.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         Button[] helpTabs;
         VisualElement[] helpPages;
+
+        /// <summary>The help's pages: the basics, the keys, the battle and the hints seen.</summary>
+        public const int HelpBattlePage = 2, HelpHintsPage = 3;
+        int mapHelpPage;
         List<string> seenHints = new List<string>();
 
         /// <summary>The hints the players have seen (kept in the settings), for the help's third page.</summary>
         public void SetSeenHints(List<string> hints) => seenHints = hints ?? new List<string>();
 
-        /// <summary>Shows one of the help's pages; the help opens on the page last shown.</summary>
+        /// <summary>Shows one of the help's pages.</summary>
         public void ShowHelpPage(int page)
         {
+            if (page != HelpBattlePage)
+                mapHelpPage = page;
             for (int k = 0; k < helpPages.Length; k++)
             {
                 helpPages[k].style.display = k == page ? DisplayStyle.Flex : DisplayStyle.None;
@@ -712,7 +671,7 @@ namespace Realms
         /// <summary>The third page: every hint the players have seen, so a forgotten one can be read again.</summary>
         void FillHelpHints()
         {
-            VisualElement page = helpPages[2];
+            VisualElement page = helpPages[HelpHintsPage];
             page.Clear();
             if (seenHints.Count == 0)
             {
@@ -726,15 +685,6 @@ namespace Realms
                 Text(row, "help-text", hint, regular);
             }
         }
-
-        public void Toast(string text, float seconds = 3.5f)
-        {
-            toast.text = text;
-            toastUntil = ViewClock.Now + seconds;
-        }
-
-        /// <summary>The message line gone at once.</summary>
-        public void ClearToast() => toastUntil = 0f;
 
         /// <summary>True when the pointer (screen pixels, origin bottom left) is over a panel.</summary>
         public bool PointerOverUi(Vector2 screen)
@@ -773,7 +723,7 @@ namespace Realms
             infoActions.Clear();
             if (!state.Seen[index])
             {
-                Fogged();
+                Fogged(WayHint(index, actions));
                 return;
             }
             string icon = null;
@@ -909,10 +859,13 @@ namespace Realms
         }
 
         /// <summary>A cell in the fog: nothing is known about it.</summary>
-        void Fogged()
+        void Fogged(string way)
         {
             infoSubtitle.text = T("Туман", "Fog");
-            Finish(T("Неизведанная земля", "Unexplored land"), T("Пошли сюда героя: он разведает всё вокруг.", "Send a hero here: they will scout everything around."), null, new Color(0.45f, 0.47f, 0.5f));
+            string hint = way == null
+                ? T("Пошли сюда героя: он разведает всё вокруг.", "Send a hero here: they will scout everything around.")
+                : T("Путь в тумане проложен наугад: герой поправит его, когда увидит землю. ", "The way through the fog is a guess: the hero will mend it as the land comes into sight. ") + way;
+            Finish(T("Неизведанная земля", "Unexplored land"), hint, null, new Color(0.45f, 0.47f, 0.5f));
         }
 
         void Finish(string title, string hint, string icon, Color colour)
@@ -976,8 +929,10 @@ namespace Realms
             if (path == null || path.Target != index)
                 return null;
             int turns = path.Turns[path.Turns.Count - 1];
-            bool fight = state.World.Cells[index].Monster != Monster.None;
-            Hero other = state.HeroAt(index);
+            // What waits in the fog is not known.
+            bool seen = state.Seen[index];
+            bool fight = seen && state.World.Cells[index].Monster != Monster.None;
+            Hero other = seen ? state.HeroAt(index) : null;
             string go = fight ? T("Щёлкни правой ещё раз (или G) — и в бой!", "Right-click again (or G) — and into battle!")
                 : other != null ? T($"Щёлкни правой ещё раз (или G) — {hero.Label} подойдёт к герою {other.Label}, и они обменяются войском.", $"Right-click again (or G) — {hero.Label} will walk up to {other.Label}, and they will trade troops.")
                 : T("Щёлкни правой ещё раз (или G) — герой пойдёт.", "Right-click again (or G) — the hero will go.");
@@ -1065,6 +1020,8 @@ namespace Realms
                     houses++;
                 else if (lots[p] == Towns.FreeLot)
                     free++;
+                else if (lots[p] == Towns.BuildLot)
+                    buildings.Add(Words.GreatBuildName);
                 else
                     buildings.Add(Words.Town((TownBuilding)lots[p]));
             }
@@ -1157,6 +1114,10 @@ namespace Realms
                 Refusal refusal = state.CanRecruit(country, city.Index, unit, count);
                 Unit hired = unit;
                 string what = waiting > 0 ? T($"ждут найма: {waiting}", $"waiting to be hired: {waiting}") : null;
+                // The upkeep a hire adds (the economy plan's 3.4, 2026-11-12).
+                int more = Upkeep.More(state, country, unit, count);
+                if (more > 0)
+                    what = (what != null ? what + " · " : "") + Words.UpkeepMore(more);
                 ActionButton(T($"Нанять: {Words.Count(unit, count)}", $"Hire: {Words.Count(unit, count)}"), what, Units.Cost(unit) * count, refusal,
                     () => Recruit?.Invoke(city.Index, hired, count), null, portraits?.Of(unit), into);
             }
@@ -1165,7 +1126,9 @@ namespace Realms
                 Refusal refusal = state.CanHireHero(country, city.Index);
                 if (refusal != Refusal.TooManyHeroes)
                 {
-                    ActionButton(T("Нанять героя", "Hire a hero"), T($"с ним {HeroRules.HireSpearmen} копейщиков", $"comes with {HeroRules.HireSpearmen} spearmen"), new Stock(HeroRules.HireGold, 0, 0, 0),
+                    int more = Upkeep.More(state, country, Unit.Spearmen, HeroRules.HireSpearmen);
+                    string what = T($"с ним {HeroRules.HireSpearmen} копейщиков", $"comes with {HeroRules.HireSpearmen} spearmen") + (more > 0 ? " · " + Words.UpkeepMore(more) : "");
+                    ActionButton(T("Нанять героя", "Hire a hero"), what, new Stock(HeroRules.HireGold, 0, 0, 0),
                         refusal, () => HireHero?.Invoke(city.Index), null, portraits?.Hero, into);
                 }
             }
@@ -1407,9 +1370,10 @@ namespace Realms
         }
 
         /// <summary>
-        /// How much a badge is scaled to sit in its cell as the land does: about seven tenths of
-        /// the cell's width across (a round badge of <see cref="BadgeSize"/> points; the monsters'
-        /// wider pill stays within the cell), however near or far the camera is, but never under
+        /// How much a badge is scaled to sit in its cell as the land does: about half the cell's
+        /// width across (seven tenths until the players asked for smaller badges, 2026-11-12; a
+        /// round badge of <see cref="BadgeSize"/> points; the monsters' wider pill stays within
+        /// the cell), however near or far the camera is, but never under
         /// <see cref="BadgeLeast"/> or over <see cref="BadgeMost"/> points. At a fixed size, bigger
         /// badges would have covered the neighbours from afar and looked small up close.
         /// </summary>
@@ -1423,7 +1387,7 @@ namespace Realms
         }
 
         /// <summary>The badges' share of their cell's width, and their least and greatest size in points.</summary>
-        const float BadgeShare = 0.7f, BadgeLeast = 30f, BadgeMost = 120f;
+        const float BadgeShare = 0.5f, BadgeLeast = 22f, BadgeMost = 86f;
 
         /// <summary>The round badges' size in the style sheet, in points.</summary>
         const float BadgeSize = 50f;
@@ -1472,20 +1436,30 @@ namespace Realms
             float dockTop = dock.worldBound.yMin, listTop = kingdoms.resolvedStyle.top;
             if (!float.IsNaN(dockTop) && !float.IsNaN(listTop) && dockTop > listTop)
                 kingdoms.style.maxHeight = Mathf.Max(160f, dockTop - listTop - 10f);
-            Vector4 mask = Vector4.zero;
-            if (fade && panel.width > 0f && panel.height > 0f)
-                mask = new Vector4((tasks.xMin - 6f) / panel.width, 1f - (tasks.yMax + 6f) / panel.height,
-                    (tasks.xMax + 6f) / panel.width, 1f - (tasks.yMin - 6f) / panel.height);
-            Shader.SetGlobalVector(HudMaskId, mask);
+            // The day's events along the right edge are lines without a window too.
+            Rect news = EventsBox();
+            Shader.SetGlobalVector(HudMaskId, fade ? Mask(tasks, panel) : Vector4.zero);
+            Shader.SetGlobalVector(HudMask2Id, news.width > 0f ? Mask(news, panel) : Vector4.zero);
             if (fade)
                 tasks = Rect.MinMaxRect(tasks.xMin - 100f, tasks.yMin - 10f, tasks.xMax + 100f, tasks.yMax + 60f);
+            if (news.width > 0f)
+                news = Rect.MinMaxRect(news.xMin - 100f, news.yMin - 10f, news.xMax + 100f, news.yMax + 60f);
             plateRects.Clear();
             float barBottom = topBar != null && !float.IsNaN(topBar.worldBound.yMax) ? topBar.worldBound.yMax : 0f;
             // The badges of resources, places and monster groups hide until Alt is held, and then
             // show over all the seen land, not only near the camera: the players asked for them
             // so (2026-11-10). The towns' names keep showing.
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
-            bool badgesShown = BadgesShown || keyboard != null && (keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed);
+            bool alt = keyboard != null && (keyboard.leftAltKey.isPressed || keyboard.rightAltKey.isPressed);
+            // Or Alt turns them on and off, for players who find holding a key hard (the settings,
+            // the interface plan's 3.5).
+            if (GameSettings.AltToggles)
+            {
+                if (keyboard != null && (keyboard.leftAltKey.wasPressedThisFrame || keyboard.rightAltKey.wasPressedThisFrame))
+                    badgesOn = !badgesOn;
+                alt = badgesOn;
+            }
+            bool badgesShown = BadgesShown || alt;
             // With them, the cells the other kingdoms' towns take next (the territory plan of 2026-11-11).
             view?.ShowOtherMarks(badgesShown);
             foreach (MapLabel label in labels)
@@ -1520,27 +1494,19 @@ namespace Realms
                 if (town && !hidden)
                     AddPlate(label.Anchor[0], p, label.Kind == LabelKind.Capital);
                 label.Anchor.style.translate = new Translate(p.x, p.y);
-                label.Anchor.style.opacity = hidden ? 0f : fade && tasks.Contains(p) ? 0.12f : 1f;
+                label.Anchor.style.opacity = hidden ? 0f : (fade && tasks.Contains(p)) || news.Contains(p) ? 0.12f : 1f;
             }
 
-            PlaceHeroShields(distance, barBottom, fade ? tasks : Rect.zero);
+            PlaceHeroShields(distance, barBottom, fade ? tasks : Rect.zero, news);
             UpdateMinimapView();
             PlaceTags();
 
-            float left = toastUntil - ViewClock.Now;
-            toast.style.opacity = Mathf.Clamp01(left / 0.4f);
+            UpdateToast();
+            UpdateTurnShow();
+            UpdateSpoils();
+            UpdateGemFlights();
             FadeSaved();
             PulseGuide();
-            // Under the top bar, or under the turn report while it shows.
-            toast.style.top = report.style.display == DisplayStyle.Flex && !float.IsNaN(report.layout.yMax) ? report.layout.yMax + 8f : 72f;
-            if (report.style.display == DisplayStyle.Flex)
-            {
-                float shown = reportUntil - ViewClock.Now;
-                if (shown <= 0)
-                    report.style.display = DisplayStyle.None;
-                else
-                    report.style.opacity = Mathf.Clamp01(shown / 0.5f);
-            }
         }
 
         // ----- Minimap -----
@@ -1553,7 +1519,7 @@ namespace Realms
         {
             World world = state.World;
             Rect seenArea = SeenArea();
-            mapCamera.SetSeen(seenArea, SeenAt);
+            mapCamera.SetSeen(seenArea);
             Rect window = MinimapWindow(seenArea);
             const int width = 320;
             int height = Mathf.Max(1, Mathf.RoundToInt(width * window.height / window.width));
@@ -1654,13 +1620,6 @@ namespace Realms
             minimapSize = new Vector2(Mathf.Round(width * fit), Mathf.Round(height * fit));
             minimap.style.width = minimapSize.x;
             minimap.style.height = minimapSize.y;
-        }
-
-        /// <summary>Whether the players have seen the cell under a point of the map (x, z).</summary>
-        bool SeenAt(Vector2 p)
-        {
-            int i = view != null ? view.CellAt(new Vector3(p.x, 0f, p.y)) : -1;
-            return i >= 0 && i < state.Seen.Length && state.Seen[i];
         }
 
         /// <summary>The box (x, z) round the cells the players have seen, or an empty one.</summary>
@@ -1812,6 +1771,23 @@ namespace Realms
         }
 
         /// <summary>A heading and its "key — what it does" rows in the help window.</summary>
+        Label altHelpKey, altHelpText;
+
+        static string AltHelpKey => GameSettings.AltToggles ? "Alt" : T("Держать Alt", "Hold Alt");
+
+        static string AltHelpText => GameSettings.AltToggles
+            ? T("значки ресурсов, мест и чудовищ на всей карте; Alt ещё раз — спрятать", "icons of resources, places and monsters over the whole map; Alt again — hide them")
+            : T("значки ресурсов, мест и чудовищ на всей карте", "icons of resources, places and monsters over the whole map");
+
+        /// <summary>The help's Alt row after the settings changed how Alt works.</summary>
+        void UpdateAltHelp()
+        {
+            if (altHelpKey != null)
+                altHelpKey.text = AltHelpKey;
+            if (altHelpText != null)
+                altHelpText.text = AltHelpText;
+        }
+
         void HelpGroup(VisualElement column, string title, string[,] rows)
         {
             Text(column, "help-group", title, black);
@@ -1852,6 +1828,11 @@ namespace Realms
         {
             if (minimapTexture != null)
                 Destroy(minimapTexture);
+            if (titleFrames != null)
+            {
+                titleFrames.Release();
+                Destroy(titleFrames);
+            }
         }
     }
 }

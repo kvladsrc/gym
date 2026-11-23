@@ -128,6 +128,7 @@ namespace Realms
                 ChooseHero(chosen, false);
             mode = Mode.Hero;
             screenCity = -1;
+            Ambience.Ground = state.World.Cells[chosen.Cell].Biome;
             QuietMap();
             // Close enough for the hero to fill about a third of the view's height (from 3.4 the
             // figure was small and the rocks round it filled the view, review of 2026-11-10), the
@@ -278,13 +279,14 @@ namespace Realms
             };
         }
 
-        /// <summary>On a screen the map shows no selection, pointer ring or way.</summary>
+        /// <summary>On a screen the map shows no selection, pointer ring, hero's ring or way.</summary>
         void QuietMap()
         {
             hover = -1;
             view.SetHover(-1);
             view.SetSelect(-1);
             heroes.ShowPath(null, null);
+            heroes.RingHidden = true;
         }
 
         void LeaveScreen()
@@ -296,6 +298,7 @@ namespace Realms
             mapCamera.Release();
             look.Clear();
             hud.CloseScreen();
+            heroes.RingHidden = false;
             heroes.ShowPath(hero, path);
             hud.ShowHero(hero, path);
             Select(select);

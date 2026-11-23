@@ -1,5 +1,5 @@
-"""Rig preparation, animation transfer, retopology and normal baking: Blender
-scripts, without weights or a GPU model."""
+"""Rig preparation, animation transfer, retopology, baking and hair fitting:
+Blender scripts, without weights or a GPU model."""
 
 import json
 import os
@@ -29,6 +29,7 @@ from model_server_sdk import (
 
 PREPARE_SCRIPT = RETARGET_SCRIPT.with_name("rigging.py")
 MESH_SCRIPT = RETARGET_SCRIPT.with_name("mesh_tools.py")
+HAIR_SCRIPT = RETARGET_SCRIPT.with_name("hair_fit.py")
 TIMEOUT_S = 600
 
 
@@ -163,6 +164,37 @@ class BakeColourParams(BaseModel):
     )
 
 
+class FitHairParams(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    thickness: float = Field(
+        default=1.0,
+        ge=0.3,
+        le=1.5,
+        description="Factor on the hair's height above the scalp (its first 5 cm): "
+        "below 1 the hairstyle lies closer to the head",
+        json_schema_extra=ui(
+            ru="Множитель высоты волос над кожей (первые 5 см): меньше 1 — причёска ближе к голове",
+            primary=True,
+        ),
+    )
+    braid: bool = Field(
+        default=False,
+        description="A braid or ponytail: hair hanging behind the nape swings back off the back "
+        "and follows the chest",
+        json_schema_extra=ui(
+            ru="Коса или хвост: волосы за затылком отводятся от спины и следуют за грудью"
+        ),
+    )
+    clearance_mm: float = Field(
+        default=1.5,
+        ge=0.0,
+        le=10.0,
+        description="Air between the skin and the hair, millimetres",
+        json_schema_extra=ui(ru="Зазор между кожей и волосами, миллиметры"),
+    )
+
+
 GLB = ["model/gltf-binary"]
 RETOPO = TaskSpec(
     "3d-retopo",
@@ -213,8 +245,12 @@ BAKE_COLOUR = TaskSpec(
         InputSpec(
             role="painted",
             mime=GLB,
-            description="The painted mesh the base colour comes from, such as LOD0",
-            labels={"ru": "Покрашенная сетка, откуда берётся цвет, например LOD0"},
+            description="The painted mesh the base colour, metal and roughness come from, "
+            "such as LOD0",
+            labels={
+                "ru": "Покрашенная сетка, откуда берутся цвет, металличность и "
+                "шероховатость, например LOD0"
+            },
         ),
         InputSpec(
             role="mesh",
@@ -225,6 +261,27 @@ BAKE_COLOUR = TaskSpec(
                 "ru": "Сетка той же формы, куда он запекается, например LOD грубее; "
                 "без UV она развернётся"
             },
+        ),
+    ),
+    max_count=1,
+)
+FIT_HAIR = TaskSpec(
+    "3d-fit-hair",
+    FitHairParams,
+    ("model/gltf-binary",),
+    prompt="none",
+    inputs=(
+        InputSpec(
+            role="body",
+            mime=GLB,
+            description="A SOMA person: fromsoma's or frommhr's result",
+            labels={"ru": "Человек SOMA: результат fromsoma или frommhr"},
+        ),
+        InputSpec(
+            role="hair",
+            mime=GLB,
+            description="HairDeck's hair cards",
+            labels={"ru": "Волосы HairDeck"},
         ),
     ),
     max_count=1,
@@ -337,10 +394,10 @@ class AnimationToolsServer(ModelServer):
     model = ModelInfo(
         id="animation-tools",
         name="Animation tools (Blender)",
-        revision="19",
-        license="Repository code; Blender: GPL-3.0-or-later",
+        revision="20",
+        license="Repository code; Blender: GPL-3.0-or-later; SOMA's haircap: Apache-2.0",
     )
-    tasks = (PREPARE, RETARGET, NATIVE_RETARGET, RETOPO, BAKE, BAKE_COLOUR)
+    tasks = (PREPARE, RETARGET, NATIVE_RETARGET, RETOPO, BAKE, BAKE_COLOUR, FIT_HAIR)
 
     def __init__(self) -> None:
         self._blender: str | None = None
@@ -352,7 +409,7 @@ class AnimationToolsServer(ModelServer):
 
     def generate(self, job: Job) -> list[Output]:
         assert self._blender
-        if job.task in (RETOPO.task, BAKE.task, BAKE_COLOUR.task):
+        if job.task in (RETOPO.task, BAKE.task, BAKE_COLOUR.task, FIT_HAIR.task):
             return [self._mesh(job)]
         with tempfile.TemporaryDirectory(prefix="animation-tools-") as directory:
             work = Path(directory)
@@ -420,7 +477,26 @@ class AnimationToolsServer(ModelServer):
         with tempfile.TemporaryDirectory(prefix="mesh-tools-") as directory:
             work = Path(directory)
             target = work / "result.glb"
-            if job.task == RETOPO.task:
+            script = MESH_SCRIPT
+            if job.task == FIT_HAIR.task:
+                assert isinstance(job.params, FitHairParams)
+                body, hair = work / "body.glb", work / "hair.glb"
+                body.write_bytes(job.inputs["body"].data)
+                hair.write_bytes(job.inputs["hair"].data)
+                script = HAIR_SCRIPT
+                args = [
+                    str(body),
+                    str(hair),
+                    str(target),
+                    json.dumps(
+                        {
+                            "thickness": job.params.thickness,
+                            "braid": job.params.braid,
+                            "clearance": job.params.clearance_mm / 1000,
+                        }
+                    ),
+                ]
+            elif job.task == RETOPO.task:
                 assert isinstance(job.params, RetopoParams)
                 source = work / "mesh.glb"
                 source.write_bytes(job.inputs["mesh"].data)
@@ -466,7 +542,7 @@ class AnimationToolsServer(ModelServer):
                     str(job.params.texture_size),
                     str(job.params.ray_distance),
                 ]
-            report = mesh_report(run(self._blender, MESH_SCRIPT, *args))
+            report = mesh_report(run(self._blender, script, *args))
             if not target.is_file():
                 raise GenerationError("Blender did not write the GLB")
             return Output("model/gltf-binary", target.read_bytes(), report)

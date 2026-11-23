@@ -38,11 +38,15 @@
       "triangles": 3994
     },
     "wolf": {
-      "id": "01a1bb70706e2329a8c5ba",
-      "triangles": 2469
+      "id": "01a1f7ed542c7c2a23e2bb",
+      "triangles": 2996
+    },
+    "wolf_2": {
+      "id": "01a1f7ed5498ef7777f057",
+      "triangles": 2989
     },
     "boar": {
-      "id": "01a1c7b0527dc433852b5f",
+      "id": "01a1f7ed54f24ba9d0884b",
       "triangles": 2991
     },
     "sheep": {
@@ -114,8 +118,12 @@
       "triangles": 2662
     },
     "spider": {
-      "id": "01a1bda4e4dc4717d2b6b1",
-      "triangles": 2488
+      "id": "01a1ca43563b923fc7c0e9",
+      "triangles": 2999
+    },
+    "spider_2": {
+      "id": "01a1ca4312206d5004ce28",
+      "triangles": 2996
     },
     "barracks": {
       "id": "01a1c711f2546d401b46bc",
@@ -386,6 +394,10 @@
     "well": {
       "id": "01a1c7331b804073cdc3ec",
       "triangles": 3000
+    },
+    "bell_tower": {
+      "id": "01a1d0bf6c71172b3280be",
+      "triangles": 5980
     }
   },
   "icons": {
@@ -418,5 +430,8 @@
     "dirt": "01a1c0a4479fdcf13b7fd2",
     "cobble": "01a1c083365a403a3da9ce",
     "road": "01a1c1261e22d6275154cf"
+  },
+  "videos": {
+    "title_loop": "01a1cd9e7917f4deef8afa"
   }
 }

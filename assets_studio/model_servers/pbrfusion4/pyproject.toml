@@ -1,0 +1,40 @@
+[project]
+name = "pbrfusion4-model-server"
+version = "0.1.0"
+description = "Height and normal maps of a flat material texture for the asset studio, based on PBRFusion 4."
+# PyTorch 2.8 / CUDA 12.9 like the other servers: one download in uv's cache.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk[images]",
+  "torch==2.8.0",
+  # The UNet and the VAE of Stable Diffusion 2, built from the configurations
+  # stored with the weights (written by diffusers 0.28).
+  "diffusers==0.35.2",
+  "transformers==4.57.6",
+  # Builds the networks without allocating their random initial weights.
+  "accelerate==1.15.0",
+  "safetensors==0.8.0",
+  "huggingface-hub==0.36.2",
+  "numpy==1.26.4",
+  # The bilateral filter, Sobel and resampling with wrap-around borders.
+  "opencv-python-headless==4.11.0.86",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+pbrfusion4-model-server = "pbrfusion4_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

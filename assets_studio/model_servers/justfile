@@ -4,7 +4,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 # these recipes only dispatch to them. `just <model>` starts the server,
 # extra arguments go to it (e.g. `just qwen_image --port 9200`).
 
-servers := "qwen_image birefnet sam2 hunyuan3d21 hi3d trellis2_paint hairdeck hunyuan_paint21 mia skintokens unirig kimodo mocapanything gvhmr gemx htd_refine prompthmr vitpose animation_tools xtts stable_audio yue2 llm unlimited_ocr"
+servers := "qwen_image birefnet pbrfusion4 sam2 hunyuan3d21 hi3d lato2 deepmesh bpt trellis2_paint hairdeck fromsoma hunyuan_paint21 mia skintokens unirig kimodo mocapanything gvhmr gemx htd_refine prompthmr vitpose animation_tools audio2face xtts qwen3_tts stable_audio yue2 llm unlimited_ocr qwen_review"
 
 # Show the available commands
 default:
@@ -22,6 +22,11 @@ alias qwen-image := qwen_image
 birefnet *args:
     just --justfile birefnet/justfile serve "$@"
 
+# PBRFusion 4: normal and height maps of a flat texture, image to image (port 9145)
+[positional-arguments]
+pbrfusion4 *args:
+    just --justfile pbrfusion4/justfile serve "$@"
+
 # Hunyuan3D-2.1 Shape: image to 3D shape, the 3.3B model offloaded to RAM (port 9119)
 [positional-arguments]
 hunyuan3d21 *args:
@@ -31,6 +36,21 @@ hunyuan3d21 *args:
 [positional-arguments]
 hi3d *args:
     just --justfile hi3d/justfile serve "$@"
+
+# LATO.2: a detailed mesh rebuilt as a low-poly one with a target vertex count (port 9135)
+[positional-arguments]
+lato2 *args:
+    just --justfile lato2/justfile serve "$@"
+
+# DeepMesh 0.5B: a detailed mesh rebuilt triangle by triangle, autoregressive (port 9136)
+[positional-arguments]
+deepmesh *args:
+    just --justfile deepmesh/justfile serve "$@"
+
+# BPT 0.5B: a detailed mesh rebuilt in patches of triangles, autoregressive (port 9137)
+[positional-arguments]
+bpt *args:
+    just --justfile bpt/justfile serve "$@"
 
 # Hunyuan3D-Paint 2.1: PBR paint of a mesh from its image, offloaded to RAM (port 9120)
 [positional-arguments]
@@ -46,6 +66,21 @@ trellis2_paint *args:
 [positional-arguments]
 hairdeck *args:
     just --justfile hairdeck/justfile serve "$@"
+
+# fromsoma: a SOMA person from Anny's parameters and a bald head's front and profile (port 9142; CPU)
+[positional-arguments]
+fromsoma *args:
+    just --justfile fromsoma/justfile serve "$@"
+
+# frommhr: a SOMA person from Anny's parameters and a bald head's front and profile, in MHR's face space (port 9143; CPU)
+[positional-arguments]
+frommhr *args:
+    just --justfile fromsoma/justfile serve-mhr "$@"
+
+# fromanny: a SOMA person from Anny's parameters and a bald head's front and profile, in Anny's own face modifiers (port 9144; CPU)
+[positional-arguments]
+fromanny *args:
+    just --justfile fromsoma/justfile serve-anny "$@"
 
 # Make-It-Animatable v2: a Mixamo skeleton for a character mesh (port 9113; needs HF_TOKEN)
 [positional-arguments]
@@ -107,6 +142,11 @@ vitpose *args:
 animation_tools *args:
     just --justfile animation_tools/justfile serve "$@"
 
+# Audio2Face-3D: facial animation from speech, on NVIDIA's sample heads (port 9138)
+[positional-arguments]
+audio2face *args:
+    just --justfile audio2face/justfile serve "$@"
+
 # Track one selected subject, preserve original pixels, white background (port 9125)
 [positional-arguments]
 sam2 *args:
@@ -116,6 +156,21 @@ sam2 *args:
 [positional-arguments]
 xtts *args:
     just --justfile xtts/justfile serve "$@"
+
+# Qwen3-TTS 1.7B VoiceDesign: speech in a voice described in words (port 9139)
+[positional-arguments]
+qwen3_tts_design *args:
+    just --justfile qwen3_tts/justfile serve --model design "$@"
+
+# Qwen3-TTS 1.7B CustomVoice: speech in one of nine built-in voices (port 9140)
+[positional-arguments]
+qwen3_tts_voice *args:
+    just --justfile qwen3_tts/justfile serve --model voice --port 9140 "$@"
+
+# Qwen3-TTS 1.7B Base: speech in the voice of a sample (port 9141)
+[positional-arguments]
+qwen3_tts_clone *args:
+    just --justfile qwen3_tts/justfile serve --model clone --port 9141 "$@"
 
 # Stable Audio Open 1.0: sounds and music (port 9105; needs HF_TOKEN)
 [positional-arguments]
@@ -143,6 +198,11 @@ qwen *args:
 [positional-arguments]
 unlimited_ocr *args:
     just --justfile unlimited_ocr/justfile serve "$@"
+
+# Qwen3.5-2B with a LoRA: a game screenshot to its predicted Steam reviews (port 9146)
+[positional-arguments]
+qwen_review *args:
+    just --justfile qwen_review/justfile serve "$@"
 
 # GPU-free fake server for tests (port 9100)
 [positional-arguments]

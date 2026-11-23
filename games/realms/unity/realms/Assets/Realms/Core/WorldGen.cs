@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 namespace Realms.Core
 {
+    /// <summary>The map's sizes a new game offers (the family asked for the choice on 2026-11-12).</summary>
+    public enum MapSize : byte
+    {
+        Small,
+        Medium,
+        Large,
+    }
+
     public sealed class WorldSettings
     {
         public int Width = 70;
@@ -18,6 +26,30 @@ namespace Realms.Core
         /// <summary>How many springs to look for, and how far apart they lie.</summary>
         public int Rivers = 10;
         public float RiverSpacing = 7f;
+
+        /// <summary>
+        /// A map of that size. The middle one is the map every number the game was tuned on had.
+        /// The small one has two thirds of its cells and four kingdoms, so each kingdom has about
+        /// as much land as there; its land grows more slowly, so the Lands gem asks less there
+        /// (<see cref="Crown.LandsGoal(MapSize)"/>). The large one has half as many cells again and
+        /// the same six kingdoms, with more wild land between them. The rivers follow the cells.
+        /// </summary>
+        public static WorldSettings Of(MapSize size)
+        {
+            switch (size)
+            {
+                case MapSize.Small:
+                    return new WorldSettings { Width = 56, Height = 34, Countries = 4, Rivers = 7 };
+                case MapSize.Large:
+                    return new WorldSettings { Width = 84, Height = 50, Rivers = 14 };
+                default:
+                    return new WorldSettings();
+            }
+        }
+
+        /// <summary>The size a world was made at, told by its width.</summary>
+        public static MapSize SizeOf(World world) =>
+            world.Width < 63 ? MapSize.Small : world.Width > 77 ? MapSize.Large : MapSize.Medium;
     }
 
     /// <summary>
@@ -683,17 +715,56 @@ namespace Realms.Core
             foreach (var link in links)
             {
                 List<int> path = RoadPath(world, owners, link.from, link.to, link.a, link.b);
+                if (path != null)
+                    Pave(world, path);
+            }
+        }
+
+        /// <summary>
+        /// A road from a town just founded to the nearest town of its kingdom that a way over land
+        /// reaches, taking the cheapest way as the map's first roads do, so it joins a road already
+        /// running near. The family chose a road and nothing more: no trade or discount along it
+        /// (2026-11-12).
+        /// </summary>
+        internal static void RoadToNearest(World world, City town)
+        {
+            var owners = new int[world.Cells.Length];
+            for (int i = 0; i < owners.Length; i++)
+                owners[i] = world.Cells[i].Owner;
+            Hex at = world.Cells[town.Cell].Hex;
+            var others = new List<City>();
+            foreach (int index in world.Countries[town.Country].Cities)
+            {
+                if (index != town.Index)
+                    others.Add(world.Cities[index]);
+            }
+            others.Sort((a, b) =>
+            {
+                int by = Hex.Distance(at, world.Cells[a.Cell].Hex).CompareTo(Hex.Distance(at, world.Cells[b.Cell].Hex));
+                return by != 0 ? by : a.Index.CompareTo(b.Index);
+            });
+            foreach (City other in others)
+            {
+                List<int> path = RoadPath(world, owners, town.Cell, other.Cell, town.Country, town.Country);
                 if (path == null)
                     continue;
-                for (int k = 0; k + 1 < path.Count; k++)
+                Pave(world, path);
+                return;
+            }
+        }
+
+        /// <summary>A road along the path: each step marked in both cells' edges.</summary>
+        static void Pave(World world, List<int> path)
+        {
+            Cell[] cells = world.Cells;
+            for (int k = 0; k + 1 < path.Count; k++)
+            {
+                for (int d = 0; d < 6; d++)
                 {
-                    for (int d = 0; d < 6; d++)
-                    {
-                        if (world.Neighbor(path[k], d) != path[k + 1])
-                            continue;
-                        cells[path[k]].Roads |= (byte)(1 << d);
-                        cells[path[k + 1]].Roads |= (byte)(1 << ((d + 3) % 6));
-                    }
+                    if (world.Neighbor(path[k], d) != path[k + 1])
+                        continue;
+                    cells[path[k]].Roads |= (byte)(1 << d);
+                    cells[path[k + 1]].Roads |= (byte)(1 << ((d + 3) % 6));
                 }
             }
         }

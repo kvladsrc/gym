@@ -41,6 +41,12 @@ namespace Realms.Core
 
         public int Target => Cells.Count == 0 ? -1 : Cells[Cells.Count - 1];
 
+        /// <summary>
+        /// The way runs to a cell the players have not seen: on through the fog as if it were
+        /// meadow, so it is laid again after every step as the fog lifts (see <see cref="GameState.Path"/>).
+        /// </summary>
+        public bool Fog;
+
         /// <summary>Steps made this turn.</summary>
         public int Now
         {
@@ -57,6 +63,9 @@ namespace Realms.Core
     public static class HeroRules
     {
         public const int MovesPerTurn = 16;
+
+        /// <summary>The steps of a turn after the army went hungry: half (<see cref="Upkeep"/>).</summary>
+        public const int HungryMoves = MovesPerTurn / 2;
         public const int MaxHeroes = 3;
         public const int HireGold = 15;
         public const int HireSpearmen = 5;
@@ -68,13 +77,16 @@ namespace Realms.Core
         /// </summary>
         public const int Militia = 5;
 
+        /// <summary>What a step into the fog is reckoned to cost on a way there: a meadow's, as the land is not known.</summary>
+        public const int FogStep = 2;
+
         /// <summary>A hero opens the fog this far around him, one more from hills and mountains.</summary>
         public const int Sight = 3;
 
+        /// <summary>The heroes' names: short and of no one people, so they read the same in both languages (2026-11-12).</summary>
         public static readonly string[] Names =
         {
-            "Ратибор", "Всеслава", "Добрыня", "Милана", "Светозар", "Ярослава", "Мирослав", "Забава",
-            "Велимир", "Любава", "Бронислав", "Огняна",
+            "Арен", "Лина", "Тео", "Мира", "Кай", "Нора", "Феликс", "Ида", "Лео", "Элла", "Финн", "Ирис",
         };
 
         /// <summary>Experience for the next level: 100 for level 2, 300 for 3, 600 for 4, 1000 for 5…</summary>

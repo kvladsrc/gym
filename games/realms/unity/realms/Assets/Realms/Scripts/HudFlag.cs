@@ -33,9 +33,13 @@ namespace Realms
         static Texture2D flagPreview, flagShield;
         static Texture2D[] patternTiles;
 
-        /// <summary>The editor for <paramref name="start"/> in the dialog's body, made wide for it.</summary>
-        public FlagDraft FlagEditor(VisualElement body, Flag start)
+        /// <summary>
+        /// The editor for <paramref name="start"/> in the dialog's body, made wide for it; the
+        /// neighbours' colours are those of <paramref name="world"/>, the game's own without it.
+        /// </summary>
+        public FlagDraft FlagEditor(VisualElement body, Flag start, World world = null)
         {
+            world ??= state?.World;
             modalCard.AddToClassList("modal-wide");
             var draft = new FlagDraft { Flag = start };
             flagPreview ??= FlagArt.NewTexture(330, 220, "preview");
@@ -92,7 +96,7 @@ namespace Realms
                     int part = row, tincture = t;
                     VisualElement swatch = Child(line, "flag-swatch");
                     swatch.style.backgroundColor = FlagArt.Tinctures[t];
-                    string owner = row == 0 ? FieldOwner(t) : null;
+                    string owner = row == 0 ? FieldOwner(world, t) : null;
                     swatch.tooltip = owner == null ? FlagArt.TinctureNames[t] : T($"{FlagArt.TinctureNames[t]}: цвет соседей ({owner})", $"{FlagArt.TinctureNames[t]}: a neighbour's colour ({owner})");
                     OnPress(swatch, () =>
                     {
@@ -170,7 +174,7 @@ namespace Realms
                         emblemIcons[k].style.unityBackgroundImageTintColor = FlagArt.Tinctures[f.EmblemColour];
                 }
                 kingdom.text = Names.Shown(Names.Kingdoms[f.Field]);
-                string owner = FieldOwner(f.Field);
+                string owner = FieldOwner(world, f.Field);
                 taken.text = owner == null ? "" : T($"Этот цвет у соседей ({owner}): они возьмут твой прежний.", $"The neighbours have this colour ({owner}): they will take your old one.");
                 taken.style.display = owner == null ? DisplayStyle.None : DisplayStyle.Flex;
                 preview.MarkDirtyRepaint();
@@ -182,14 +186,14 @@ namespace Realms
             return draft;
         }
 
-        /// <summary>The name of the other kingdom whose field is <paramref name="tincture"/>, or null.</summary>
-        string FieldOwner(int tincture)
+        /// <summary>The name of the other kingdom of <paramref name="world"/> whose field is <paramref name="tincture"/>, or null.</summary>
+        static string FieldOwner(World world, int tincture)
         {
-            if (state == null)
+            if (world == null)
                 return null;
-            foreach (Country country in state.World.Countries)
+            foreach (Country country in world.Countries)
             {
-                if (country.Index != state.World.Player && country.Flag.Field == tincture)
+                if (country.Index != world.Player && country.Flag.Field == tincture)
                     return country.Label;
             }
             return null;

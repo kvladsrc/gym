@@ -158,7 +158,9 @@ class Dispatcher:
         try:
             info = client.info()
             worker.observe(info)
-            if isinstance(info, Info) and info.status != "loading":
+            if isinstance(info, Info):
+                # Also while it loads: it already says what it does, and a first
+                # start can be stopped before the weights are downloaded.
                 self._remember(worker, info)
             job = self._repository.next_ready(worker.servers)
             if job is None:

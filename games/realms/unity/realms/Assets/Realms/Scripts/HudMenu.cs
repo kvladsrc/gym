@@ -47,6 +47,7 @@ namespace Realms
             menuBack = back.Q<Label>(className: "button-caption");
             BuildSaveButtons(buttons);
             menuNew = MenuButton(buttons, Words.MenuNewGame, "button", null, () => NewGamePicked?.Invoke());
+            MenuButton(buttons, Words.MenuSettings, "button", null, () => SettingsPicked?.Invoke());
             MenuButton(buttons, Words.MenuHelp, "button", "F1", () => Help?.Invoke());
             menuToTitle = MenuButton(buttons, Words.MenuToTitle, "button", null, () => ToTitlePicked?.Invoke());
             Button quit = MenuButton(buttons, Words.MenuQuit, "button", null, () => QuitPicked?.Invoke());
@@ -55,6 +56,8 @@ namespace Realms
             BuildTitle(menu);
             BuildNewGame(menu);
             BuildSaveList();
+            BuildSettings();
+            BuildAbout();
             Child(menu, "menu-gap");
             // «Русский / English» at the foot, in their own words: the language shows on the
             // first screen, as players seldom open settings before they play (the interface plan's 3.6).
@@ -149,13 +152,16 @@ namespace Realms
                 CloseLists();
                 ShowMenuMode(mode);
             }
-            CloseSaves();
+            CloseMenuList();
             menu.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
-            ShowTitleArt(show && menuMode == MenuMode.Title);
+            // The main menu and the new game's window stand on the game's picture, with no column:
+            // the logo and the buttons in its middle, or the new game's dark panel there.
+            bool main = show && menuMode != MenuMode.Pause;
+            ShowTitleArt(main);
             root.EnableInClassList("on-menu", show);
-            root.EnableInClassList("on-title", show && menuMode != MenuMode.Pause);
-            // The main menu has no column: the logo and the buttons stand in the middle of its picture.
-            root.EnableInClassList("on-main", show && menuMode == MenuMode.Title);
+            root.EnableInClassList("on-title", main);
+            root.EnableInClassList("on-main", main);
+            root.EnableInClassList("on-new-game", show && menuMode == MenuMode.NewGame);
         }
     }
 }

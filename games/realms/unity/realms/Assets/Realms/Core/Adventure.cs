@@ -83,6 +83,10 @@ namespace Realms.Core
 
         /// <summary>The cleared cell went into the winners' land (<see cref="Influence.TakesCleared"/>).</summary>
         public bool Took;
+
+        /// <summary>What happened on the field, and the gold of the chest the players took on it (0 for none).</summary>
+        public FieldEvent FieldEvent;
+        public int ChestGold;
     }
 
     /// <summary>Heroes, fog of war, recruits, places and fights.</summary>
@@ -296,10 +300,19 @@ namespace Realms.Core
             return c.Monster == Monster.None || end;
         }
 
-        /// <summary>The cheapest way for the hero to the cell, or null.</summary>
+        /// <summary>
+        /// The cheapest way for the hero to the cell, or null. The players may send a hero to a
+        /// cell in the fog (2026-11-12: they had to lay a new way every two cells): the way runs
+        /// over the seen land and on through the fog as if it were meadow (<see cref="HeroRules.FogStep"/>),
+        /// whatever lies there, and is laid again after every step as the fog lifts
+        /// (<see cref="HeroPath.Fog"/>). A way to a seen cell keeps to the seen land, as before.
+        /// </summary>
         public HeroPath Path(Hero hero, int target)
         {
-            if (target < 0 || target == hero.Cell || !CanEnter(hero, target, true))
+            if (target < 0 || target == hero.Cell)
+                return null;
+            bool fog = hero.Country == World.Player && !Seen[target];
+            if (!fog && !CanEnter(hero, target, true))
                 return null;
             int n = World.Cells.Length;
             var cost = new int[n];
@@ -322,9 +335,12 @@ namespace Realms.Core
                 for (int dir = 0; dir < 6; dir++)
                 {
                     int j = World.Neighbor(i, dir);
-                    if (j < 0 || !CanEnter(hero, j, j == target))
+                    if (j < 0)
                         continue;
-                    int next = cost[i] + HeroRules.StepCost(World, i, dir);
+                    bool hidden = fog && !Seen[j];
+                    if (!hidden && !CanEnter(hero, j, j == target))
+                        continue;
+                    int next = cost[i] + (hidden ? HeroRules.FogStep : HeroRules.StepCost(World, i, dir));
                     if (next < cost[j])
                     {
                         cost[j] = next;
@@ -335,14 +351,14 @@ namespace Realms.Core
             }
             if (cost[target] == int.MaxValue)
                 return null;
-            var path = new HeroPath();
+            var path = new HeroPath { Fog = fog };
             for (int i = target; i != hero.Cell; i = previous[i])
                 path.Cells.Add(i);
             path.Cells.Reverse();
             int left = hero.Moves, turn = 0, from = hero.Cell;
             foreach (int cell in path.Cells)
             {
-                int step = HeroRules.StepCost(World, from, Direction(from, cell));
+                int step = fog && !Seen[cell] ? HeroRules.FogStep : HeroRules.StepCost(World, from, Direction(from, cell));
                 if (step > left)
                 {
                     turn++;
@@ -513,10 +529,42 @@ namespace Realms.Core
         {
             Cell c = World.Cells[cell];
             float win = (odds ?? OddsOf(hero, cell)).Win;
-            return new Battle(hero.Army, hero.Attack, hero.Defence, c.Monster, c.Count, c.Biome, Rng.NextInt())
+            FieldEvent fieldEvent = FieldEventOf(cell);
+            return new Battle(hero.Army, hero.Attack, hero.Defence, c.Monster, c.Count, c.Biome, Rng.NextInt(), fieldEvent)
             {
                 RewardFactor = Odds.RewardFactor(win),
+                ChestGold = fieldEvent == FieldEvent.Loot ? ChestGoldOf(cell) : 0,
             };
+        }
+
+        /// <summary>
+        /// What happens on the field of the fight with the group on the cell (the combat plan of
+        /// 2026-11-11, 3.5): an ambush or a chest in about one fight in four, the same for the same
+        /// cell and turn, so that the window before the fight, its odds and the fight agree.
+        /// </summary>
+        public FieldEvent FieldEventOf(int cell)
+        {
+            float x = (FieldHash(cell) & 0xFFFF) / 65536f;
+            return x < Battle.AmbushShare ? FieldEvent.Ambush
+                : x < Battle.AmbushShare + Battle.LootShare ? FieldEvent.Loot
+                : FieldEvent.None;
+        }
+
+        /// <summary>The gold of the chest on the field of the fight on the cell this turn: 10-20, about a map chest's.</summary>
+        public int ChestGoldOf(int cell) => 10 + (int)((FieldHash(cell) >> 16) % 11);
+
+        uint FieldHash(int cell)
+        {
+            unchecked
+            {
+                uint h = (uint)World.Seed * 0x9E3779B1u ^ (uint)Turn * 0x85EBCA77u ^ (uint)cell * 0xC2B2AE3Du;
+                h ^= h >> 15;
+                h *= 0x2C1B3C6Du;
+                h ^= h >> 12;
+                h *= 0x297A2D39u;
+                h ^= h >> 15;
+                return h;
+            }
         }
 
         /// <summary>What beating the group on the cell would pay, by the odds of the fight.</summary>
@@ -533,7 +581,7 @@ namespace Realms.Core
             int seed = World.Seed * 31 + Turn * 7919 + cell * 104729 + c.Count;
             foreach (Stack s in hero.Army)
                 seed = seed * 17 + s.Count;
-            return Odds.Of(hero.Army, hero.Attack, hero.Defence, c.Monster, c.Count, c.Biome, seed, runs);
+            return Odds.Of(hero.Army, hero.Attack, hero.Defence, c.Monster, c.Count, c.Biome, seed, runs, FieldEventOf(cell));
         }
 
         /// <summary>What beating the group gives: gold for its size, goods from a lair.</summary>
@@ -568,6 +616,13 @@ namespace Realms.Core
             };
             int before = c.Count, left = battle.MonstersLeft();
             battle.Survivors(hero.Army);
+            // The chest is the players' whatever the end: their stack carried it off the field.
+            report.FieldEvent = battle.FieldEvent;
+            if (battle.ChestTaken)
+            {
+                report.ChestGold = battle.ChestGold;
+                Treasury[hero.Country].Gold += battle.ChestGold;
+            }
             report.Killed = before - left;
             report.Experience = battle.Experience;
             report.LevelUps = Gain(hero, battle.Experience);

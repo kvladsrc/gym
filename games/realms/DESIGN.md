@@ -17,8 +17,8 @@ will change.
 A colourful turn-based map strategy for a father and son who rule one kingdom
 together at one computer. The kingdom lies on an island of hexagons: you
 build up your towns, open farms, mines and workshops, clear the lairs of
-trolls, wolves and boars, and race five other kingdoms to a goal chosen at
-the start. A game takes 30–60 minutes, about 40 turns.
+trolls, wolves and boars, and race the other kingdoms (five, or three on a
+small map) to a goal chosen at the start. A game takes 30–60 minutes, about 40 turns.
 
 The son likes global strategy with a map where you build cities. Building is
 therefore the centre of the game. After playing the first build the players
@@ -65,9 +65,9 @@ kingdoms for now.
    difference ("+12 gold, +5 food…").
 2. **Decisions.** In any order:
    - in a town: build or upgrade a building, train a unit;
-   - on a cell of your land: build a field building (farm, mine…) or a road;
+   - on a cell of your land: build a field building (farm, mine…);
    - next to your land: found a new town with settlers (the land itself grows
-     from the towns by itself);
+     from the towns by itself, and a road comes with the town);
    - with a hero: move, fight a monster group, visit a chest, shrine or
      tower, take the recruits waiting in a town.
 3. **End of turn.** The other kingdoms and the monsters act; the game shows
@@ -144,8 +144,13 @@ the next hero who comes or is hired. The hero card then has a "found a town"
 button: on any land but mountains, with no resource or place, wild or the
 kingdom's own, three steps or more from every town. The players name the town (a
 free name is offered); it starts as a village of two houses and takes the wild
-cells around it, but not open sea, monster cells or another kingdom's land. The
-map is drawn again, as the ground levels under the new town, and the new town's
+cells around it, but not open sea, monster cells or another kingdom's land. A
+road runs from it to the kingdom's nearest town that a way over land reaches,
+by the cheapest way, as the map's first roads do, so it joins a road already
+running near (`WorldGen.RoadToNearest`). The players asked for the road and
+nothing more (2026-11-12): it carries no trade and changes no cost, only the
+heroes walk it at 1 move a cell like any road. The map is drawn again round the
+new town and its road, as the ground levels under the town, and the new town's
 screen opens.
 
 **Towns** have levels, shown by the number of houses on their cells:
@@ -196,26 +201,26 @@ a saltire, a chevron, a band, a border or a triangle at the pole) and an
 emblem in a third colour (18 heraldic figures, or none), each colour one of
 ten. A new map gives each kingdom one from the seed, in the kingdom's colour
 and with a metal (white, yellow) on a colour or the other way round. The
-players draw their own in the flag editor, which opens when a game starts and
-on a click on the shield in the top bar; it flies on the towns' and heroes'
+players draw their own in the flag editor, which opens from the new game's
+window and on a click on the shield in the top bar; it flies on the towns' and heroes'
 banners and on the shields of the interface, and new games keep it. The
 players asked for the editor, as founding towns and drawing flags are what the
 younger player likes most.
 
 The field is the kingdom's colour: its borders, roofs, banners, plates and
-minimap, and its name (Алое королевство for red, Лазурное царство for blue,
+minimap, and its name (Алое королевство for red, Лазурная гавань for blue,
 one for each of the ten colours). No two kingdoms share a field; a kingdom
 whose colour the players take gets their old one and a flag drawn again on
 it, with the same pattern and emblem.
 
-**Fortifications.** Walls and a castle take no place. Walls (from
-level 2) beat off the lairs' bands (see Raids below) and take a small loot
-from them. They first stopped monster groups within three steps from
-growing, which did nothing: groups stand three steps or more from the towns
-anyway (the fun plan of 2026-11-11). The castle (from level 3, inside walls) lets the town grow into
-a royal city. With no war, walls had to do something now; the players asked
-for walls and castles after the settlers build, and a siege can use them
-later (iteration 7).
+**Fortifications.** Walls and a castle take no place. Walls (from level 2) beat
+off the lairs' bands (see Raids below) and take a small loot from them. They
+first stopped monster groups within three steps from growing, which did nothing:
+groups stand three steps or more from the towns anyway (the fun plan of
+2026-11-11). The castle (from level 3, inside walls) lets the town grow into a
+royal city. With no war, walls had to do something now; the players asked for
+walls and castles after the settlers build, and a siege can use them later
+(iteration 7).
 
 **Worked cells.** A resource gives its goods only when it lies on the
 kingdom's land and has its field building; a resource without one gives
@@ -283,6 +288,49 @@ Town buildings take a place of the town (see places and quarters above):
 
 The yarn step can be dropped if three steps for clothes are too long (see the
 questions); then the spinnery is a decoration of the weaver.
+
+**The Great Build** (exists in the rules since 2026-11-12; the economy plan's
+3.4). A capital with a castle raises it in three stages, one after another,
+from the bottom of its town screen. The section shows once the capital is big
+enough for a castle; until the castle stands its button is pale, with what it
+waits for. It takes one of the town's places from its first stage, as a
+building does (2026-11-12): it rises on the map, so it stands somewhere, and a
+full capital first grows a quarter («Нет места…»). The town screen shows it
+among the places as «Стройка 1/3».
+
+| Stage | Cost | Gives |
+| --- | --- | --- |
+| 1 | 20 wood, 30 stone | pilgrims: +2 gold a turn |
+| 2 | 30 gold, 30 wood, 40 stone | +2 gold a turn more |
+| 3 | 60 gold, 40 stone (cloth and iron once crafts exist) | the build stands finished |
+
+It gives the stone and wood that pile up after the walls and the castle a use
+to the end of the game. The third stage sets the crown's sixth gem, «Стройка»
+(the family's answer of 2026-11-12). On the map the build is a round stone
+bell tower (Codex and the Studio, rated 4 by the family), cut at two heights:
+the first stage ends a course of stones above the door's arch, the second under
+the cornice below the belfry, each with a flat stone top and a small heap of
+stone blocks beside it; the third is the whole tower with the kingdom's flag on
+its pole. A stage just raised grows out of the top of the one below, with a
+little dust, as a castle rises. On 60 maps the economy bot
+raised stage 1 on turn 44 on average (57 maps) and stage 3 on 42 maps.
+Saves are format 2 since then; format 1 saves open with no stage raised.
+Format 4 keeps the build's place; in older saves a raised build stands on the
+first place left after the houses and buildings.
+
+**The army's upkeep** (exists since 2026-11-12; the economy plan's 3.4, the
+family's "Окей, давай попробуем."). The kingdom's first 15 warriors, in its
+heroes' armies and its towns' garrisons, eat nothing; each further 10 eat one
+food a turn, and a rider counts as two. The army eats at the turn's end, after
+the income and before the towns take food for their growth. When the stores
+run short nobody dies or leaves: the heroes walk half the next turn (8 steps of
+16), and the turn report says so in red. The top bar's food counts the army in
+its «+N» and its tooltip; each hire button says «содержание +1 еды в ход» when
+it adds to the upkeep, and the town screen's hiring section names the army's
+size and food. The neighbours have no heroes and no garrisons, so they pay
+none. A constant sink for the food that piles up once the towns stop growing;
+the free first fifteen keep a beaten kingdom from being locked in. Saves are
+format 3 since then (the last turn's report keeps what the army ate).
 
 ### Balance targets
 
@@ -366,16 +414,22 @@ no upkeep yet.
 
 ### Monsters
 
-Monsters stand on wild land in **groups** of one kind; a group never moves,
-but it grows by a sixth every year (four turns), up to twice its first size.
-A group's size follows how deep in the wild it stands: the steps over land
-from the player's kingdom, counted from the first unowned cell, so a kingdom
-hemmed in by its neighbours still has the wild at its door. At the edge a
-group is under half the first hero's army (three small groups are placed
-there first, so every map starts with easy fights), even at six steps,
-three times as strong at twenty. Lairs hold the group of their kind. Most
-places (below) beyond three steps have a group on them. The player's capital
-always stands on the biggest landmass, so the heroes can walk to the wild.
+Monsters stand on wild land in **groups** of one kind; a group never moves, but
+it grows by a sixth every year (four turns), up to twice its first size. A
+group's size follows how deep in the wild it stands: the steps over land from
+the player's kingdom, counted from the first unowned cell, so a kingdom hemmed
+in by its neighbours still has the wild at its door. At the edge a group is
+under half the first hero's army (three small groups are placed there first, so
+every map starts with easy fights), even at six steps, three times as strong at
+twenty. Since the battle plan's rules (the spears' cover, the run-up, the habits
+and the hero's order) made the players' side stronger than its worth, every
+group is a tenth bigger than that curve: the first army had won 74–97 % of the
+measured fights at six steps against each kind, easy rather than even, and wins
+48–80 % now (a fifth bigger gave 10–57 %); the middle army wins 62–100 % at
+twelve steps, and 60 measured games changed within noise (the players' crown on
+55 maps against 57). Lairs hold the group of their kind. Most places (below)
+beyond three steps have a group on them. The player's capital always stands on
+the biggest landmass, so the heroes can walk to the wild.
 
 | Monster | Health | Attack | Defence | Damage | Speed | Special | Where |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -387,6 +441,11 @@ always stands on the biggest landmass, so the heroes can walk to the wild.
 | Giant spiders (пауки) | 16 | 6 | 4 | 2–5 | 6 | web: the stack they hit cannot walk in its next turn | far, in forests |
 | Troll (тролль) | 60 | 10 | 8 | 8–14 | 4 | heals a third of his health at the start of each round | far; troll's lairs |
 
+Wolves and spiders have two looks each (warm grey and tawny wolves, brown and
+grey-olive spiders), as the players took both of each on 2026-11-12. A group
+keeps its look by its cell (`PropBuilder.ModelOf`), on the map and in its
+battle; the portraits on the cards show the kind's first look.
+
 Beating a group gives its experience and a reward in gold (and goods for
 lairs). A beaten lair or group leaves its cell to the winners' land when it touches
 that land or lies within their towns' reach; the towns then grow around it.
@@ -394,17 +453,17 @@ that land or lies within their towns' reach; the towns then grow around it.
 ### Raids
 
 The lairs send bands (ватаги) against the towns: the fun plan's Ф3 (2026-11-11),
-so that the world does something and walls have a use. From turn 12-15 a
-kingdom meets one band at a time and at most one every 12 turns; it comes from
-a lair within nine steps whose nearest town is the kingdom's, the one that
-rested longest. The band is a third of its lair's group and stands on the map
-as a group, so a hero can fight it on its way. It walks three steps a turn to
-the town; a line over the map says «Волки идут к городу Овсянка — 2 хода», and
+so that the world does something and walls have a use. From turn 12-15 a kingdom
+meets one band at a time and at most one every 12 turns; it comes from a lair
+within nine steps whose nearest town is the kingdom's, the one that rested
+longest. The band is a third of its lair's group and stands on the map as a
+group, so a hero can fight it on its way. It walks three steps a turn to the
+town; a line over the map says «Волки идут к городу Овсяное Поле — 2 хода», and
 the band's card says where it goes. A walled town beats it off and takes the
-reward of a group its size. At a town without walls it stands three turns on
-one of the town's built fields: the town does not grow and that field gives
-nothing. Nothing is destroyed, and then it goes back. A cleared lair sends no
-more bands, nor does a lair a neighbour's troop besieges, and bands do not grow.
+reward of a group its size. At a town without walls it stands three turns on one
+of the town's built fields: the town does not grow and that field gives nothing.
+Nothing is destroyed, and then it goes back. A cleared lair sends no more bands,
+nor does a lair a neighbour's troop besieges, and bands do not grow.
 
 The first rule, every lair raiding every eight turns, kept a kingdom with many
 lairs nearby under siege all game: the players' bot lost 8.5 town-turns a game
@@ -424,15 +483,23 @@ more than 5 on 14 maps); the crown comes as before.
 ### Fog of war
 
 The island starts hidden under clouds except the kingdom's land and two cells
-around it. A hero opens three cells around him (four from hills and
-mountains), a cell the kingdom takes two around it, a watchtower seven. What has been seen
-stays open: monsters do not walk, so the second, "not seen right now" level
-of fog that real-time games use (*Game Interface Design*, p. 178) would hide
-nothing. Hidden cells show no resources, places, monsters or names, also on
-the minimap. The clouds are a dark grey bank about a cell high with rounded,
-billowing edges, darker than the land so the explored island stays the
-brightest part of the picture; towns, monsters, places and mountain peaks of
-unseen cells are hidden until a hero sees them.
+around it. A hero opens three cells around him (four from hills and mountains),
+a cell the kingdom takes two around it, a watchtower seven. What has been seen
+stays open: monsters do not walk, so the second, "not seen right now" level of
+fog that real-time games use (*Game Interface Design*, p. 178) would hide
+nothing. Hidden cells show no resources, places, monsters or names, also on the
+minimap. The clouds are a dark grey bank about a cell high with rounded,
+billowing edges, darker than the land so the explored island stays the brightest
+part of the picture; towns, monsters, places and mountain peaks of unseen cells
+are hidden until a hero sees them.
+
+A hero may be sent to a cell in the fog (2026-11-12: the players had to lay a
+new way every two cells). The way runs over the seen land and on through the
+clouds as if over meadow, whatever lies there, and is laid again after every
+step as the fog lifts round the hero: it turns round water, groups and towns
+that come into sight, and keeps to the seen land once its end is seen. The
+card of a goal in the fog says the way is a guess and tells nothing of what
+waits there. A way to a seen cell keeps to the seen land, as before.
 
 ### Battles
 
@@ -444,10 +511,43 @@ armies as progression; about a third of the play, beside building and
 exploring.
 
 **The battlefield** is a field of 11 × 7 hexes in a mode of its own, with
-the ground of the cell where the fight happens and up to four obstacles from
-its biome (trees in a forest, rocks on hills). The hero's stacks stand on
+the ground of the cell where the fight happens. The hero's stacks stand on
 the left, the monsters' on the right; a monster group splits into up to four
-stacks.
+stacks. The ground is not one even carpet (the visual plan's problem 1,
+2026-11-12): it is patched with the biome's lighter, darker and drier
+shades and bare earth, fading to the plain ground towards the edges; tufts
+of grass stand between the cells, and bushes where trees would not fit
+under the top panel.
+
+**Field patterns** (the combat plan's 3.5, since 2026-11-12): the
+obstacles follow one of three patterns, chosen by the ground, and keep to
+columns 2–8, so both starts are free and every free cell can be reached:
+
+- *Grove* (forest): two clumps of two trees, in rows 1–2 and 4–5, so
+  rows 0, 3 and 6 are the three ways past;
+- *Gorge* (hills, mountains): a wall of three stones in columns 4–6 with
+  two gaps, the top and bottom rows open;
+- *Open* (everything else): up to two stones scattered over the middle.
+
+The grove and the gorge turn upside down on half of the fields. Against the
+scattered obstacles they replaced on the same ground they move the odds by
+at most 12 points, within the plan's 15 (the field measurer,
+`FieldReportTable`). The plan's shelter rule (a shot over an obstacle at
+half strength) is written but off: it comes last, and only if the boy can
+see why a shot was weaker.
+
+**Field events:** one fight in four has an event, told in the window
+before the fight, and the odds shown there count it. The event is the same
+for the same cell and turn.
+
+- *Ambush* (one in eight): the monsters start in columns 6–8 instead of at
+  the far edge. That helps against shooters and chargers and hurts against
+  wolves, skeletons and the troll, so the window says only that the
+  monsters are close.
+- *Chest* (one in eight): a chest lies on a free cell in the middle; the
+  first players' stack to stand on it takes 10–20 gold, paid even after a
+  retreat or a loss. Monsters leave it lying. The auto battle takes it when
+  nothing can be struck and it lies at most one step off the way.
 
 **A round:** every stack acts once, the fastest first, the players' first at
 equal speed. A stack walks up to its speed (around obstacles and stacks) and
@@ -462,17 +562,64 @@ six cells, and shooters striking in melee, do half. The stack struck back
 once a round (not at shooters). Damage goes into the top unit first; the
 others are whole.
 
-**The end:** a side without stacks loses. The players may retreat at any
-time: a loss, but the hero leads the living away, each stack leaving a
-quarter behind (rounded), and goes back to the nearest town out of moves. A
-hero beaten to the last unit finds a militia of 5 spearmen in that town (the
-fun plan of 2026-11-11: a loss took the whole army, so only easy fights were
-worth taking). A beaten group keeps its losses: measured over the auto
-battles, two passes (one army retreating at half its worth, then its
-survivors with a second army) lose about twice what both armies lose in one
-pass, and win less often, so coming back is no trick. The **auto battle** plays the players' side: shooters shoot
-the stack they would hurt most, the others go for the stack they can reach
-and hurt most, shooters first.
+**The spears' cover** (the combat plan's 3.3, since 2026-11-12): once a
+round, spearmen strike first at an enemy that strikes them, or a stack
+beside them, from a cell beside them; the enemy then strikes with those it
+has left. Struck themselves, the spearmen strike first instead of back (a
+later blow that round still gets their strike back). Shots go through;
+wolves are met too. On the field, the cells round spearmen with their cover
+unspent have rims in the kingdom's colour, a stack beside them shows a small
+shield by its plate, and the spearmen lunge with «Копья!». Monsters weigh
+what the cover would cost them, as a share of their health, against their
+temper's pick: boars and the troll not at all (they run onto the spears),
+goblins and skeletons by half, spiders and bandits fully, wolves twice (they
+look for a side nobody covers). The cost counts in quarter steps, so a big
+pack still goes for its pick. Over the measured auto battles an even fight
+sees two to four covers, meeting about a third of the monsters' melee
+strikes. The first hero's army won 31% of the measured fights before the
+cover and 42% with it, so a monster that strikes in melee counts 1.2 times
+less in a group's worth and its groups are that much bigger (36%; the middle
+army 70%, 80% and 71%); bandits, who shoot, keep their size.
+
+**The run-up** («Разбег», the same plan's 3.3, a build after the cover):
+riders and boars strike half as hard again from a cell three or more cells
+from where their turn began, as the crow flies, so going round in a circle
+does not count. The spears' cover meeting the strike takes the run-up away:
+spears beat a run-up, a run-up beats archers, archers beat the slow spears.
+The card under the pointer says «Удар с разбега: около N урона» when the
+chosen cell gives one, the lunge goes further and the number is bigger. The
+players' auto battle strikes from a cell that gives a run-up when it can.
+Boars do not wait for one: they run headlong, and a run-up comes when they
+reach the army from far enough. Over the measured auto battles boars strike
+with a run-up two or three times a fight and the riders of the middle army
+one or two; the first army's wins against boars at six steps fell from 97%
+to 89%, the middle army's over all fights rose from 71% to 73%, and the
+groups keep their sizes.
+
+**The end:** a side without stacks loses. The players may retreat at any time: a
+loss, but the hero leads the living away, each stack leaving a quarter behind
+(rounded), and goes back to the nearest town out of moves. A hero beaten to the
+last unit finds a militia of 5 spearmen in that town (the fun plan of
+2026-11-11: a loss took the whole army, so only easy fights were worth taking).
+A beaten group keeps its losses: measured over the auto battles, two passes (one
+army retreating at half its worth, then its survivors with a second army) lose
+about twice what both armies lose in one pass, and win less often, so coming
+back is no trick. The **auto battle** plays the players' side: shooters shoot
+the stack they would hurt most, the others go for the stack they can reach and
+hurt most, shooters first. A shooter with every enemy beyond six cells first
+steps up within full range, where no monster that strikes in melee could reach
+it next turn and still behind its own melee stacks, rather than shoot at half
+(2026-11-12): the archers had stood at the field's edge all fight, so a fight of
+the first army with bandits ran 10.7 rounds on average, the last five of them
+the archers and the bandits left trading half-strength shots across the field.
+It now runs 9.2 rounds and is won 60 % of the time against 52 %; the odds
+against the other kinds stayed, and so did the 60-map game measure (the players'
+crown on 55 maps, turn 41). **Fight length** is checked with the odds: the fun
+plan wants at most 5 % of fights longer than eight rounds, and over the measured
+auto battles they are 5 % of the first army's, 3 % of the middle army's and none
+of the late army's. The long ones are even fights with bandits (the spears walk
+two rounds under their arrows) and with skeletons (189 health in a wall that
+shrugs off arrows), where 58 % and 38 % of fights run over eight rounds.
 
 **Tempers:** each monster kind goes for its own target, told on its card, so
 that every group sets the players a different problem and they can plan
@@ -486,6 +633,42 @@ a web yet; the troll for the biggest (the most health in all). Between
 stacks the temper likes as much, the nearer comes first, then the one they
 would hurt more. A monster strikes its pick when it can reach it this turn,
 or else walks towards it.
+
+**Habits** (the combat plan's 3.1, the build after the run-up): three kinds
+add a way of moving to their temper, and the pointer on any monster draws a
+red line round the cells it could strike next turn (it tinted them red at
+first, but a wolf reaches nearly the whole field, which then went red,
+2026-11-19). The troll tells its target when the
+fight starts, the biggest stack, shown by a red arrow on the ground, and keeps
+it until that stack falls: it walks past other stacks to get there, so the
+players can lead it away. Wolves circle in the first three rounds: while they
+cannot reach anyone, they stop on a cell no foot stack of the players could
+strike next turn, so the players must keep together rather than chase.
+Skeletons march as a wall: no stack goes more than a cell ahead of where the
+rearmost can get this round. The cards say so («Кружат, потом стаей на самого
+слабого…», «Идёт на самый большой отряд — стрелка показывает, на какой»,
+«Идут стеной…»). Over the measured auto battles the circling took the first
+army's wins against a pack at six steps from 73% to 44%, so a wolf counts 1.1
+times as much and packs are a tenth smaller (73% again); the told target took
+the middle army's wins against trolls at twelve steps from 31% to 84%, like the
+other kinds there, and troll groups keep their sizes.
+
+**The hero's order** (the combat plan's 3.4, the build after the habits; the
+players chose to start with one order a battle and see how much fun it is,
+2026-11-11): the hero stands beyond the field's left edge. Once a battle, on
+the turn of any of their stacks, the players give one of two orders with the
+«Приказ» button (O, then 1 or 2). «В атаку!»: that stack acts once more
+straight after its action, the second time at half strength. «Щиты!»: every
+stack of theirs stands in defence (+50 %) until its own next turn, and the
+turn is not spent. The hero turns to the stack and hops under the order's
+words, and the button goes dark. The players' auto battle orders the attack
+at the strongest stack's first strike or shot, mostly in the second round. A
+whole second action moved the odds of even fights by 15 to 23 points against
+the plan's cap of ten, so the second action strikes at half strength: about 8
+points on average and 12 at most (the first army against bandits at six steps
+87 % to 96 %, the middle army against trolls at eighteen steps 26 % to 38 %),
+and the groups keep their sizes. Over 60 measured games the order changed
+nothing beyond noise (the players' crown on 57 maps against 56).
 
 **Surrender:** the first time a group is down to a third of its health while
 the players' stacks have twice what it has left, its kind rolls once to offer
@@ -517,8 +700,8 @@ battle can be tried in its place later without changing the rest.
 
 **Their turns** (exist, since 2026-11-11; the economy plan's step 2). The five
 other kingdoms play their own turns at the end of each turn, before the
-income. Each buys at most what the pace allows, chosen in the «Новая игра?»
-question and kept between games: at «Спокойно» one thing in three turns, at
+income. Each buys at most what the pace allows, chosen in the new game's
+window and kept between games: at «Спокойно» one thing in three turns, at
 «Обычно» two in three, at «Гонка» three in two. They follow the players' rules
 and costs: lumber camps, a tavern, a quarter for a full town, walls and a
 castle, food while their towns want more, then a granary, quarries, gold mines
@@ -582,26 +765,38 @@ the AI kingdoms each turn, and a market price for selling goods for gold.
 ## Victory
 
 **The crown** (exists, since 2026-11-11; the economy and fun plans of that
-day). Every kingdom has a crown with five sockets, one gem for each great
-feat, won in any order and never lost:
+day). Every kingdom has a crown with six sockets, one gem for each great
+feat, won in any order and never lost (five until the family gave the finished
+Great Build its own gem on 2026-11-12; six, as a hex has sides):
 
 | Gem | Feat |
-|---|---|
+| --- | --- |
 | Столица | the capital grows to 11 houses, a royal city (level 4) |
+| Стройка | the capital's Great Build finished, all three stages |
 | Города | four towns of 8 houses (level 3) |
 | Охотник | three lairs cleared |
 | Герой | a hero of the fifth level |
-| Земли | the kingdom's land 60 cells bigger than at the start |
+| Земли | the kingdom's land 60 cells bigger than at the start (50 on a small map) |
 
 The first kingdom to set three gems has won; the players chose this short
 game, about 35–45 turns, as the main one, and the numbers are first guesses
 for the measurer (`GameReport`) to tune. The top bar's crown shows the
 sockets and opens the feats with their progress («логова: 2 из 3») over the
 kingdoms' list, where each kingdom shows its own count. A gem gets a line in
-the turn report or a message at once; the first crown of the game, anyone's,
-ends it with a screen of the gems by turn and the game's counts, and the
-players may play on: their own crown, if it comes later, is shown once more
-with its place. Enter and Esc play on; a new game needs a click.
+the turn report or a message at once, and the players' gem rises from their
+capital and flies into its socket in the bar's crown in a second, the socket
+swelling as it lands (with the day's events when a turn won it). The first
+crown of the game, anyone's, ends it with a screen of the gems by turn and the
+game's counts, and the players may play on: their own crown, if it comes
+later, is shown once more with its place. Enter and Esc play on; a new game
+needs a click. The players' own crown is celebrated first (since 2026-11-12,
+the visual plan's 12): the camera flies over up to four of their towns, the
+capital first and then the largest, two seconds each, turning slowly and
+rising between far ones, the panels stepping aside; a flock of birds rises
+from the capital, every flag flies harder and the smoke is thicker until the
+end's window is answered; then back over
+the capital and the window, ten seconds at most. A click or a key ends it at
+once. A neighbour's crown shows its window at once.
 
 Further goals, for a longer game once its middle has more to do:
 
@@ -650,52 +845,105 @@ hero screens are side panels at the left and right edge, and only dialogs
 - **Menu** (exists, since 2026-11-11): a column along the left edge, as dark
   and square as the town screen, with the live map beside it. The bar's
   «Меню» or Esc, once nothing is left to close, opens it: back to the game,
-  save, load, a new game, how to play, to the main menu, quit, and the
-  version at the bottom. It took the place of the bar's «Новая карта» and
+  save, load, a new game, settings, how to play, to the main menu, quit, and
+  the version at the bottom. It took the place of the bar's «Новая карта» and
   the N key, with which one slip could end a game. Quitting asks nothing, as
-  the game saves itself. In a battle it has only back, help and «Выйти (бой
-  начнётся заново)», and the battle waits. Add: settings (sound).
-- **Main menu** (exists, since 2026-11-11; the interface plan's 3.2): the
-  game opens on it at once, over the game's picture (a castle on a hill,
-  groves and a boar, drawn for it), with no panel: the logo a little above
-  the middle, the crown with six faces over the name lettered in the same
-  picture, Hexcrown (the family's choice of 2026-11-11, a crown of six faces
-  like the map's hexagons; no motto), and the buttons centred under it.
-  «Продолжить» with the last game's kingdom and turn (gold, Enter), «Новая
-  игра» (gold when there is nothing to continue), «Загрузить», «Как играть»
-  and «Выход». Nothing is drawn behind it: «Продолжить» names the newest
-  save from its header alone, and a game is drawn only when the players go
-  into it (the players found the start hanging while the last game loaded
-  behind the menu). Its return report shows once they are in.
-  «Новая игра» opens the new game's screen: the map it would start on
-  beside the column, its number, «Другая карта», a map by its number, the
-  neighbours' pace, «Начать» (Enter) and «Назад» (Esc), which brings back
-  the game it replaced. The preview is never saved; «Начать» starts it and
-  opens the flag editor. A map asked by its number (`-seed`) starts without
-  the main menu.
+  the game saves itself. In a battle it has only back, settings, help and
+  «Выйти (бой начнётся заново)», and the battle waits.
+- **Main menu** (exists, since 2026-11-11; the interface plan's 3.2): the game
+  opens on it at once, over the game's picture (a castle on a hill, groves and a
+  boar, drawn for it), which stirs a little where the art has its moving version
+  (since 2026-11-12, the visual plan's menu loop: the flags, the trees and the
+  boar move in eight seconds made from the picture itself, the rest of it stays
+  the picture; the still picture shows until its first frame and wherever it
+  cannot play), with no panel: the logo a little above the middle, the crown
+  with six faces over the name lettered in the same picture, Hexcrown (the
+  family's choice of 2026-11-11, a crown of six faces like the map's hexagons;
+  no motto), and the buttons centred under it. «Продолжить» with the last game's
+  kingdom and turn (gold, Enter), «Новая игра» (gold when there is nothing to
+  continue), «Загрузить», «Настройки», «Как играть», «Об игре» and «Выход»; with
+  a larger interface the logo gives way so the buttons stay on the screen. «Об
+  игре» (since 2026-11-12, the interface plan's 3.7) stands in the buttons'
+  place like the settings: the name and version, what the game is, how its art
+  and sound were made (generative tools, in the words of the game's page), the
+  Nunito font's licence (SIL OFL 1.1) and the code's (GNU GPL 3.0), and, for a
+  report of a fault, the saves' folder with «Открыть папку» and the log's path
+  with «Скопировать путь». The generating models' licences are not named until
+  their terms are checked. Nothing is drawn behind it: «Продолжить» names the
+  newest save from its header alone, and a game is drawn only when the players
+  go into it (the players found the start hanging while the last game loaded
+  behind the menu). Its return report shows once they are in. «Новая игра» opens
+  the new game's window (since 2026-11-12), a dark panel over the menu's
+  picture: the kingdom's shield and name with «Изменить флаг», a picture of the
+  map as the kingdom knows it at the start (its land in its colour, the towns,
+  the capital ringed in gold, the rest a grey shape in the fog) with its number,
+  «Другая карта» and a map by its number, the map's size, the neighbours' pace,
+  «Играть» (Enter) and «Назад» (Esc). The map is made there but nothing of it is
+  drawn, and the flag is raised on it before it is: the players found the game
+  hanging after «Поднять флаг» on a map already drawn, and asked for the choices
+  first and the loading screen after «Играть». «Назад» goes back to the menu
+  over the game, or to the main menu, the game behind untouched (from a game, it
+  kept itself when the window opened). The size and the pace are kept for the
+  next game. A map asked by its number (`-seed`) starts without the main menu.
+- **Map sizes** (exist, since 2026-11-12): small 56×34 with four kingdoms,
+  medium 70×42 with six (the one every number in this document was tuned
+  on), large 84×50 with six; rivers follow the cells. The small map keeps the
+  land per kingdom of the medium one, but there the land grew more slowly and
+  the crown came five turns later (turn 46 against 41 in 60 games each), so
+  the Lands gem asks 50 cells there: the crown then comes on turn 43, the
+  players first on 47 of 60. The large one plays like the medium one (crown
+  turn 42) with more wild land between the kingdoms: on half the maps the
+  players' border meets no other by turn 80. A map is named by its number and
+  size together; the menu's line names a size other than the medium one.
 - **Loading screen** (exists, since 2026-11-11): «Продолжить», a save from
-  «Загрузить», a new game's map and «Назад» to a kept game draw their map
+  «Загрузить» and «Играть» in the new game's window draw their map
   under a screen of the menu's picture with the logo, «Загрузка…», the game
   or the map's number and a gold bar. The bar follows the map's drawing: the
   ground, then each cell of its own and each block of plants and decor, a
   frame every 60 ms or so. A map that fails to draw brings the main menu
   back with the reason.
-- **Languages** (exist, since 2026-11-11; the interface plan's 3.6): Russian
-  and English. «Русский / English» stand at the foot of the main menu and of
-  the menu, in their own words; a choice is kept. The game opens in the
-  system's language (Russian on a Russian system, English elsewhere), but
-  players from before the English version keep Russian. Another language
-  starts the scene again, and a game being played saves itself and opens
-  again under the loading screen. Every phrase is written in place as
-  `T("…", "…")` (Scripts/Lang.cs), so one without its English does not
-  compile; English counts with `En(n, one, many)`. The rules keep the
-  Russian names of kingdoms, towns and heroes as keys, so a save opens in
-  either language; their English stands beside them in Core/Names.cs: towns
-  and kingdoms of the same spirit (Овсянка is Oatfield), heroes in Latin
-  letters (Ratibor). LanguageTests catch Russian written without its
-  English and keep the names' tables in step. `-lang ru|en|long` chooses a
-  language for one run; long is English stretched by 40 %, to see where a
-  line will not fit.
+- **Languages** (exist, since 2026-11-11; the interface plan's 3.6): Russian and
+  English. «Русский / English» stand at the foot of the main menu and of the
+  menu, in their own words; a choice is kept. The game opens in the system's
+  language (Russian on a Russian system, English elsewhere), but players from
+  before the English version keep Russian. Another language starts the scene
+  again, and a game being played saves itself and opens again under the loading
+  screen. Every phrase is written in place as `T("…", "…")` (Scripts/Lang.cs),
+  so one without its English does not compile; English counts with `En(n, one,
+  many)`. The rules keep the Russian names of kingdoms, towns and heroes as
+  keys, so a save opens in either language; their English stands beside them in
+  Core/Names.cs: towns and kingdoms of the same spirit (Овсяное Поле is Oat
+  Field), heroes in Latin letters (Aren). The names are neutral, of no one
+  people: the players asked for them instead of the Slavic ones on 2026-11-12,
+  and an older save opens with the new ones (Names.Current). LanguageTests catch
+  Russian written without its English and keep the names' tables in step. `-lang
+  ru|en|long` chooses a language for one run; long is English stretched by 40 %,
+  to see where a line will not fit.
+- **Settings** (exist, since 2026-11-12; the interface plan's 3.5 and the
+  sound plan's П7): «Настройки» in the menu and the main menu opens them in
+  place of the buttons, like the saves' lists, without scrolling at the usual
+  size; every change takes effect at once and is kept (PlayerPrefs), apart
+  from the save. Sound: the whole game, music, surroundings, interface and
+  world, each a bar of ten steps (0–10) that a click or a drag sets; a
+  click on the lit last step takes one off. Each plays its sample as it
+  moves: the coins, a click, a build, a phrase of music when none plays; the
+  surroundings are heard as they are. Screen and interface: the whole screen
+  or a window, with its size (‹ ›, the sizes smaller than the desktop); a
+  change of the screen goes back by itself in ten seconds unless kept
+  («Оставить так?»), so a size the screen cannot show strands nobody. The
+  interface has one size, the 1920 × 1080 it was drawn for scaled with the
+  screen: the size setting (90, 100, 115 %) was dropped when, at 115 %, the
+  bottom panel's place card got too narrow and its lines broke letter by
+  letter (2026-11-13). The map's icons while Alt
+  is held, or Alt to turn them on and off, for players who find holding a
+  key hard; the help's Alt line says which. The newcomer's hints on or off,
+  and «Показать снова», which brings the guiding lines and one-time hints
+  back from the start. Camera: moving and turning speed (1–10, 5 as before,
+  each step about a fifth faster), and the pointer at the screen's edge
+  moving the map (off at first; only in a focused window, never while it is
+  dragged or turned). «Вернуть как было» puts everything back, the screen
+  filled. The languages stay at the column's foot. Captures and the promo
+  run with the defaults and leave the players' own as they are.
 - **Saves** (exist, since 2026-11-11; the interface plan's 3.1): the game
   writes itself after each turn's end, before each battle, before a new game
   and on quitting, into three autosaves of the game in turn; the autosaves
@@ -720,7 +968,12 @@ hero screens are side panels at the left and right edge, and only dialogs
 - **Cell card** (exists): what the cell is, gives and costs, and the actions
   for the cell: build here, buy, enter the town.
 - **Map camera** (exists): moves with W A S D or a right drag, zooms to the
-  pointer, turns with Q and E (or Z and X) or a middle drag. The minimap
+  pointer, turns with Q and E (or Z and X) or a middle drag. It stays over
+  the land the players have seen and zooms between fixed limits, the far one
+  a height from which the whole map shows. (A limit that followed the seen
+  land and the clouds' share of the view held the camera low once a hero had
+  gone far; the players asked for a higher camera and fixed limits,
+  2026-11-12.) The minimap
   shows the view as a quad and a compass beside it; a click on the compass
   faces north.
 - **Town card** (exists): on the map, the town's level, growth and income,
@@ -748,8 +1001,16 @@ hero screens are side panels at the left and right edge, and only dialogs
 - **Battle screen** (exists): the battlefield with the stacks, the order of
   the round at the top, buttons for defend, auto battle and retreat at the
   bottom, the card of the stack under the pointer with what a blow would do.
-- **Turn report** (exists): a few lines after each turn, each one clickable to
-  move the camera there.
+- **The day's events** (exist; along the right edge since 2026-11-12): after
+  each turn its events stand over the map along the right edge, lines
+  without a window like the tasks along the left, each ending in its icon at
+  the edge: warnings first (a band coming, a town that stopped growing),
+  then the news (a level, a gem, a task done), the treasury, the land and the
+  rest, six lines at most. They stay until the next turn; a line about a town
+  takes the camera there. The «События» button over them (and C) opens the
+  last twelve turns' events in a dialog, the newest first. The players asked
+  for this in place of the report window in the middle of the screen, which
+  covered the map and faded after a few seconds.
 - **Tasks** (exists) **and goal** (new): the tasks are lines of text over the
   map under the bar, an icon, the task and its reward, with no window; the
   map takes clicks through them.
@@ -777,15 +1038,62 @@ hero screens are side panels at the left and right edge, and only dialogs
   Core/Guide.cs and its tests; what shows is decided in RealmsGuide.cs.
   Add: a settings switch for the newcomer's hints and «show them again».
 - **How to play** (exists, since 2026-11-11; the interface plan's 3.3): the
-  help (F1, H, the menu) has three pages in place of one table. «Главное»
+  help (F1, H, the menu) has four pages in place of one table. «Главное»
   is five lines with pictures: choose, order, build, the turn and the goal.
-  «Клавиши» is the table of keys in two columns. «Подсказки» lists every
-  guiding line and hint the players have seen, so that a forgotten one can be
-  read again; that list is kept in the settings too.
+  «Клавиши» is the table of the map's, the hero's and the town's keys in two
+  columns. «Бой» holds the battle's keys and its rules (the spears' cover,
+  the run-up, the shooters' range); F1 in a battle opens it, and elsewhere the
+  help opens on the page last chosen outside it. It was split off when the
+  hero's order made the keys page run past the card (2026-11-12).
+  «Подсказки» lists every guiding line and hint the players have seen, so that
+  a forgotten one can be read again; that list is kept in the settings too.
 - **Returning** (exists, since 2026-11-11; the interface plan's 3.3): a
-  loaded game shows the last turn's report under «Ход N. В прошлый ход:» for
-  twenty seconds. When the save is more than three days old, the camera hint
+  loaded game shows the last turn's events under «Ход N. В прошлый ход:»
+  until the next turn. When the save is more than three days old, the camera hint
   and the hero's order are shown once more.
+- **Motion** (exists, since 2026-11-12; the visual plan's steps 2 and 4 and
+  the interface plan's 3.4), under the players' rule of light animations
+  only, with no creatures or battles animated (until 2026-11-19: see
+  **Creatures' own moves**). The rules are done at once
+  and nothing waits for a show: any key or click ends it. A building just
+  built rises out of the ground a little past its height and back in under
+  half a second, with a ring of dust round its foot, and what it adds to the
+  income («+2 еды за ход») rises over it. At the turn's end chips of the
+  income fly from up to four of the players' towns in view into the
+  treasury, whose numbers run up; the season's pip pops; the towns' new
+  houses rise one after another, with «+1 дом» (or the town's new level)
+  over each; then the day's events come up along the right edge, about one
+  and a half seconds in all. Messages wait in a queue: each stands at least
+  2.5 s, the same words twice in a row show once, every task a deed finished
+  shows in turn, and an answer to what the players just did shows at once.
+  A castle just built rises the same way, heavier, over 0.8 s. Walls, drawn
+  in batches, do not rise yet. Add: a «быстрые ходы» switch if the players
+  find the show slow (the visual plan's question 1).
+- **A hero on the road** (exists, since 2026-11-12; the visual plan's
+  proposal 3, without the horse's crouch, as no creature moves): a little
+  dust under the hooves at each landing, a pale splash in the shallows, and
+  the banner flying harder on the way and settling within half a second of
+  the stop.
+- **The end of a fight** (exists, since 2026-11-12; the visual plan's
+  proposal 7, without the hops and the settling of the figures): monsters
+  of people that offer to give up raise a white rag on a stick (undyed
+  flag cloth), which goes down if the players fight on; beasts back off
+  without one. After a won fight stars of experience and chips of the
+  reward fly from where the monsters stood into the victory dialog, whose
+  numbers run up, about a second; any key or click ends it. After a lost
+  fight or a retreat the plates left go grey, quietly.
+- **Creatures' own moves** (exist for the wolves, since 2026-11-19; the players
+  asked for loops without actions and an attack): a creature model that comes
+  with captured moves stands or sits on the map in its own loop, each from its
+  own moment, about every third one sitting. In battle it stands, runs from cell
+  to cell on its feet instead of the hop (0.3 s a cell, a little slower than the
+  hop), bites when it has a bite of its own (the wolves crouch and leap at the
+  enemy, all four paws off the ground, neck stretched forward and jaws at the
+  enemy, the blow landing when the head is furthest forward, and spring back to
+  their place, the leap at the speed it would take and the whole attack about a
+  second; without one it jumps like the others), goes still as it falls and runs
+  off when let go. The moves are made from video clips of the model itself
+  (AnyMove); the boars come next. The portraits keep the model's rest pose.
 - **Game setup** (new): seed, the kingdom (shield), the victory goals, the
   AI's character (peaceful, normal).
 
@@ -806,6 +1114,27 @@ main button, so it stays calmer than the map; green, orange and red keep
 their meaning (income, a shortage, danger). Dialogs keep a painted frame. The
 players did not like see-through or rounded windows, and asked for smaller
 text than the first panels had.
+
+The sea's foam is soft, see-through and half as wide as the white line it
+replaced, and it breathes over about three and a half seconds; the grid is
+fainter on the water, whose shallows it had seamed; a fishing boat lays a net
+of rope and cork floats instead of loose orange and white dots; and now and
+then a fish jumps on a seen cell with fish (2026-11-12, the visual plan's
+problem 6 and its water). On the town's and the hero's screens the hero's
+gold ring stays off (problem 2).
+
+Birds (since 2026-11-12, the visual plan's 6; the players allowed simple
+shader birds): once in 40-90 seconds a wedge of five to nine dark, muted birds
+crosses the view with the wind, above the trees and below the clouds, beating
+their wings three times a second with pauses to glide; two or three light
+grey gulls circle slowly over each seen pier and fishing hut near the view.
+One mesh holds them all, a bird two triangles moved by the shader (`Birds`,
+`Bird.shader`). Moving things draw a child's eye, so they stay rare and dim:
+none on the town's and hero's screens, in battles, at the closest and the
+farthest looks or under the task lines, faint over the fog, one flock at a
+time; gulls show only close. Whether birds should ever hint at something
+(a flock rising over a forest with monsters, gulls over fish) is the family's
+question; for now they are only decoration.
 
 Trees, the rocks the mountains are built of and the boulders are to be
 Studio models (`PropBuilder.ScatterModels`): two conifers and two broadleaf
@@ -847,8 +1176,13 @@ village looks lived in (asked for on 2026-11-09). The players asked that it
 always be there and look natural, round the places their buildings take. Its
 pieces:
 
-- *Ground.* Trodden earth for a square in the middle and lanes from it to
-  the places. The square grows with the level and is paved from level 2.
+- *Ground.* Trodden earth of its own under the whole town, a warm grey-brown
+  about as light as the grass, with tufts of grass between the houses, fading
+  out towards the town's rim; narrow lanes, each bent its own way, from the
+  middle to the places. The square grows with the level and is paved from
+  level 2. Until 2026-11-12 a town kept its cells' ground with a star of
+  lanes, and on the coast it stood on the beach's sand (the visual plan's
+  problem 5).
 - *Free places.* Each holds a kitchen garden behind a wattle fence until
   something is built there.
 - *Between the places.* Yards with fruit trees, woodpiles, barrels or small
@@ -879,8 +1213,9 @@ and a capture shows one moment of it.
 
 ### Sound
 
-Planned for iteration 3c; nothing plays yet. Searched in YAQS on 2026-11-09,
-mostly in *The Game Audio Tutorial* (Stevens and Raybould).
+The game has sound since 2026-11-12; what it does is at the end of this
+section. The ideas come from a YAQS search on 2026-11-09, mostly in *The Game
+Audio Tutorial* (Stevens and Raybould).
 
 - **Ambience in layers** (ch. 1, "Ambience: A Painterly Approach", p. 31;
   ch. 2, "Non-repetitive Design", p. 52). A quiet bed of wind under what the
@@ -916,12 +1251,43 @@ mostly in *The Game Audio Tutorial* (Stevens and Raybould).
   levels set against a comfortable system sound, not against the loudest
   one (ch. 6, p. 298).
 
-The sounds come from the Studio: Stable Audio Open (up to 47 s a take) for
-effects, ambience beds and the stingers. Its YuE2 server sings lyrics and
-returns only the mixed song; the music needs its instrumental track (YuE
-generates the voice and the accompaniment as separate tracks), which the
-server would have to return, or Stable Audio's music loops. No voices are
-planned.
+As built (2026-11-12):
+
+- **Where the sounds come from.** Generated through fal.ai: effects and short
+  tunes with ElevenLabs Sound Effects v3 and Sonilo, music with Google's
+  Lyria 3. Every take is kept in the Studio project `realms`; `sounds.json`
+  names the takes the game uses, and a sound without a chosen take stays
+  silent. Each was chosen by its numbers (loudness, peaks, spectrum, the number
+  of separate sounds, the join of a loop) and by a listening model asked
+  blind what it hears, with a tone and a noise burst as controls. All of them
+  are provisional until the players rate them in the Studio. No voices.
+- **Interface.** One wooden game piece set on a board for every press, a
+  lower, duller one when a button refuses, and two taps falling for going
+  back.
+- **The turn.** The turn's end, the coins 0.35 s later if gold came in, then
+  at most two of the turn's events 0.5 s apart, in the order gem, town level,
+  task, neighbours, growth; a raid's warning (a low horn) always sounds. The
+  rest of the report stays silent.
+- **Deeds.** Builds knock in wood, or in stone for walls, the castle, quarries
+  and mines; the stake, a chest, recruits, a hired hero, settlers, a new town,
+  a new gem (a little higher for each gem held) and the crown each have their
+  sound. The hero's steps sound where it lands in a cell.
+- **Battles.** A drum roll at the start; blade blows, the beasts' heavier
+  blows, arrows striking, falls, shields and healing; then victory or defeat.
+- **Music.** The main menu plays the theme, again 90 s after it ends. The map
+  plays short phrases with 20–60 s of silence between them, one soon after a
+  turn ends, and none while the players are away (six minutes without
+  input). A battle plays its own pieces one after another, a lair's battle the
+  lair's. The players' crown brings the theme back.
+- **Ambience.** Layers of wind, sea, forest, meadow, hills and town, each as
+  loud as its share of the view; unseen land counts as wind, and the near
+  layers fade as the camera pulls back.
+- **Mixing.** Twelve voices; no sound more than twice at once or twice within
+  50–90 ms; a little random pitch and level on the frequent sounds, never on
+  the tunes; a tune lowers the music by 12 dB and the ambience by 6 dB, and
+  a tune that comes while another plays waits for its end, or is dropped if
+  that is more than six seconds away. The settings have the five volumes
+  (0–10, kept), each with its sample (see Settings).
 
 ## Iterations
 
@@ -1039,7 +1405,7 @@ For the father and son to answer; they change the rules of the iterations in
 brackets.
 
 1. **Which goal first:** answered 2026-11-11: the crown of three gems of five
-   as the main, short game.
+   as the main, short game; six gems since 2026-11-12, still three to win.
 2. **How long are the chains:** two steps (wool → cloth) or three (wool →
    yarn → cloth → clothes, as the workshops suggest)? (6)
 3. **Random events** (a good harvest, a merchant caravan, a storm, a

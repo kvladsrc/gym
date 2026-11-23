@@ -34,6 +34,7 @@ from studio.api.schemas import (
     ProjectOut,
     ProjectUpdate,
     ServerOut,
+    TagOut,
 )
 from studio.core import Studio
 from studio.domain import DEFAULT_PROJECT, FILE_EXTENSIONS, Asset, AssetKind, Dependency, JobStatus
@@ -254,6 +255,13 @@ def create_app(
             limit=limit,
         )
         return [AssetOut.of(asset) for asset in assets]
+
+    @app.get("/api/tags")
+    def list_tags(project: str | None = None) -> list[TagOut]:
+        """Every tag in the library with the number of assets that carry it, by name;
+        ``project``: of that project's assets (every project's when absent)."""
+        known_project(project)
+        return [TagOut(tag=tag, count=count) for tag, count in studio.library.tags(project=project)]
 
     @app.post("/api/assets", status_code=201)
     def upload_asset(

@@ -114,6 +114,42 @@ namespace Realms.Tests
             Assert.AreEqual(Refusal.None, state.CanFound(hero), "the kingdom's own land");
         }
 
+        /// <summary>The towns a road from <paramref name="from"/> leads to, following the roads' edges.</summary>
+        static System.Collections.Generic.HashSet<int> AlongRoads(World world, int from)
+        {
+            var seen = new System.Collections.Generic.HashSet<int> { from };
+            var queue = new System.Collections.Generic.Queue<int>();
+            queue.Enqueue(from);
+            while (queue.Count > 0)
+            {
+                int i = queue.Dequeue();
+                for (int d = 0; d < 6; d++)
+                {
+                    int j = world.Neighbor(i, d);
+                    if (((world.Cells[i].Roads >> d) & 1) != 0 && j >= 0 && seen.Add(j))
+                        queue.Enqueue(j);
+                }
+            }
+            return seen;
+        }
+
+        [Test]
+        public void ANewTownGetsARoadToTheNearestTownOfItsKingdom()
+        {
+            GameState state = Meadow(out Hero hero);
+            World world = state.World;
+            City far = world.Cities[0];
+            City near = world.AddCity(0, At(state, 12, 4), false, 2, "E");
+            int at = At(state, 8, 4);
+            hero.Cell = at;
+            hero.Settlers = true;
+            Assert.AreEqual(Refusal.None, state.Found(hero, "D"));
+            var reached = AlongRoads(world, at);
+            Assert.IsTrue(reached.Contains(near.Cell), "four steps away");
+            Assert.IsFalse(reached.Contains(far.Cell), "the capital is six steps away, and no road ran there");
+            Assert.AreEqual(5, reached.Count, "a straight road over the meadow: the town, three cells, the other town");
+        }
+
         [Test]
         public void ANewVillageTakesTheWildCellsAroundIt()
         {

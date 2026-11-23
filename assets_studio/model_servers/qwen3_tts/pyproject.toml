@@ -1,0 +1,38 @@
+[project]
+name = "qwen3-tts-model-server"
+version = "0.1.0"
+description = "Text-to-speech model server for the asset studio (Qwen3-TTS 1.7B: ten languages, voices from a description, built-in voices, cloning)."
+# Same PyTorch 2.5.1 / CUDA 12.4 build as the other GPU servers.
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.5.1",
+  "torchaudio==2.5.1",
+  # Qwen's inference package; it pins transformers 4.57.3 and accelerate 1.12.0.
+  "qwen-tts==0.1.1",
+  "soundfile>=0.12",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+qwen3-tts-model-server = "qwen3_tts_model_server.__main__:main"
+
+[tool.uv]
+# qwen-tts requires gradio for its web demo only, which the server does not use.
+override-dependencies = ["gradio; sys_platform == 'never'"]
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu124" }
+torchaudio = { index = "pytorch-cu124" }
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

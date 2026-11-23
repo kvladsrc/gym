@@ -60,7 +60,7 @@ namespace Realms.Tests
             if (heroes.Count > 0)
                 heroes[0].Level = Crown.HeroGoal;
             else
-                Own(state, country, Crown.LandsGoal);
+                Own(state, country, Crown.LandsGoal(state.World));
         }
 
         /// <summary>Gives the kingdom that many more of the free land cells.</summary>
@@ -89,7 +89,7 @@ namespace Realms.Tests
             foreach (Gem gem in Crown.Order)
                 Assert.IsFalse(Crown.Reached(state, 0, gem), gem.ToString());
             Assert.AreEqual((2, Crown.CapitalLevel), Crown.Progress(state, 0, Gem.Capital), "five houses are the second level");
-            Assert.AreEqual((0, Crown.LandsGoal), Crown.Progress(state, 0, Gem.Lands), "land counts from the start");
+            Assert.AreEqual((0, Crown.LandsGoal(state.World)), Crown.Progress(state, 0, Gem.Lands), "land counts from the start");
         }
 
         [Test]
@@ -113,7 +113,7 @@ namespace Realms.Tests
         public void TheLandsGemCountsTheCellsWonSinceTheStart()
         {
             GameState state = Two();
-            Own(state, 0, Crown.LandsGoal - 1);
+            Own(state, 0, Crown.LandsGoal(state.World) - 1);
             Assert.IsEmpty(state.CheckCrown());
             Own(state, 0, 1);
             CollectionAssert.AreEqual(new[] { (0, Gem.Lands) }, state.CheckCrown());
@@ -208,6 +208,49 @@ namespace Realms.Tests
             Assert.AreEqual(player, state.Winner);
             Assert.AreEqual(1, state.CrownPlace(0));
             Assert.AreEqual(1, state.CrownPlace(1));
+        }
+
+        [Test]
+        public void TheCrownHasASocketForEveryGemOnce()
+        {
+            var gems = (Gem[])System.Enum.GetValues(typeof(Gem));
+            Assert.AreEqual(6, Crown.Order.Length, "six sockets, as a hex has sides");
+            CollectionAssert.AreEquivalent(gems, Crown.Order);
+            CollectionAssert.AllItemsAreUnique(Crown.Order);
+        }
+
+        [Test]
+        public void TheFinishedGreatBuildSetsItsGem()
+        {
+            GameState state = Two();
+            City capital = Capital(state, 0);
+            Assert.AreEqual((0, GreatBuild.Stages), Crown.Progress(state, 0, Gem.Build));
+            capital.BuildStage = GreatBuild.Stages - 1;
+            Assert.IsEmpty(state.CheckCrown(), "two stages are not the build");
+            Assert.AreEqual((GreatBuild.Stages - 1, GreatBuild.Stages), Crown.Progress(state, 0, Gem.Build));
+            capital.BuildStage = GreatBuild.Stages;
+            CollectionAssert.AreEqual(new[] { (0, Gem.Build) }, state.CheckCrown());
+            Assert.IsTrue(state.HasGem(0, Gem.Build));
+            Assert.IsFalse(state.HasGem(1, Gem.Build), "the neighbour's capital raised nothing");
+        }
+
+        [Test]
+        public void TheBuildsGemComesWhenTheLastStageIsRaised()
+        {
+            GameState state = Two();
+            City capital = Capital(state, 0);
+            capital.Buildings.Add(TownBuilding.Walls);
+            capital.Buildings.Add(TownBuilding.Castle);
+            // A free place for the build.
+            capital.Houses = Towns.CentrePlaces - 1;
+            state.Treasury[0] = new Stock(500, 0, 500, 500);
+            for (int stage = 1; stage <= GreatBuild.Stages; stage++)
+            {
+                Assert.IsFalse(state.HasGem(0, Gem.Build), $"before stage {stage}");
+                Assert.AreEqual(Refusal.None, state.RaiseBuild(0, capital.Index));
+                state.CheckCrown();
+            }
+            Assert.IsTrue(state.HasGem(0, Gem.Build));
         }
 
         [Test]

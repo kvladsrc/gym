@@ -1,0 +1,60 @@
+[project]
+name = "deepmesh-model-server"
+version = "0.1.0"
+description = "Artist-like mesh generation server for the asset studio, based on DeepMesh."
+# Upstream's stack (torch 2.5.1, xformers 0.0.29, flash-attn and its rotary
+# and layer-norm kernels) on Python 3.11, the SDK's. Upstream installs
+# flash-attn from source; the server takes the prebuilt 2.7.4.post1 wheel and
+# builds only the two small kernels from the same tag (see setup_native.py).
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  "torch==2.5.1",
+  "triton==3.1.0",
+  # Triton 3.1 imports setuptools to build its kernels; uv's venvs have none.
+  "setuptools>=70",
+  # A prebuilt wheel: building flash-attn takes an hour of every CPU core.
+  "flash-attn==2.7.4.post1",
+  "xformers==0.0.29",
+  # lit_gpt refuses to import without Lightning; nothing of it runs.
+  "lightning>=2.1.2,<2.6",
+  "lightning-utilities>=0.11",
+  # The point-cloud encoder imports CLIPModel and never loads it.
+  "transformers==4.46.3",
+  "einops>=0.6.1",
+  "omegaconf>=2.3",
+  "beartype>=0.19",
+  "scikit-image>=0.24",
+  "networkx>=3.2",
+  "six>=1.16",
+  "scipy>=1.13",
+  "tqdm",
+  "huggingface-hub>=0.28,<1",
+  "numpy==1.26.4",
+  "trimesh>=4.4,<5",
+  # For building the two kernels when they are not cached.
+  "wheel",
+  "ninja",
+  "packaging",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+deepmesh-model-server = "deepmesh_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu124" }
+triton = { index = "pytorch-cu124" }
+flash-attn = { url = "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.5cxx11abiFALSE-cp311-cp311-linux_x86_64.whl" }
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

@@ -9,7 +9,7 @@ from yaqs.context import DEFAULT_CONTEXT_TOKENS, DEFAULT_PAGE_TOKENS, page_windo
 from yaqs.embedding import QwenEncoder
 from yaqs.present import check_detail, compact_books, compact_page, compact_passage, compact_search
 from yaqs.querylog import PYTHON, Caller, Entry, QueryLog, blocks, window
-from yaqs.store import KnowledgeBase, validate_neighbors, validate_search
+from yaqs.store import KnowledgeBase, validate_corpus, validate_neighbors, validate_search
 
 SCORE_NOTES = {
     "semantic": "Cosine similarity; higher is closer, not a probability",
@@ -48,6 +48,7 @@ class KnowledgeService:
         mode: str = DEFAULT_SEARCH_MODE,
         max_tokens: int = DEFAULT_CONTEXT_TOKENS,
         detail: str = "full",
+        corpus: str = "all",
         *,
         caller: Caller = PYTHON,
     ) -> dict[str, Any]:
@@ -58,10 +59,12 @@ class KnowledgeService:
             "mode": mode,
             "max_tokens": max_tokens,
             "detail": detail,
+            "corpus": corpus,
         }
         with self._record(caller, "search", arguments) as entry:
             check_detail(detail)
             validate_search(query, limit, mode)
+            validate_corpus(corpus)
             validate_budget(max_tokens)
             vector = (
                 None if mode == "lexical" else self.encoder.encode([query], query=True)[0].tolist()
@@ -69,6 +72,7 @@ class KnowledgeService:
             result = {
                 "query": query,
                 "mode": mode,
+                "corpus": corpus,
                 **self.store.context_search(
                     query,
                     vector,
@@ -77,6 +81,7 @@ class KnowledgeService:
                     book_id=book_id,
                     mode=mode,
                     max_tokens=max_tokens,
+                    corpus=corpus,
                 ),
                 "score_note": SCORE_NOTES[mode],
             }
@@ -140,10 +145,13 @@ class KnowledgeService:
             entry.result = window(result)
         return compact_page(result) if detail == "compact" else result
 
-    def books(self, detail: str = "full", *, caller: Caller = PYTHON) -> list[dict[str, Any]]:
-        with self._record(caller, "books", {"detail": detail}) as entry:
+    def books(
+        self, detail: str = "full", corpus: str = "all", *, caller: Caller = PYTHON
+    ) -> list[dict[str, Any]]:
+        with self._record(caller, "books", {"detail": detail, "corpus": corpus}) as entry:
             check_detail(detail)
-            books = self.store.books()
+            validate_corpus(corpus)
+            books = [book for book in self.store.books() if corpus in ("all", book["corpus"])]
             entry.result = {"books": len(books)}
         return compact_books(books) if detail == "compact" else books
 

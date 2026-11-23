@@ -5,9 +5,12 @@
 set -euo pipefail
 project="$(cd "$(dirname "$0")/.." && pwd)/unity/realms"
 case ${1:-linux} in
-    linux) out="$project/Builds/Linux/Realms.x86_64" target=StandaloneLinux64 method=Linux ;;
-    windows) out="$project/Builds/Windows/Realms.exe" target=StandaloneWindows64 method=Windows ;;
-    *) echo "usage: build.sh [linux|windows]" >&2; exit 2 ;;
+linux) out="$project/Builds/Linux/Realms.x86_64" target=StandaloneLinux64 method=Linux ;;
+windows) out="$project/Builds/Windows/Realms.exe" target=StandaloneWindows64 method=Windows ;;
+*)
+    echo "usage: build.sh [linux|windows]" >&2
+    exit 2
+    ;;
 esac
 
 if pgrep -f -- "-projectPath $project( |$)" >/dev/null; then

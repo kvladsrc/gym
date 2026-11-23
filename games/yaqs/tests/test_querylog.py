@@ -38,6 +38,7 @@ def test_records_keep_arguments_and_answer_ids_but_no_text(logged):
         "mode": "lexical",
         "max_tokens": 4096,
         "detail": "compact",
+        "corpus": "all",
     }
     first = search["result"]["hits"][0]
     assert first["id"] == hit["id"] and first["page_number"] == 1 and "score" in first

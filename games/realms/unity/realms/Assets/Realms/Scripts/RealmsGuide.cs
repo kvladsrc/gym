@@ -139,6 +139,28 @@ namespace Realms
             PlayerPrefs.Save();
         }
 
+        /// <summary>
+        /// «Показать снова» in the settings: the newcomer's lines, calls and one-time hints from the
+        /// start, as for someone who never played (the interface plan's 3.3).
+        /// </summary>
+        void GuideAgain()
+        {
+            learned = 0;
+            seen = 0;
+            turnsEver = 0;
+            monsterClicks = 0;
+            hint = null;
+            lastDeed = Time.unscaledTime;
+            guideAt = 0f;
+            hud.SetSeenHints(SeenLines());
+            if (captureDir != null)
+                return;
+            PlayerPrefs.SetInt(LearnedKey, 0);
+            PlayerPrefs.SetInt(SeenKey, 0);
+            PlayerPrefs.SetInt(TurnsKey, 0);
+            PlayerPrefs.Save();
+        }
+
         bool Knows(Learned what) => (learned & what) == what;
 
         /// <summary>The players did it themselves (or saw the hint): kept, except in the captures.</summary>
@@ -178,6 +200,9 @@ namespace Realms
 
         void ShowHint(string text, Learned what)
         {
+            // With the hints off nothing is shown, and nothing is spent: they wait for «Показать снова».
+            if (!GameSettings.Hints)
+                return;
             hint = text;
             hintUntil = Time.unscaledTime + HintSeconds;
             Learn(what);
@@ -233,7 +258,8 @@ namespace Realms
             if (state == null)
                 return;
             float now = Time.unscaledTime;
-            if (battleView.Active || hud.MenuOpen || hud.Modal || busy)
+            // The players may turn the newcomer's guide off in the settings (the interface plan's 3.5).
+            if (battleView.Active || hud.MenuOpen || hud.Modal || busy || !GameSettings.Hints)
             {
                 hud.SetGuide(null, null, null, false);
                 view.SetGuide(null);

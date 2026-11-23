@@ -88,7 +88,14 @@ def test_search_page_passage_and_books_return_compact_views(app):
     assert [hit["page_number"] for hit in passage["hits"]] == [1, 2]
     books = json.loads(get(app, "/api/books")[2])
     assert books == [
-        {"id": 1, "title": "Game reference", "author": "Author", "page_count": 2, "chunks": 2}
+        {
+            "id": 1,
+            "title": "Game reference",
+            "author": "Author",
+            "page_count": 2,
+            "chunks": 2,
+            "corpus": "books",
+        }
     ]
     assert json.loads(get(app, "/api/stats")[2])["counts"]["books"] == 1
 
@@ -101,6 +108,33 @@ def test_bad_requests_are_json_errors(app):
     status, _, body = get(app, "/api/page/1/99")
     assert status == 404 and "Unknown" in json.loads(body)["error"]
     assert get(app, "/api/passage/999")[0] == 404
+
+
+@pytest.mark.parametrize("mode", ["semantic", "lexical", "hybrid"])
+@pytest.mark.parametrize("corpus,expected", [("all", {1, 2}), ("books", {1}), ("kb", {2})])
+def test_corpus_search_reaches_the_index(mixed_library, encoder, mode, corpus, expected):
+    service = KnowledgeService(mixed_library.path)
+    service.encoder = encoder
+    app = build_app(service)
+    status, _, body = get(app, f"/api/search?q=attack&mode={mode}&corpus={corpus}")
+    result = json.loads(body)
+    assert status == 200 and result["corpus"] == corpus
+    assert {h["book_id"] for h in result["hits"]} == expected
+    books = json.loads(get(app, "/api/books")[2])
+    assert [b["corpus"] for b in books] == ["books", "kb"]
+    status, _, body = get(app, f"/api/search?q=attack&mode={mode}&corpus=books&book=2")
+    assert status == 200 and json.loads(body)["hits"] == []
+
+
+def test_unknown_corpus_is_rejected_before_loading_model(library):
+    class UnexpectedModel(CharacterEncoder):
+        def encode(self, *args, **kwargs):
+            pytest.fail("Invalid corpus must not load the model")
+
+    service = KnowledgeService(library.path)
+    service.encoder = UnexpectedModel()
+    status, _, body = get(build_app(service), "/api/search?q=attack&corpus=unknown")
+    assert status == 400 and "corpus" in json.loads(body)["error"]
 
 
 def test_runtime_failures_are_json_errors_with_the_reason(library):

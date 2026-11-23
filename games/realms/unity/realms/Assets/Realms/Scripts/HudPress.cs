@@ -48,6 +48,7 @@ namespace Realms
             Vector2 screen = mouse.position.ReadValue();
             if (mouse.leftButton.wasPressedThisFrame)
             {
+                Sounds.Touch();
                 VisualElement top = Picked(screen);
                 pressed = PressableAt(top);
                 minimapHeld = pressed == null && top != null && (top == minimap || minimap.Contains(top));
@@ -65,10 +66,17 @@ namespace Realms
             VisualElement down = pressed;
             pressed = null;
             minimapHeld = false;
-            if (down == null || !down.enabledInHierarchy || PressableAt(Picked(screen)) != down
-                || !pressActions.TryGetValue(down, out Action act))
+            if (down == null || PressableAt(Picked(screen)) != down || !pressActions.TryGetValue(down, out Action act))
                 return;
+            // A pale button answers with a dull knock, a live one with a click before it acts
+            // (the sound plan's Click and ClickOff).
+            if (!down.enabledInHierarchy)
+            {
+                Sounds.Play(Sfx.ClickOff);
+                return;
+            }
             pressFrame = Time.frameCount;
+            Sounds.Play(Sfx.Click);
             act?.Invoke();
         }
 

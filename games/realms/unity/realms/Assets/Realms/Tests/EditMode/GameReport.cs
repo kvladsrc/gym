@@ -54,6 +54,14 @@ namespace Realms.Tests
             _ => Difficulty.Normal,
         };
 
+        /// <summary>The map's size, REALMS_GAME_SIZE small, medium (the default) or large.</summary>
+        static readonly MapSize Size = (Environment.GetEnvironmentVariable("REALMS_GAME_SIZE") ?? "").ToLowerInvariant() switch
+        {
+            "small" => MapSize.Small,
+            "large" => MapSize.Large,
+            _ => MapSize.Medium,
+        };
+
         /// <summary>The turns the gap between the first and the second kingdom's gems is shown at.</summary>
         static readonly int[] GapTurns = { 20, 40, 60 };
 
@@ -68,7 +76,7 @@ namespace Realms.Tests
         static int Of(Stock s, int good) => good == 0 ? s.Gold : good == 1 ? s.Food : good == 2 ? s.Wood : s.Stone;
 
         /// <summary>Where the goods came from and went, for one good.</summary>
-        enum Flow { Income, Tasks, Spoils, FieldBuildings, TownBuildings, Quarters, Other, Army, Growth }
+        enum Flow { Income, Tasks, Spoils, FieldBuildings, TownBuildings, Quarters, GreatBuild, Other, Army, Upkeep, Growth }
 
         sealed class Game
         {
@@ -89,8 +97,8 @@ namespace Realms.Tests
             public readonly Dictionary<int, (int Level, float Army, int Fights, int Won, int Lairs)> Hero =
                 new Dictionary<int, (int, float, int, int, int)>();
             public int FirstCrown = int.MaxValue;
-            public readonly Dictionary<int, (double Towns, double Houses, double Land, double Built, double Gold)> Neighbours =
-                new Dictionary<int, (double, double, double, double, double)>();
+            public readonly Dictionary<int, (double Towns, double Houses, double Land, double Built, double Gold, double Stage)> Neighbours =
+                new Dictionary<int, (double, double, double, double, double, double)>();
             /// <summary>Each other kingdom's gems with its temper's first gem and the turn each came on.</summary>
             public readonly List<(Gem Aim, Gem Gem, int Turn)> RivalGems = new List<(Gem, Gem, int)>();
             /// <summary>The first turn another kingdom set its crown (0: never); times the kingdom with the most gems changed.</summary>
@@ -134,7 +142,15 @@ namespace Realms.Tests
             // troops sent, won and gone home because the players were first.
             public int LairsAtStart, LairsAt45, OthersLairsAt45, OthersLairs, LairsLeft, TroopsSent, TroopsWon, TroopsRecalled;
             public int FirstTroop;
+
+            // The army's upkeep (the economy plan's 3.4): turns the players' army went hungry, the
+            // first of them (0: never), and the players' warriors and their food a turn at the turns of <see cref="UpkeepTurns"/>.
+            public int HungryTurns, FirstHunger;
+            public readonly Dictionary<int, (int Warriors, int Food)> UpkeepAt = new Dictionary<int, (int, int)>();
         }
+
+        /// <summary>The turns the upkeep table shows the players' army at.</summary>
+        static readonly int[] UpkeepTurns = { 20, 40, 60 };
 
         [Test, Explicit("A report, not a check")]
         public void GameReportTable()
@@ -147,7 +163,9 @@ namespace Realms.Tests
             var text = new StringBuilder();
             text.AppendLine("# Games played by the economy bot");
             text.AppendLine();
-            text.AppendLine($"{Maps} maps (seeds 1-{Maps}) × {Turns} turns. The players' kingdom is played by `Rival.PlayATurn`: " +
+            WorldSettings size = WorldSettings.Of(Size);
+            text.AppendLine($"{Maps} maps (seeds 1-{Maps}, {Size.ToString().ToLowerInvariant()}: {size.Width}×{size.Height} cells, " +
+                $"{size.Countries} kingdoms; REALMS_GAME_SIZE) × {Turns} turns. The players' kingdom is played by `Rival.PlayATurn`: " +
                 "it builds and grows towns onto quarters, and founds no towns. " +
                 (WithHero
                     ? "Then `Rival.Arm` builds the capital's barracks, archery range and stables and `Rival.Hire` hires in every town, " +
@@ -206,12 +224,12 @@ namespace Realms.Tests
             text.AppendLine($"## Where the goods went (all maps, turns 1-{Turns})");
             text.AppendLine();
             text.AppendLine("Came in: towns' and fields' income / tasks' rewards / the hero's spoils (fights' rewards and piles). " +
-                "Went to: field buildings / town buildings / quarters / anything else (nothing should, now that land is not bought) / " +
-                "the army / town growth, as shares of all that " +
+                "Went to: field buildings / town buildings / quarters / the Great Build / anything else (nothing should, now that land is not bought) / " +
+                "the army's hire / its upkeep / town growth, as shares of all that " +
                 "came in. Left: what the treasury held at the end.");
             text.AppendLine();
-            text.AppendLine("| Good | Came in: income / tasks / spoils | Field buildings | Town buildings | Quarters | Other | Army | Growth | Left |");
-            text.AppendLine("|---|---|---|---|---|---|---|---|---|");
+            text.AppendLine("| Good | Came in: income / tasks / spoils | Field buildings | Town buildings | Quarters | Great Build | Other | Army | Upkeep | Growth | Left |");
+            text.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|");
             for (int good = 0; good < 4; good++)
             {
                 long Sum(Flow flow) => games.Sum(g => g.Flows[(int)flow, good]);
@@ -219,7 +237,7 @@ namespace Realms.Tests
                 string Share(Flow flow) => came == 0 ? "-" : $"{100.0 * Sum(flow) / came:0}%";
                 long left = games.Sum(g => (long)Of(g.Treasury[Turns], good));
                 text.AppendLine($"| {Goods[good]} | {Sum(Flow.Income)} / {Sum(Flow.Tasks)} / {Sum(Flow.Spoils)} | {Share(Flow.FieldBuildings)} | " +
-                    $"{Share(Flow.TownBuildings)} | {Share(Flow.Quarters)} | {Share(Flow.Other)} | {Share(Flow.Army)} | {Share(Flow.Growth)} | " +
+                    $"{Share(Flow.TownBuildings)} | {Share(Flow.Quarters)} | {Share(Flow.GreatBuild)} | {Share(Flow.Other)} | {Share(Flow.Army)} | {Share(Flow.Upkeep)} | {Share(Flow.Growth)} | " +
                     $"{(came == 0 ? "-" : $"{100.0 * left / came:0}%")} |");
             }
 
@@ -239,7 +257,8 @@ namespace Realms.Tests
             text.AppendLine("| Building | Maps | Turn: mean (earliest-latest) |");
             text.AppendLine("|---|---|---|");
             var kinds = Economy.FieldBuildings.Select(b => b.ToString())
-                .Concat(Economy.TownBuildings.Concat(Economy.Fortifications).Select(b => b.ToString())).Append("Quarter");
+                .Concat(Economy.TownBuildings.Concat(Economy.Fortifications).Select(b => b.ToString())).Append("Quarter")
+                .Concat(Enumerable.Range(1, GreatBuild.Stages).Select(Stage));
             foreach (string kind in kinds)
             {
                 List<int> turns = games.Where(g => g.FirstBuilt.ContainsKey(kind)).Select(g => g.FirstBuilt[kind]).ToList();
@@ -323,9 +342,11 @@ namespace Realms.Tests
                     $"{games.Average(g => g.Neighbours[turn].Gold):0} |");
             }
 
+            BuildSection(text, games);
             LandSection(text, games);
             RaidSection(text, games);
             TroopSection(text, games);
+            UpkeepSection(text, games);
 
             if (WithHero)
             {
@@ -402,6 +423,31 @@ namespace Realms.Tests
                 $"more than 5 on {games.Count(g => g.RaidTurnsAt45 > 5)} of {games.Count} maps.");
         }
 
+        /// <summary>The army's upkeep (the economy plan's 3.4): what the players' army ate and how often it went hungry.</summary>
+        static void UpkeepSection(StringBuilder text, List<Game> games)
+        {
+            text.AppendLine();
+            text.AppendLine("## The army's upkeep (the economy plan's 3.4)");
+            text.AppendLine();
+            text.AppendLine($"The first {Upkeep.Free} warriors eat nothing, each further {Upkeep.PerFood} one food a turn, a rider counts as two; " +
+                $"a hungry army's heroes walk {HeroRules.HungryMoves} of {HeroRules.MovesPerTurn} the next turn.");
+            text.AppendLine();
+            text.AppendLine("| Turn | Warriors (mean, range) | Food a turn (mean, range) |");
+            text.AppendLine("|---|---|---|");
+            foreach (int turn in UpkeepTurns)
+            {
+                List<(int Warriors, int Food)> at = games.Where(g => g.UpkeepAt.ContainsKey(turn)).Select(g => g.UpkeepAt[turn]).ToList();
+                if (at.Count == 0)
+                    continue;
+                text.AppendLine($"| {turn} | {at.Average(a => a.Warriors):0} ({at.Min(a => a.Warriors)}-{at.Max(a => a.Warriors)}) | " +
+                    $"{at.Average(a => a.Food):0.0} ({at.Min(a => a.Food)}-{at.Max(a => a.Food)}) |");
+            }
+            text.AppendLine();
+            List<int> first = games.Where(g => g.FirstHunger > 0).Select(g => g.FirstHunger).ToList();
+            text.AppendLine($"Hungry turns: {games.Average(g => g.HungryTurns):0.0} a game ({games.Min(g => g.HungryTurns)}-{games.Max(g => g.HungryTurns)}), " +
+                $"on {first.Count} of {games.Count} maps" + (first.Count > 0 ? $", the first on turn {first.Average():0} on average." : "."));
+        }
+
         /// <summary>The neighbours' troops to the lairs: the economy plan's step 4 and its check, how many lairs go to the players.</summary>
         static void TroopSection(StringBuilder text, List<Game> games)
         {
@@ -423,6 +469,32 @@ namespace Realms.Tests
             text.AppendLine($"The players got 3 lairs (the hunter's gem) on {games.Count(g => g.Lairs >= Crown.HunterGoal)} of {games.Count} maps; " +
                 $"lairs went more to the players than to all the neighbours together on {games.Count(g => g.Lairs > g.OthersLairs)} maps.");
         }
+
+        /// <summary>The Great Build: the economy plan's 3.4 and its check, the bot's build ends on turns 45-60.</summary>
+        static void BuildSection(StringBuilder text, List<Game> games)
+        {
+            text.AppendLine();
+            text.AppendLine("## The Great Build (the economy plan's 3.4)");
+            text.AppendLine();
+            text.AppendLine($"A capital with a castle raises it in {GreatBuild.Stages} stages: " +
+                string.Join(", ", Enumerable.Range(1, GreatBuild.Stages).Select(s => $"{s}: {Price(GreatBuild.Cost(s))}")) +
+                $"; the first {GreatBuild.PayingStages} bring {GreatBuild.GoldPerStage} gold a turn each. The plan wants the bot's last stage on turns 45-60.");
+            text.AppendLine();
+            text.AppendLine("| Stage | Players' maps | Turn: mean (earliest-latest) | By turn 45 / 60 |");
+            text.AppendLine("|---|---|---|---|");
+            for (int stage = 1; stage <= GreatBuild.Stages; stage++)
+            {
+                List<int> turns = games.Where(g => g.FirstBuilt.ContainsKey(Stage(stage))).Select(g => g.FirstBuilt[Stage(stage)]).ToList();
+                text.AppendLine($"| {stage} | {turns.Count} | {(turns.Count == 0 ? "never" : $"{turns.Average():0} ({turns.Min()}-{turns.Max()})")} | " +
+                    $"{turns.Count(t => t <= 45)} / {turns.Count(t => t <= 60)} |");
+            }
+            text.AppendLine();
+            text.AppendLine("Neighbours' stages, mean of one kingdom: " +
+                string.Join(", ", new[] { 30, 40, 50, 60, 70, 80 }.Select(t => $"turn {t} {games.Average(g => g.Neighbours[t].Stage):0.00}")) + ".");
+        }
+
+        static string Price(Stock s) => string.Join(" + ", new[] { (s.Gold, "gold"), (s.Food, "food"), (s.Wood, "wood"), (s.Stone, "stone") }
+            .Where(p => p.Item1 > 0).Select(p => $"{p.Item1} {p.Item2}"));
 
         static void LandSection(StringBuilder text, List<Game> games)
         {
@@ -476,7 +548,7 @@ namespace Realms.Tests
             text.AppendLine($"| Wild cells in reach on turn 30 that two kingdoms reach | {Share(games.Sum(g => g.Contested), games.Sum(g => g.Reachable))} | | 5-15% |");
             text.AppendLine($"| Players' land to the others' mean on turn 60 | | {ratio.Average():0.00} ({ratio.Min():0.00}-{ratio.Max():0.00}) | ≥ 1.4 |");
             text.AppendLine($"| Leader to laggard among the others on turn 60 | {spread.Average():0.00} (up to {spread.Max():0.00}) | | ≤ 2 |");
-            text.AppendLine($"| Turn of the Lands gem ({Crown.LandsGoal} cells) | {GemTurn(gemOthers, kingdoms - games.Count)} | {GemTurn(gemMine, games.Count)} | 30-40 |");
+            text.AppendLine($"| Turn of the Lands gem ({Crown.LandsGoal(Size)} cells) | {GemTurn(gemOthers, kingdoms - games.Count)} | {GemTurn(gemMine, games.Count)} | 30-40 |");
 
             text.AppendLine();
             text.AppendLine(NoStake ? "No bot sets a stake (REALMS_GAME_NO_STAKE)." :
@@ -592,7 +664,7 @@ namespace Realms.Tests
 
         static Game Play(int seed)
         {
-            World world = WorldGen.Generate(seed);
+            World world = WorldGen.Generate(seed, WorldSettings.Of(Size));
             var state = new GameState(world) { Difficulty = Level, RivalsPlay = !Passive && Rate < 0, BotsStake = !NoStake };
             int player = world.Player;
             var wildResources = new HashSet<int>(world.Cells.Where(c => c.Owner < 0 && c.IsLand && c.Resource != Resource.None).Select(c => c.Index));
@@ -617,7 +689,8 @@ namespace Realms.Tests
                 var others = Enumerable.Range(0, world.Countries.Count).Where(k => k != player).ToList();
                 game.Neighbours[turn] = (others.Average(k => world.Countries[k].Cities.Count),
                     others.Average(k => world.Countries[k].Cities.Sum(c => world.Cities[c].Houses)),
-                    others.Average(k => Land(world, k)), others.Average(k => Built(world, k)), others.Average(k => state.Treasury[k].Gold));
+                    others.Average(k => Land(world, k)), others.Average(k => Built(world, k)), others.Average(k => state.Treasury[k].Gold),
+                    others.Average(k => world.Cities[world.Countries[k].Capital].BuildStage));
                 int groups = 0, lairs = 0, units = 0;
                 foreach (Cell c in world.Cells)
                 {
@@ -647,6 +720,8 @@ namespace Realms.Tests
                 var fields = new HashSet<int>(world.Cells.Where(c => c.Owner == player && c.Building != FieldBuilding.None).Select(c => c.Index));
                 var buildings = mine.Cities.ToDictionary(i => i, i => new HashSet<TownBuilding>(world.Cities[i].Buildings));
                 var quarters = mine.Cities.ToDictionary(i => i, i => world.Cities[i].Districts.Count);
+                City capital = world.Cities[mine.Capital];
+                int stageBefore = capital.BuildStage;
 
                 int done = Rival.PlayATurn(state, player);
                 bool built = false, fresh = false;
@@ -697,11 +772,18 @@ namespace Realms.Tests
                     if (grew > 0)
                         built |= First(game, "Quarter", turn);
                 }
+                Stock works = default;
+                for (int stage = stageBefore + 1; stage <= capital.BuildStage; stage++)
+                {
+                    works += GreatBuild.Cost(stage);
+                    built |= First(game, Stage(stage), turn);
+                }
                 Stock spent = before - state.Treasury[player];
-                Stock other = spent - building - town - quarter - army + spoils;
+                Stock other = spent - building - town - quarter - works - army + spoils;
                 Add(game, Flow.FieldBuildings, building);
                 Add(game, Flow.TownBuildings, town);
                 Add(game, Flow.Quarters, quarter);
+                Add(game, Flow.GreatBuild, works);
                 Add(game, Flow.Other, other);
                 Add(game, Flow.Army, army);
                 Add(game, Flow.Spoils, spoils);
@@ -735,6 +817,15 @@ namespace Realms.Tests
                 Add(game, Flow.Income, income);
                 var food = new Stock(0, report.GrowthFood, 0, 0);
                 Add(game, Flow.Growth, food);
+                Add(game, Flow.Upkeep, new Stock(0, report.ArmyFood, 0, 0));
+                if (report.Events.Exists(e => e.Kind == TurnEventKind.ArmyHungry))
+                {
+                    game.HungryTurns++;
+                    if (game.FirstHunger == 0)
+                        game.FirstHunger = now;
+                }
+                if (Array.IndexOf(UpkeepTurns, now) >= 0)
+                    game.UpkeepAt[now] = (Upkeep.Warriors(state, player), Upkeep.Of(state, player));
                 foreach (TurnEvent e in report.Events)
                 {
                     if (e.Kind == TurnEventKind.GemSet)
@@ -882,6 +973,8 @@ namespace Realms.Tests
             Note(Turns);
             return game;
         }
+
+        static string Stage(int stage) => $"Great Build {stage}";
 
         static bool First(Game game, string kind, int turn)
         {

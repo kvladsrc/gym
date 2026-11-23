@@ -92,11 +92,13 @@ namespace Realms
         /// as objects of their own: Setup gives each one readable mesh. The towns' and roads' small
         /// things (lamps, signposts, fence spans, carts, casks, stalls) and the heaps of gold are
         /// merged the same way. The boat rocks on its own, but its plan is measured from the same
-        /// readable mesh.
+        /// readable mesh, and the Great Build's bell tower is cut into its stages from it
+        /// (<see cref="BuildStages"/>).
         /// </summary>
         public static readonly string[] ScatterModels = TreeModels.Concat(BushModels).Concat(DeadwoodModels).Concat(RockModels)
             .Concat(new[] { "peak", "peak_snow", "crag", "standing_stone", "mushrooms", "pebbles", "haystack", "logpile", "goldore", "stoneblocks", "wall", "tower" })
             .Concat(new[] { "lamp", "signpost", "fence", "cart", "barrels", "stall", "gold", "boat" })
+            .Concat(new[] { BuildStages.Model })
             .Distinct().ToArray();
 
         /// <summary>Whether a model of the art is one of the map's trees.</summary>
@@ -124,6 +126,34 @@ namespace Realms
             }
         }
 
+        /// <summary>
+        /// The kinds with more than one look: each group on the map keeps one of them, chosen by its
+        /// cell, and its battle shows the same (the family took both wolves and both spiders,
+        /// 2026-11-12). The first is the kind's own key, which the portraits and the rest use.
+        /// </summary>
+        static readonly Dictionary<Unit, string[]> Looks = new Dictionary<Unit, string[]>
+        {
+            [Unit.Wolves] = new[] { "wolf", "wolf_2" },
+            [Unit.Spiders] = new[] { "spider", "spider_2" },
+        };
+
+        /// <summary>
+        /// The art key of the look of the group on <paramref name="cell"/> (-1: the kind's own),
+        /// the kind's own when the art lacks that look.
+        /// </summary>
+        public static string ModelOf(Unit unit, int cell, ArtLibrary art)
+        {
+            string own = ModelOf(unit);
+            if (cell < 0 || !Looks.TryGetValue(unit, out string[] looks))
+                return own;
+            // An integer hash (as the shaders' are), so neighbouring cells do not simply alternate.
+            uint h = (uint)cell * 747796405u + 2891336453u;
+            h = ((h >> (int)((h >> 28) + 4u)) ^ h) * 277803737u;
+            h = (h >> 22) ^ h;
+            string key = looks[h % (uint)looks.Length];
+            return art != null && art.ModelOf(key) != null ? key : own;
+        }
+
         /// <summary>The art key of a unit's model.</summary>
         public static string ModelOf(Unit unit)
         {
@@ -140,6 +170,17 @@ namespace Realms
                 case Unit.Spiders: return "spider";
                 default: return "troll";
             }
+        }
+
+        /// <summary>Whether an art key is a figure's: a unit's model, one of its looks, or the hero.</summary>
+        public static bool IsFigure(string name)
+        {
+            if (name == "hero")
+                return true;
+            foreach (Unit unit in System.Enum.GetValues(typeof(Unit)))
+                if (ModelOf(unit) == name || Looks.TryGetValue(unit, out string[] looks) && System.Array.IndexOf(looks, name) >= 0)
+                    return true;
+            return false;
         }
 
         /// <summary>
@@ -671,6 +712,20 @@ namespace Realms
         /// </summary>
         public int RisingCell = -1, RisingTown = -1;
         public TownBuilding RisingBuilding;
+
+        /// <summary>
+        /// The capital whose Great Build the players just raised a stage, which grows out of the
+        /// stage below (<see cref="BuildSite"/>). Set only round the redraw after the raise.
+        /// </summary>
+        public int RisingStage = -1;
+
+        /// <summary>
+        /// The players' towns that got a house this turn: the first new house's number in the town
+        /// (<see cref="Towns.Layout"/> fills places in order, so the new ones come last) and how long
+        /// it waits before it rises, so the houses rise one after another (the turn's show, Hud.ShowTurn).
+        /// Set only round the redraw at the end of a turn.
+        /// </summary>
+        public Dictionary<int, (int From, float Delay)> RisingHouses;
 
         /// <summary>The studio model of a field building near the cell's centre, off the roads; where it stands.</summary>
         Vector2 FieldModel(FieldBuilding building, float cx, float cz)
@@ -1380,7 +1435,19 @@ namespace Realms
                     Garden(at, angles[k]);
                     continue;
                 }
+                if (lot == Towns.BuildLot)
+                {
+                    GameObject tower = art != null ? art.ModelOf(BuildStages.Model) : null;
+                    float tall = BuildHeight, twist = rng.Range(-20f, 20f);
+                    if (tower != null && crowd != null)
+                        at = Fit(crowd, new Vector2(cx, cz), degrees, SidesOf(tower), at, ref tall, ref twist, true);
+                    placed.Add(at);
+                    if (tower == null || !BuildSite(city, tower, at, tall, twist))
+                        House(at.x, at.y, 1.15f);
+                    continue;
+                }
                 bool home = lot == Towns.HouseLot;
+                int houseIndex = home ? house : -1;
                 GameObject prefab = home ? HouseModel(city, house++) : art != null ? art.ModelOf(ModelOf((TownBuilding)lot)) : null;
                 if (prefab == null)
                 {
@@ -1393,11 +1460,114 @@ namespace Realms
                     at = Fit(crowd, new Vector2(cx, cz), degrees, SidesOf(prefab), at, ref scale, ref turn, true);
                 placed.Add(at);
                 Transform model = Place(prefab, at.x, at.y, scale, turn, false);
-                if (home)
+                if (home && RisingHouses != null && RisingHouses.TryGetValue(city.Index, out (int From, float Delay) rise) && houseIndex >= rise.From)
+                {
+                    // A house the town got this turn: it waits its turn flat and rises. Its chimney
+                    // smokes from the next redraw, not over a house still in the ground.
+                    model.gameObject.AddComponent<Rise>().Delay = rise.Delay;
+                }
+                else if (home)
                     Chimneys(prefab.name, model);
                 else if (city.Index == RisingTown && (TownBuilding)lot == RisingBuilding)
                     model.gameObject.AddComponent<Rise>();
             }
+        }
+
+        /// <summary>
+        /// How tall the finished bell tower stands: the town's landmark, above the houses (0.4 on
+        /// their largest side) and as high as the castle's towers.
+        /// </summary>
+        const float BuildHeight = 0.6f;
+
+        /// <summary>
+        /// The capital's Great Build on its place (<see cref="BuildStages"/>): the stages raised so
+        /// far, and, just after the players raised one (<see cref="RisingStage"/>), the new stage
+        /// growing out of the top of the one below, so that what stood before stays put. While it
+        /// is unfinished a small heap of stone blocks lies beside it; finished, the kingdom's flag
+        /// flies from its pole. False when the model's mesh cannot be cut.
+        /// </summary>
+        bool BuildSite(City city, GameObject prefab, Vector2 at, float size, float yaw)
+        {
+            if (!prefab.TryGetComponent(out MeshFilter filter) || !prefab.TryGetComponent(out MeshRenderer renderer)
+                || filter.sharedMesh == null || renderer.sharedMaterial == null)
+                return false;
+            Mesh source = filter.sharedMesh;
+            Material walls = renderer.sharedMaterial;
+            int stage = Mathf.Clamp(city.BuildStage, 1, GreatBuild.Stages);
+            bool rising = city.Index == RisingStage;
+            float below = stage > 1 ? BuildStages.Tops[stage - 2] : 0f, top = BuildStages.Tops[stage - 1];
+            float standing = rising ? below : top;
+            Mesh rise = rising ? BuildStages.Part(source, below, top) : null;
+            Mesh stands = standing > 0f && standing < 1f ? BuildStages.Part(source, 0f, standing) : null;
+            if ((rising && rise == null) || (standing > 0f && standing < 1f && stands == null))
+                return false;
+            Transform holder = null;
+            Vector3 knob = BuildStages.Highest(source);
+            if (standing > 0f)
+            {
+                Transform tower = Place(prefab, at.x, at.y, size, yaw, false);
+                if (stands != null)
+                {
+                    tower.GetComponent<MeshFilter>().sharedMesh = stands;
+                    tower.GetComponent<MeshRenderer>().sharedMaterials = Walls(stands, walls);
+                }
+                holder = tower;
+            }
+            else
+                Foot(prefab, at.x, at.y, size, yaw);
+            if (rising)
+            {
+                // The new stage's own object, its vertices lowered by the cut it starts at.
+                Bounds bounds = source.bounds;
+                float low = bounds.min.y + below * bounds.size.y;
+                var part = new GameObject("great build rising").transform;
+                part.SetParent(root, false);
+                part.localPosition = Ground(at.x, at.y) - new Vector3(0, 0.015f, 0) + Vector3.up * (low * size);
+                part.localRotation = Quaternion.Euler(0, yaw, 0);
+                part.localScale = Vector3.one * size;
+                part.gameObject.AddComponent<MeshFilter>().sharedMesh = rise;
+                var shown = part.gameObject.AddComponent<MeshRenderer>();
+                shown.sharedMaterials = Walls(rise, walls);
+                shown.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+                shown.receiveShadows = true;
+                // Heavy and slow, as the castle rises.
+                part.gameObject.AddComponent<Rise>().Seconds = 0.8f;
+                holder = part;
+                knob.y -= low;
+            }
+            if (stage < GreatBuild.Stages)
+            {
+                // Building stone beside the unfinished tower, on the side towards the camera.
+                float a = (yaw + 35f) * Mathf.Deg2Rad;
+                Vector2 heap = at + new Vector2(Mathf.Cos(a), -Mathf.Abs(Mathf.Sin(a))) * (0.34f * size);
+                if (field.Height(heap.x, heap.y) > 0.05f && StudioStone("stoneblocks", heap.x, heap.y, 0.22f * size, 0f, 0.012f))
+                    placed.Add(heap);
+            }
+            else if (holder != null)
+                BuildFlag(holder, knob, yaw, city.Country, size);
+            return true;
+        }
+
+        /// <summary>The materials of a cut stage: the tower's own, and the flat top's when it has one.</summary>
+        static Material[] Walls(Mesh part, Material walls) =>
+            part.subMeshCount > 1 ? new[] { walls, BuildStages.TopMaterial(walls) } : new[] { walls };
+
+        /// <summary>
+        /// The kingdom's flag on the finished tower's pole, from just under its knob: a long
+        /// pennant flying the way the town banners fly. It is the tower's child, so it rises with
+        /// the last stage; its sizes are given in the world and divided by the tower's scale.
+        /// </summary>
+        static void BuildFlag(Transform holder, Vector3 knob, float yaw, int country, float size)
+        {
+            if (FlagArt.ClothMaterial == null || size <= 0f)
+                return;
+            Vector3 along = Quaternion.Inverse(Quaternion.Euler(0f, yaw, 0f)) * new Vector3(1f, 0f, 0.12f);
+            var cloth = new FlagCloth();
+            cloth.Add(knob - new Vector3(0f, 0.02f, 0f), along, 0.18f / size, 0.055f / size, country);
+            var go = new GameObject("great build flag");
+            go.transform.SetParent(holder, false);
+            go.AddComponent<MeshFilter>().sharedMesh = cloth.ToMesh("Props great build flag");
+            go.AddComponent<MeshRenderer>().sharedMaterial = FlagArt.ClothMaterial;
         }
 
         /// <summary>A place's spot: at the angle and distance, drawn in towards the middle off the water and the rivers.</summary>
@@ -1430,7 +1600,10 @@ namespace Realms
             float yaw = rng.Range(-5f, 5f);
             if (model != null)
             {
-                Place(model, cx, cz - 0.03f, Size, yaw, false);
+                Transform placed = Place(model, cx, cz - 0.03f, Size, yaw, false);
+                // A castle just built rises too, heavier and longer than a house.
+                if (city.Index == RisingTown && RisingBuilding == TownBuilding.Castle)
+                    placed.gameObject.AddComponent<Rise>().Seconds = 0.8f;
                 return new Footprint(new Vector2(cx, cz - 0.03f), SidesOf(model) * (Size / 2f), yaw);
             }
             Vector3 at = Ground(cx, cz) - new Vector3(0, 0.02f, 0);
@@ -2330,15 +2503,31 @@ namespace Realms
                     continue;
                 float yaw = rng.Range(-40f, 40f) + (rng.Chance(0.5f) ? 180f : 0f);
                 Boat(x, z, yaw, cell.Owner, 1f);
-                Quaternion q = Quaternion.Euler(0, yaw, 0);
-                for (int k = 0; k < 6; k++)
-                {
-                    float f = Mathf.PI * (0.65f + 0.7f * k / 5f);
-                    Vector3 at = new Vector3(x, 0.004f, z) + q * new Vector3(Mathf.Cos(f) * 0.17f - 0.08f, 0, Mathf.Sin(f) * 0.17f);
-                    Color c = k % 2 == 0 ? Palette.Hex("#F26B3A") : Palette.Snow;
-                    Kit().Blob(at, new Vector3(0.011f, 0.008f, 0.011f), 5, 2, c, c, rng, 0f);
-                }
+                Net(new Vector3(x, 0.004f, z), Quaternion.Euler(0, yaw, 0));
                 return;
+            }
+        }
+
+        /// <summary>
+        /// The boat's net: a rope from its side in an arc on the water, cork floats along it. Six
+        /// loose orange and white dots had stood there, and the white was the brightest spot on the
+        /// sea and the dots read as nothing (the visual plan's problem 6, 2026-11-12).
+        /// </summary>
+        void Net(Vector3 boat, Quaternion q)
+        {
+            Color rope = Palette.Hex("#4E3F2E"), cork = Palette.Hex("#C49A5E"), corkDark = Palette.Hex("#A87A45");
+            Vector3 last = boat + q * new Vector3(-0.05f, 0f, 0.02f);
+            for (int k = 0; k <= 6; k++)
+            {
+                float f = Mathf.PI * (0.6f + 0.8f * k / 6f);
+                Vector3 at = boat + q * new Vector3(Mathf.Cos(f) * 0.17f - 0.07f, 0f, Mathf.Sin(f) * 0.15f);
+                Kit().Cylinder(last, at, 0.0035f, 4, rope, rope);
+                if (k > 0)
+                {
+                    Color c = k % 2 == 0 ? cork : corkDark;
+                    Kit().Blob(at, new Vector3(0.01f, 0.007f, 0.01f), 5, 2, c, c, rng, 0f);
+                }
+                last = at;
             }
         }
 
@@ -2667,12 +2856,12 @@ namespace Realms
             // A little under their battle size (SizeOf), the upright ones well under it (UprightOnMap).
             bool upright = unit == Unit.Troll || unit == Unit.Goblins || unit == Unit.Bandits || unit == Unit.Skeletons;
             float size = SizeOf(unit) * 0.88f * (upright ? UprightOnMap : 1f) * (cell.Lair && unit == Unit.Troll ? 1.12f : 1f);
-            Creatures(unit, cx, cz, figures, size);
+            Creatures(unit, cell.Index, cx, cz, figures, size);
         }
 
-        void Creatures(Unit unit, float cx, float cz, int count, float size)
+        void Creatures(Unit unit, int cell, float cx, float cz, int count, float size)
         {
-            GameObject prefab = art != null ? art.ModelOf(ModelOf(unit)) : null;
+            GameObject prefab = art != null ? art.ModelOf(ModelOf(unit, cell, art)) : null;
             for (int k = 0; k < count; k++)
             {
                 float angle = k * Mathf.PI * 2f / count + 0.6f, d = count == 1 ? 0f : 0.19f;
@@ -2680,7 +2869,11 @@ namespace Realms
                 placed.Add(new Vector2(x, z));
                 if (prefab != null)
                 {
-                    Place(prefab, x, z, size * rng.Range(0.92f, 1.08f), rng.Range(-35f, 35f), true);
+                    Transform figure = Place(prefab, x, z, size * rng.Range(0.92f, 1.08f), rng.Range(-35f, 35f), true);
+                    // About every third creature with its own moves sits, chosen by the cell so
+                    // the map's dice fall as before.
+                    if (figure.TryGetComponent(out Moves moves) && moves.hold == Moves.Stand && moves.Has(Moves.Sit) && (cell + k) % 3 == 1)
+                        moves.hold = Moves.Sit;
                     continue;
                 }
                 Color body = ColourOf(unit);
@@ -2756,7 +2949,7 @@ namespace Realms
         /// <summary>
         /// A studio model standing on the ground, or at height <paramref name="y"/> when given (in
         /// the water). A building (anything not <paramref name="idle"/>) shades the ground round
-        /// its foot.
+        /// its foot; a creature (<paramref name="idle"/>) stands and breathes.
         /// </summary>
         Transform Place(GameObject prefab, float x, float z, float size, float yaw, bool idle, float? y = null)
         {
@@ -2765,7 +2958,14 @@ namespace Realms
             go.transform.localRotation = Quaternion.Euler(0, yaw, 0);
             go.transform.localScale = Vector3.one * size;
             if (idle)
-                go.AddComponent<Idle>();
+            {
+                // A creature with its own moves stands in its captured loop (Moves); the others
+                // breathe and look round as drawn (Idle).
+                if (go.TryGetComponent(out Moves moves) && moves.Has(Moves.Stand))
+                    moves.hold = Moves.Stand;
+                else
+                    go.AddComponent<Idle>();
+            }
             else
                 Foot(prefab, x, z, size, yaw);
             return go.transform;

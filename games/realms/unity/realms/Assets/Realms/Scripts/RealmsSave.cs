@@ -71,7 +71,7 @@ namespace Realms
         }
 
         /// <summary>The state may be written now: not in a fight, whose state is half way, nor a new game's preview.</summary>
-        bool CanSave => state != null && !battleView.Active && !fighting && !previewing;
+        bool CanSave => state != null && !battleView.Active && !fighting;
 
         SaveGame Snapshot(SaveKind kind)
         {
@@ -143,7 +143,7 @@ namespace Realms
                 return;
             if (!WriteSafely(SlotPath(slot), Snapshot(SaveKind.Manual)))
                 return;
-            hud.CloseSaves();
+            hud.CloseMenuList();
             hud.ShowSaved();
             hud.Toast(Words.SavedInto(state.World.Countries[state.World.Player].Label, state.Turn), 3f);
         }
@@ -266,6 +266,9 @@ namespace Realms
             return file;
         }
 
+        /// <summary>«Об игре» with the game's own saves' folder and the log the player writes.</summary>
+        void ShowAbout() => hud.ShowAbout(SaveDir, Application.consoleLogPath);
+
         /// <summary>
         /// The «Загрузить» list: up to three autosaves of this game, the newest of each of the two
         /// games before it, then the players' slots that hold a save.
@@ -379,8 +382,6 @@ namespace Realms
             }
             else
                 FocusCapital(26f, true);
-            if (restoring)
-                return;
             // Back in the game: its return shows now, or once the players leave the main menu.
             returnWritten = game.Header.Written;
             if (behindTitle)

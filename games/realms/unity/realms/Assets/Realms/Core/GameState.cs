@@ -195,6 +195,12 @@ namespace Realms.Core
 
         /// <summary>The players cleared the lair first: the neighbour's troop went home (<see cref="TurnEvent.Amount"/> gold back to it).</summary>
         TroopRecalled,
+
+        /// <summary>
+        /// The players' army found too little food (<see cref="TurnEvent.Amount"/> short): the
+        /// heroes walk half this turn (<see cref="Upkeep"/>).
+        /// </summary>
+        ArmyHungry,
     }
 
     public readonly struct TurnEvent
@@ -232,6 +238,9 @@ namespace Realms.Core
 
         /// <summary>Food the towns took from the treasury for their growth.</summary>
         public int GrowthFood;
+
+        /// <summary>Food the army ate (<see cref="Upkeep"/>), before the towns took theirs.</summary>
+        public int ArmyFood;
 
         public readonly List<TurnEvent> Events = new List<TurnEvent>();
 
@@ -323,6 +332,23 @@ namespace Realms.Core
             return Refusal.None;
         }
 
+        /// <summary>The kingdom's capital raises the next stage of its Great Build and pays for it (see <see cref="GreatBuild.Can"/>).</summary>
+        public Refusal RaiseBuild(int country, int city)
+        {
+            City town = World.Cities[city];
+            if (town.Country != country)
+                return Refusal.NotYours;
+            Refusal refusal = GreatBuild.Can(town, Treasury[country]);
+            if (refusal != Refusal.None)
+                return refusal;
+            // The first stage takes the first free place, after the houses, as a building does.
+            if (town.BuildStage == 0)
+                town.BuildPlace = Array.IndexOf(Towns.Layout(town), Towns.FreeLot);
+            town.BuildStage++;
+            Treasury[country] -= GreatBuild.Cost(town.BuildStage);
+            return Refusal.None;
+        }
+
         /// <summary>The town beside the cell grows onto it as a new quarter (see <see cref="Towns.CanExpand"/>).</summary>
         public Refusal Expand(int country, int cell)
         {
@@ -368,28 +394,35 @@ namespace Realms.Core
 
         /// <summary>
         /// Ends the turn: the other kingdoms play theirs (<see cref="PlayRivals"/>), every kingdom
-        /// gets its income, then its towns take food for their growth in the order of the kingdom's
-        /// list (the capital first) while the treasury has food.
+        /// gets its income, its army eats (<see cref="Upkeep"/>), then its towns take food for
+        /// their growth in the order of the kingdom's list (the capital first) while the treasury
+        /// has food. The heroes of a kingdom whose army went hungry walk half the new turn.
         /// </summary>
         public TurnReport EndTurn()
         {
             var report = new TurnReport();
             Core.Troops.Play(this, report);
             PlayRivals(report);
+            var hungry = new bool[Treasury.Length];
             for (int k = 0; k < Treasury.Length; k++)
             {
                 Stock income = Economy.Income(World, k);
                 Treasury[k] += income;
+                int want = Upkeep.Of(this, k);
+                int ate = Upkeep.Eat(this, k, out hungry[k]);
                 int eaten = Grow(k, report, k == World.Player);
                 if (k == World.Player)
                 {
                     report.Income = income;
+                    report.ArmyFood = ate;
                     report.GrowthFood = eaten;
+                    if (hungry[k])
+                        report.Events.Add(new TurnEvent(TurnEventKind.ArmyHungry, -1, amount: want - ate));
                 }
             }
             Influence.Grow(this, report);
             foreach (Hero hero in Heroes)
-                hero.Moves = HeroRules.MovesPerTurn;
+                hero.Moves = hungry[hero.Country] ? HeroRules.HungryMoves : HeroRules.MovesPerTurn;
             GrowRecruits();
             Turn++;
             if (GrowMonsters())
