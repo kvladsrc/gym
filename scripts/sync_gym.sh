@@ -41,6 +41,7 @@ DIRS=(
 GAMES=(
     "cothic"
     "realms"
+    "shotsearch"
     "yaqs"
     "zooreader"
 )

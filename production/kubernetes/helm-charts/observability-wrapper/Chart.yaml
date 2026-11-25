@@ -3,11 +3,11 @@ apiVersion: v2
 name: observability-wrapper
 description: "Wrapper chart: OpenTelemetry and VictoriaX observability"
 type: application
-version: 0.22.0
+version: 0.24.0
 dependencies:
   - name: victoria-metrics-single
     alias: victoria-metrics
-    version: 0.50.0
+    version: 0.52.0
     repository: "oci://ghcr.io/victoriametrics/helm-charts"
   - name: victoria-logs-single
     alias: victoria-logs
@@ -15,11 +15,11 @@ dependencies:
     repository: "oci://ghcr.io/victoriametrics/helm-charts"
   - name: opentelemetry-collector
     alias: otel-agent
-    version: 0.178.1
+    version: 0.182.0
     repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
   - name: opentelemetry-collector
     alias: otel-collector
-    version: 0.178.1
+    version: 0.182.0
     repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
   - name: kube-state-metrics
     version: 8.8.0

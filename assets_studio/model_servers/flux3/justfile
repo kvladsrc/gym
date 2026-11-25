@@ -1,0 +1,34 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+import "../common.just"
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/flux3"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+# The FLUX 3 weights are in a gated repository (accept the licence first).
+export HF_TOKEN := env("HF_TOKEN", env("HUGGINGFACE_TOKEN", ""))
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Create the Python environment and install the pinned llama.cpp build
+setup:
+    {{ gpu_shell }} uv sync --extra test
+    {{ gpu_shell }} uv run --no-sync python -m llm_model_server.runtime
+
+# Download the weights (~26 GB; network only, needs HF_TOKEN)
+download:
+    {{ gpu_shell }} uv run --no-sync python -m flux3_model_server.doctor --download
+
+# Report PyTorch, the CUDA device, llama.cpp, the weights and the offload store
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m flux3_model_server.doctor
+
+# Serve on 127.0.0.1:9149 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync flux3-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

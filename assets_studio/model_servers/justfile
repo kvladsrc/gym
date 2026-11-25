@@ -4,7 +4,7 @@ set shell := ["bash", "-euo", "pipefail", "-c"]
 # these recipes only dispatch to them. `just <model>` starts the server,
 # extra arguments go to it (e.g. `just qwen_image --port 9200`).
 
-servers := "qwen_image birefnet pbrfusion4 sam2 hunyuan3d21 hi3d lato2 deepmesh bpt trellis2_paint hairdeck fromsoma hunyuan_paint21 mia skintokens unirig kimodo mocapanything gvhmr gemx htd_refine prompthmr vitpose animation_tools audio2face xtts qwen3_tts stable_audio yue2 llm unlimited_ocr qwen_review"
+servers := "qwen_image flux3 birefnet pbrfusion4 sam2 sam3 hunyuan3d21 hi3d lato2 deepmesh bpt trellis2_paint hairdeck fromsoma hunyuan_paint21 mia skintokens unirig kimodo mocapanything gvhmr gemx htd_refine prompthmr vitpose animation_tools audio2face chatterbox qwen3_tts stable_audio yue2 llm unlimited_ocr qwen_review"
 
 # Show the available commands
 default:
@@ -16,6 +16,11 @@ qwen_image *args:
     just --justfile qwen_image/justfile serve "$@"
 
 alias qwen-image := qwen_image
+
+# FLUX 3 Image Klein Q8: images and editing in 16 steps, prompts expanded by its upsampler (port 9149)
+[positional-arguments]
+flux3 *args:
+    just --justfile flux3/justfile serve "$@"
 
 # BiRefNet: background removal, image to image (port 9121)
 [positional-arguments]
@@ -152,10 +157,15 @@ audio2face *args:
 sam2 *args:
     just --justfile sam2/justfile serve "$@"
 
-# XTTS-v2: speech (port 9103)
+# SAM 3.1: a selected subject or every instance of a named concept, white background (port 9148; needs HF_TOKEN)
 [positional-arguments]
-xtts *args:
-    just --justfile xtts/justfile serve "$@"
+sam3 *args:
+    just --justfile sam3/justfile serve "$@"
+
+# Chatterbox Multilingual V3: speech in 23 languages, voice cloning (port 9147)
+[positional-arguments]
+chatterbox *args:
+    just --justfile chatterbox/justfile serve "$@"
 
 # Qwen3-TTS 1.7B VoiceDesign: speech in a voice described in words (port 9139)
 [positional-arguments]

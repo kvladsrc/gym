@@ -114,7 +114,7 @@ def test_log_path_defaults_beside_the_database_and_can_be_turned_off(monkeypatch
 
 def test_cli_search_is_logged_beside_the_database(library, monkeypatch, capsys):
     monkeypatch.delenv("YAQS_QUERY_LOG", raising=False)
-    monkeypatch.setattr("yaqs.service.QwenEncoder", lambda device: CharacterEncoder())
+    monkeypatch.setattr("yaqs.service.QwenEncoder", lambda device, **options: CharacterEncoder())
     arguments = ["yaqs", "search", "attack", "--mode", "lexical", "--db", str(library.path)]
     monkeypatch.setattr(sys, "argv", arguments)
     cli.main()

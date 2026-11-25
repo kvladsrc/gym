@@ -1,18 +1,18 @@
 dependencies:
 - name: victoria-metrics-single
   repository: oci://ghcr.io/victoriametrics/helm-charts
-  version: 0.50.0
+  version: 0.52.0
 - name: victoria-logs-single
   repository: oci://ghcr.io/victoriametrics/helm-charts
   version: 0.13.10
 - name: opentelemetry-collector
   repository: https://open-telemetry.github.io/opentelemetry-helm-charts
-  version: 0.178.1
+  version: 0.182.0
 - name: opentelemetry-collector
   repository: https://open-telemetry.github.io/opentelemetry-helm-charts
-  version: 0.178.1
+  version: 0.182.0
 - name: kube-state-metrics
   repository: oci://ghcr.io/prometheus-community/charts
   version: 8.8.0
-digest: sha256:11e1152f7e61e9e56af9338c73654a9e7a9e5e114f304fe6f625bc64c6c87ee9
-generated: "2026-11-02T06:03:52.747067859Z"
+digest: sha256:ae67d89e9604e324a0319520920c68ceb2364c5bb483326a045ee24fb42270be
+generated: "2026-11-23T19:42:14.147200081Z"

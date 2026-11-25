@@ -124,6 +124,7 @@ for: `nvidia-smi --query-gpu=compute_cap --format=csv`.
 | Section | Server | Model | Does |
 | --- | --- | --- | --- |
 | Images | `qwen_image` | Qwen-Image 2.1 | Text → image, image editing |
+| | `flux3` | FLUX 3 Image Klein | Text → image and editing in 16 steps; dropped after review, code kept ([why](docs/models/text-to-image.md)) |
 | | `birefnet` | BiRefNet | Background removal for images and videos |
 | | `pbrfusion4` | PBRFusion 4 | Flat texture → normal map or height map, tileable kept; [use](model_servers/pbrfusion4/README.md) |
 | 3D | `hunyuan3d21` | Hunyuan3D-2.1 Shape | Image → coarse mesh |
@@ -143,7 +144,8 @@ for: `nvidia-smi --query-gpu=compute_cap --format=csv`.
 | | `htd_refine`, `prompthmr` | HTD-Refine, PromptHMR | Refining native motion from video (research) |
 | | `vitpose` | ViTPose++ | The 2D joints of a character in a video, drawn ones too; [use](model_servers/vitpose/README.md) |
 | Video | `sam2` | SAM 2.1 | One subject of a video on white; [use](model_servers/sam2/README.md) |
-| Sound | `voice` | XTTS-v2 | Speech in 14 languages, voice cloning |
+| | `sam3` | SAM 3.1 | One subject, or every instance of a concept named in English, of a video on white; [setup](model_servers/sam3/README.md) |
+| Sound | `chatterbox` | Chatterbox Multilingual V3 | Speech in 23 languages, Russian with stress marks, voice cloning; [setup](model_servers/chatterbox/README.md) |
 | | `sound` | Stable Audio Open | Sound effects and music up to 47 s |
 | | `song` | YuE2 | Songs with vocals from lyrics |
 | Text | `gemma`, `qwen` | Gemma 4 12B, Qwen3.8 27B | Text; Qwen also describes images and videos |

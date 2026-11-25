@@ -1,0 +1,43 @@
+[project]
+name = "sam3-model-server"
+version = "0.1.0"
+description = "SAM 3.1 for the asset studio: a selected subject, or every instance of a named concept, on the original video pixels."
+requires-python = "==3.12.*"
+dependencies = [
+  "model-server-sdk[images,video]",
+  "torch==2.8.0",
+  "torchvision==0.23.0",
+  "numpy==1.26.4",
+  "opencv-python-headless>=4.10,<4.12",
+  # Meta's code at a commit with SAM 3.1 Object Multiplex; the checkpoint has no Transformers port.
+  "sam3 @ git+https://github.com/facebookresearch/sam3@31cb7e624e4fe95301b1be1d4e809111593d2e45",
+  # Imports of sam3 that its package does not declare; pkg_resources needs setuptools < 81.
+  "setuptools==80.9.0",
+  "einops==0.8.1",
+  "psutil==7.1.3",
+  "pycocotools==2.0.10",
+  "huggingface-hub>=0.34",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+sam3-model-server = "sam3_model_server.__main__:main"
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchvision = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

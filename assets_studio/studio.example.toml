@@ -35,6 +35,11 @@ title = "Qwen-Image 2.1"
 url = "http://127.0.0.1:9109"
 
 [[servers]]
+id = "flux3"
+title = "FLUX 3 Klein"
+url = "http://127.0.0.1:9149"
+
+[[servers]]
 id = "birefnet"
 title = "BiRefNet"
 url = "http://127.0.0.1:9121"
@@ -175,12 +180,17 @@ id = "sam2"
 title = "SAM 2.1 · selected subject"
 url = "http://127.0.0.1:9125"
 
+[[servers]]
+id = "sam3"
+title = "SAM 3.1 · subject or concept"
+url = "http://127.0.0.1:9148"
+
 # Sound
 
 [[servers]]
-id = "voice"
-title = "XTTS"
-url = "http://127.0.0.1:9103"
+id = "chatterbox"
+title = "Chatterbox"
+url = "http://127.0.0.1:9147"
 
 [[servers]]
 id = "sound"

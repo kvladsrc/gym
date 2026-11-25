@@ -84,3 +84,10 @@ def test_doctor_reports_missing_packages_as_json(library, monkeypatch, capsys):
     assert not result["ready"] and not result["runtime"]["ready"]
     assert "sqlite_vec" in result["runtime"]["error"]
     assert "uv's own Python" in result["runtime"]["hint"]
+
+
+def test_servers_unload_the_model_after_five_idle_minutes_by_default():
+    parser = cli.parser()
+    assert parser.parse_args(["serve"]).idle == 300
+    assert parser.parse_args(["web", "--idle", "0"]).idle == 0
+    assert not hasattr(parser.parse_args(["search", "query"]), "idle")

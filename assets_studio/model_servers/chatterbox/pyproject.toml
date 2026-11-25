@@ -1,0 +1,51 @@
+[project]
+name = "chatterbox-model-server"
+version = "0.1.0"
+description = "Text-to-speech model server for the asset studio (Chatterbox Multilingual V3: 23 languages, voice cloning)."
+requires-python = "==3.11.*"
+dependencies = [
+  "model-server-sdk",
+  # Upstream pins torch 2.6.0; its own V3 demo runs on 2.8.0, the build most servers share.
+  "torch==2.8.0",
+  "torchaudio==2.8.0",
+  # Resemble AI's package at the commit that loads the V3 checkpoint (PyPI's 0.1.7 cannot).
+  "chatterbox-tts @ git+https://github.com/resemble-ai/chatterbox@ab55923c27757c90cfcc407baa57dc25a7d25217",
+  # Russian stress marks, which the V3 tokenizer expects; upstream skips them when missing.
+  "russian-text-stresser @ git+https://github.com/Vuizur/add-stress-to-epub@9e064c815373ef6f0360dd97b0d0fc37b52d256f",
+  "soundfile>=0.12",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.3"]
+
+[project.scripts]
+chatterbox-model-server = "chatterbox_model_server.__main__:main"
+
+[tool.uv]
+override-dependencies = [
+  "torch==2.8.0",
+  "torchaudio==2.8.0",
+  # The stresser pins spaCy 3.6; upstream's V3 demo runs it on 3.8.11.
+  "spacy==3.8.11",
+  # Upstream's web demo and the stresser's own app and LLM disambiguation, unused here.
+  "gradio; sys_platform == 'never'",
+  "llama-cpp-python; sys_platform == 'never'",
+  "litestar; sys_platform == 'never'",
+]
+
+[tool.uv.sources]
+model-server-sdk = { path = "../../model_server_sdk", editable = true }
+torch = { index = "pytorch-cu129" }
+torchaudio = { index = "pytorch-cu129" }
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

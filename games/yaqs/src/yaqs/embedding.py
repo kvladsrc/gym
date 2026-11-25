@@ -5,9 +5,14 @@ its revision, the instruction or the document template therefore needs a new dat
 ``yaqs rebuild --output NEW_DB`` re-embeds the stored text with the current profile.
 """
 
+import contextlib
+import ctypes
+import gc
 import json
 import os
+import sys
 import threading
+import time
 from pathlib import Path
 from typing import Any
 
@@ -123,18 +128,60 @@ class SerializedTokenizer:
             return self._encoder._load_tokenizer()(*args, **kwargs)
 
 
+def _release_memory() -> None:
+    """Return freed model memory to the system: Python's cycles first, then glibc's free lists."""
+    gc.collect()
+    with contextlib.suppress(OSError, AttributeError):  # not glibc
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+
+
+def _report(**event: Any) -> None:
+    print(json.dumps(event), file=sys.stderr, flush=True)
+
+
 class QwenEncoder:
-    def __init__(self, device: str = "cpu", threads: int = 4) -> None:
+    """The embedding model, loaded on first use.
+
+    With idle_s > 0 (servers), the model is dropped after idle_s seconds without an encode
+    and loaded again by the next one: the 4B model holds about 16 GB of RAM on the CPU.
+    Loads and unloads are reported on stderr as JSON lines.
+    """
+
+    def __init__(self, device: str = "cpu", threads: int = 4, idle_s: float = 0.0) -> None:
         if device not in {"cpu", "cuda"}:
             raise ValueError("device must be cpu or cuda")
         self.device = device
         self.threads = threads
+        self.idle_s = idle_s
         self._tokenizer: Any = None
         self._model: Any = None
+        self._used = time.monotonic()
         self._lock = threading.RLock()
         # Separate from the model lock: counting tokens need not wait for inference.
         self._tokenizer_lock = threading.RLock()
         self._serialized = SerializedTokenizer(self)
+        if idle_s > 0:
+            threading.Thread(target=self._unload_when_idle, name="yaqs-idle", daemon=True).start()
+
+    def _unload_when_idle(self) -> None:
+        while True:
+            time.sleep(min(30.0, self.idle_s))
+            self.unload_if_idle()
+
+    def unload_if_idle(self) -> bool:
+        """Drop the model if idle_s seconds passed since its last use; True if it was dropped."""
+        with self._lock:
+            idle = time.monotonic() - self._used
+            if self._model is None or self.idle_s <= 0 or idle < self.idle_s:
+                return False
+            self._model = None
+            _release_memory()
+            if self.device == "cuda":
+                import torch
+
+                torch.cuda.empty_cache()
+        _report(model="unloaded", idle_seconds=round(idle))
+        return True
 
     @property
     def tokenizer(self) -> SerializedTokenizer:
@@ -158,6 +205,7 @@ class QwenEncoder:
         if self._model is not None:
             return
         require_cache(model=True)
+        started = time.monotonic()
         import torch
         from transformers import AutoModel
 
@@ -178,6 +226,7 @@ class QwenEncoder:
             self._model.norm.to("cuda")
             self._model.rotary_emb.to("cuda")
         self._model.config.use_cache = False
+        _report(model="loaded", seconds=round(time.monotonic() - started, 1))
 
     def encode(self, texts: list[str], *, query: bool = False) -> Any:
         import numpy as np
@@ -187,6 +236,7 @@ class QwenEncoder:
         if not texts:
             return np.empty((0, DIMENSIONS), dtype=np.float32)
         with self._lock:
+            self._used = time.monotonic()
             self._load()
             if query:
                 texts = [query_text(text) for text in texts]
@@ -214,6 +264,7 @@ class QwenEncoder:
                     last = hidden.last_hidden_state[:, -1].float()
                     parts.append(functional.normalize(last, p=2, dim=1).cpu().numpy())
             vectors = np.concatenate(parts, axis=0)
+            self._used = time.monotonic()
             if not np.isfinite(vectors).all():
                 raise RuntimeError("Model returned non-finite embeddings")
             return vectors.astype(np.float32, copy=False)

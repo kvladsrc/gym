@@ -103,6 +103,14 @@ def parser() -> argparse.ArgumentParser:
     web = command("web", "run the browser UI on its own port")
     web.add_argument("--host", default="127.0.0.1")
     web.add_argument("--port", type=int, default=9035)
+    for server in (serve, web):
+        server.add_argument(
+            "--idle",
+            type=float,
+            default=300,
+            help="seconds without a semantic search before the model is unloaded "
+            "(default 300; 0 keeps it)",
+        )
     for subcommand in commands.choices.values():
         subcommand.add_argument("--db", type=Path, default=argparse.SUPPRESS, help="database file")
     return root
@@ -181,7 +189,10 @@ def execute(args: argparse.Namespace) -> object:
         from yaqs.service import KnowledgeService
 
         service = KnowledgeService(
-            args.db, device=getattr(args, "device", "cpu"), query_log=default_path(args.db)
+            args.db,
+            device=getattr(args, "device", "cpu"),
+            query_log=default_path(args.db),
+            idle_s=getattr(args, "idle", 0.0),
         )
         cli = Caller("cli")
         if args.command == "search":
