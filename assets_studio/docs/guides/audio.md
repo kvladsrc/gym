@@ -2,24 +2,27 @@
 
 <!-- markdownlint-disable MD013 -->
 
-## Voice lines (XTTS, `voice` server)
+## Voice lines (Qwen3-TTS and Chatterbox)
+
+The findings below come from XTTS-v2, the first `voice` server, removed in
+November 2026 (see [text-to-speech](../models/text-to-speech.md)). Voices are
+now cloned from a sample with `qwen3_tts_clone` or designed from a description
+with `qwen3_tts_design`; `chatterbox` reads Russian with stress marks.
 
 - **Keep lines short and situational:** spotting, attacking, taking damage,
   dying. Use 1–3 lines per situation, one at a time, with a pause after each
   (line duration + 2.5 seconds). Play attack lines every other attack, damage
   lines occasionally, and death lines always.
-- **Voice samples must be clean speech only**, 6–30 seconds (XTTS listens to
-  the first 30 seconds). With music underneath, the model clones the music
-  too and adds seconds of garbled continuation after short phrases: 8 seconds
-  instead of 1.5. Lower `temperature` (0.3) made this worse, not better
-  (28 seconds for “How rude!”).
-- **XTTS cannot accept stress marks:** its vocabulary has neither the combining
-  stress mark U+0301 nor “+”, only the Russian letter “ё”. Of 43 Russian lines,
-  8 received a rating of 0, mostly for incorrect stress. Generate extra takes,
-  rate them, and admit only those rated ≥2 into the game.
-- **Loudness:** XTTS is much quieter than game effects. Normalize (EBU R128,
-  −16 LUFS) and play speech without random pitch (useful for steps and impacts,
-  not speech).
+- **Voice samples must be clean speech only.** With music underneath, XTTS
+  cloned the music too and added seconds of garbled continuation after short
+  phrases: 8 seconds instead of 1.5. Lower `temperature` (0.3) made this
+  worse, not better (28 seconds for “How rude!”).
+- **Russian stress decides the rating:** XTTS had no stress marks, and 8 of
+  43 Russian lines were rated 0, mostly for wrong stress. Generate extra
+  takes, rate them, and admit only those rated ≥2 into the game.
+- **Loudness:** XTTS was much quieter than game effects. Normalize voice lines
+  (EBU R128, −16 LUFS) and play speech without random pitch (useful for steps
+  and impacts, not speech).
 
 ## Songs (YuE, `song` server)
 

@@ -4,11 +4,13 @@ mod assets_studio
 mod cothic "games/cothic"
 mod cv
 mod? finish_the_game "games/finish_the_game"
+mod? fjord "games/fjord"
 mod neural_network
 mod? pointandclick "games/pointandclick"
 mod presentations
 mod? procedural "games/procedural"
 mod? realms "games/realms"
+mod? shotsearch "games/shotsearch"
 mod? skateknight "games/skateknight"
 mod? snow_climb "games/snow_climb"
 mod? soulslike "games/soulslike"
@@ -21,6 +23,14 @@ mod zooreader "games/zooreader"
 # Show all available commands
 default:
     @just --list --list-submodules
+
+# Browser panel that starts and stops the local services, http://127.0.0.1:9090/
+panel *args="":
+    python3 scripts/panel/panel.py {{ args }}
+
+# Panel tests with throwaway processes; no real service is touched
+panel-check:
+    python3 scripts/panel/test_panel.py
 
 # Run pre-commit on all files
 lint:
@@ -58,6 +68,8 @@ flux-upgrade:
 
 # Run Renovate now, as Zuul's daily renovate-bot job does (its credentials from
 # zuul-config; Gerrit through the cluster's node port, outside Authentik).
+# Unlike the daily job, without Renovate's default limits (2 new changes an
+# hour, 10 open): one manual run proposes every pending update.
 # Pass Renovate flags, e.g. `just renovate --dry-run=lookup`.
 renovate *args="":
     #!/usr/bin/env bash
@@ -72,7 +84,8 @@ renovate *args="":
     RENOVATE_PASSWORD=$(secret renovate_password)
     RENOVATE_GITHUB_COM_TOKEN=$(secret renovate_github_token)
     renovate --platform=gerrit --endpoint="http://$node:$port" \
-        --git-author="Renovate Bot <renovate@bonfire.lit>" {{ args }} src
+        --git-author="Renovate Bot <renovate@bonfire.lit>" \
+        --pr-hourly-limit=0 --pr-concurrent-limit=0 {{ args }} src
 
 # Run all bazel tests
 test *args="":

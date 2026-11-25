@@ -1,0 +1,32 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+import "../common.just"
+
+export UV_PROJECT_ENVIRONMENT := cache / "venvs/chatterbox"
+export CHATTERBOX_RUSSIAN_DICTIONARY := cache / "chatterbox-russian-dictionary"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+
+# Show the available commands
+default:
+    @just --justfile {{ justfile() }} --list
+
+# Create the Python environment
+setup:
+    {{ gpu_shell }} uv sync --extra test
+
+# Download the weights (~3.3 GB) and the Russian stress dictionary (~360 MB; network only)
+download:
+    {{ gpu_shell }} uv run --no-sync python -m chatterbox_model_server.doctor --download
+
+# Report PyTorch, the CUDA device, the weights and the Russian stress marks
+doctor:
+    {{ gpu_shell }} uv run --no-sync python -m chatterbox_model_server.doctor
+
+# Serve on 127.0.0.1:9147 (override with --port); loads the model in the background
+[positional-arguments]
+serve *args:
+    {{ gpu_shell }} uv run --no-sync chatterbox-model-server "$@"
+
+# Unit tests (no GPU, no weights)
+test:
+    {{ gpu_shell }} uv run --no-sync pytest -q tests

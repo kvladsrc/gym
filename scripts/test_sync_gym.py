@@ -21,6 +21,7 @@ class SyncGymTest(unittest.TestCase):
             projects = (
                 "games/cothic",
                 "games/realms",
+                "games/shotsearch",
                 "games/yaqs",
                 "games/zooreader",
             )

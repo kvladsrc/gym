@@ -28,6 +28,43 @@ Default 2K prioritizes quality; 1K is 3–6× faster.
 
 Details and integration findings: [server README](../../model_servers/qwen_image/README.md).
 
+## FLUX 3 Image Klein (Q8): `flux3`, dropped
+
+Dropped on November 24, 2026 after review. Almost every image had an obvious
+error: a microphone nobody asked for, a figure sitting on a table, broken
+faces. It was not faster than Qwen-Image in practice. The microphone came
+from the upsampler: its caption for a tavern bard read “singing into a tiny
+brass horn microphone”, and the image model drew the caption faithfully. The
+server's code stays; restore it with `just setup` and `just download` in its
+directory and a `[[servers]]` entry.
+
+Text to image and instruction editing in 16 steps, with BFL's prompt
+upsampler expanding a request in any language into a full English caption
+(`model_servers/flux3`, port 9149). Tested November 23, 2026 on an RTX 3070
+Laptop (8 GB).
+
+| | |
+| --- | --- |
+| License | FLUX Kommunity License (non-commercial; outputs for Qualifying Users under US$5M revenue); upsampler Apache-2.0 |
+| Revisions | Base `3b767ff9`, GGUF `12ef13ce`, upsampler GGUF `3dc3ad42`; diffusers 0.43.0 |
+| Weights | Transformer GGUF Q8 (6.1 GB); Qwen3-VL 4B encoder bf16 (8.9 GB); upsampler Q8 (9.5 GB) |
+| Loading | ~30–50 s; first offload-store write (14 GB) |
+| Whole job, upsampler included | 1K 2–3 min; 1K edit 3 min; 2K 4.5 min |
+| Peak VRAM | 5.4 GB; 6.9 GB in the upsampler |
+
+Compared with Qwen-Image at 1K and seed 1 (three jobs, Studio project `test`):
+
+- **Speed.** FLUX 3 took 126–187 s, Qwen-Image 212–259 s.
+- **Prompt following.** FLUX 3 followed prompts more literally: a bard
+  playing a lute on a small stage, with listeners. Qwen-Image drew a seated
+  figure holding a stick.
+- **Editing.** For “make the cape dark red, change nothing else”, FLUX 3
+  changed only the cape. Qwen-Image also turned the blue plume red.
+- **Transparency.** FLUX 3 has none: edits of transparent pictures come out on
+  white. Qwen-Image keeps alpha.
+
+Details and integration findings: [server README](../../model_servers/flux3/README.md).
+
 ## Replaced models
 
 - **FLUX.1-schnell, GGUF Q8** (`flux`, retired; its code stays,

@@ -175,3 +175,54 @@ def test_chunks_are_embedded_with_the_recorded_document_template(tmp_path):
     assert PROFILE["document_template"] == "{title}\n{chapter}\n\n{text}"
     # The heading line stays in the section text; the template adds it as the chapter too.
     assert seen == [f"Game reference\nCombat\n\n# Combat\n\n{ATTACK}"]
+
+
+def test_idle_model_is_unloaded_and_loaded_again_by_the_next_search(monkeypatch, capsys):
+    from types import SimpleNamespace
+
+    import torch
+
+    import yaqs.embedding as embedding
+
+    class Model:
+        def __call__(self, *, input_ids, **kwargs):
+            hidden = torch.ones(*input_ids.shape, embedding.DIMENSIONS)
+            return SimpleNamespace(last_hidden_state=hidden)
+
+    encoder = embedding.QwenEncoder(idle_s=300)
+    encoder._tokenizer = fast_tokenizer()
+    loads = []
+
+    def load():
+        if encoder._model is None:
+            loads.append(Model())
+            encoder._model = loads[-1]
+
+    monkeypatch.setattr(encoder, "_load", load)
+    encoder.encode(["w0 w1"], query=True)
+    assert len(loads) == 1
+    assert not encoder.unload_if_idle()  # just used
+    encoder._used -= 301
+    assert encoder.unload_if_idle()
+    assert encoder._model is None
+    event = json.loads(capsys.readouterr().err.splitlines()[-1])
+    assert event == {"model": "unloaded", "idle_seconds": 301}
+    encoder.encode(["w0 w1"], query=True)
+    assert len(loads) == 2
+
+
+def test_idle_unload_runs_by_itself_and_only_for_servers():
+    import time
+
+    from yaqs.embedding import QwenEncoder
+
+    server = QwenEncoder(idle_s=0.05)
+    command = QwenEncoder()
+    server._model = command._model = object()
+    deadline = time.monotonic() + 5
+    while server._model is not None and time.monotonic() < deadline:
+        time.sleep(0.02)
+    assert server._model is None
+    command._used -= 10**6
+    assert not command.unload_if_idle()
+    assert command._model is not None

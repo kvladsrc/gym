@@ -1,0 +1,50 @@
+[project]
+name = "shotsearch"
+version = "0.1.0"
+description = "Find Steam screenshots like yours, by meaning (SigLIP 2) or by look (DINOv2), with a review forecast for each."
+readme = "README.md"
+requires-python = "==3.11.*"
+keywords = ["image-search", "embeddings", "siglip", "dinov2", "mcp", "steam"]
+dependencies = [
+  "mcp==2.2.0",
+  # Also installed by mcp; the browser UI imports them directly.
+  "starlette>=1.10,<2",
+  "uvicorn>=0.54,<1",
+  "httpx>=0.28,<1",
+  "torch==2.11.0",
+  "transformers==5.23.0",
+  "numpy>=2.2,<3",
+  "pillow>=11,<13",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "ruff>=0.11"]
+
+[project.scripts]
+shotsearch = "shotsearch.cli:main"
+
+# Queries are embedded on the CPU: the CPU build keeps the environment small and the GPU free.
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shotsearch"]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"

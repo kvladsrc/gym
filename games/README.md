@@ -56,3 +56,20 @@ just yaqs import /path/to/book.jsonl
 just yaqs search "How can level design guide the player?"
 just yaqs serve
 ```
+
+## Shot Search
+
+[`shotsearch`](shotsearch) finds Steam store screenshots like yours, for
+people and agents: by look (DINOv2, the frame's layout and forms, without
+colour) or by meaning (SigLIP 2, what is shown, also from English text).
+Each result carries its game's real reviews and a review forecast from
+[`qwen_review`](../qwen_review). An MCP server and a browser UI share one
+port. The index is built from a `qwen_review` scoring run, which is not
+included.
+
+```sh
+just shotsearch setup
+just shotsearch build
+just shotsearch search frame.jpg --ranking look --sort reviews --sheet
+just shotsearch serve
+```

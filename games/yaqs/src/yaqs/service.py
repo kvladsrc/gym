@@ -27,10 +27,15 @@ class KnowledgeService:
     """
 
     def __init__(
-        self, database: Path, *, device: str = "cpu", query_log: Path | None = None
+        self,
+        database: Path,
+        *,
+        device: str = "cpu",
+        query_log: Path | None = None,
+        idle_s: float = 0.0,
     ) -> None:
         self.store = KnowledgeBase(database)
-        self.encoder = QwenEncoder(device)
+        self.encoder = QwenEncoder(device, idle_s=idle_s)
         self.log = QueryLog(query_log) if query_log else None
 
     def _record(

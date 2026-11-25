@@ -88,6 +88,10 @@ checkpoint uses an index JSON and two safetensors shards; `doctor` checks all
 three. GPU indexing keeps the input embedding lookup on CPU and automatically splits
 batches above 4096 padded tokens to fit 8 GiB cards.
 CPU serving uses full float32 weights and needs about 16 GB RAM for the model.
+`serve` and `web` load it on the first semantic search and unload it after five
+minutes without one (`--idle SECONDS`, 0 keeps it loaded); the next semantic
+search loads it again and takes longer. Loads and unloads are logged on stderr
+as JSON lines with their timing.
 Changing from the former 0.6B/1024 profile requires a complete vector rebuild.
 
 ### Database location

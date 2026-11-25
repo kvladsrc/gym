@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Поиск скриншотов Steam</title>
+    <link rel="stylesheet" href="/app.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <h1>Поиск скриншотов Steam</h1>
+      <span id="info"></span>
+    </header>
+
+    <section id="query">
+      <div id="drop" tabindex="0">
+        <p>
+          Перетащите картинки сюда, вставьте из буфера (Ctrl+V) или
+          <label class="link"
+            >выберите файлы<input
+              id="file"
+              type="file"
+              accept="image/*"
+              multiple
+          /></label>
+        </p>
+        <div id="items"></div>
+      </div>
+      <div class="row">
+        <input id="url" type="url" placeholder="Ссылка на картинку" />
+        <button id="add-url" type="button">Добавить</button>
+        <input
+          id="text"
+          type="text"
+          placeholder="Описание по-английски (только смысл), например: a dark alley at night"
+        />
+      </div>
+      <div class="row controls">
+        <fieldset id="ranking">
+          <legend>Похожесть</legend>
+          <label
+            ><input type="radio" name="ranking" value="both" checked /> вид и
+            смысл</label
+          >
+          <label
+            ><input type="radio" name="ranking" value="look" /> вид
+            (DINOv2)</label
+          >
+          <label
+            ><input type="radio" name="ranking" value="meaning" /> смысл
+            (SigLIP)</label
+          >
+        </fieldset>
+        <label
+          >Порядок
+          <select id="sort">
+            <option value="similarity">по сходству</option>
+            <option value="reviews">по настоящим отзывам</option>
+            <option value="forecast">по прогнозу Qwen</option>
+          </select>
+        </label>
+        <label
+          >среди
+          <input id="pool" type="number" min="1" max="2000" value="100" />
+          ближайших</label
+        >
+        <label
+          >показать
+          <input id="limit" type="number" min="1" max="100" value="24"
+        /></label>
+      </div>
+      <div class="row controls">
+        <label
+          >год с <input id="year_from" type="number" min="2000" max="2100"
+        /></label>
+        <label
+          >по <input id="year_to" type="number" min="2000" max="2100"
+        /></label>
+        <label
+          >теги <input id="tags" type="text" placeholder="Horror, Card Battler"
+        /></label>
+        <label
+          >отзывов от <input id="min_reviews" type="number" min="0" value="0"
+        /></label>
+        <label
+          ><input id="unseen_only" type="checkbox" /> только игры, которых
+          модель не видела</label
+        >
+        <label
+          ><input id="all_shots" type="checkbox" /> несколько кадров одной
+          игры</label
+        >
+        <button id="go" type="button">Искать</button>
+      </div>
+      <p id="status"></p>
+    </section>
+
+    <main id="results"></main>
+    <footer>
+      Близость: 0 — два случайных скриншота Steam, 1 — два скриншота одной игры.
+      Прогноз Qwen — ожидаемое число отзывов игры по этому скриншоту; «видела» —
+      модель училась на этой игре, её прогноз смещён к правильному ответу.
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,54 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+set working-directory := "../.."
+cache := env("XDG_CACHE_HOME", env("HOME") / ".cache") / "shotsearch"
+export UV_PROJECT_ENVIRONMENT := cache / "venv"
+# setup builds the environment on uv's own Python, kept apart from other
+# projects: a Nix Python found on PATH cannot load the system C++ runtime.
+export UV_PYTHON_INSTALL_DIR := cache / "python"
+export HF_HUB_DISABLE_TELEMETRY := "1"
+project := quote(source_directory())
+# The qwen_review run that embedded and scored every screenshot.
+data := "qwen_review/data"
+run := data / "runs/score_all/runs"
+
+default:
+    @just --justfile {{ source_file() }} --list
+
+# Create the environment in the shotsearch cache and download both models
+setup:
+    uv sync --project {{ project }} --locked --extra dev --managed-python
+    uv run --project {{ project }} --no-sync shotsearch download
+
+# Build the index from qwen_review's scoring run (about 2 GB in ~/.cache/shotsearch/index)
+build *args:
+    uv run --project {{ project }} --no-sync shotsearch "$@" build {{ run }} \
+        {{ data }}/full/data/shots {{ data }}/full/labels.jsonl {{ data }}/full/labels_2026c.jsonl
+
+# Search, e.g. just shotsearch search shot.jpg --ranking look --sort reviews --sheet
+[positional-arguments]
+search *args:
+    HF_HUB_OFFLINE=1 uv run --project {{ project }} --no-sync shotsearch search "$@"
+
+# MCP at http://127.0.0.1:9150/mcp and the browser UI at http://127.0.0.1:9150/
+[positional-arguments]
+serve *args:
+    HF_HUB_OFFLINE=1 uv run --project {{ project }} --no-sync shotsearch serve "$@"
+
+# Index counts, models and calibration
+info:
+    uv run --project {{ project }} --no-sync shotsearch info
+
+# Fix lint findings and format the code
+fmt:
+    uv run --project {{ project }} --no-sync ruff check --fix {{ project }}
+    uv run --project {{ project }} --no-sync ruff format {{ project }}
+
+# Run the test suite (no models, no GPU)
+test:
+    uv run --project {{ project }} --no-sync pytest -q {{ project }}/tests
+
+# Lint, format check and tests, without changing files
+check:
+    uv run --project {{ project }} --no-sync ruff check {{ project }}
+    uv run --project {{ project }} --no-sync ruff format --check {{ project }}
+    uv run --project {{ project }} --no-sync pytest -q {{ project }}/tests

@@ -1,6 +1,6 @@
 dependencies:
 - name: kanboard
   repository: https://kube-the-home.github.io/kanboard-helm/
-  version: 1.2.7
-digest: sha256:6fb8a9fd2e9df46e71edb30ea592783e721fa7749cab2483a84a565a6ef1a06a
-generated: "2026-10-25T00:33:55.80208803+02:00"
+  version: 1.2.8
+digest: sha256:706899e74a185d40bbe9bbeaefa0aadc743536280150fca30b7628a45d746983
+generated: "2026-11-23T19:18:40.859162302Z"

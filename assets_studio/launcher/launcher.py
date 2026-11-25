@@ -47,6 +47,7 @@ logger = logging.getLogger("launcher")
 # them yourself, or add yours here when your config names them differently.
 RECIPES = {
     "qwen_image": "qwen_image",
+    "flux3": "flux3",
     "birefnet": "birefnet",
     "pbrfusion4": "pbrfusion4",
     "hunyuan3d21": "hunyuan3d21",
@@ -73,8 +74,9 @@ RECIPES = {
     "audio2face": "audio2face",
     "animation_tools": "animation_tools",
     "sam2": "sam2",
+    "sam3": "sam3",
     "paint21": "hunyuan_paint21",
-    "voice": "xtts",
+    "chatterbox": "chatterbox",
     "sound": "stable_audio",
     "song": "yue2",
     "qwen3_tts_design": "qwen3_tts_design",

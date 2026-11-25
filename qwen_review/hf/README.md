@@ -24,6 +24,10 @@ It judges by the look and the description, not by the game: many good games
 get few reviews. Read a forecast as "games that look like this usually get
 about this many reviews", and compare games of one release year and genre.
 
+Code for data collection, training and evaluation:
+[kvladsrc/gym/qwen_review](https://github.com/kvladsrc/gym/tree/main/qwen_review)
+on GitHub.
+
 Not affiliated with or endorsed by Valve. Steam is a trademark of Valve
 Corporation.
 
