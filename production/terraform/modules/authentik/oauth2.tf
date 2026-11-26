@@ -25,7 +25,7 @@ resource "authentik_provider_oauth2" "hedgedoc" {
     {
       matching_mode     = "strict"
       redirect_uri_type = "authorization"
-      url               = "https://hedgedoc.your.domain/auth/oauth2/callback"
+      url               = "https://hedgedoc.bonfirelit.dev/auth/oauth2/callback"
     }
   ]
 }
@@ -34,7 +34,7 @@ resource "authentik_application" "hedgedoc" {
   name              = "hedgedoc"
   slug              = "hedgedoc"
   protocol_provider = authentik_provider_oauth2.hedgedoc.id
-  meta_launch_url   = "https://hedgedoc.your.domain"
+  meta_launch_url   = "https://hedgedoc.bonfirelit.dev"
 }
 
 # Headlamp
@@ -54,7 +54,7 @@ resource "authentik_provider_oauth2" "headlamp" {
     {
       matching_mode     = "strict"
       redirect_uri_type = "authorization"
-      url               = "https://k8s.your.domain/oidc-callback"
+      url               = "https://k8s.bonfirelit.dev/oidc-callback"
     }
   ]
 }
@@ -63,7 +63,7 @@ resource "authentik_application" "headlamp" {
   name              = "headlamp"
   slug              = "headlamp"
   protocol_provider = authentik_provider_oauth2.headlamp.id
-  meta_launch_url   = "https://k8s.your.domain"
+  meta_launch_url   = "https://k8s.bonfirelit.dev"
 }
 
 data "authentik_user" "headlamp_admin" {
@@ -98,7 +98,7 @@ resource "authentik_provider_oauth2" "minio" {
     {
       matching_mode     = "strict"
       redirect_uri_type = "authorization"
-      url               = "https://s3.your.domain/oauth_callback"
+      url               = "https://s3.bonfirelit.dev/oauth_callback"
     }
   ]
 }
@@ -107,7 +107,7 @@ resource "authentik_application" "minio" {
   name              = "minio"
   slug              = "minio"
   protocol_provider = authentik_provider_oauth2.minio.id
-  meta_launch_url   = "https://s3.your.domain"
+  meta_launch_url   = "https://s3.bonfirelit.dev"
 }
 
 resource "authentik_property_mapping_provider_scope" "minio" {

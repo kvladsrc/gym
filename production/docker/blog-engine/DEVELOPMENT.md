@@ -88,5 +88,5 @@ rc-<commit>             built by Zuul gate
 prod-<timestamp>-<sha>  promoted by Zuul promote
 ```
 
-Flux image automation watches `registry.your.domain/blog-engine` for
+Flux image automation watches `registry.bonfirelit.dev/blog-engine` for
 `prod-*` tags and updates the HelmRelease image tag setters.

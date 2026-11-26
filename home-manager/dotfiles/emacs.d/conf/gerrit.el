@@ -4,7 +4,7 @@
 
 (use-package gerrit
   :custom
-  (gerrit-host "review.your.domain")
+  (gerrit-host "cl.bonfirelit.dev")
   :config
   (progn
     (add-hook 'magit-status-sections-hook #'gerrit-magit-insert-status t)))

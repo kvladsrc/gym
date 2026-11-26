@@ -35,16 +35,18 @@ firmness. The pictures give the face and its colours, in four steps:
 
 ```sh
 just setup     # Python 3.12 + CPU PyTorch environment
-just download  # SOMA-X's data (~120 MB) and MediaPipe's Face Landmarker
+just download  # SOMA-X's data, Face Landmarker, frommhr's reader
 just doctor
 just serve     # http://127.0.0.1:9142
 just test      # no weights or data needed
 ```
 
-- `model.pt` is not downloaded. It is the reader's training output, packed with
-  the data it was trained with: MHR's head fields, the colour tables and Anny's
-  feature masks. It goes in `FROMSOMA_ROOT` (`~/.cache/assets-studio/fromsoma`)
-  beside `soma-x/` and `face_landmarker.task`.
+- `fromsoma.safetensors` is not downloaded. It is the reader's training output,
+  packed with the data it was trained with: MHR's head fields, the colour tables
+  and Anny's feature masks. It goes in `FROMSOMA_ROOT`
+  (`~/.cache/assets-studio/fromsoma`) beside `soma-x/` and
+  `face_landmarker.task`. A package is one safetensors file: the tensors, and
+  the rest as JSON in its metadata (`package.py`), so loading it runs no code.
 - The pictures need a bald head on an even, plain backdrop, with some backdrop
   above the crown. The shoulders may reach the lower edges. In training the
   head was turned up to ±6° sideways, ±5° up or down and ±3° tilted, and the
@@ -79,7 +81,7 @@ on renders of Anny and MHR people, starting from DINOv2's weights.
 
 ## frommhr: MHR's face space
 
-`just serve-mhr` (<http://127.0.0.1:9143>) serves frommhr from the same package,
+`just serve-mhr` (<http://127.0.0.1:9143>) serves frommhr from the same Python package,
 environment and root directory. It takes the same pictures and parameters and
 returns the same kind of person, with the same body. The head differs:
 
@@ -108,10 +110,13 @@ returns the same kind of person, with the same body. The head differs:
   child body, but the head comes from the adult space: the closest adult head
   the reader finds, about adult size.
 
-- `frommhr.pt` is the reader's training output. It is packed with MHR's
-  identity on SOMA's mesh (the mean and the body, head and scale directions,
-  also in SOMA's bind pose for the fit), the colour tables and the feature
-  masks. It goes beside `model.pt`; the server needs no MHR files of its own.
+- `frommhr.safetensors` is published on Hugging Face,
+  [zjgkkn/frommhr](https://huggingface.co/zjgkkn/frommhr), and `just download`
+  fetches it. It holds the reader's weights with MHR's identity on SOMA's mesh
+  (the mean and the body, head and scale directions, also in SOMA's bind pose
+  for the fit), the colour tables and the feature masks, so the server needs no
+  MHR files of its own. Its training code, from the data to the package, is
+  `frommhr/` at the repository's root.
 - About 25 s per person on the CPU, plus about 70 s for the pictures' colour.
   The output's metadata holds Anny's phenotype, MHR's head, body and scale
   values, the body's report (MHR's fit against Anny's body, the person's body
@@ -120,30 +125,3 @@ returns the same kind of person, with the same body. The head differs:
 
 frommhr's reader started from fromsoma's and was trained only on renders of MHR
 people.
-
-## fromanny: Anny's own face modifiers
-
-`just serve-anny` (<http://127.0.0.1:9144>) serves fromanny from the same package,
-environment and root directory. It takes the same pictures and parameters and
-returns the same kind of person, with fromsoma's body. Only the face's space
-differs:
-
-- The reader reads Anny's own face modifiers instead of MHR's head variation:
-  95 of the head's 98 (cheeks, chin, eyes, brows, mouth, nose, ears, the
-  skull's shape and the forehead), each left and right pair as one value, and
-  the 14 pigment sliders. Like fromsoma's reader, it is told the parameters.
-  The other three (`head-trans-*`) move the whole head against the neck,
-  which pictures framed on the head do not show; they stay at Anny's 0.
-- Anny's modifiers span -1 to 1, and Anny extrapolates beyond that. The
-  reader's training faces stayed within that range, so the server clamps the
-  values it reads to it.
-- A child keeps Anny's child head, with the modifiers read on it.
-
-- `fromanny.pt` is the reader's training output. It is packed like `model.pt`,
-  with the modifiers' names and the Anny labels each one drives in place of
-  MHR's head fields. It goes beside `model.pt`.
-- Time and memory are fromsoma's. The output's metadata holds the modifiers by
-  name under `anny_face`, as clamped.
-
-fromanny's reader was trained only on renders of Anny people, starting from
-DINOv2's weights; there is no MHR in its data or its weights.

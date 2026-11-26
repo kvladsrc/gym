@@ -17,7 +17,7 @@ storage:
 # Ingress configuration
 ingress:
   enabled: false
-  host: review.your.domain
+  host: cl.bonfirelit.dev
   annotations: {}
 
 # Server ID
@@ -85,7 +85,7 @@ gerrit:
 
   config: |-
     [gerrit]
-      canonicalWebUrl = https://review.your.domain/
+      canonicalWebUrl = https://cl.bonfirelit.dev/
     [index]
       type = LUCENE
     [auth]

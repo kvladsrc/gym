@@ -13,13 +13,13 @@ production/kubernetes/flux/apps/zuul/helmrelease.yaml
 zuul.yaml
 ```
 
-The web UI is exposed at `https://ci.your.domain/` through the Authentik
+The web UI is exposed at `https://ci.bonfirelit.dev/` through the Authentik
 proxy outpost. The REST API is under `/api` and is intentionally public.
 
 ## API Facts
 
-- Public API base URL: `https://ci.your.domain/api`.
-- Default tenant: `your.domain`.
+- Public API base URL: `https://ci.bonfirelit.dev/api`.
+- Default tenant: `bonfirelit.dev`.
 - Production version checked on 2026-05-17: `14.2.1.dev40 b5681c282`.
 - Authentik proxy should skip `^/api(/.*)?$` for the Zuul provider.
 - The Zuul API currently reports `read_protected: false`, so basic read
@@ -32,15 +32,15 @@ Prefer the bundled helper for simple API reads:
 ```sh
 .agents/skills/zuul/scripts/zuul-api /info
 .agents/skills/zuul/scripts/zuul-api /tenants
-.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/status
-.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/jobs
+.agents/skills/zuul/scripts/zuul-api /tenant/bonfirelit.dev/status
+.agents/skills/zuul/scripts/zuul-api /tenant/bonfirelit.dev/jobs
 ```
 
 Manual calls are just HTTPS GET requests:
 
 ```sh
-curl -fsS https://ci.your.domain/api/info
-curl -fsS https://ci.your.domain/api/tenant/your.domain/status
+curl -fsS https://ci.bonfirelit.dev/api/info
+curl -fsS https://ci.bonfirelit.dev/api/tenant/bonfirelit.dev/status
 ```
 
 Use `ZUUL_API_URL` only when intentionally targeting another deployment:
@@ -60,30 +60,30 @@ List tenants:
 Inspect pipeline status:
 
 ```sh
-.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/status
+.agents/skills/zuul/scripts/zuul-api /tenant/bonfirelit.dev/status
 ```
 
 List jobs and projects:
 
 ```sh
-.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/jobs
-.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/projects
+.agents/skills/zuul/scripts/zuul-api /tenant/bonfirelit.dev/jobs
+.agents/skills/zuul/scripts/zuul-api /tenant/bonfirelit.dev/projects
 ```
 
 Inspect recent builds or buildsets:
 
 ```sh
-.agents/skills/zuul/scripts/zuul-api '/tenant/your.domain/builds?limit=20'
-.agents/skills/zuul/scripts/zuul-api '/tenant/your.domain/buildsets?limit=20'
+.agents/skills/zuul/scripts/zuul-api '/tenant/bonfirelit.dev/builds?limit=20'
+.agents/skills/zuul/scripts/zuul-api '/tenant/bonfirelit.dev/buildsets?limit=20'
 ```
 
 For a Gerrit change, prefer filtering by change number and always check the
 patchset before treating a result as current:
 
 ```sh
-.agents/skills/zuul/scripts/zuul-api '/tenant/your.domain/buildsets?change=9234&limit=5'
-.agents/skills/zuul/scripts/zuul-api '/tenant/your.domain/builds?change=9234&limit=20'
-.agents/skills/zuul/scripts/zuul-api /tenant/your.domain/status
+.agents/skills/zuul/scripts/zuul-api '/tenant/bonfirelit.dev/buildsets?change=9234&limit=5'
+.agents/skills/zuul/scripts/zuul-api '/tenant/bonfirelit.dev/builds?change=9234&limit=20'
+.agents/skills/zuul/scripts/zuul-api /tenant/bonfirelit.dev/status
 ```
 
 Old failed buildsets remain visible after a new patchset is uploaded. A
@@ -101,8 +101,8 @@ When changing Zuul Authentik proxy settings, verify that API endpoints do not
 redirect to Authentik:
 
 ```sh
-curl -sS -i https://ci.your.domain/api/info
-curl -sS -i https://ci.your.domain/api
+curl -sS -i https://ci.bonfirelit.dev/api/info
+curl -sS -i https://ci.bonfirelit.dev/api
 ```
 
 Expected result after deployment: both requests should be handled by Zuul, not

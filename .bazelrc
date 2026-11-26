@@ -2,9 +2,9 @@
 build --http_timeout_scaling=3.0
 
 # Buildbuddy cache
-build --bes_backend=grpcs://bb-grpc.your.domain
-build --bes_results_url=https://bb.your.domain/invocation/
-build --remote_cache=grpcs://bb-grpc.your.domain
+build --bes_backend=grpcs://bb-grpc.bonfirelit.dev
+build --bes_results_url=https://bb.bonfirelit.dev/invocation/
+build --remote_cache=grpcs://bb-grpc.bonfirelit.dev
 build --remote_max_connections=20
 build --remote_timeout=10m
 

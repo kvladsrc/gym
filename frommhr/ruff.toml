@@ -1,0 +1,2 @@
+# The code is written for 120 columns; the rules are ruff's defaults.
+line-length = 120

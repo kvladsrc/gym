@@ -33,11 +33,11 @@ authentik:
       annotations: {}
       labels: {}
       ingressClassName: ""
-      hosts: ["sso.your.domain"]
+      hosts: ["sso.bonfirelit.dev"]
       tls:
         - secretName: authentik-tls # pragma: allowlist secret
           hosts:
-            - sso.your.domain
+            - sso.bonfirelit.dev
 
   worker:
     livenessProbe:

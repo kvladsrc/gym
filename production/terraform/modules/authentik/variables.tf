@@ -30,14 +30,14 @@ variable "applications" {
     "miniflux" = {
       name          = "miniflux"
       slug          = "miniflux"
-      external_host = "https://feed.your.domain"
+      external_host = "https://feed.bonfirelit.dev"
       internal_host = "miniflux.miniflux.svc.cluster.local"
       internal_port = 8080
     }
     "dns" = {
       name            = "dns"
       slug            = "dns"
-      external_host   = "https://dns.your.domain"
+      external_host   = "https://dns.bonfirelit.dev"
       internal_host   = "pihole-web.pihole.svc.cluster.local"
       internal_port   = 80
       skip_path_regex = "^/api/.*"
@@ -45,7 +45,7 @@ variable "applications" {
     "gerrit" = {
       name            = "gerrit"
       slug            = "gerrit"
-      external_host   = "https://review.your.domain"
+      external_host   = "https://cl.bonfirelit.dev"
       internal_host   = "gerrit-service.gerrit-cluster.svc.cluster.local"
       internal_port   = 80
       skip_path_regex = "^/a/plugins/checks/.*"
@@ -53,7 +53,7 @@ variable "applications" {
     "grafana" = {
       name               = "grafana"
       slug               = "grafana"
-      external_host      = "https://dash.your.domain"
+      external_host      = "https://dash.bonfirelit.dev"
       internal_host      = "grafana.grafana.svc.cluster.local"
       internal_port      = 80
       basic_auth_enabled = false
@@ -61,7 +61,7 @@ variable "applications" {
     "kanboard" = {
       name            = "kanboard"
       slug            = "kanboard"
-      external_host   = "https://b.your.domain"
+      external_host   = "https://b.bonfirelit.dev"
       internal_host   = "kanboard.kanboard.svc.cluster.local"
       internal_port   = 80
       skip_path_regex = "^/jsonrpc\\.php$"
@@ -69,21 +69,21 @@ variable "applications" {
     "blog-engine-author" = {
       name          = "blog-engine-author"
       slug          = "blog-engine-author"
-      external_host = "https://write.your.domain"
+      external_host = "https://write.bonfirelit.dev"
       internal_host = "author.blog-engine.svc.cluster.local"
       internal_port = 80
     }
     "opengrok" = {
       name          = "opengrok"
       slug          = "opengrok"
-      external_host = "https://search.your.domain/"
+      external_host = "https://cs.bonfirelit.dev/"
       internal_host = "opengrok.opengrok.svc.cluster.local"
       internal_port = 8080
     }
     "ntfy" = {
       name            = "ntfy"
       slug            = "ntfy"
-      external_host   = "https://notify.your.domain"
+      external_host   = "https://notify.bonfirelit.dev"
       internal_host   = "ntfy.ntfy.svc.cluster.local"
       internal_port   = 80
       skip_path_regex = "^/(prod-gitops|prod-ci|prod-k8s-warnings|prod-infra|prod-certs|prod-backups)/(json|sse|raw|ws)$"
@@ -91,7 +91,7 @@ variable "applications" {
     "jupyter-cpp" = {
       name                  = "jupyter-cpp"
       slug                  = "jupyter-cpp"
-      external_host         = "https://notebook.your.domain"
+      external_host         = "https://notebook.bonfirelit.dev"
       internal_host         = "jupyter-cpp.jupyter-cpp.svc.cluster.local"
       internal_port         = 8888
       access_token_validity = "hours=8"
@@ -99,21 +99,21 @@ variable "applications" {
     "sql" = {
       name          = "sql"
       slug          = "sql"
-      external_host = "https://sql.your.domain"
+      external_host = "https://sql.bonfirelit.dev"
       internal_host = "postgres-ui.postgres.svc.cluster.local"
       internal_port = 8080
     }
     "zooreader" = {
       name          = "zooreader"
       slug          = "zooreader"
-      external_host = "https://read.your.domain"
+      external_host = "https://read.bonfirelit.dev"
       internal_host = "zooreader.zooreader.svc.cluster.local"
       internal_port = 80
     }
     "zuul" = {
       name            = "zuul"
       slug            = "zuul"
-      external_host   = "https://ci.your.domain"
+      external_host   = "https://ci.bonfirelit.dev"
       internal_host   = "zuul-web.zuul.svc.cluster.local"
       internal_port   = 9000
       skip_path_regex = "^/api(/.*)?$"

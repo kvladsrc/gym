@@ -21,6 +21,7 @@ DIRS=(
     "cpp/codeforces:cpp/codeforces"
     "cpp/warmup:cpp/warmup"
     "cv:cv"
+    "frommhr:frommhr"
     "home-manager:home-manager"
     "lisp/sicp:lisp/sicp"
     "neural_network:neural_network"
@@ -41,6 +42,7 @@ DIRS=(
 GAMES=(
     "cothic"
     "realms"
+    "shotcall"
     "shotsearch"
     "yaqs"
     "zooreader"
@@ -90,17 +92,16 @@ FILES=(
 # String replacements applied to every file (old|new)
 REPLACEMENTS=(
     "/home/myuser\/Dropbox/src/|"
-    "https\://search.your.domain/raw/src/static|static"
+    "https\://cs.bonfirelit.dev/raw/src/static|static"
     "myuser|myuser"
     "MYUSER|MYUSER"
-    "review.your.domain|review.your.domain"
-    "search.your.domain|search.your.domain"
-    "your.domain|your.domain"
 )
 
-# Public names the replacements leave as they are: the published qwen_review
-# adapter on Hugging Face, so that its links and downloads work.
+# Public names the replacements leave as they are: the qwen_review adapter
+# and the frommhr reader published on Hugging Face, so that their links and
+# downloads work.
 KEEP=(
+    "zjgkkn/frommhr"
     "zjgkkn/qwen3.5-2b-steam-reviews-lora"
 )
 if [[ ! -d $DEST ]]; then
@@ -119,9 +120,10 @@ for entry in "${DIRS[@]}"; do
         echo "  dir  $src_rel -> $dest_rel"
         rsync_args=(-a --delete)
         case "$src_rel" in
-        assets_studio | qwen_review)
+        assets_studio | frommhr | qwen_review)
             # Only tracked files: no environments, models, builds, node_modules,
-            # or qwen_review's crawled data and LoRA runs.
+            # frommhr's prepared data and runs, or qwen_review's crawled data
+            # and LoRA runs.
             rsync_args+=(--filter=':- .gitignore')
             ;;
         esac
@@ -207,5 +209,24 @@ find "$DEST" -type f \
     \) \
     -print0 |
     xargs -0 sed -i "$sed_expr"
+
+# Every project, file and picture the public README links to must be in the
+# copy: a link to something left out above fails the sync.
+missing=()
+while IFS= read -r target; do
+    path="${target%%#*}"
+    if [[ -n $path && ! -e "$DEST/$path" ]]; then
+        missing+=("$path")
+    fi
+done < <(
+    grep -oE '\]\([^)[:space:]]+\)|(src|href)="[^"]+"' "$DEST/README.md" |
+        sed -E 's/^\]\(//; s/\)$//; s/^(src|href)="//; s/"$//' |
+        grep -vE '^([a-z]+:|#)' || true
+)
+if ((${#missing[@]})); then
+    echo "README.md links what the copy does not have:" >&2
+    printf '  %s\n' "${missing[@]}" >&2
+    exit 1
+fi
 
 echo "Sync complete"

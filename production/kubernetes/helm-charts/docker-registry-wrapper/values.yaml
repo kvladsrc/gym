@@ -21,12 +21,12 @@ docker-registry:
     className: ""
     path: /
     hosts:
-      - registry.your.domain
+      - registry.bonfirelit.dev
     annotations: {}
     tls:
       - secretName: docker-registry-tls # pragma: allowlist secret
         hosts:
-          - registry.your.domain
+          - registry.bonfirelit.dev
   garbageCollect:
     enabled: true
     deleteUntagged: true

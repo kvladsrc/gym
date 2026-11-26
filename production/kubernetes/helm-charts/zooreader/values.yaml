@@ -12,7 +12,7 @@ nxs:
         app.kubernetes.io/component: zooreader
       containers:
         zooreader:
-          image: registry.your.domain/zooreader
+          image: registry.bonfirelit.dev/zooreader
           imageTag: latest
           imagePullPolicy: IfNotPresent
           ports:

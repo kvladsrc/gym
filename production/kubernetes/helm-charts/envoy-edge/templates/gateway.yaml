@@ -25,14 +25,14 @@ spec:
       value: {{ .Values.gateway.address | quote }}
   listeners:
     - name: http
-      hostname: "*.your.domain"
+      hostname: "*.bonfirelit.dev"
       protocol: HTTP
       port: 80
       allowedRoutes:
         namespaces:
           from: All
     - name: https
-      hostname: "*.your.domain"
+      hostname: "*.bonfirelit.dev"
       protocol: HTTPS
       port: 443
       tls:

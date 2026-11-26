@@ -82,11 +82,6 @@ fromsoma *args:
 frommhr *args:
     just --justfile fromsoma/justfile serve-mhr "$@"
 
-# fromanny: a SOMA person from Anny's parameters and a bald head's front and profile, in Anny's own face modifiers (port 9144; CPU)
-[positional-arguments]
-fromanny *args:
-    just --justfile fromsoma/justfile serve-anny "$@"
-
 # Make-It-Animatable v2: a Mixamo skeleton for a character mesh (port 9113; needs HF_TOKEN)
 [positional-arguments]
 mia *args:

@@ -3,7 +3,7 @@ set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 nix_store="${NIX_STORE_PATH:-/srv/nfs/nix}"
-image="${BUILD_NODE_IMAGE:-registry.your.domain/build:current}"
+image="${BUILD_NODE_IMAGE:-registry.bonfirelit.dev/build:current}"
 gc_root="/nix/var/nix/gcroots/build-node-tools-prewarm"
 container="build-node-prewarm-$$"
 

@@ -10,7 +10,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "bb-grpc.your.domain"
+    - "bb-grpc.bonfirelit.dev"
   rules:
     - backendRefs:
         - name: buildbuddy

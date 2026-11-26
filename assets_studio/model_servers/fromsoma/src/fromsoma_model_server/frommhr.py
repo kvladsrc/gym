@@ -12,11 +12,13 @@ is kept only for men from BEARD_FROM years on, since the reader looked for it on
 head takes the pictures' own colour as in fromsoma (texture=pictures, facetex.py).
 
 The server shares fromsoma's root directory (FROMSOMA_ROOT) with its SOMA-X data and Face
-Landmarker; its reader is frommhr.pt there.
+Landmarker; its reader is frommhr.safetensors there, published on Hugging Face (HF_REPO, `just
+download`) with its training code (frommhr/ in the repository).
 """
 
 import logging
 import os
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -46,8 +48,11 @@ from model_server_sdk import (
 
 logger = logging.getLogger(__name__)
 
-MODEL_FILE = "frommhr.pt"
+MODEL_FILE = "frommhr.safetensors"
 FORMAT = "frommhr.reader.v1"
+HF_REPO = "zjgkkn/frommhr"
+# The published package's commit.
+HF_REVISION = "e7747532d766b71c2fd7baf3c40b4d125da35cd6"  # pragma: allowlist secret
 DEFAULT_PORT = 9143
 BEARD_FROM = 18.0  # years
 
@@ -64,8 +69,19 @@ def required_files() -> list[str]:
     return [MODEL_FILE, LANDMARKER_FILE] + [f"{SOMA_DIR}/{name}" for name in SOMA_FILES]
 
 
-def missing_files(root: Any) -> list[str]:
+def missing_files(root: Path) -> list[str]:
     return [name for name in required_files() if not (root / name).is_file()]
+
+
+def download() -> None:
+    """The reader's package from Hugging Face (the SOMA-X data and landmarker: server.download)."""
+    from huggingface_hub import hf_hub_download
+
+    root = root_directory()
+    root.mkdir(parents=True, exist_ok=True)
+    hf_hub_download(HF_REPO, MODEL_FILE, revision=HF_REVISION, local_dir=root)
+    missing = missing_files(root)
+    print("missing:", ", ".join(missing) if missing else "nothing")
 
 
 class FromMhrServer(ModelServer):
@@ -73,10 +89,10 @@ class FromMhrServer(ModelServer):
         id="frommhr",
         name="frommhr face reader",
         license=(
-            "reader weights: trained locally (README); SOMA-X, Anny, MHR, DINOv2 and MediaPipe"
+            "reader weights and package: Apache-2.0; SOMA-X, Anny, MHR, DINOv2 and MediaPipe"
             " Face Landmarker: Apache-2.0; MPFB2 assets: CC0"
         ),
-        source="https://github.com/facebookresearch/MHR",
+        source=f"https://huggingface.co/{HF_REPO}",
         details={
             "network": "DINOv2 ViT-S/14 on front and profile at 518 px, an eye-strip CNN",
             "reads": "the head's 20 MHR coefficients and 14 pigment sliders, nothing given",
@@ -108,6 +124,7 @@ class FromMhrServer(ModelServer):
         import torch
 
         from fromsoma_model_server.mhr import MhrBodies
+        from fromsoma_model_server.package import load
         from fromsoma_model_server.reader import MhrReader
 
         torch.set_grad_enabled(False)
@@ -117,9 +134,9 @@ class FromMhrServer(ModelServer):
         if missing:
             raise RuntimeError(
                 f"missing in {root}: {', '.join(missing)}"
-                f" (`just download`; {MODEL_FILE} comes from the reader's training)"
+                f" (`just download` fetches {MODEL_FILE} from {HF_REPO})"
             )
-        package = torch.load(root / MODEL_FILE, map_location="cpu", weights_only=False)
+        package = load(root / MODEL_FILE)
         if package.get("format") != FORMAT:
             raise RuntimeError(f"{root / MODEL_FILE} is not a frommhr reader package")
         self._bodies = MhrBodies(package, root / SOMA_DIR)

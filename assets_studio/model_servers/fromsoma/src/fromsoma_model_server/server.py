@@ -11,9 +11,10 @@ takes the pictures' own colour (facetex.py: both pictures projected onto the hea
 cameras fitted to it, cameras.py), unless texture=pigments. Everything runs on the CPU: about
 fifteen seconds a person with the pigments alone, a minute and a half with the pictures' colour.
 
-The root directory (FROMSOMA_ROOT, default ~/.cache/assets-studio/fromsoma) holds model.pt (the
-trained reader with the data it was trained with: MHR's head fields, the colour tables, Anny's
-feature masks), SOMA-X's data (soma-x/, from Hugging Face) and MediaPipe's Face Landmarker.
+The root directory (FROMSOMA_ROOT, default ~/.cache/assets-studio/fromsoma) holds
+fromsoma.safetensors (the trained reader with the data it was trained with: MHR's head fields,
+the colour tables, Anny's feature masks; package.py), SOMA-X's data (soma-x/, from Hugging Face)
+and MediaPipe's Face Landmarker.
 """
 
 import logging
@@ -42,7 +43,8 @@ from model_server_sdk import (
 logger = logging.getLogger(__name__)
 
 INPUT_MIME = ["image/png", "image/jpeg", "image/webp"]
-MODEL_FILE = "model.pt"
+MODEL_FILE = "fromsoma.safetensors"
+FORMAT = "fromsoma.reader.v1"
 SOMA_DIR = "soma-x"
 SOMA_REPO, SOMA_REVISION = "nvidia/soma-x", "v0.3.3"  # the release py-soma-x 0.3.3 reads
 SOMA_FILES = (
@@ -157,16 +159,17 @@ def root_directory() -> Path:
     return Path(os.environ.get("FROMSOMA_ROOT", "~/.cache/assets-studio/fromsoma")).expanduser()
 
 
-def required_files(model_file: str = MODEL_FILE) -> list[str]:
-    return [model_file, LANDMARKER_FILE] + [f"{SOMA_DIR}/{name}" for name in SOMA_FILES]
+def required_files() -> list[str]:
+    return [MODEL_FILE, LANDMARKER_FILE] + [f"{SOMA_DIR}/{name}" for name in SOMA_FILES]
 
 
-def missing_files(root: Path, model_file: str = MODEL_FILE) -> list[str]:
-    return [name for name in required_files(model_file) if not (root / name).is_file()]
+def missing_files(root: Path) -> list[str]:
+    return [name for name in required_files() if not (root / name).is_file()]
 
 
 def download() -> None:
-    """SOMA-X's data and MediaPipe's Face Landmarker; model.pt comes from the reader's training."""
+    """SOMA-X's data and MediaPipe's Face Landmarker; fromsoma.safetensors comes from the
+    reader's training (frommhr's reader: frommhr.download)."""
     from huggingface_hub import snapshot_download
 
     root = root_directory()
@@ -250,8 +253,6 @@ class FromSomaServer(ModelServer):
         },
     )
     tasks = (TASK,)
-    model_file = MODEL_FILE  # the reader's package in the root directory, and its format
-    model_format = "fromsoma.reader.v1"
 
     def __init__(self) -> None:
         self._reader: Any = None
@@ -259,28 +260,25 @@ class FromSomaServer(ModelServer):
         self._texture: Any = None
         self._package: dict[str, Any] = {}
 
-    def face_meta(self, coefficients: list[float]) -> dict[str, Any]:
-        """The face the reader read, for the output's metadata."""
-        return {"mhr_coefficients": [round(v, 4) for v in coefficients]}
-
     def load(self) -> None:
         import torch
 
+        from fromsoma_model_server.package import load
         from fromsoma_model_server.person import Bodies
         from fromsoma_model_server.reader import Reader
 
         torch.set_grad_enabled(False)
         torch.set_num_threads(max(1, min(8, (os.cpu_count() or 2) // 2)))
         root = root_directory()
-        missing = missing_files(root, self.model_file)
+        missing = missing_files(root)
         if missing:
             raise RuntimeError(
                 f"missing in {root}: {', '.join(missing)}"
-                f" (`just download`; {self.model_file} comes from the reader's training)"
+                f" (`just download`; {MODEL_FILE} comes from the reader's training)"
             )
-        package = torch.load(root / self.model_file, map_location="cpu", weights_only=False)
-        if package.get("format") != self.model_format:
-            raise RuntimeError(f"{root / self.model_file} is not a {self.model.id} reader package")
+        package = load(root / MODEL_FILE)
+        if package.get("format") != FORMAT:
+            raise RuntimeError(f"{root / MODEL_FILE} is not a fromsoma reader package")
         config = package["config"]
         if tuple(config["free"]) != BUILD or tuple(config["origin"]) != ORIGIN:
             raise RuntimeError("the reader was trained with another build or origin layout")
@@ -288,7 +286,7 @@ class FromSomaServer(ModelServer):
         self._reader = Reader(package, root / LANDMARKER_FILE, self._bodies.to_anny_age)
         self._texture = face_texture(self._bodies, root)
         self._package = {k: package[k] for k in ("config", "training")}
-        logger.info("%s reader %s loaded", self.model.id, describe(self._package))
+        logger.info("fromsoma reader %s loaded", describe(self._package))
 
     def generate(self, job: Job) -> list[Output]:
         from fromsoma_model_server.glb import build_glb
@@ -320,7 +318,7 @@ class FromSomaServer(ModelServer):
             "sex": params.sex,
             "age_years": params.age,
             "anny_phenotype": {k: round(v, 4) for k, v in phenotype.items()},
-            **self.face_meta(reading.coefficients),
+            "mhr_coefficients": [round(v, 4) for v in reading.coefficients],
             "pigments": {k: round(v, 5) for k, v in pigments.items()},
             "crops_px": reading.crops,
             "reader": describe(self._package),

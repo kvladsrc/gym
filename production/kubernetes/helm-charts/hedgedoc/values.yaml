@@ -1,7 +1,7 @@
 ---
 env:
   # Basic configuration
-  CMD_DOMAIN: "hedgedoc.your.domain"
+  CMD_DOMAIN: "hedgedoc.bonfirelit.dev"
   CMD_URL_ADDPORT: "false"
   CMD_PROTOCOL_USESSL: "true"
 
@@ -15,7 +15,7 @@ env:
   CMD_OAUTH2_PROVIDERNAME: "Authentik"
   CMD_OAUTH2_CLIENT_ID: "271wmrr5X5pPDMWB7WG4a3LUrRAaUUaM8ILHiPba"
   CMD_OAUTH2_AUTHORIZATION_URL: >-
-    https://sso.your.domain/application/o/authorize/
+    https://sso.bonfirelit.dev/application/o/authorize/
   CMD_OAUTH2_TOKEN_URL: >-
     http://authentik-server.authentik.svc.cluster.local/application/o/token/
   CMD_OAUTH2_USER_PROFILE_URL: >-

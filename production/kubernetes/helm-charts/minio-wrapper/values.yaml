@@ -16,10 +16,10 @@ minio:
     ingressClassName: ""
     annotations: {}
     hosts:
-      - store.your.domain
+      - store.bonfirelit.dev
     tls:
       - hosts:
-          - store.your.domain
+          - store.bonfirelit.dev
         secretName: minio-api-ingress-tls # pragma: allowlist secret
   # Console ingress (UI)
   consoleIngress:
@@ -27,21 +27,21 @@ minio:
     ingressClassName: ""
     annotations: {}
     hosts:
-      - s3.your.domain
+      - s3.bonfirelit.dev
     tls:
       - hosts:
-          - s3.your.domain
+          - s3.bonfirelit.dev
         secretName: minio-console-ingress-tls # pragma: allowlist secret
 
   # OAuth2 Authentik configuration
   environment:
     # OpenID Connect configuration
     MINIO_IDENTITY_OPENID_CONFIG_URL: >-
-      https://sso.your.domain/application/o/minio/.well-known/openid-configuration
+      https://sso.bonfirelit.dev/application/o/minio/.well-known/openid-configuration
     MINIO_IDENTITY_OPENID_CLIENT_ID: "minio-oauth2-client"
     MINIO_IDENTITY_OPENID_DISPLAY_NAME: "authentik"
     MINIO_IDENTITY_OPENID_REDIRECT_URI: >-
-      https://s3.your.domain/oauth_callback
+      https://s3.bonfirelit.dev/oauth_callback
 
   # Create bucket for terraform state
   buckets:

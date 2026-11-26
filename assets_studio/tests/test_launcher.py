@@ -7,7 +7,7 @@ import pytest
 from studio.config import load_config
 
 import launcher
-from launcher import BACKOFF_S, IDLE_S, SWITCH_S, Demand, Launcher, demand_of
+from launcher import BACKOFF_S, IDLE_S, SWITCH_S, Demand, GpuLock, Launcher, demand_of
 from model_server_sdk import EXIT_GPU_BROKEN
 
 
@@ -189,6 +189,7 @@ def test_a_server_outlives_a_launcher_that_dies_without_exiting(tmp_path: Path) 
     run = Launcher(start=start)
     run.step(0, Demand(frozenset(), ("hi3d",)), {})
     assert (tmp_path / "hi3d.pid").read_text() == str(os.getpgrp())
+    run.lock.release()  # its process ended, and the kernel dropped its lock
     nobody = Launcher(start=lambda recipe: pytest.fail("started a second server"))
     nobody.adopt()
     assert nobody.current is not None
@@ -224,3 +225,94 @@ def test_a_live_server_left_behind_is_taken_over(tmp_path: Path) -> None:
     # It is managed as usual: kept while it has jobs, not started again.
     run.step(0, Demand(frozenset({"hunyuan3d21"}), ()), {"hunyuan3d21": "busy"})
     assert started == []
+
+
+def test_a_second_launcher_waits_for_the_first_ones_server(tmp_path: Path) -> None:
+    # Two launchers see the same queue before the studio reports either's server.
+    first, mine = make()
+    second, theirs = make()
+    first.step(0, Demand(frozenset(), ("hi3d",)), {})
+    second.step(0, Demand(frozenset(), ("hi3d", "sound")), {})
+    assert [p.recipe for p in mine] == ["hi3d"]
+    assert theirs == []
+    assert (tmp_path / "gpu.lock").read_text().startswith("hi3d (launcher pid ")
+    # The first one stops its server for the other's jobs: the lock goes with it.
+    first.step(1, Demand(frozenset(), ("sound",)), {"hi3d": "ready"})
+    first.step(1 + SWITCH_S, Demand(frozenset(), ("sound",)), {"hi3d": "ready"})
+    assert mine[0].stopped
+    assert (tmp_path / "gpu.lock").read_text() == ""
+    second.step(2 + SWITCH_S, Demand(frozenset(), ("sound",)), {})
+    assert [p.recipe for p in theirs] == ["stable_audio"]
+
+
+def test_a_server_that_exits_gives_the_lock_back() -> None:
+    first, mine = make()
+    second, theirs = make()
+    first.step(0, Demand(frozenset(), ("hi3d",)), {})
+    mine[0].code = 1
+    first.step(3, Demand(frozenset(), ()), {})
+    second.step(4, Demand(frozenset(), ("sound",)), {})
+    assert [p.recipe for p in theirs] == ["stable_audio"]
+
+
+def test_a_launcher_gives_the_lock_up_on_exit() -> None:
+    run, _ = make()
+    run.step(0, Demand(frozenset(), ("hunyuan3d21",)), {})
+    run.step(1, Demand(frozenset({"hunyuan3d21"}), ()), {"hunyuan3d21": "busy"})
+    run.shutdown()
+    # The busy server is left running; the next launcher takes it over with the lock.
+    assert GpuLock(launcher.LOGS / "gpu.lock").acquire("next")
+
+
+def test_a_server_whose_launcher_still_runs_is_not_taken_over(tmp_path: Path) -> None:
+    import os
+
+    def start(recipe: str) -> Fake:
+        server = Fake(recipe)
+        server.pid = os.getpgrp()  # a live process group
+        return server
+
+    run = Launcher(start=start)
+    run.step(0, Demand(frozenset(), ("hi3d",)), {})
+    second = Launcher(start=lambda recipe: pytest.fail("started a second server"))
+    second.adopt()
+    assert second.current is None
+    assert (tmp_path / "hi3d.pid").read_text() == str(os.getpgrp())
+    second.step(0, Demand(frozenset(), ("hi3d",)), {})
+
+
+def test_a_pause_stops_an_idle_server_at_once() -> None:
+    run, started = make()
+    run.step(0, Demand(frozenset(), ("hi3d",)), {})
+    run.step(1, Demand(frozenset(), ()), {"hi3d": "ready"}, ["pid 1: agent"])
+    assert started[0].stopped
+    assert GpuLock(launcher.LOGS / "gpu.lock").acquire("agent")
+
+
+def test_a_paused_server_finishes_its_jobs_first() -> None:
+    run, started = make()
+    run.step(0, Demand(frozenset(), ("hi3d",)), {})
+    run.step(1, Demand(frozenset({"hi3d"}), ("hi3d", "sound")), {"hi3d": "busy"}, [])
+    run.step(50, Demand(frozenset({"hi3d"}), ("sound",)), {"hi3d": "busy"}, [])
+    assert not started[0].stopped
+    run.step(51, Demand(frozenset(), ("sound",)), {"hi3d": "ready"}, [])
+    assert started[0].stopped
+    # Nothing starts while the pause lasts; it ends, and the queue goes on.
+    run.step(52, Demand(frozenset(), ("sound",)), {}, [])
+    assert [p.recipe for p in started] == ["hi3d"]
+    run.step(53, Demand(frozenset(), ("sound",)), {})
+    assert [p.recipe for p in started] == ["hi3d", "stable_audio"]
+
+
+def test_a_pause_is_held_while_its_lock_is(tmp_path: Path) -> None:
+    import fcntl
+    import os
+
+    path = tmp_path / "pause.lock"
+    assert launcher.paused_by(path) is None
+    with path.open("a") as held:
+        fcntl.flock(held, fcntl.LOCK_SH)
+        holders = launcher.paused_by(path)
+        assert holders is not None
+        assert any(holder.startswith(f"pid {os.getpid()}: ") for holder in holders)
+    assert launcher.paused_by(path) is None

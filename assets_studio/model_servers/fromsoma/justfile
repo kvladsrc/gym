@@ -14,11 +14,11 @@ default:
 setup:
     {{ gpu_shell }} uv sync --extra test
 
-# Download SOMA-X's data and MediaPipe's Face Landmarker (~120 MB; model.pt, frommhr.pt and fromanny.pt come from the readers' training)
+# Download SOMA-X's data, MediaPipe's Face Landmarker and frommhr's reader (~290 MB; fromsoma.safetensors comes from its training)
 download:
-    {{ gpu_shell }} uv run --no-sync python -c "from fromsoma_model_server.server import download; download()"
+    {{ gpu_shell }} uv run --no-sync python -c "from fromsoma_model_server import frommhr, server; server.download(); frommhr.download()"
 
-# Report PyTorch and whether model.pt, SOMA-X's data and the landmarker are in place
+# Report PyTorch, the files in place and the readers' training
 doctor:
     {{ gpu_shell }} uv run --no-sync python -m fromsoma_model_server.doctor
 
@@ -31,11 +31,6 @@ serve *args:
 [positional-arguments]
 serve-mhr *args:
     {{ gpu_shell }} uv run --no-sync python -m fromsoma_model_server.frommhr "$@"
-
-# Serve fromanny (Anny's own face modifiers) on 127.0.0.1:9144 (override with --port); shares the root and environment
-[positional-arguments]
-serve-anny *args:
-    {{ gpu_shell }} uv run --no-sync python -m fromsoma_model_server.fromanny "$@"
 
 # Unit tests (no weights or data needed)
 test:

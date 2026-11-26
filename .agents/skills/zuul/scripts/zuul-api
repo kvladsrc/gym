@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-base_url="${ZUUL_API_URL:-https://ci.your.domain/api}"
+base_url="${ZUUL_API_URL:-https://ci.bonfirelit.dev/api}"
 path="${1:-/info}"
 
 if [[ $path != /* ]]; then

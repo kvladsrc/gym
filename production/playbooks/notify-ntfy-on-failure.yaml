@@ -6,7 +6,7 @@
     ntfy_url: "http://ntfy.ntfy.svc.cluster.local"
     ntfy_topic: "prod-ci"
     zuul_build_url: >-
-      https://ci.your.domain/t/your.domain/build/{{ zuul.build }}
+      https://ci.bonfirelit.dev/t/bonfirelit.dev/build/{{ zuul.build }}
     zuul_change_url: >-
       {{
         (

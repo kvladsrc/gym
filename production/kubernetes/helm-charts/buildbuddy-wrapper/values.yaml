@@ -21,9 +21,9 @@ buildbuddy:
 
   config:
     app:
-      build_buddy_url: "https://bb.your.domain"
-      events_api_url: "grpcs://bb-grpc.your.domain"
-      cache_api_url: "grpcs://bb-grpc.your.domain"
+      build_buddy_url: "https://bb.bonfirelit.dev"
+      events_api_url: "grpcs://bb-grpc.bonfirelit.dev"
+      cache_api_url: "grpcs://bb-grpc.bonfirelit.dev"
     storage:
       ttl_seconds: 2592000
       chunk_file_size_bytes: 3000000

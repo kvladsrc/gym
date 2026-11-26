@@ -37,7 +37,7 @@ workflow without requiring the user to reference each skill:
 - `gerrit-jujutsu` - use for `jj` status/log/show, Gerrit change
   descriptions, review upload, fetch/rebase, and merged-change cleanup.
 - `zuul` - use for the production Zuul CI API at
-  `https://ci.your.domain/api`: inspect pipeline status, jobs, projects,
+  `https://ci.bonfirelit.dev/api`: inspect pipeline status, jobs, projects,
   builds, and buildsets related to Gerrit changes.
 - `observability` - use for read-only MetricsQL and LogsQL access to production
   VictoriaMetrics and VictoriaLogs, telemetry coverage checks, and

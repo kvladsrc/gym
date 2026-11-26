@@ -20,6 +20,10 @@ start it. Do not start, stop or restart them yourself (see `AGENTS.md`).
   (`input_jobs`). An unavailable server is just not running: submit anyway,
   since the launcher loads one GPU model at a time and jobs may wait minutes.
   Ask the owner before queueing many jobs.
+- **The GPU for your own work** (training, embeddings, GPU tests): run it as
+  `just --justfile assets_studio/justfile gpu-hold <command>`. The launcher's
+  model finishes the jobs queued for it and stops, and no model starts until
+  the command ends; the owner's jobs wait meanwhile, so keep it short.
 - **Library.** Every asset and job belongs to a project (`list_projects`,
   `create_project`, `move_asset`). `import_asset` adds a local file or URL;
   `get_asset` gives the file path, metadata and the job that made it (prompt,

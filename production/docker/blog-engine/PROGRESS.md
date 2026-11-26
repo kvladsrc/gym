@@ -65,7 +65,7 @@ keeping the author workflow and worker pipeline small.
 
 ### Phase 0.5: Local And GitOps Development
 
-- build and push `registry.your.domain/blog-engine:latest`
+- build and push `registry.bonfirelit.dev/blog-engine:latest`
 - install the chart into `blog-engine-dev`
 - mount one Secret-backed config file into every component
 - run `author`, `worker`, and `web` from the same image

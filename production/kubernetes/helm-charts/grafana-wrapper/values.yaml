@@ -356,8 +356,8 @@ grafana:
     news:
       news_feed_enabled: false
     server:
-      domain: dash.your.domain
-      root_url: https://dash.your.domain
+      domain: dash.bonfirelit.dev
+      root_url: https://dash.bonfirelit.dev
       enforce_domain: true
     security:
       cookie_secure: true

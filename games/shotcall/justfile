@@ -1,0 +1,31 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+default:
+    @just --justfile {{ source_file() }} --list
+
+# Answer key, page data and screenshot links from qwen_review/data
+data:
+    python3 -I make.py
+
+# The static site in public/ and the server's answer key in lib/
+build:
+    python3 -I build.py
+
+# The site with a local copy of the database at http://127.0.0.1:8788/
+dev: build
+    ./wrangler.sh d1 execute skolko-otzyvov --local --file=sql/schema.sql
+    ./wrangler.sh pages dev
+
+# Publish to https://shotcall.bonfirelit.dev/
+deploy: build
+    ./wrangler.sh pages deploy --branch main --commit-dirty=true
+
+# Save the live database (players and statistics) to data/backups/
+backup:
+    mkdir -p data/backups
+    ./wrangler.sh d1 export skolko-otzyvov --remote --output="data/backups/d1-$(date +%Y%m%d-%H%M).sql"
+
+# Any wrangler command, e.g. just shotcall wrangler pages deployment tail
+[positional-arguments]
+wrangler *args:
+    ./wrangler.sh "$@"

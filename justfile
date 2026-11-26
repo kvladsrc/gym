@@ -10,6 +10,7 @@ mod? pointandclick "games/pointandclick"
 mod presentations
 mod? procedural "games/procedural"
 mod? realms "games/realms"
+mod? shotcall "games/shotcall"
 mod? shotsearch "games/shotsearch"
 mod? skateknight "games/skateknight"
 mod? snow_climb "games/snow_climb"
