@@ -27,7 +27,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "sso.your.domain"
+    - "sso.bonfirelit.dev"
   rules:
     - backendRefs:
         - name: authentik-server
@@ -63,7 +63,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "bb.your.domain"
+    - "bb.bonfirelit.dev"
   rules:
     - timeouts:
         request: "0s"
@@ -83,7 +83,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "registry.your.domain"
+    - "registry.bonfirelit.dev"
   rules:
     - timeouts:
         request: "0s"
@@ -103,7 +103,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "store.your.domain"
+    - "store.bonfirelit.dev"
   rules:
     - backendRefs:
         - name: minio
@@ -120,7 +120,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "s3.your.domain"
+    - "s3.bonfirelit.dev"
   rules:
     - backendRefs:
         - name: minio-console
@@ -137,7 +137,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "blog.your.domain"
+    - "blog.bonfirelit.dev"
   rules:
     - backendRefs:
         - name: web
@@ -154,7 +154,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "hedgedoc.your.domain"
+    - "hedgedoc.bonfirelit.dev"
   rules:
     - backendRefs:
         - name: hedgedoc
@@ -171,7 +171,7 @@ spec:
       namespace: {{ .Values.gateway.namespace }}
       sectionName: https
   hostnames:
-    - "k8s.your.domain"
+    - "k8s.bonfirelit.dev"
   rules:
     - backendRefs:
         - name: headlamp

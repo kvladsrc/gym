@@ -55,7 +55,7 @@ nxs:
             - name: NTFY_LISTEN_HTTP
               value: ":80"
             - name: NTFY_BASE_URL
-              value: "https://notify.your.domain"
+              value: "https://notify.bonfirelit.dev"
             - name: NTFY_CACHE_FILE
               value: "/var/lib/ntfy/cache.db"
             - name: NTFY_ATTACHMENT_CACHE_DIR

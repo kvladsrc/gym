@@ -17,6 +17,11 @@ the right order (same year and primary genre, review counts at least twofold
 apart; chance is 50%) and named the exact review class of 34.1% of the games.
 The model card has the full table.
 
+Play against it in [Shot Call](https://shotcall.bonfirelit.dev/): of two
+Steam games of one genre, pick the one with more reviews.
+
+[![Shot Call statistics: people pick right 57% of the time, the robot 75%](../static/beatqwen/stats.png)](https://shotcall.bonfirelit.dev/)
+
 ## Files
 
 | File | Does |

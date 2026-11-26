@@ -19,7 +19,7 @@ lab_cockpit_packages:
   - cockpit-storaged
   - python3-certbot-dns-cloudflare
 
-lab_cockpit_hostname: lab.your.domain
+lab_cockpit_hostname: lab.bonfirelit.dev
 lab_cockpit_port: 443
 lab_cockpit_origin: "https://{{ lab_cockpit_hostname }}"
 lab_cockpit_acme_email: myuser@gmail.com
@@ -30,12 +30,12 @@ lab_gitops_packages:
   - git
   - util-linux
 
-lab_gitops_repository: ssh://lab-gitops@review.your.domain:29418/src
+lab_gitops_repository: ssh://lab-gitops@cl.bonfirelit.dev:29418/src
 lab_gitops_revision: master
 lab_gitops_checkout: /var/lib/ansible-pull/repository
 lab_gitops_playbook: production/playbooks/lab/site.yaml
 lab_gitops_private_key: /etc/ansible-pull/id_ed25519
 lab_gitops_known_hosts: /etc/ansible-pull/known_hosts
 lab_gitops_gerrit_host_key: >-
-  [review.your.domain]:29418 ecdsa-sha2-nistp256
+  [cl.bonfirelit.dev]:29418 ecdsa-sha2-nistp256
   AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBFxhgIF+6qzvDB3qNzKQHHm+0HiQkm+WafIsprSUW78+KZJOeBOqlDfDKWqVcoqB+WjatkPcP5110TkKoSlJ3k0=

@@ -1,0 +1,1806 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Two Steam games: guess which one has more reviews and compare yourself with a neural network."
+    />
+    <link rel="icon" href="face_bot.png" />
+    <title>Shot Call</title>
+    <style>
+      /* Press Start 2P and IBM Plex Mono (SIL Open Font License), served with the page */
+      @font-face {
+        font-family: "IBM Plex Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("fonts/IBMPlexMono-400-cyrillic.woff2") format("woff2");
+        unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      }
+      @font-face {
+        font-family: "IBM Plex Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("fonts/IBMPlexMono-400-latin-ext.woff2") format("woff2");
+        unicode-range:
+          U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+          U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+          U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: "IBM Plex Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("fonts/IBMPlexMono-400-latin.woff2") format("woff2");
+        unicode-range:
+          U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+          U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+          U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "IBM Plex Mono";
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url("fonts/IBMPlexMono-600-cyrillic.woff2") format("woff2");
+        unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      }
+      @font-face {
+        font-family: "IBM Plex Mono";
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url("fonts/IBMPlexMono-600-latin-ext.woff2") format("woff2");
+        unicode-range:
+          U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+          U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+          U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: "IBM Plex Mono";
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url("fonts/IBMPlexMono-600-latin.woff2") format("woff2");
+        unicode-range:
+          U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+          U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+          U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "Press Start 2P";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("fonts/PressStart2P-400-cyrillic.woff2") format("woff2");
+        unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+      }
+      @font-face {
+        font-family: "Press Start 2P";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("fonts/PressStart2P-400-latin-ext.woff2") format("woff2");
+        unicode-range:
+          U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+          U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+          U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+      }
+      @font-face {
+        font-family: "Press Start 2P";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("fonts/PressStart2P-400-latin.woff2") format("woff2");
+        unicode-range:
+          U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+          U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+          U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style>
+    <style>
+      /* Layout: an arcade screen. The meme scene is the title backdrop; in play, a pixel HUD, two screenshots
+   in pixel frames side by side (stacked on phones), chunky buttons. Dark by design: one committed theme. */
+      :root {
+        --bg: #1a1c2c;
+        --panel: #333c57;
+        --panel2: #29366f;
+        --edge: #566c86;
+        --ink: #f4f4f4;
+        --muted: #94b0c2;
+        --you: #ffcd75;
+        --bot: #41a6f6;
+        --win: #a7f070;
+        --lose: #ef7d57;
+        --red: #b13e53;
+        --pix: "Press Start 2P", "Courier New", monospace;
+        --text: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+        color-scheme: dark;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      html {
+        background: var(--bg);
+      }
+      body {
+        margin: 0;
+      }
+      body {
+        background-color: var(--bg);
+        color: var(--ink);
+        font-family: var(--text);
+        font-size: 16px;
+        line-height: 1.5;
+        background-image:
+          linear-gradient(rgba(148, 176, 194, 0.06) 2px, transparent 2px),
+          linear-gradient(90deg, rgba(148, 176, 194, 0.06) 2px, transparent 2px);
+        background-size: 32px 32px;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-block: 16px 48px;
+      }
+      .wrap {
+        max-width: 1000px;
+        margin: 0 auto;
+        display: grid;
+        gap: 20px;
+      }
+      .narrow {
+        width: 100%;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+      section {
+        display: grid;
+        gap: 18px;
+      }
+      p {
+        margin: 0;
+      }
+
+      .px {
+        box-shadow:
+          0 -4px 0 0 var(--edge),
+          0 4px 0 0 var(--edge),
+          -4px 0 0 0 var(--edge),
+          4px 0 0 0 var(--edge);
+        margin: 4px;
+      }
+
+      .btn {
+        font-family: var(--pix);
+        font-size: 12px;
+        line-height: 1.5;
+        text-transform: uppercase;
+        color: var(--bg);
+        background: var(--you);
+        border: 0;
+        border-radius: 0;
+        padding: 14px 18px;
+        cursor: pointer;
+        box-shadow:
+          inset -4px -4px 0 0 rgba(0, 0, 0, 0.3),
+          inset 4px 4px 0 0 rgba(255, 255, 255, 0.3);
+      }
+      .btn:active {
+        transform: translateY(2px);
+        box-shadow: inset 4px 4px 0 0 rgba(0, 0, 0, 0.3);
+      }
+      .btn.blue {
+        background: var(--bot);
+      }
+      .btn.sec {
+        background: var(--panel);
+        color: var(--ink);
+      }
+      .btn.sm {
+        font-size: 10px;
+        padding: 10px 12px;
+      }
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: default;
+        transform: none;
+      }
+      button:focus-visible {
+        outline: 3px dashed var(--ink);
+        outline-offset: 4px;
+      }
+      .link {
+        font: inherit;
+        font-size: 15px;
+        color: var(--muted);
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      /* title */
+      .logo {
+        margin: 24px 0 4px;
+        text-align: center;
+        font-family: var(--pix);
+        font-weight: 400;
+        font-size: clamp(22px, 5.4vw, 48px);
+        line-height: 1.25;
+        color: var(--you);
+        text-shadow: 4px 4px 0 var(--red);
+      }
+      .menu {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        justify-content: center;
+      }
+      .menu .btn {
+        font-size: 14px;
+        padding: 16px 24px;
+      }
+      .topbar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: -12px;
+      }
+      .lang {
+        display: flex;
+        gap: 6px;
+      }
+      .lang button {
+        font-family: var(--pix);
+        font-size: 10px;
+        line-height: 1;
+        padding: 7px 8px;
+        border: 0;
+        border-radius: 0;
+        background: var(--panel);
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .lang button.on {
+        background: var(--you);
+        color: var(--bg);
+      }
+      .toggles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 26px;
+        justify-content: center;
+      }
+      .toggle {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .toggle input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        accent-color: var(--you);
+        cursor: pointer;
+      }
+      .record {
+        text-align: center;
+        font-family: var(--pix);
+        font-size: 11px;
+        line-height: 1.8;
+        color: var(--muted);
+      }
+      .record b {
+        font-weight: 400;
+        color: var(--ink);
+      }
+      .howto {
+        width: calc(100% - 8px);
+        max-width: 752px;
+        margin: 4px auto;
+        display: grid;
+        gap: 10px;
+        padding: 16px 18px;
+        background: var(--panel);
+      }
+      .hint {
+        color: var(--muted);
+        font-size: 15px;
+      }
+      kbd {
+        font-family: var(--text);
+        font-size: 13px;
+        padding: 3px 5px;
+        background: var(--bg);
+        color: var(--ink);
+        box-shadow: inset -2px -2px 0 0 rgba(0, 0, 0, 0.4);
+      }
+
+      /* game */
+      .hud {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px 18px;
+      }
+      .round {
+        font-family: var(--pix);
+        font-size: 12px;
+        color: var(--you);
+      }
+      .pips {
+        display: flex;
+        gap: 6px;
+        margin-left: auto;
+      }
+      .pips i {
+        width: 14px;
+        height: 14px;
+        background: var(--panel);
+      }
+      .pips i.done {
+        background: var(--you);
+      }
+      .pips i.now {
+        background: var(--ink);
+        animation: blink 1s steps(1) infinite;
+      }
+      @keyframes blink {
+        50% {
+          background: var(--panel);
+        }
+      }
+      .q {
+        font-family: var(--pix);
+        font-size: clamp(12px, 2.4vw, 16px);
+        line-height: 1.6;
+        text-align: center;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+      @media (max-width: 700px) {
+        .pair {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      .opt {
+        display: grid;
+        gap: 10px;
+        align-content: start;
+        text-align: left;
+        font: inherit;
+        color: var(--ink);
+        cursor: pointer;
+        padding: 10px 10px 14px;
+        border: 0;
+        border-radius: 0;
+        background: var(--panel);
+        min-width: 0;
+        margin: 4px;
+        box-shadow:
+          0 -4px 0 0 var(--edge),
+          0 4px 0 0 var(--edge),
+          -4px 0 0 0 var(--edge),
+          4px 0 0 0 var(--edge);
+      }
+      .opt:hover {
+        box-shadow:
+          0 -4px 0 0 var(--you),
+          0 4px 0 0 var(--you),
+          -4px 0 0 0 var(--you),
+          4px 0 0 0 var(--you);
+      }
+      .opt.hit {
+        background: var(--panel2);
+        box-shadow:
+          0 -4px 0 0 var(--you),
+          0 4px 0 0 var(--you),
+          -4px 0 0 0 var(--you),
+          4px 0 0 0 var(--you);
+      }
+      .frame {
+        position: relative;
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        aspect-ratio: 600 / 338;
+        background: var(--bg);
+        overflow: hidden;
+      }
+      .frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: opacity 0.12s steps(2);
+      }
+      .frame img.loading {
+        opacity: 0;
+      }
+      /* «Сразу показывать ответ» */
+      .stamp,
+      .ftag {
+        position: absolute;
+        display: none;
+        pointer-events: none;
+      }
+      .stamp {
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        font-family: var(--pix);
+        font-size: clamp(16px, 3.6vw, 28px);
+        line-height: 1;
+        padding: 12px 14px;
+        color: var(--bg);
+        box-shadow: 4px 4px 0 0 var(--bg);
+      }
+      .opt.good .stamp {
+        display: block;
+        background: var(--win);
+        animation: pop 0.45s steps(3) both;
+      }
+      .opt.bad .stamp {
+        display: block;
+        background: var(--lose);
+      }
+      .opt.bad {
+        animation: shake 0.4s steps(4) both;
+      }
+      @keyframes pop {
+        0% {
+          transform: translate(-50%, -50%) scale(0.3);
+        }
+        60% {
+          transform: translate(-50%, -50%) scale(1.2);
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-10px);
+        }
+        50% {
+          transform: translateX(10px);
+        }
+        75% {
+          transform: translateX(-5px);
+        }
+      }
+      .ftag {
+        top: 8px;
+        right: 8px;
+        font-family: var(--pix);
+        font-size: 9px;
+        line-height: 1;
+        padding: 5px 6px;
+        background: var(--bot);
+        color: var(--bg);
+      }
+      .pair.reveal .ftag.on {
+        display: block;
+      }
+      .pair.reveal .opt,
+      .pair.reveal .opt:hover {
+        box-shadow:
+          0 -4px 0 0 var(--edge),
+          0 4px 0 0 var(--edge),
+          -4px 0 0 0 var(--edge),
+          4px 0 0 0 var(--edge);
+      }
+      .pair.reveal .opt.right,
+      .pair.reveal .opt.right:hover {
+        box-shadow:
+          0 -4px 0 0 var(--win),
+          0 4px 0 0 var(--win),
+          -4px 0 0 0 var(--win),
+          4px 0 0 0 var(--win);
+      }
+      .pair.reveal .opt.bad,
+      .pair.reveal .opt.bad:hover {
+        box-shadow:
+          0 -4px 0 0 var(--lose),
+          0 4px 0 0 var(--lose),
+          -4px 0 0 0 var(--lose),
+          4px 0 0 0 var(--lose);
+      }
+      .meta {
+        display: grid;
+        gap: 8px;
+        min-width: 0;
+      }
+      .genres {
+        font-size: 15px;
+        color: var(--muted);
+      }
+      .genres b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .tags span {
+        font-size: 13px;
+        padding: 1px 8px;
+        background: var(--panel2);
+        color: var(--ink);
+      }
+      .key {
+        font-family: var(--pix);
+        font-size: 9px;
+        color: var(--muted);
+      }
+      .side {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* result and stats */
+      .verdict {
+        font-family: var(--pix);
+        font-size: clamp(24px, 6vw, 44px);
+        text-align: center;
+        color: var(--ink);
+        text-shadow: 4px 4px 0 var(--bg);
+        margin-top: 8px;
+      }
+      .verdict.win {
+        color: var(--win);
+      }
+      .verdict.lose {
+        color: var(--lose);
+      }
+      .vsrow {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        gap: 14px;
+        align-items: center;
+      }
+      .vsrow .vs {
+        font-family: var(--pix);
+        font-size: clamp(14px, 3vw, 22px);
+        color: var(--red);
+      }
+      .fighter {
+        display: grid;
+        justify-items: center;
+        gap: 8px;
+        padding: 16px 10px;
+        background: var(--panel);
+        text-align: center;
+        min-width: 0;
+      }
+      .face {
+        display: block;
+        width: min(120px, 28vw);
+        height: auto;
+        aspect-ratio: 1;
+        image-rendering: pixelated;
+        box-shadow: 0 0 0 4px var(--bg);
+      }
+      .fighter.lose .face {
+        filter: grayscale(1) brightness(0.6);
+      }
+      .fighter.win .face {
+        animation: hop 0.7s steps(1) infinite;
+      }
+      @keyframes hop {
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+      .fighter.win .big {
+        color: var(--win);
+      }
+      .lbl {
+        font-family: var(--pix);
+        font-size: 10px;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      .fighter.you .lbl {
+        color: var(--you);
+      }
+      .fighter.bot .lbl {
+        color: var(--bot);
+      }
+      .big {
+        font-family: var(--pix);
+        font-size: clamp(20px, 5vw, 34px);
+        font-variant-numeric: tabular-nums;
+      }
+      .sub {
+        font-size: 15px;
+        color: var(--muted);
+      }
+      .meter {
+        width: 100%;
+        height: 12px;
+        background: var(--bg);
+      }
+      .meter i {
+        display: block;
+        height: 100%;
+        width: 0;
+      }
+      .fighter.you .meter i {
+        background: var(--you);
+      }
+      .fighter.bot .meter i {
+        background: var(--bot);
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        justify-content: center;
+      }
+      .h2 {
+        font-family: var(--pix);
+        font-weight: 400;
+        font-size: clamp(18px, 4vw, 28px);
+        text-align: center;
+        color: var(--you);
+        text-shadow: 3px 3px 0 var(--red);
+        margin: 8px 0 0;
+      }
+      .logbox {
+        display: grid;
+        gap: 10px;
+      }
+      .lh {
+        font-family: var(--pix);
+        font-weight: 400;
+        font-size: 13px;
+        color: var(--you);
+        text-align: center;
+        margin: 10px 0 0;
+      }
+      .lleg {
+        text-align: center;
+        margin: 0;
+      }
+      .log {
+        display: grid;
+        gap: 10px;
+      }
+      .lrow {
+        display: grid;
+        grid-template-columns: 26px minmax(0, 1fr) minmax(0, 1fr);
+        gap: 8px 10px;
+        align-items: start;
+        padding: 10px;
+        background: var(--panel);
+      }
+      .lnum {
+        font-family: var(--pix);
+        font-size: 11px;
+        color: var(--muted);
+        padding-top: 6px;
+      }
+      .lshot {
+        display: grid;
+        gap: 6px;
+        min-width: 0;
+      }
+      .lpic {
+        position: relative;
+      }
+      .lpic img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 600 / 338;
+        object-fit: cover;
+        box-shadow: 0 0 0 3px var(--bg);
+      }
+      .lshot.right .lpic img {
+        box-shadow: 0 0 0 4px var(--win);
+      }
+      .who {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+      .who span {
+        font-family: var(--pix);
+        font-size: 8px;
+        line-height: 1;
+        padding: 4px 5px;
+        color: var(--bg);
+      }
+      .who .you {
+        background: var(--you);
+      }
+      .who .bot {
+        background: var(--bot);
+      }
+      .lres {
+        grid-column: 2 / -1;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .lres b {
+        font-weight: 600;
+      }
+      .lres .ok {
+        color: var(--win);
+      }
+      .lres .no {
+        color: var(--lose);
+      }
+      .counter {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 14px 8px;
+        background: var(--panel);
+        text-align: center;
+      }
+      .counter > div {
+        display: grid;
+        gap: 6px;
+        justify-items: center;
+        align-content: start;
+        min-width: 0;
+      }
+      .counter .you .lbl,
+      .counter .you .cnum {
+        color: var(--you);
+      }
+      .counter .bot .lbl,
+      .counter .bot .cnum {
+        color: var(--bot);
+      }
+      .cnum {
+        font-family: var(--pix);
+        font-size: clamp(16px, 4.2vw, 28px);
+        font-variant-numeric: tabular-nums;
+        color: var(--ink);
+      }
+      .csub {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .lines {
+        display: grid;
+        gap: 10px;
+        padding: 16px 18px;
+        background: var(--panel);
+      }
+      .small {
+        font-size: 15px;
+        color: var(--muted);
+      }
+
+      footer {
+        display: grid;
+        gap: 6px;
+        justify-items: center;
+        text-align: center;
+        font-size: 15px;
+        color: var(--muted);
+      }
+      footer a {
+        color: inherit;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="en">EN</button
+          ><button type="button" data-lang="ru">RU</button>
+        </div>
+      </div>
+      <section id="v-title">
+        <h1 class="logo" data-t="title"></h1>
+        <div class="menu">
+          <button class="btn" id="play" type="button" data-t="play"></button>
+          <button
+            class="btn blue"
+            id="toStats"
+            type="button"
+            data-t="stats"
+          ></button>
+        </div>
+        <div class="toggles">
+          <label class="toggle" for="instant"
+            ><input type="checkbox" id="instant" />
+            <span data-t="instant"></span
+          ></label>
+          <label class="toggle" for="nsfw"
+            ><input type="checkbox" id="nsfw" /> <span data-t="nsfw"></span
+          ></label>
+        </div>
+        <p class="record" id="record"></p>
+        <div class="howto px narrow">
+          <p data-t="how1"></p>
+          <p class="hint" data-th="how2"></p>
+        </div>
+      </section>
+
+      <section id="v-game" hidden>
+        <div class="hud">
+          <button
+            class="btn sec sm"
+            id="menu1"
+            type="button"
+            data-t="menuBack"
+          ></button>
+          <span class="round" id="roundLbl"></span>
+          <span class="pips" id="pips" aria-hidden="true"></span>
+        </div>
+        <p class="q" data-t="q"></p>
+        <div class="pair" id="pair">
+          <button class="opt" id="optA" type="button">
+            <span class="frame"
+              ><img id="imgA" alt="" data-ta="altA" class="loading" /><span
+                class="stamp"
+                id="stA"
+              ></span
+              ><span class="ftag" id="rbA" data-t="robot"></span
+            ></span>
+            <span class="meta"
+              ><span class="genres" id="gA"></span
+              ><span class="tags" id="tA"></span
+            ></span>
+          </button>
+          <button class="opt" id="optB" type="button">
+            <span class="frame"
+              ><img id="imgB" alt="" data-ta="altB" class="loading" /><span
+                class="stamp"
+                id="stB"
+              ></span
+              ><span class="ftag" id="rbB" data-t="robot"></span
+            ></span>
+            <span class="meta"
+              ><span class="genres" id="gB"></span
+              ><span class="tags" id="tB"></span
+            ></span>
+          </button>
+        </div>
+        <div class="side">
+          <button
+            class="btn sec sm"
+            id="known"
+            type="button"
+            data-t="known"
+          ></button>
+          <button
+            class="btn sec sm"
+            id="skip"
+            type="button"
+            data-t="skip"
+          ></button>
+          <button
+            class="btn sec sm"
+            id="undo"
+            type="button"
+            data-t="undo"
+          ></button>
+        </div>
+      </section>
+
+      <section id="v-end" class="narrow" hidden>
+        <div class="verdict" id="verdict"></div>
+        <div class="vsrow">
+          <div class="fighter you" id="fYou">
+            <img class="face" src="face_you.png" alt="" />
+            <div class="lbl" data-t="you"></div>
+            <div class="big" id="youScore"></div>
+          </div>
+          <div class="vs">VS</div>
+          <div class="fighter bot" id="fBot">
+            <img class="face" src="face_bot.png" alt="" />
+            <div class="lbl" data-t="robot"></div>
+            <div class="big" id="botScore"></div>
+          </div>
+        </div>
+        <p class="record" id="recordEnd"></p>
+        <div class="row">
+          <button class="btn" id="again" type="button" data-t="again"></button>
+          <button
+            class="btn blue"
+            id="toStats2"
+            type="button"
+            data-t="stats"
+          ></button>
+          <button
+            class="btn sec"
+            id="menu2"
+            type="button"
+            data-t="menu"
+          ></button>
+        </div>
+        <div class="logbox" id="logBox" hidden>
+          <h3 class="lh" data-t="logTitle"></h3>
+          <p class="small lleg" data-t="logLegend"></p>
+          <div class="log" id="log"></div>
+        </div>
+      </section>
+
+      <section id="v-stats" class="narrow" hidden>
+        <h2 class="h2" data-t="stats"></h2>
+        <div class="counter">
+          <div class="you">
+            <div class="lbl" data-t="cPeople"></div>
+            <div class="cnum" id="cPeople">…</div>
+            <div class="csub" id="cPeopleSub">&nbsp;</div>
+          </div>
+          <div class="bot">
+            <div class="lbl" data-t="cBot"></div>
+            <div class="cnum" id="cBot">…</div>
+            <div class="csub" id="cBotSub">&nbsp;</div>
+          </div>
+        </div>
+        <div class="vsrow">
+          <div class="fighter you">
+            <img class="face" src="face_you.png" alt="" />
+            <div class="lbl" data-t="sPeople"></div>
+            <div class="big" id="sPeople">…</div>
+            <div class="meter"><i id="mPeople"></i></div>
+            <div class="sub" id="sPeopleSub"></div>
+          </div>
+          <div class="vs">VS</div>
+          <div class="fighter bot">
+            <img class="face" src="face_bot.png" alt="" />
+            <div class="lbl" data-t="sBot"></div>
+            <div class="big" id="sBot">…</div>
+            <div class="meter"><i id="mBot"></i></div>
+            <div class="sub" id="sBotSub"></div>
+          </div>
+        </div>
+        <div class="lines">
+          <p id="sYou"></p>
+          <p id="sBeat"></p>
+          <p class="small" id="sNote"></p>
+        </div>
+        <div class="row">
+          <button class="btn" id="play2" type="button" data-t="play"></button>
+          <button
+            class="btn sec"
+            id="menu3"
+            type="button"
+            data-t="menu"
+          ></button>
+        </div>
+      </section>
+
+      <footer>
+        <span id="savenote"></span>
+        <a
+          href="https://github.com/kvladsrc/gym/tree/main/games/shotcall"
+          target="_blank"
+          rel="noopener"
+          data-t="source"
+        ></a>
+      </footer>
+    </div>
+
+    <script type="application/json" id="data">
+      __DATA__
+    </script>
+    <script>
+      (function () {
+        const $ = (id) => document.getElementById(id);
+        const DATA = JSON.parse($("data").textContent);
+        const SHOTS = DATA.shots;
+        const ROUND = 10,
+          RECENT = 8,
+          MIN_PAIRS = 5,
+          LS = "qr-pairs-v3";
+        const KEY = (() => {
+          const salt = "qwen-review-2026",
+            raw = atob(DATA.k);
+          let out = "";
+          for (let i = 0; i < raw.length; i++)
+            out += String.fromCharCode(
+              raw.charCodeAt(i) ^
+                salt.charCodeAt(i % salt.length) ^
+                ((i * 7) & 255),
+            );
+          return JSON.parse(out);
+        })();
+        const T = KEY.t,
+          E = KEY.e;
+        const GAP = 2; // classes apart in a pair (at least ~3x the reviews); back to 2 since 2026-11-25 evening
+        const counts = (e) =>
+          (e.p === "a" || e.p === "b") && Math.abs(T[e.a] - T[e.b]) >= GAP;
+        const groups = {};
+        SHOTS.forEach((s, i) => {
+          if (s.pg && s.pg !== "Other")
+            (groups[s.pg] = groups[s.pg] || []).push(i);
+        });
+
+        // ---- state, kept in this browser ----
+        function randomId() {
+          const a = new Uint32Array(2);
+          crypto.getRandomValues(a);
+          return "r" + a[0].toString(36) + a[1].toString(36);
+        }
+        function fresh() {
+          return {
+            rid: randomId(),
+            list: [],
+            cur: null,
+            round: null,
+            fb: 0,
+            rec: { w: 0, d: 0, l: 0 },
+            view: "title",
+            nsfw: false,
+            instant: false,
+            lang: "en",
+          };
+        }
+        function load() {
+          try {
+            const s = JSON.parse(localStorage.getItem(LS));
+            if (s && s.rid && Array.isArray(s.list)) {
+              s.list = s.list.filter((e) => e && SHOTS[e.a] && SHOTS[e.b]);
+              s.rec = s.rec || { w: 0, d: 0, l: 0 };
+              s.fb = s.fb || 0;
+              s.nsfw = s.nsfw === true;
+              s.instant = s.instant === true;
+              s.lang = s.lang === "ru" ? "ru" : "en";
+              if (s.cur && !(SHOTS[s.cur[0]] && SHOTS[s.cur[1]])) s.cur = null;
+              return s;
+            }
+          } catch (e) {}
+          return fresh();
+        }
+        function persist() {
+          try {
+            localStorage.setItem(LS, JSON.stringify(state));
+          } catch (e) {}
+        }
+        const state = load();
+
+        // ---- language: English by default, Russian on the switch ----
+        const I18N = {
+          en: {
+            title: "Shot Call",
+            play: "▶ Play",
+            cont: "▶ Continue {n}/{N}",
+            stats: "Stats",
+            menu: "Menu",
+            menuBack: "◄ Menu",
+            instant: "Show the answer right away",
+            nsfw: "Show 18+ games",
+            source: "Code on GitHub",
+            how1: "Two games of the same genre, both released on Steam in 2026. Pick the one with more reviews. Under the screenshots are the genres and tags from the store. A round is 10 pairs, then you see your score against the robot. The robot is a neural network that sees exactly what you see.",
+            how2: "Recognize a game? Press “I know it”: such pairs count neither for you nor for the robot. Don't look anything up online. Keys: <kbd>←</kbd> <kbd>→</kbd> pick, <kbd>K</kbd> I know it, <kbd>S</kbd> skip, <kbd>Backspace</kbd> back.",
+            q: "Which game has more reviews on Steam?",
+            altA: "Screenshot of the first game",
+            altB: "Screenshot of the second game",
+            known: "I know it",
+            skip: "Skip",
+            undo: "← Back",
+            you: "You",
+            robot: "Robot",
+            again: "▶ Another round",
+            round: "Round {r} · pair {n}/{N}",
+            noPairs: "No pairs left",
+            record: "Rounds against the robot: won {w} · drawn {d} · lost {l}",
+            win: "Victory!",
+            lose: "Defeat",
+            draw: "Draw",
+            none: "Round not scored",
+            right: "Right!",
+            miss: "Miss",
+            logTitle: "Round answers",
+            logLegend:
+              "The green frame marks the game with more reviews. Tags show what you and the robot picked.",
+            logOk: "right",
+            logNo: "miss",
+            logKnown: "I know it: not counted",
+            logSkip: "Skipped: not counted",
+            logGap: "Less than {g} classes apart: not counted",
+            cPeople: "People got right",
+            cBot: "Robot got right",
+            sPeople: "People guess",
+            sBot: "Robot guesses",
+            confirm18:
+              "Screenshots of 18+ games can be explicit. Turn this on only if you are 18 or older. Show these games?",
+            save: "Answers are anonymous: only your picks and answer times are saved, no name.",
+            saveErr:
+              "Couldn't send your answers ({e}); we'll try again after the next round.",
+            avgPlayers: "average, players: {p}",
+            noneYet: "nobody has finished a round yet",
+            samePairs: "on the same pairs ({n})",
+            allPairs: "on all possible pairs",
+            youGot:
+              "You got {h}% of {n} pairs right; the robot got {m}% of them.",
+            place: " Your place: {a} of {b}.",
+            notYet: "You haven't played yet.",
+            roundsAll:
+              "Rounds against the robot, all players: won {w} · drawn {d} · lost {l}. Beat the robot at least once: {x} of {p} players.",
+            noStats: "Couldn't load the shared stats. ",
+            note: "Random guessing would give 50%. Pairs are random every time: two 2026 games of the same genre with clearly different review counts, all with more than 30 reviews and none seen by the robot in training. Players count once they have answered at least {k} pairs; “I know it” and skips don't count. Over all {n} possible pairs the robot is right {m}% of the time.",
+            locale: "en-US",
+          },
+          ru: {
+            title: "Shot Call",
+            play: "▶ Играть",
+            cont: "▶ Продолжить {n}/{N}",
+            stats: "Статистика",
+            menu: "Меню",
+            menuBack: "◄ Меню",
+            instant: "Сразу показывать ответ",
+            nsfw: "Показывать игры 18+",
+            source: "Код на GitHub",
+            how1: "Две игры одного жанра, обе вышли в Steam в 2026 году. Выберите ту, у которой больше отзывов. Под скриншотами жанры и метки из магазина. Раунд из 10 пар, после него счёт против робота. Робот здесь нейросеть, которая видит то же, что и вы.",
+            how2: "Узнали игру — жмите «Знаю игру»: такие пары не идут в счёт ни вам, ни роботу. Ничего не ищите в интернете. Клавиши: <kbd>←</kbd> <kbd>→</kbd> выбор, <kbd>K</kbd> знаю игру, <kbd>S</kbd> пропуск, <kbd>Backspace</kbd> назад.",
+            q: "У какой игры больше отзывов в Steam?",
+            altA: "Скриншот первой игры",
+            altB: "Скриншот второй игры",
+            known: "Знаю игру",
+            skip: "Пропустить",
+            undo: "← Назад",
+            you: "Вы",
+            robot: "Робот",
+            again: "▶ Ещё раунд",
+            round: "Раунд {r} · пара {n}/{N}",
+            noPairs: "Пары закончились",
+            record:
+              "Раунды против робота: победы {w} · ничьи {d} · поражения {l}",
+            win: "Победа!",
+            lose: "Поражение",
+            draw: "Ничья",
+            none: "Раунд без счёта",
+            right: "Верно!",
+            miss: "Мимо",
+            logTitle: "Ответы раунда",
+            logLegend:
+              "В зелёной рамке игра, у которой больше отзывов. Метки на картинках: кого выбрали вы и кого робот.",
+            logOk: "верно",
+            logNo: "мимо",
+            logKnown: "Знаю игру: не в счёт",
+            logSkip: "Пропуск: не в счёт",
+            logGap: "Разница меньше {g} классов: не в счёт",
+            cPeople: "Люди угадали",
+            cBot: "Робот угадал",
+            sPeople: "Люди угадывают",
+            sBot: "Робот угадывает",
+            confirm18:
+              "В играх 18+ на скриншотах бывает откровенное. Включайте, только если вам есть 18 лет. Показывать такие игры?",
+            save: "Ответы анонимные: сохраняются только выборы и время ответа, без имени.",
+            saveErr:
+              "Не получилось отправить ответы ({e}), отправим после следующего раунда.",
+            avgPlayers: "в среднем, игроков: {p}",
+            noneYet: "пока никто не доиграл раунд",
+            samePairs: "на тех же парах ({n})",
+            allPairs: "на всех возможных парах",
+            youGot: "Вы угадали {h}% из {n} пар, робот на них {m}%.",
+            place: " Ваше место: {a} из {b}.",
+            notYet: "Вы ещё не играли.",
+            roundsAll:
+              "Раунды против робота у всех: победы {w} · ничьи {d} · поражения {l}. Хотя бы раз обыграли робота {x} из {p} игроков.",
+            noStats: "Общую статистику загрузить не удалось. ",
+            note: "Наугад вышло бы 50%. Пары каждый раз случайные: две игры 2026 года одного жанра с заметно разным числом отзывов, у всех больше 30 отзывов, и при обучении робот их не видел. В счёт идут игроки, ответившие хотя бы на {k} пар; «Знаю игру» и пропуски не считаются. На всех {n} возможных парах робот угадывает {m}%.",
+            locale: "ru-RU",
+          },
+        };
+        const L = () => I18N[state.lang] || I18N.en;
+        function t(key, vars) {
+          let x = L()[key] !== undefined ? L()[key] : I18N.en[key];
+          if (vars)
+            for (const k in vars)
+              x = x.split("{" + k + "}").join(String(vars[k]));
+          return x;
+        }
+        const fmt = (n) => Number(n).toLocaleString(L().locale);
+        function applyLang() {
+          document.documentElement.lang = state.lang;
+          document.title = t("title");
+          for (const n of document.querySelectorAll("[data-t]"))
+            n.textContent = t(n.dataset.t);
+          for (const n of document.querySelectorAll("[data-th]"))
+            n.innerHTML = t(n.dataset.th); // our own strings only
+          for (const n of document.querySelectorAll("[data-ta]"))
+            n.alt = t(n.dataset.ta);
+          for (const b of document.querySelectorAll(".lang button"))
+            b.classList.toggle("on", b.dataset.lang === state.lang);
+        }
+
+        // ---- pairs: two random games of one genre, at least two review ranges apart ----
+        const allowed = (i) => state.nsfw || !SHOTS[i].x; // x: an adult game, shown only with «Игры 18+» on
+        const pairKey = (a, b) => (a < b ? a + "-" + b : b + "-" + a);
+        function newPair() {
+          const gi = (i) => SHOTS[i].gi;
+          const seen = new Set(
+            state.list.map((e) => pairKey(gi(e.a), gi(e.b))),
+          );
+          const recent = new Set();
+          state.list.slice(-RECENT).forEach((e) => {
+            recent.add(gi(e.a));
+            recent.add(gi(e.b));
+          });
+          for (let pass = 0; pass < 2; pass++) {
+            for (let tries = 0; tries < 300; tries++) {
+              const a = Math.floor(Math.random() * SHOTS.length);
+              const g = groups[SHOTS[a].pg];
+              if (!g || !allowed(a) || (pass === 0 && recent.has(gi(a))))
+                continue;
+              const cand = g.filter(
+                (j) =>
+                  allowed(j) &&
+                  Math.abs(T[j] - T[a]) >= GAP &&
+                  !seen.has(pairKey(gi(a), gi(j))) &&
+                  (pass > 0 || !recent.has(gi(j))),
+              );
+              if (!cand.length) continue;
+              const b = cand[Math.floor(Math.random() * cand.length)];
+              return Math.random() < 0.5 ? [a, b] : [b, a];
+            }
+          }
+          return null;
+        }
+        function score(entries) {
+          let n = 0,
+            h = 0,
+            m = 0;
+          for (const e of entries) {
+            if (!counts(e)) continue;
+            const aWins = T[e.a] > T[e.b];
+            n++;
+            if ((e.p === "a") === aWins) h++;
+            if (E[e.a] > E[e.b] === aWins) m++;
+          }
+          return { n, h, m };
+        }
+        const roundEntries = () =>
+          state.round ? state.list.slice(state.round.start) : [];
+
+        // ---- saving: after each round the whole answer list goes to the server, which keeps the longest ----
+        let saveState = "",
+          saveErr = "";
+        function myScore() {
+          const s = score(state.list);
+          return { n: s.n, h: s.h, m: s.m };
+        }
+        async function sync() {
+          const count = state.list.length;
+          if (!count) return;
+          try {
+            const r = await fetch("/api/answers", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                v: __V__,
+                rid: state.rid,
+                list: state.list.map((e) => ({
+                  a: e.a,
+                  b: e.b,
+                  p: e.p,
+                  ms: e.ms,
+                  r: e.r,
+                  f: e.f,
+                })),
+              }),
+            });
+            if (!r.ok) {
+              let c = String(r.status);
+              try {
+                c += " " + (await r.json()).error;
+              } catch (x) {}
+              throw c;
+            }
+            state.synced = count;
+            persist();
+            saveState = "ok";
+          } catch (e) {
+            saveState = "err";
+            saveErr = String((e && e.message) || e);
+          }
+          renderSave();
+        }
+        function renderSave() {
+          $("savenote").textContent =
+            saveState === "err" ? t("saveErr", { e: saveErr }) : t("save");
+        }
+
+        // ---- views ----
+        function setView(v) {
+          state.view = v;
+          persist();
+          for (const id of ["title", "game", "end", "stats"])
+            $("v-" + id).hidden = id !== v;
+          if (v === "title") renderTitle();
+          if (v === "game") showPair();
+          if (v === "end") renderEnd();
+          if (v === "stats") loadStats();
+          window.scrollTo(0, 0);
+        }
+        function recordText() {
+          const r = state.rec;
+          return t("record", { w: r.w, d: r.d, l: r.l });
+        }
+        function renderTitle() {
+          const inRound =
+            state.round && !state.round.done && roundEntries().length > 0;
+          $("play").textContent = inRound
+            ? t("cont", { n: roundEntries().length, N: ROUND })
+            : t("play");
+          $("nsfw").checked = state.nsfw;
+          $("instant").checked = state.instant;
+          $("record").textContent =
+            state.rec.w + state.rec.d + state.rec.l ? recordText() : "";
+        }
+        function play() {
+          if (!state.round || state.round.done)
+            state.round = { start: state.list.length, done: false };
+          setView("game");
+        }
+
+        function fillMeta(shot, gEl, tEl) {
+          gEl.textContent = "";
+          const lab = document.createElement("span");
+          lab.textContent = "2026 · ";
+          const gb = document.createElement("b");
+          gb.textContent = shot.g.join(", ");
+          gEl.append(lab, gb);
+          tEl.textContent = "";
+          shot.t.forEach((x) => {
+            const s = document.createElement("span");
+            s.textContent = x;
+            tEl.appendChild(s);
+          });
+        }
+        let shownAt = null,
+          busy = false;
+        function setImg(img, shot, done) {
+          img.classList.add("loading");
+          const ok = () => {
+            img.classList.remove("loading");
+            done();
+          };
+          img.onload = ok;
+          img.onerror = ok;
+          img.src = "shots/" + shot.id + ".jpg";
+        }
+        function showPair() {
+          if (
+            state.round &&
+            !state.round.done &&
+            roundEntries().length >= ROUND
+          ) {
+            finishRound();
+            return;
+          }
+          if (state.cur && !state.cur.every(allowed)) state.cur = null;
+          if (!state.cur) {
+            state.cur = newPair();
+            persist();
+          }
+          if (!state.cur) {
+            $("roundLbl").textContent = t("noPairs");
+            return;
+          }
+          const n = roundEntries().length;
+          $("roundLbl").textContent = t("round", {
+            r: state.rec.w + state.rec.d + state.rec.l + 1,
+            n: n + 1,
+            N: ROUND,
+          });
+          const pips = $("pips");
+          pips.textContent = "";
+          for (let i = 0; i < ROUND; i++) {
+            const p = document.createElement("i");
+            if (i < n) p.className = "done";
+            else if (i === n) p.className = "now";
+            pips.appendChild(p);
+          }
+          $("undo").disabled = n === 0 || !!roundEntries()[n - 1].f;
+          const [a, b] = state.cur.map((i) => SHOTS[i]);
+          shownAt = null;
+          let ready = 0;
+          const one = () => {
+            if (++ready === 2) shownAt = performance.now();
+          };
+          setImg($("imgA"), a, one);
+          setImg($("imgB"), b, one);
+          fillMeta(a, $("gA"), $("tA"));
+          fillMeta(b, $("gB"), $("tB"));
+        }
+        function answer(p, el) {
+          if (busy || !state.cur || state.view !== "game") return;
+          busy = true;
+          const [a, b] = state.cur;
+          const ms =
+            shownAt === null ? null : Math.round(performance.now() - shownAt);
+          const reveal = state.instant && (p === "a" || p === "b");
+          const entry = {
+            a,
+            b,
+            p,
+            ms,
+            r: state.fb,
+            at: new Date().toISOString(),
+          };
+          if (reveal) entry.f = 1; // the answer was shown right away: the server keeps the mark
+          state.list.push(entry);
+          state.cur = null;
+          if (reveal) {
+            persist();
+            showReveal(a, b, p);
+          } else if (el) el.classList.add("hit");
+          setTimeout(
+            () => {
+              if (el) el.classList.remove("hit");
+              hideReveal();
+              busy = false;
+              if (roundEntries().length >= ROUND) finishRound();
+              else {
+                persist();
+                showPair();
+              }
+            },
+            reveal ? REVEAL_MS : 160,
+          );
+        }
+        const REVEAL_MS = 1400;
+        function showReveal(a, b, p) {
+          const right = T[a] > T[b] ? "a" : "b",
+            bot = E[a] > E[b] ? "a" : "b";
+          for (const [x, sh, key] of [
+            ["A", a, "a"],
+            ["B", b, "b"],
+          ]) {
+            const opt = $("opt" + x);
+            opt.classList.toggle("right", key === right);
+            opt.classList.toggle("good", key === p && p === right);
+            opt.classList.toggle("bad", key === p && p !== right);
+            $("st" + x).textContent =
+              key === p ? t(p === right ? "right" : "miss") : "";
+            $("rb" + x).classList.toggle("on", key === bot);
+          }
+          $("pair").classList.add("reveal");
+        }
+        function hideReveal() {
+          $("pair").classList.remove("reveal");
+          for (const x of ["A", "B"]) {
+            $("opt" + x).classList.remove("right", "good", "bad");
+            $("rb" + x).classList.remove("on");
+          }
+        }
+        function undo() {
+          if (
+            busy ||
+            state.view !== "game" ||
+            !roundEntries().length ||
+            roundEntries()[roundEntries().length - 1].f
+          )
+            return;
+          const e = state.list.pop();
+          state.cur = [e.a, e.b];
+          persist();
+          showPair();
+        }
+        function finishRound() {
+          const s = score(roundEntries());
+          const v = s.h > s.m ? "w" : s.h < s.m ? "l" : "d";
+          if (s.n) state.rec[v]++;
+          state.round.done = true;
+          state.round.res = { ...s, v: s.n ? v : "none" };
+          state.fb++;
+          persist();
+          sync();
+          setView("end");
+        }
+        function renderEnd() {
+          const res = (state.round && state.round.res) || {
+            n: 0,
+            h: 0,
+            m: 0,
+            v: "none",
+          };
+          const vd = $("verdict");
+          vd.className =
+            "verdict" + (res.v === "w" ? " win" : res.v === "l" ? " lose" : "");
+          vd.textContent = t(
+            res.v === "w"
+              ? "win"
+              : res.v === "l"
+                ? "lose"
+                : res.v === "d"
+                  ? "draw"
+                  : "none",
+          );
+          $("youScore").textContent = res.h + "/" + res.n;
+          $("botScore").textContent = res.m + "/" + res.n;
+          $("fYou").className =
+            "fighter you" +
+            (res.v === "w" ? " win" : res.v === "l" ? " lose" : "");
+          $("fBot").className =
+            "fighter bot" +
+            (res.v === "l" ? " win" : res.v === "w" ? " lose" : "");
+          $("recordEnd").textContent = recordText();
+          renderLog();
+        }
+        // the round's pairs with the right answer, the player's pick and the robot's
+        function renderLog() {
+          const box = $("log");
+          box.textContent = "";
+          const entries = state.round && state.round.done ? roundEntries() : [];
+          $("logBox").hidden = !entries.length;
+          const el = (tag, cls, text) => {
+            const x = document.createElement(tag);
+            if (cls) x.className = cls;
+            if (text !== undefined) x.textContent = text;
+            return x;
+          };
+          entries.forEach((e, i) => {
+            const right = T[e.a] > T[e.b] ? e.a : e.b;
+            const bot = E[e.a] > E[e.b] ? e.a : e.b;
+            const mine = e.p === "a" ? e.a : e.p === "b" ? e.b : null;
+            const row = el("div", "lrow");
+            row.appendChild(el("div", "lnum", String(i + 1)));
+            for (const sh of [e.a, e.b]) {
+              const cell = el("div", "lshot" + (sh === right ? " right" : ""));
+              const pic = el("div", "lpic");
+              const img = el("img");
+              img.src = "shots/" + SHOTS[sh].id + ".jpg";
+              img.alt = "";
+              img.loading = "lazy";
+              const who = el("div", "who");
+              if (sh === mine) who.appendChild(el("span", "you", t("you")));
+              if (sh === bot) who.appendChild(el("span", "bot", t("robot")));
+              pic.append(img, who);
+              cell.append(pic);
+              row.appendChild(cell);
+            }
+            const res = el("div", "lres");
+            if (e.p === "k" || e.p === "s") {
+              res.textContent = t(e.p === "k" ? "logKnown" : "logSkip");
+            } else if (!counts(e)) {
+              res.textContent = t("logGap", { g: GAP });
+            } else {
+              const mark = (who, ok) => {
+                const b = el("b", ok ? "ok" : "no", t(ok ? "logOk" : "logNo"));
+                res.append(who + ": ", b);
+              };
+              mark(t("you"), mine === right);
+              res.append(" · ");
+              mark(t("robot"), bot === right);
+            }
+            row.appendChild(res);
+            box.appendChild(row);
+          });
+        }
+
+        // ---- global statistics ----
+        const robotAll = {};
+        function robotOnAllPairs() {
+          const mode = state.nsfw ? "all" : "safe";
+          if (robotAll[mode]) return robotAll[mode];
+          let n = 0,
+            m = 0;
+          for (const g of Object.values(groups)) {
+            for (let x = 0; x < g.length; x++)
+              for (let y = x + 1; y < g.length; y++) {
+                const a = g[x],
+                  b = g[y];
+                if (
+                  !allowed(a) ||
+                  !allowed(b) ||
+                  SHOTS[a].gi === SHOTS[b].gi ||
+                  Math.abs(T[a] - T[b]) < GAP
+                )
+                  continue;
+                n++;
+                if (E[a] > E[b] === T[a] > T[b]) m++;
+              }
+          }
+          robotAll[mode] = { n, m };
+          return robotAll[mode];
+        }
+        const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
+        const num = (x) => {
+          const v = Number(x);
+          return Number.isFinite(v) && v >= 0 ? v : 0;
+        };
+        async function loadStats() {
+          $("sPeople").textContent = "…";
+          $("sBot").textContent = "…";
+          $("cPeople").textContent = "…";
+          $("cBot").textContent = "…";
+          let S = null;
+          try {
+            const r = await fetch("/api/stats", { cache: "no-store" });
+            if (r.ok) S = await r.json();
+          } catch (e) {}
+          if (state.view !== "stats") return;
+          const all = robotOnAllPairs();
+          const me = myScore();
+          const P = S ? num(S.players) : 0;
+          const people = P ? num(S.people) : null,
+            robot = P ? num(S.robot) : null;
+          $("sPeople").textContent =
+            people !== null ? Math.round(100 * people) + "%" : "—";
+          $("sBot").textContent =
+            robot !== null
+              ? Math.round(100 * robot) + "%"
+              : pct(all.m, all.n) + "%";
+          $("mPeople").style.width = (people !== null ? 100 * people : 0) + "%";
+          $("mBot").style.width =
+            (robot !== null ? 100 * robot : (100 * all.m) / all.n) + "%";
+          $("sPeopleSub").textContent = P
+            ? t("avgPlayers", { p: fmt(P) })
+            : t("noneYet");
+          $("sBotSub").textContent = P
+            ? t("samePairs", { n: fmt(num(S.pairs)) })
+            : t("allPairs");
+          if (me.n) {
+            const mine = Math.round((100 * me.h) / me.n);
+            let line = t("youGot", {
+              h: pct(me.h, me.n),
+              n: me.n,
+              m: pct(me.m, me.n),
+            });
+            if (me.n >= MIN_PAIRS && P > 1 && S.hist) {
+              let above = 0;
+              for (const [p, c] of Object.entries(S.hist))
+                if (Number(p) > mine) above += num(c);
+              line += t("place", { a: above + 1, b: Math.max(P, above + 1) });
+            }
+            $("sYou").textContent = line;
+          } else {
+            $("sYou").textContent = t("notYet");
+          }
+          const tot = S && S.total;
+          const TN = tot ? num(tot.n) : 0;
+          $("cPeople").textContent = tot ? fmt(num(tot.h)) : "—";
+          $("cBot").textContent = tot ? fmt(num(tot.m)) : "—";
+          $("cPeopleSub").textContent = TN ? pct(num(tot.h), TN) + "%" : " ";
+          $("cBotSub").textContent = TN ? pct(num(tot.m), TN) + "%" : " ";
+          const R = S && S.rounds;
+          $("sBeat").textContent =
+            P && R
+              ? t("roundsAll", {
+                  w: num(R.w),
+                  d: num(R.d),
+                  l: num(R.l),
+                  x: num(S.won),
+                  p: P,
+                })
+              : "";
+          $("sNote").textContent =
+            (S ? "" : t("noStats")) +
+            t("note", { k: MIN_PAIRS, n: fmt(all.n), m: pct(all.m, all.n) });
+        }
+
+        // ---- controls ----
+        $("play").addEventListener("click", play);
+        $("play2").addEventListener("click", play);
+        $("again").addEventListener("click", play);
+        $("toStats").addEventListener("click", () => setView("stats"));
+        $("toStats2").addEventListener("click", () => setView("stats"));
+        for (const id of ["menu1", "menu2", "menu3"])
+          $(id).addEventListener("click", () => setView("title"));
+        $("optA").addEventListener("click", (e) =>
+          answer("a", e.currentTarget),
+        );
+        $("optB").addEventListener("click", (e) =>
+          answer("b", e.currentTarget),
+        );
+        $("known").addEventListener("click", (e) =>
+          answer("k", e.currentTarget),
+        );
+        $("skip").addEventListener("click", (e) =>
+          answer("s", e.currentTarget),
+        );
+        $("undo").addEventListener("click", undo);
+        for (const b of document.querySelectorAll(".lang button"))
+          b.addEventListener("click", () => {
+            if (busy || state.lang === b.dataset.lang) return;
+            state.lang = b.dataset.lang;
+            persist();
+            applyLang();
+            // the game screen keeps its pair and timer: only the round label is text
+            if (state.view === "game")
+              $("roundLbl").textContent = state.cur
+                ? t("round", {
+                    r: state.rec.w + state.rec.d + state.rec.l + 1,
+                    n: roundEntries().length + 1,
+                    N: ROUND,
+                  })
+                : t("noPairs");
+            else setView(state.view);
+          });
+        $("instant").addEventListener("change", (e) => {
+          state.instant = e.target.checked;
+          persist();
+        });
+        $("nsfw").addEventListener("change", (e) => {
+          if (e.target.checked && !confirm(t("confirm18"))) {
+            e.target.checked = false;
+            return;
+          }
+          state.nsfw = e.target.checked;
+          if (state.cur && !state.cur.every(allowed)) state.cur = null;
+          persist();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.ctrlKey || e.metaKey || e.altKey) return;
+          if (e.target && e.target.tagName === "TEXTAREA") return;
+          if (state.view === "game") {
+            if (e.code === "ArrowLeft") {
+              e.preventDefault();
+              answer("a", $("optA"));
+            } else if (e.code === "ArrowRight") {
+              e.preventDefault();
+              answer("b", $("optB"));
+            } else if (e.code === "KeyK") {
+              e.preventDefault();
+              answer("k", $("known"));
+            } else if (e.code === "KeyS") {
+              e.preventDefault();
+              answer("s", $("skip"));
+            } else if (e.code === "Backspace") {
+              e.preventDefault();
+              undo();
+            } else if (e.code === "Escape") {
+              e.preventDefault();
+              setView("title");
+            }
+          } else if (
+            state.view === "end" &&
+            e.code === "Enter" &&
+            e.target === document.body
+          ) {
+            e.preventDefault();
+            play();
+          }
+        });
+
+        applyLang();
+        renderSave();
+        setView(
+          ["title", "game", "end", "stats"].includes(state.view) &&
+            (state.view !== "game" || (state.round && !state.round.done))
+            ? state.view
+            : "title",
+        );
+        if ((state.synced || 0) < state.list.length) sync();
+      })();
+    </script>
+  </body>
+</html>

@@ -89,7 +89,7 @@ otel-agent:
         attributes:
           - action: upsert
             key: k8s.cluster.name
-            value: your.domain
+            value: bonfirelit.dev
     receivers:
       filelog:
         exclude:
@@ -288,7 +288,7 @@ otel-collector:
         attributes:
           - action: upsert
             key: k8s.cluster.name
-            value: your.domain
+            value: bonfirelit.dev
       transform/kubernetes_event_body:
         error_mode: ignore
         log_statements:
@@ -337,7 +337,7 @@ otel-collector:
         config:
           global:
             external_labels:
-              cluster: your.domain
+              cluster: bonfirelit.dev
             scrape_interval: 30s
             scrape_timeout: 10s
           scrape_configs:

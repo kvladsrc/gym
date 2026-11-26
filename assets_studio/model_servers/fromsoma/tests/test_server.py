@@ -72,7 +72,7 @@ def test_the_condition_holds_the_given_values_behind_their_masks() -> None:
 
 
 def test_missing_files_are_listed(tmp_path: Path) -> None:
-    assert "model.pt" in missing_files(tmp_path)
+    assert "fromsoma.safetensors" in missing_files(tmp_path)
     for name in missing_files(tmp_path):
         (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / name).touch()

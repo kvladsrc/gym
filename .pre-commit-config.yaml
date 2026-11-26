@@ -209,13 +209,13 @@ repos:
 
   # ---------- Checkov ----------
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.4.7'
+    rev: '3.4.11'
     hooks:
       - id: checkov
 
   # ---------- Ansible ----------
   - repo: https://github.com/ansible/ansible-lint
-    rev: v26.11.0
+    rev: v26.11.1
     hooks:
       - id: ansible-lint
         args: [--profile, min, production/playbooks]

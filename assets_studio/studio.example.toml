@@ -97,11 +97,6 @@ title = "frommhr · person from a bald head (MHR)"
 url = "http://127.0.0.1:9143"
 
 [[servers]]
-id = "fromanny"
-title = "fromanny · person from a bald head (Anny)"
-url = "http://127.0.0.1:9144"
-
-[[servers]]
 id = "paint21"
 title = "Hunyuan3D-Paint 2.1"
 url = "http://127.0.0.1:9120"

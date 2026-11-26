@@ -1,5 +1,5 @@
 ---
 all:
   hosts:
-    lab.your.domain:
+    lab.bonfirelit.dev:
       ansible_user: myuser

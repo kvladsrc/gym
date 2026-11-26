@@ -21,6 +21,7 @@ class SyncGymTest(unittest.TestCase):
             projects = (
                 "games/cothic",
                 "games/realms",
+                "games/shotcall",
                 "games/shotsearch",
                 "games/yaqs",
                 "games/zooreader",
@@ -48,6 +49,10 @@ class SyncGymTest(unittest.TestCase):
             # elsewhere does not.
             hub = "https://huggingface.co/zjgkkn/qwen3.5-2b-steam-reviews-lora"
             (source / "qwen_review/README.md").write_text(f"By myuser: {hub}\n")
+            (source / "frommhr").mkdir()
+            shutil.copy2(repository / "frommhr/.gitignore", source / "frommhr")
+            reader = 'HF_REPO = "zjgkkn/frommhr"'
+            (source / "frommhr/README.md").write_text(f"By myuser: {reader}\n")
             for project in private:
                 (source / project).mkdir(parents=True)
                 (source / project / "README.md").write_text("Private draft\n")
@@ -61,7 +66,7 @@ class SyncGymTest(unittest.TestCase):
                 else:
                     (source / project / ".gitignore").write_text("/build/\n")
                 (source / project / "README.md").write_text(
-                    "Created by myuser at your.domain\n", encoding="utf-8"
+                    "Created by myuser at bonfirelit.dev\n", encoding="utf-8"
                 )
                 (destination / project).mkdir(parents=True)
                 (destination / project / "stale.txt").write_text("old source")
@@ -112,6 +117,10 @@ class SyncGymTest(unittest.TestCase):
                 "qwen_review/data/full/labels.jsonl",
                 "qwen_review/data/full/data/shots/10_00.jpg",
                 "qwen_review/data/runs/full1/last/adapter_model.safetensors",
+                "frommhr/__pycache__/train.cpython-312.pyc",
+                "frommhr/data/data.pt",
+                "frommhr/data/soma-x/SOMA_neutral.npz",
+                "frommhr/data/frommhr.safetensors",
             ]
             for relative in excluded:
                 path = source / relative
@@ -132,7 +141,7 @@ class SyncGymTest(unittest.TestCase):
                 "static/zooreader.gif",
                 "assets_studio/model_server_sdk/src/model_server_sdk/data/sample.mp4",
             ]
-            payload = b"\x00\xffmyuser your.domain\x00"
+            payload = b"\x00\xffmyuser bonfirelit.dev\x00"
             for relative in binaries:
                 path = source / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -191,6 +200,10 @@ class SyncGymTest(unittest.TestCase):
                 f"By myuser: {hub}\n",
             )
             self.assertEqual(
+                (destination / "frommhr/README.md").read_text(),
+                f"By myuser: {reader}\n",
+            )
+            self.assertEqual(
                 (destination / "games/README.md").read_text(),
                 "![Preview](../static/zooreader.gif)\n[Game](zooreader)\n",
             )
@@ -214,7 +227,7 @@ class SyncGymTest(unittest.TestCase):
                 with self.subTest(project=project):
                     self.assertEqual(
                         (destination / project / "README.md").read_text(),
-                        "Created by myuser at your.domain\n",
+                        "Created by myuser at bonfirelit.dev\n",
                     )
                     self.assertTrue((destination / project / ".gitignore").is_file())
                     self.assertFalse((destination / project / "stale.txt").exists())
@@ -256,6 +269,42 @@ class SyncGymTest(unittest.TestCase):
                     self.assertEqual(
                         check.returncode, 0 if relative in setup_made else 1
                     )
+
+    def test_readme_links_must_be_published(self):
+        repository = pathlib.Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory(prefix="sync-gym-test-") as directory:
+            source = pathlib.Path(directory) / "source"
+            destination = pathlib.Path(directory) / "destination"
+            destination.mkdir()
+            (source / "scripts").mkdir(parents=True)
+            shutil.copy2(repository / "scripts/sync_gym.sh", source / "scripts")
+            (source / "games/realms").mkdir(parents=True)
+            (source / "games/realms/.gitignore").write_text("/Library/\n")
+            (source / "games/tents").mkdir()
+            (source / "games/tents/README.md").write_text("Private draft\n")
+            (source / "pipellm").mkdir()
+            (source / "pipellm/README.md").write_text("PipeLLM\n")
+            # A published project, a private game, a picture that is not in
+            # static/, an anchor and a web page.
+            (source / "README.md").write_text(
+                "[PipeLLM](pipellm/README.md#usage) [Tents](games/tents)\n"
+                "![Lost](static/lost.png)\n"
+                '<a href="#top">Top</a> [Site](https://bonfirelit.dev/)\n'
+            )
+            result = subprocess.run(
+                ["bash", str(source / "scripts/sync_gym.sh"), str(destination)],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertEqual(
+                result.stderr,
+                "README.md links what the copy does not have:\n"
+                "  games/tents\n"
+                "  static/lost.png\n",
+            )
+            self.assertNotIn("Sync complete", result.stdout)
 
 
 if __name__ == "__main__":

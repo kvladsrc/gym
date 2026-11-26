@@ -1,6 +1,6 @@
 ---
 gerrit:
-  server: review.your.domain
+  server: cl.bonfirelit.dev
   user: zuul
 
 zuul:
@@ -44,7 +44,7 @@ zuul:
 
   web:
     count: 1
-    statusUrl: https://ci.your.domain
+    statusUrl: https://ci.bonfirelit.dev
 
   fingergw:
     count: 1
@@ -52,10 +52,10 @@ zuul:
   connections:
     gerrit:
       driver: gerrit
-      server: review.your.domain
+      server: cl.bonfirelit.dev
       user: zuul
       secretName: gerrit-secrets  # pragma: allowlist secret
-      baseurl: http://review.your.domain
+      baseurl: http://cl.bonfirelit.dev
     # In-cluster credentials: no kubeconfig is mounted, so the Kubernetes
     # client falls back to the pod ServiceAccount.
     kubernetes:
@@ -63,9 +63,9 @@ zuul:
 
   tenantConfig: |
     - tenant:
-        name: your.domain
+        name: bonfirelit.dev
         use-nodepool: false
-        web-root: https://ci.your.domain/t/your.domain/
+        web-root: https://ci.bonfirelit.dev/t/bonfirelit.dev/
         source:
           gerrit:
             config-projects:
@@ -85,7 +85,7 @@ nxs:
     # auto-rollout checksums cannot see it. Bump this revision in the same
     # change as any zuul.conf edit to restart all Zuul components.
     podAnnotations:
-      your.domain/zuul-conf-revision: "4"
+      bonfirelit.dev/zuul-conf-revision: "4"
 
   statefulSets:
     # Zuul SQL migrations are forward-only. Keep every component on the

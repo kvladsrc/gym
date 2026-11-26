@@ -19,7 +19,7 @@
       - lab_cockpit_cloudflare_credentials_stat.stat.isreg
     fail_msg: >-
       Bootstrap {{ lab_cockpit_cloudflare_credentials }} with a Cloudflare API
-      token that can edit DNS records for your.domain.
+      token that can edit DNS records for bonfirelit.dev.
 
 - name: Protect the Cloudflare DNS credentials
   ansible.builtin.file:

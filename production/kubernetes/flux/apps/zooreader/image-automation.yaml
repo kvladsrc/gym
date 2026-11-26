@@ -5,7 +5,7 @@ metadata:
   name: zooreader
   namespace: flux-system
 spec:
-  image: registry.your.domain/zooreader
+  image: registry.bonfirelit.dev/zooreader
   interval: 1m
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
@@ -40,7 +40,7 @@ spec:
     commit:
       author:
         name: Flux
-        email: flux@your.domain
+        email: flux@bonfirelit.dev
       messageTemplate: "zooreader: Deploy promoted image"
     push:
       branch: master

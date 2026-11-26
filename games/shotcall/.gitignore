@@ -1,0 +1,8 @@
+# Built by make.py and build.py from qwen_review/data; the answer key is
+# never published.
+/data/
+/lib/
+/public/
+/.wrangler/
+/node_modules/
+__pycache__/

@@ -83,10 +83,17 @@ just doctor qwen_image  # what it sees: PyTorch, the GPU, the weights
 
 When a job is ready, the launcher starts its server with a `model_servers/`
 recipe (`just qwen_image` there), one GPU model at a time; a server can also
-be started by hand the same way. The launcher is a stand-in outside the
-studio: its `RECIPES` table in `launcher/launcher.py` maps the server ids of
-`studio.example.toml` to their recipes, and it leaves other servers alone, so
-a server may run elsewhere.
+be started by hand the same way. Two launchers started by mistake still run
+one server between them: a launcher runs a server only while it holds the
+lock `~/.cache/assets-studio/launcher/gpu.lock`. The launcher is a stand-in
+outside the studio: its `RECIPES` table in `launcher/launcher.py` maps the
+server ids of `studio.example.toml` to their recipes, and it leaves other
+servers alone, so a server may run elsewhere.
+
+To use the GPU for something else, run it with `just gpu-hold <command>`
+(from any directory): the launcher pauses while the command runs. The model
+it has loaded finishes the jobs queued for it and stops, no model starts, and
+the studio's jobs wait until the command ends, however it ends.
 
 ## Configuration
 

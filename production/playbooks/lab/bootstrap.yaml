@@ -1,6 +1,6 @@
 ---
 - name: Bootstrap pull-based GitOps on the lab server
-  hosts: lab.your.domain
+  hosts: lab.bonfirelit.dev
   become: true
   gather_facts: true
   vars_files:

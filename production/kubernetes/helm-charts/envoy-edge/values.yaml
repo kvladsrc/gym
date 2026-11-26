@@ -4,29 +4,29 @@ gateway:
   namespace: envoy-gateway-system
   className: bonfirelit-envoy
   address: "192.168.1.220"
-  tlsSecretName: your.domain-gateway-tls  # pragma: allowlist secret
+  tlsSecretName: bonfirelit-dev-gateway-tls  # pragma: allowlist secret
 
 hosts:
   direct:
-    - sso.your.domain
-    - bb.your.domain
-    - bb-grpc.your.domain
-    - registry.your.domain
-    - store.your.domain
-    - s3.your.domain
-    - blog.your.domain
-    - hedgedoc.your.domain
-    - k8s.your.domain
+    - sso.bonfirelit.dev
+    - bb.bonfirelit.dev
+    - bb-grpc.bonfirelit.dev
+    - registry.bonfirelit.dev
+    - store.bonfirelit.dev
+    - s3.bonfirelit.dev
+    - blog.bonfirelit.dev
+    - hedgedoc.bonfirelit.dev
+    - k8s.bonfirelit.dev
   authentikProxy:
-    - dash.your.domain
-    - feed.your.domain
-    - dns.your.domain
-    - review.your.domain
-    - b.your.domain
-    - search.your.domain
-    - notify.your.domain
-    - notebook.your.domain
-    - sql.your.domain
-    - read.your.domain
-    - write.your.domain
-    - ci.your.domain
+    - dash.bonfirelit.dev
+    - feed.bonfirelit.dev
+    - dns.bonfirelit.dev
+    - cl.bonfirelit.dev
+    - b.bonfirelit.dev
+    - cs.bonfirelit.dev
+    - notify.bonfirelit.dev
+    - notebook.bonfirelit.dev
+    - sql.bonfirelit.dev
+    - read.bonfirelit.dev
+    - write.bonfirelit.dev
+    - ci.bonfirelit.dev

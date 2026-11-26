@@ -24,7 +24,7 @@ openai:
   model: "gpt-5.4-nano"
 
 publishing:
-  base_url: "https://blog.your.domain"
+  base_url: "https://blog.bonfirelit.dev"
   state_key: "state.json"
 
 worker:

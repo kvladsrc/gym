@@ -3,7 +3,7 @@
   gather_facts: false
 
   vars:
-    image_repo: registry.your.domain/zooreader
+    image_repo: registry.bonfirelit.dev/zooreader
     image_tag: "rc-{{ zuul.commit_id }}"
 
   tasks:

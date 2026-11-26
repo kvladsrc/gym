@@ -70,9 +70,43 @@ that draws images using pixels, utilizing an ImageNet-trained model as
 the fitness function. It "evolves" images from random pixels into
 recognizable shapes.
 
-![Granny Smith](static/granny_smith.gif)
-![Indigo Bird](static/indigo_bird.gif)
-![Ladybug](static/ladybug.gif)
+### Steam Review Forecaster
+
+[`qwen_review`](qwen_review) — A LoRA adapter for Qwen3.5 that forecasts
+how many Steam reviews a game gets, and what share of them are
+positive, from one screenshot with the release year, genres and tags.
+It judges the look, not the game. On 3,315 games of 2026 held out from
+training it put 78.3% of game pairs in the right order (chance is 50%).
+The 2B adapter is on Hugging Face:
+[zjgkkn/qwen3.5-2b-steam-reviews-lora](https://huggingface.co/zjgkkn/qwen3.5-2b-steam-reviews-lora).
+Play against it in [Shot Call](https://shotcall.bonfirelit.dev/): of
+two Steam games of one genre, pick the one with more reviews.
+
+### Head Reader
+
+[`frommhr`](frommhr) — Reads a bald head's shape and colour from two
+pictures, the front and the profile, as Meta's MHR head coefficients
+and 14 pigment sliders, for building 3D game characters. It was trained
+only on synthetic renders of random MHR people on NVIDIA's SOMA mesh; on
+held-out people the rebuilt head's skin lies 0.27 mm from the truth on
+average. Assets Studio's `frommhr` server puts the head on a rigged,
+textured person.
+
+- Code: [`frommhr`](frommhr), from the training data to the published
+  package.
+- Model on Hugging Face:
+  [zjgkkn/frommhr](https://huggingface.co/zjgkkn/frommhr), with the
+  weights, the model card and an inference script.
+- Studio server:
+  [`assets_studio/model_servers/fromsoma`](assets_studio/model_servers/fromsoma).
+
+### Shot Search
+
+[`games/shotsearch`](games/shotsearch) — Finds Steam store screenshots
+like yours among about 500,000 of them: by look (DINOv2: layout,
+camera, forms, light) or by meaning (SigLIP 2: what is shown), with
+each game's real reviews and a `qwen_review` forecast for the shot. A
+browser UI and an MCP server for agents; runs on the CPU.
 
 ### Production Infrastructure
 

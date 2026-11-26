@@ -1,0 +1,8 @@
+name = "skolko-otzyvov"
+pages_build_output_dir = "./public"
+compatibility_date = "2025-09-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "skolko-otzyvov"
+database_id = "b262b5f0-6d44-4ff7-99bd-e0da91d19dae"

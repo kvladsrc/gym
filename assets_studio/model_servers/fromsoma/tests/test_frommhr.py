@@ -43,7 +43,7 @@ def test_stubble_only_for_men_from_eighteen() -> None:
 
 def test_missing_files_name_the_reader(tmp_path: Path) -> None:
     missing = missing_files(tmp_path)
-    assert missing[0] == "frommhr.pt"
+    assert missing[0] == "frommhr.safetensors"
     assert "face_landmarker.task" in missing
 
 

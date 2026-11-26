@@ -10,4 +10,4 @@ spec:
     kind: ClusterIssuer
     name: letsencrypt-production
   dnsNames:
-    - "*.your.domain"
+    - "*.bonfirelit.dev"

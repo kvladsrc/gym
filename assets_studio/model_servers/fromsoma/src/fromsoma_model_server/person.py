@@ -1,5 +1,5 @@
-"""A person from the reader's values: Anny's body with the face the reader read (fromsoma's MHR
-variation or fromanny's Anny face modifiers), carried onto SOMA's mesh and skeleton (a root and
+"""A person from the reader's values: Anny's body with the face the reader read (MHR's head
+variation), carried onto SOMA's mesh and skeleton (a root and
 SOMA's 77 public joints) by SOMA-X, in SOMA's bind pose, and painted from the pigment sliders.
 
 The colours follow the training renders' colour model. The skin comes from melanin, its
@@ -198,18 +198,7 @@ class Bodies:
         data = package["anny"]
         if int(self.anny.template_vertices.shape[0]) != int(data["vertices"]):
             raise RuntimeError("this Anny has another mesh than the reader was trained on")
-        if "modifiers" in package:  # fromanny: Anny's own face modifiers, left and right as one
-            self.fields = None
-            self.modifiers = list(package["modifiers"]["names"])
-            self.members = [list(labels) for labels in package["modifiers"]["members"]]
-            labels = {k for ks in self.members for k in ks}
-            if not labels <= set(self.anny.local_change_labels) or len(self.members) != int(
-                self.config["coefficients"]
-            ):
-                raise RuntimeError("this Anny lacks face modifiers the reader was trained with")
-        else:  # fromsoma: MHR's head fields
-            self.fields = package["fields"].float()
-            self.modifiers = self.members = None
+        self.fields = package["fields"].float()  # MHR's head variation on Anny's mesh
         self.eye_vertices = [v.long() for v in data["eye_vertices"]]
         self.head_vertices = data["head_vertices"].long()
         self.regions = {k: v.float() for k, v in data["regions"].items()}
@@ -287,23 +276,12 @@ class Bodies:
 
     @torch.no_grad()
     def rest(self, phenotype: Mapping[str, float], coefficients: Sequence[float]) -> torch.Tensor:
-        """Anny's rest shape (1, V, 3) with the face: fromsoma's MHR variation, scaled to the
-        head's size, or fromanny's Anny face modifiers, each clamped to Anny's -1..1 (Anny itself
-        extrapolates; the reader's training faces stayed within)."""
+        """Anny's rest shape (1, V, 3) with the face's MHR variation, scaled to the head's size."""
         phen = {k: torch.tensor([float(v)]) for k, v in phenotype.items()}
-        local: dict[str, torch.Tensor] = {}
-        if self.members is not None:
-            local = {
-                label: torch.tensor([min(1.0, max(-1.0, float(v)))])
-                for v, labels in zip(coefficients, self.members, strict=True)
-                for label in labels
-            }
         coeffs = self.anny.get_phenotype_blendshape_coefficients(
-            **self.anny.parse_phenotype_kwargs(phen), local_changes=local
+            **self.anny.parse_phenotype_kwargs(phen), local_changes={}
         )
         rest = self.anny.get_rest_vertices(coeffs)
-        if self.fields is None:
-            return rest
         eye_z = torch.stack([rest[:, v, 2].mean(1) for v in self.eye_vertices], 1).mean(1)
         h = 2 * (rest[:, self.head_vertices, 2].amax(1) - eye_z)
         c = torch.tensor([list(coefficients)], dtype=torch.float32)

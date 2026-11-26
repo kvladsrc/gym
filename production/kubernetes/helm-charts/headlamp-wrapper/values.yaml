@@ -5,9 +5,9 @@ headlamp:
     watchPlugins: true
     oidc:
       clientID: headlamp
-      issuerURL: "https://sso.your.domain/application/o/headlamp/"
+      issuerURL: "https://sso.bonfirelit.dev/application/o/headlamp/"
       scopes: "openid,profile,email"
-      callbackURL: "https://k8s.your.domain/oidc-callback"
+      callbackURL: "https://k8s.bonfirelit.dev/oidc-callback"
       usePKCE: true
       secret:
         create: true

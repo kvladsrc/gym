@@ -28,6 +28,10 @@ Code for data collection, training and evaluation:
 [kvladsrc/gym/qwen_review](https://github.com/kvladsrc/gym/tree/main/qwen_review)
 on GitHub.
 
+Play against it in [Shot Call](https://shotcall.bonfirelit.dev/), a browser
+game: of two Steam games of one genre released in 2026, pick the one with
+more reviews.
+
 Not affiliated with or endorsed by Valve. Steam is a trademark of Valve
 Corporation.
 

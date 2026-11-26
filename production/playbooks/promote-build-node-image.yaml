@@ -3,7 +3,7 @@
   gather_facts: false
 
   vars:
-    image_repo: registry.your.domain/build
+    image_repo: registry.bonfirelit.dev/build
     image_tag: "rc-{{ zuul.commit_id }}"
     image_promote_target_tag: current
     image_promote_require_source: false

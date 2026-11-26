@@ -1,6 +1,6 @@
 # Lab server GitOps
 
-The `lab.your.domain` Debian host reconciles its configuration from the
+The `lab.bonfirelit.dev` Debian host reconciles its configuration from the
 merged `master` branch with `ansible-pull`. A systemd timer runs the playbook
 every five minutes, so both new commits and manual configuration drift are
 applied.
@@ -16,7 +16,7 @@ applied.
 Package changes belong in `vars/main.yaml`. The host installs packages with
 Debian APT during its next reconciliation.
 
-Cockpit is available directly at `https://lab.your.domain`, without an
+Cockpit is available directly at `https://lab.bonfirelit.dev`, without an
 Authentik proxy or Kubernetes ingress. Certbot obtains and renews a dedicated
 Let's Encrypt certificate for the existing lab hostname through DNS-01.
 
@@ -27,7 +27,7 @@ Gerrit account and place its private key at
 `/etc/ansible-pull/id_ed25519` on the host.
 
 Also place a Cloudflare API token with `Zone:DNS:Edit` permission for
-`your.domain` in `/etc/ansible-pull/cloudflare.ini`:
+`bonfirelit.dev` in `/etc/ansible-pull/cloudflare.ini`:
 
 ```ini
 dns_cloudflare_api_token = token-value
@@ -51,14 +51,14 @@ as Docker; those are installed by the first pull from merged `master`.
 Inspect reconciliation state:
 
 ```console
-ssh lab.your.domain sudo systemctl status ansible-pull.timer
-ssh lab.your.domain sudo journalctl -u ansible-pull.service
+ssh lab.bonfirelit.dev sudo systemctl status ansible-pull.timer
+ssh lab.bonfirelit.dev sudo journalctl -u ansible-pull.service
 ```
 
 Trigger an immediate reconciliation:
 
 ```console
-ssh lab.your.domain sudo systemctl start ansible-pull.service
+ssh lab.bonfirelit.dev sudo systemctl start ansible-pull.service
 ```
 
 If a merged change is faulty, revert it in Gerrit. The next successful pull

@@ -67,6 +67,35 @@ studio *args:
 launcher *args:
     uv run python launcher/launcher.py "$@"
 
+# Run a command with the GPU to itself: the launcher pauses until it ends
+[no-cd]
+[positional-arguments]
+gpu-hold +args:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dir="${XDG_CACHE_HOME:-$HOME/.cache}/assets-studio/launcher"
+    mkdir -p "$dir"
+    if [[ -z "${GPU_HOLD_PAUSED:-}" ]]; then
+        # Run again under flock, which holds the pause (shared: several may
+        # wait) while this script runs; the launcher finds that process and its
+        # command line in /proc/locks.
+        export GPU_HOLD_PAUSED=1
+        exec flock -o -s "$dir/pause.lock" "$0" "$@"
+    fi
+    unset GPU_HOLD_PAUSED
+    # The GPU lock is exclusive; it ends with this script, and the command does
+    # not inherit it.
+    exec 9>>"$dir/gpu.lock"
+    if ! flock -n 9; then
+        echo "gpu-hold: waiting for the GPU ($(cat "$dir/gpu.lock")); a model finishes its queued jobs first" >&2
+        flock 9
+    fi
+    printf 'gpu-hold pid %d: %s (since %s)\n' "$$" "$*" "$(date '+%F %T')" >"$dir/gpu.lock"
+    status=0
+    "$@" 9>&- || status=$?
+    : >"$dir/gpu.lock"
+    exit "$status"
+
 # Separate editor and saved job graphs, http://127.0.0.1:9001
 [positional-arguments]
 flow *args:

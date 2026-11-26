@@ -2,7 +2,7 @@
 resource "authentik_user" "flux_service" {
   username  = "flux"
   name      = "Flux CD"
-  email     = "flux@your.domain"
+  email     = "flux@bonfirelit.dev"
   is_active = true
 
   # Service accounts typically don't need passwords for OAuth2
@@ -11,7 +11,7 @@ resource "authentik_user" "flux_service" {
     "cn"          = "flux"
     "dn"          = "cn=flux,ou=users,dc=bonfire,dc=lit"
     "sn"          = "flux"
-    "mail"        = "flux@your.domain"
+    "mail"        = "flux@bonfirelit.dev"
     "displayName" = "FluxCD"
   })
 }

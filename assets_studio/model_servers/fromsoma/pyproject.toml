@@ -17,6 +17,7 @@ dependencies = [
   "py-soma-x==0.3.3",
   "mediapipe==1.2.3",
   "huggingface-hub>=1.16",
+  "safetensors==0.8.0",
 ]
 
 [project.optional-dependencies]

@@ -19,11 +19,25 @@ leaves servers it did not start alone.
   loading server is left running, and so is any server when the launcher dies
   without exiting; the next launcher takes it over. A restart must not lose a
   generation in progress, and a server nobody manages blocks every other one.
+- One server at a time holds across launchers too: a launcher starts or takes
+  over a server only while it holds the GPU lock, an exclusive flock on
+  ~/.cache/assets-studio/launcher/gpu.lock whose text names the holder. Two
+  launchers started by mistake would otherwise both start a server before the
+  studio reports either. The kernel drops the lock when its holder's process
+  ends, so a crash leaves no stale lock behind.
+- A shared flock on ~/.cache/assets-studio/launcher/pause.lock pauses the
+  launcher for as long as it is held: the running server finishes the jobs
+  queued for it and then stops at once, and no server starts. Other programs
+  take the GPU this way (`just gpu-hold <command>` holds the pause and the GPU
+  lock while the command runs). The studio sends a server its next job as soon
+  as the last one ends, so the launcher cannot stop one between two jobs
+  without breaking the second. A pause ends with the process that holds it.
 
     uv run python launcher/launcher.py [--studio http://127.0.0.1:9000]
 """
 
 import argparse
+import fcntl
 import json
 import logging
 import os
@@ -33,10 +47,10 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Protocol, TextIO
 
 from model_server_sdk import EXIT_GPU_BROKEN
 
@@ -59,7 +73,6 @@ RECIPES = {
     "hairdeck": "hairdeck",
     "fromsoma": "fromsoma",
     "frommhr": "frommhr",
-    "fromanny": "fromanny",
     "rig": "mia",
     "skintokens": "skintokens",
     "unirig": "unirig",
@@ -128,6 +141,96 @@ def demand_of(jobs: Iterable[Mapping[str, Any]]) -> Demand:
     return Demand(running, tuple(ready))
 
 
+class GpuLock:
+    """An exclusive flock on a file, held while a launcher runs a server.
+
+    The lock belongs to the open file, not to a process: a second GpuLock on
+    the same path, even in the same process, does not get it. It is not
+    passed on to the servers, so it ends with the launcher's process.
+    """
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        self._file: TextIO | None = None
+
+    def acquire(self, holder: str) -> bool:
+        """Take the lock, or keep it, for ``holder``; False while someone else has it."""
+        if self._file is None:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            # Append mode: opening must not wipe the note of the one who holds it.
+            file = self.path.open("a+")
+            try:
+                fcntl.flock(file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                file.close()
+                return False
+            self._file = file
+        self._file.truncate(0)
+        self._file.write(
+            f"{holder} (launcher pid {os.getpid()}, since {time.strftime('%Y-%m-%d %H:%M:%S')})\n"
+        )
+        self._file.flush()
+        return True
+
+    def release(self) -> None:
+        if self._file is None:
+            return
+        self._file.truncate(0)
+        fcntl.flock(self._file, fcntl.LOCK_UN)
+        self._file.close()
+        self._file = None
+
+    def holder(self) -> str:
+        """Who holds it, as the holder wrote when it took the lock. Ask only
+        when the lock is taken: a crashed holder's note stays behind."""
+        try:
+            return self.path.read_text().strip()
+        except FileNotFoundError:
+            return ""
+
+
+def paused_by(path: Path) -> list[str] | None:
+    """Who holds a lock on ``path`` (a pause), or None when nobody does.
+
+    The list may be empty: /proc/locks does not always say who holds it.
+    """
+    try:
+        file = path.open()
+    except FileNotFoundError:
+        return None
+    with file:
+        try:
+            fcntl.flock(file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return _lock_holders(path)
+        fcntl.flock(file, fcntl.LOCK_UN)
+    return None
+
+
+def _lock_holders(path: Path) -> list[str]:
+    """The processes /proc/locks names for ``path``, with their command lines."""
+    try:
+        inode = str(path.stat().st_ino)
+        lines = Path("/proc/locks").read_text().splitlines()
+    except OSError:
+        return []
+    holders: list[str] = []
+    for line in lines:
+        # "3: FLOCK  ADVISORY  READ  1234 00:1b:5678 0 EOF"; a waiter's line has "->".
+        fields = line.split()
+        if len(fields) < 6 or "->" in fields or fields[5].rpartition(":")[2] != inode:
+            continue
+        pid = fields[4]
+        try:
+            command = Path(f"/proc/{pid}/cmdline").read_bytes().replace(b"\0", b" ")
+        except OSError:
+            continue
+        # The end says what runs: `flock … pause.lock <script> <command>`.
+        text = command.decode(errors="replace").strip()
+        holders.append(f"pid {pid}: {text if len(text) <= 160 else '…' + text[-159:]}")
+    return holders
+
+
 class Process(Protocol):
     pid: int
 
@@ -148,17 +251,27 @@ class Launcher:
     start: Callable[[str], Process]
     recipes: Mapping[str, str] = field(default_factory=lambda: dict(RECIPES))
     current: Current | None = None
+    lock: GpuLock = field(default_factory=lambda: GpuLock(LOGS / "gpu.lock"))
     failed_at: dict[str, float] = field(default_factory=dict[str, float])
     # The studio sees a stopped server go down only at its next check.
     stopped_at: dict[str, float] = field(default_factory=dict[str, float])
-    _waiting_for: str | None = None
+    # Why the last wanted server was not started, logged once.
+    _waiting: str | None = None
     # The last poll's view, for the decision on exit.
     _demand: Demand = field(default_factory=lambda: Demand(frozenset(), ()))
     _states: Mapping[str, str] = field(default_factory=dict[str, str])
 
-    def step(self, now: float, demand: Demand, states: Mapping[str, str]) -> None:
-        """One poll: ``states`` maps studio server ids to their state."""
+    def step(
+        self,
+        now: float,
+        demand: Demand,
+        states: Mapping[str, str],
+        paused_by: Sequence[str] | None = None,
+    ) -> None:
+        """One poll: ``states`` maps studio server ids to their state;
+        ``paused_by`` names who holds a pause, None when nobody does."""
         self._demand, self._states = demand, states
+        pause = None if paused_by is None else ("; ".join(paused_by) or "holder unknown")
         current = self.current
         if current is not None and (code := current.process.poll()) is not None:
             if code == EXIT_GPU_BROKEN:
@@ -172,20 +285,29 @@ class Launcher:
                 )
                 self.failed_at[current.server] = now
             _forget(current.server)
+            self.lock.release()
             self.current = current = None
         if current is not None:
             if demand.wants(current.server):
                 current.idle_since = None
+                if pause is not None:
+                    self._wait(f"paused ({pause}): {current.server} finishes its jobs first")
                 return
             if current.idle_since is None:
                 current.idle_since = now
             others = any(server != current.server for server in self._startable(now, demand))
-            if now - current.idle_since >= (SWITCH_S if others else IDLE_S):
-                logger.info("stopping %s: no jobs left", current.server)
+            grace = 0.0 if pause is not None else SWITCH_S if others else IDLE_S
+            if now - current.idle_since >= grace:
+                why = "the launcher is paused" if pause is not None else "no jobs left"
+                logger.info("stopping %s: %s", current.server, why)
                 current.process.stop()
                 _forget(current.server)
+                self.lock.release()
                 self.stopped_at[current.server] = now
                 self.current = None
+            return
+        if pause is not None:
+            self._wait(f"paused ({pause}): no server starts")
             return
         wanted = next(iter(self._startable(now, demand)), None)
         if wanted is None:
@@ -198,16 +320,21 @@ class Launcher:
             and now - self.stopped_at.get(server, -STALE_S) >= STALE_S
         ]
         if busy:
-            if self._waiting_for != wanted:
-                logger.info(
-                    "%s has jobs, but %s is already running (not started here)", wanted, busy[0]
-                )
-                self._waiting_for = wanted
+            self._wait(f"{wanted} has jobs, but {busy[0]} is already running (not started here)")
             return
-        self._waiting_for = None
+        if not self.lock.acquire(wanted):
+            holder = self.lock.holder() or "no note"
+            self._wait(f"{wanted} has jobs, but the GPU lock is taken ({holder})")
+            return
+        self._waiting = None
         logger.info("starting %s (just %s)", wanted, self.recipes[wanted])
         self.current = Current(wanted, self.start(self.recipes[wanted]))
         _remember(wanted, self.current.process.pid)
+
+    def _wait(self, why: str) -> None:
+        if self._waiting != why:
+            logger.info("%s", why)
+            self._waiting = why
 
     def _startable(self, now: float, demand: Demand) -> list[str]:
         return [
@@ -235,10 +362,14 @@ class Launcher:
             logger.info("stopping %s", current.server)
             current.process.stop()
             _forget(current.server)
+        # A server left running is the next launcher's: it takes the lock back.
+        self.lock.release()
         self.current = None
 
     def adopt(self) -> None:
-        """Take over a server a previous launcher left running; its pid file stays."""
+        """Take over a server a previous launcher left running; its pid file
+        stays. One whose launcher still runs (it holds the GPU lock) is left to
+        that launcher, pid file and all."""
         for path in sorted(LOGS.glob("*.pid")):
             server = path.stem
             try:
@@ -246,9 +377,13 @@ class Launcher:
             except ValueError:
                 pid = 0
             process = AdoptedProcess(pid)
-            if self.current is None and server in self.recipes and process.poll() is None:
+            alive = server in self.recipes and process.poll() is None
+            if alive and self.current is None and self.lock.acquire(server):
                 logger.info("taking over %s (pid %d) from the previous launcher", server, pid)
                 self.current = Current(server, process)
+            elif alive and self.current is None:
+                holder = self.lock.holder() or "no note"
+                logger.info("%s (pid %d) is another launcher's (%s)", server, pid, holder)
             else:
                 path.unlink(missing_ok=True)
 
@@ -378,7 +513,8 @@ def main() -> None:
                 reachable = False
             else:
                 reachable = True
-                launcher.step(time.monotonic(), demand_of(jobs), states)
+                pause = paused_by(LOGS / "pause.lock")
+                launcher.step(time.monotonic(), demand_of(jobs), states, pause)
             time.sleep(POLL_S)
     except KeyboardInterrupt:
         pass
